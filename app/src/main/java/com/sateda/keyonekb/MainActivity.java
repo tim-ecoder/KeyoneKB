@@ -5,9 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 
 import java.util.ArrayList;
@@ -18,6 +22,8 @@ import static android.content.ContentValues.TAG;
 public class MainActivity extends Activity {
 
     private Button btn_test_key;
+    private Button btn_power_manager;
+    private Button btn_sys_kb_setting;
     private Button btn_settings;
 
     @Override
@@ -27,8 +33,10 @@ public class MainActivity extends Activity {
 
         btn_settings = (Button) findViewById(R.id.btn_settings);
         btn_test_key = (Button) findViewById(R.id.btn_test_key);
+        btn_power_manager = (Button) findViewById(R.id.btn_power_manager);
+        btn_sys_kb_setting = (Button) findViewById(R.id.btn_sys_kb_setting);
 
-        btn_settings.setOnClickListener(new View.OnClickListener() {
+            btn_settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 setSettingsActivity();
@@ -42,15 +50,29 @@ public class MainActivity extends Activity {
             }
         });
 
-        SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> deviceSensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
+        btn_sys_kb_setting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_INPUT_METHOD_SETTINGS);
+                getApplicationContext().startActivity(intent);
+            }
+        });
 
-        Log.d(TAG, "sensorManager deviceSensors.get(i).getName() ");
-        //List<String> listSensorType = new ArrayList<>();
-        for (int i = 0; i < deviceSensors.size(); i++) {
-            //listSensorType.add(deviceSensors.get(i).getName());
-            Log.d(TAG, "sensorManager "+deviceSensors.get(i).getName()+" "+deviceSensors.get(i).getVendor());
-        }
+        btn_power_manager.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                String packageName = getApplicationContext().getPackageName();
+                PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+
+                if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                    intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    intent.setData(Uri.parse("package:" + packageName));
+                    getApplicationContext().startActivity(intent);
+                }
+            }
+        });
 
     }
 

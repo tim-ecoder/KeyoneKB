@@ -315,6 +315,7 @@ public class SatedaKeyboardView extends KeyboardView {
         super.onDraw(canvas);
 
         float startDrawLine, finishDrawLine;
+        int height = getKeyboard().getHeight();
 
         Paint paint_white = new Paint();
         paint_white.setTextAlign(Paint.Align.CENTER);
@@ -335,7 +336,7 @@ public class SatedaKeyboardView extends KeyboardView {
         for(Keyboard.Key key: keys) {
             if(key.label != null) {
                 if (!alt && key.codes[0] == 32){
-                    canvas.drawText(draw_lang, key.x + (key.width/2), key.y + 80, paint_white);
+                    canvas.drawText(draw_lang, key.x + (key.width/2), key.y + (height/2 + 20), paint_white);
 
                     float[] measuredWidth = new float[1];
                     paint_white.breakText(draw_lang, true, 800, measuredWidth);
@@ -346,7 +347,7 @@ public class SatedaKeyboardView extends KeyboardView {
                         finishDrawLine = startDrawLine+measuredWidth[0];
                     }
 
-                    if(shiftFirst) canvas.drawRect(startDrawLine, key.y + 85, finishDrawLine, key.y + 87, paint_white);
+                    if(shiftFirst) canvas.drawRect(startDrawLine, key.y + (height/2 + 25), finishDrawLine, key.y + (height/2 + 28), paint_white);
 
                     if(pref_flag) {
                         // Show flag icon
@@ -358,13 +359,13 @@ public class SatedaKeyboardView extends KeyboardView {
                                     ? R.drawable.ic_flag_russia_col
                                     : R.drawable.ic_flag_ukraine_col);
                             //Log.d("Tlt", "lang: " + lang + "; draw_lang: " + draw_lang);
-                            canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), key.x + (key.width / 2) - 210, key.y + 34, paint_white);
+                            canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), key.x + (key.width / 2) - 210, key.y + (height/2 - 28), paint_white);
                         } catch (Exception ex) {
                             Log.d("Tlt", "!ex: " + ex);
                         }
                     }
                 }else if (alt && key.codes[0] == 32){
-                    canvas.drawText(lang, key.x + (key.width/2), key.y + 80, paint_white);
+                    canvas.drawText(lang, key.x + (key.width/2), key.y + (height/2 + 20), paint_white);
                 }
                 if(showSymbol && key.codes[0] == -7){
                     startDrawLine = key.x + (key.width / 3);

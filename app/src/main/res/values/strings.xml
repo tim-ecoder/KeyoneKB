@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">KeyoneKB</string>
     <string name="btn_settings">Настройки</string>
+    <string name="btn_power_manager">Энергосбережение</string>
+    <string name="btn_sys_kb_setting">Активировать клавиатуру</string>
     <string name="btn_test_key">Тест кнопок</string>
 
     <string name="keyboard_test_input_hint">"Press any button to see it's code"</string>

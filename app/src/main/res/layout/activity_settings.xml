@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+<RelativeLayout
     android:id="@+id/activity_settings"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SettingsActivity">
-    <SeekBar
-        android:id="@+id/seekBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/textView"
-        android:max="10"
-        android:progress="10" />
 
     <Switch
         android:id="@+id/switch_ru_lang"
@@ -22,6 +20,13 @@
         android:textSize="24sp"
         tools:checked="true" />
 
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/switch_ru_lang"
+        android:background="?android:attr/listDivider" />
+
     <Switch
         android:id="@+id/switch_translit_ru_lang"
         android:layout_width="match_parent"
@@ -30,6 +35,13 @@
         android:text=" Русский (translit)"
         android:textSize="24sp"
         tools:checked="true" />
+
+    <View
+        android:id="@+id/divider2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/switch_translit_ru_lang"
+        android:background="?android:attr/listDivider" />
 
     <Switch
         android:id="@+id/switch_ua_lang"
@@ -41,6 +53,46 @@
         android:textSize="24sp"
         tools:checked="false" />
 
+    <View
+        android:id="@+id/divider3"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/switch_ua_lang"
+        android:background="?android:attr/listDivider" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider3"
+        android:text=" Чувствительность перемещения курсора свайпом по нижней панели:"
+        android:textColor="@color/black"
+        android:textSize="24sp" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textView"
+        android:max="10"
+        android:progress="10" />
+
+    <TextView
+        android:id="@+id/textViewSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/seekBar"
+        android:text="Ниже        |        Выше"
+        android:textAlignment="center"
+        android:textSize="18sp" />
+
+    <View
+        android:id="@+id/divider4"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/textViewSeekBar"
+        android:background="?android:attr/listDivider" />
+
     <Switch
         android:id="@+id/toast_show_lang"
         android:layout_width="match_parent"
@@ -48,6 +100,20 @@
         android:layout_below="@id/divider4"
         android:text=" Отображение Toast при смене языка"
         android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/text_toast_show_lang"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toast_show_lang"
+        android:text=" Необходимо включить, для корректной работы Text Layout Tools" />
+
+    <View
+        android:id="@+id/divider5"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/text_toast_show_lang"
+        android:background="?android:attr/listDivider" />
 
     <Switch
         android:id="@+id/switch_alt_space"
@@ -59,72 +125,11 @@
         tools:checked="true" />
 
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider3"
-        android:text=" Чувствительность перемещения курсора свайпом по нижней панели:"
-        android:textColor="@color/black"
-        android:textSize="24sp" />
-
-    <TextView
-        android:id="@+id/textViewSeekBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/seekBar"
-        android:text="Ниже        |        Выше"
-        android:textAlignment="center"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/text_toast_show_lang"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/toast_show_lang"
-        android:text=" Необходимо включить, для корректной работы Text Layout Tools" />
-
-    <TextView
         android:id="@+id/text_help_alt_space"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_alt_space"
         android:text=" В выключеном положении ALT режим будет отключен при вводе первой же клавиши, во включеном состоянии ALT символы будут набираться до тех пор, пока не будет нажат пробел" />
-
-    <View
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/switch_ru_lang"
-        android:background="?android:attr/listDivider" />
-
-
-    <View
-        android:id="@+id/divider2"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/switch_translit_ru_lang"
-        android:background="?android:attr/listDivider" />
-
-    <View
-        android:id="@+id/divider3"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/switch_ua_lang"
-        android:background="?android:attr/listDivider" />
-
-    <View
-        android:id="@+id/divider4"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/textViewSeekBar"
-        android:background="?android:attr/listDivider" />
-
-    <View
-        android:id="@+id/divider5"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/text_toast_show_lang"
-        android:background="?android:attr/listDivider" />
 
     <View
         android:id="@+id/divider6"
@@ -134,34 +139,102 @@
         android:background="?android:attr/listDivider" />
 
     <Switch
-        android:id="@+id/switch_sympad"
+        android:id="@+id/switch_flag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider6"
-        android:text=" SymPad"
+        android:text=" Флаг на нижней панели"
         android:textSize="24sp"
         tools:checked="false" />
-
-    <TextView
-        android:id="@+id/text_help_sympad"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/switch_sympad"
-        android:text=" Вместо панели навигации будет SymPad. Для активации необходимо зажать клавишу Sym на 1 секунду." />
 
     <View
         android:id="@+id/divider7"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@id/text_help_sympad"
+        android:layout_below="@id/switch_flag"
         android:background="?android:attr/listDivider" />
 
     <Switch
-        android:id="@+id/switch_flag"
+        android:id="@+id/switch_longpress_alt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider7"
-        android:text=" Флаг на нижней панели"
+        android:text=" Зажатие клавиши печатает ALT символ"
         android:textSize="24sp"
-        tools:checked="false" />
+        tools:checked="true" />
+
+    <View
+        android:id="@+id/divider8"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/switch_longpress_alt"
+        android:background="?android:attr/listDivider" />
+
+    <Switch
+        android:id="@+id/switch_space_accept_call"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider8"
+        android:text=" Поднимать трубку двойным пробелом"
+        android:textSize="24sp"
+        tools:checked="true" />
+
+    <View
+        android:id="@+id/divider9"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/switch_space_accept_call"
+        android:background="?android:attr/listDivider" />
+
+    <TextView
+        android:id="@+id/sizeBtnPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider9"
+        android:text=" Высота нижней панели:"
+        android:textColor="@color/black"
+        android:textSize="24sp" />
+
+
+    <SeekBar
+        android:id="@+id/seekBarBtnPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sizeBtnPanel"
+        android:max="10"
+        android:progress="10" />
+
+    <TextView
+        android:id="@+id/textViewBtnPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/seekBarBtnPanel"
+        android:text="Меньше        |        Больше"
+        android:textAlignment="center"
+        android:textSize="18sp" />
+
+    <View
+        android:id="@+id/divider10"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/textViewBtnPanel"
+        android:background="?android:attr/listDivider" />
+
+    <Switch
+        android:id="@+id/switch_pocket_patch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider10"
+        android:text=" Pocket Patch"
+        android:textSize="24sp"
+        tools:checked="true" />
+
+    <TextView
+        android:id="@+id/text_help_pocket_patch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/switch_pocket_patch"
+        android:text=" Необходимо активировать этот патч, если у Вас телефон Unihertz Titan Pocket" />
+
 </RelativeLayout>
+</ScrollView>

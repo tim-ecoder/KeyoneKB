@@ -4,12 +4,16 @@ package com.sateda.keyonekb;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import static android.content.ContentValues.TAG;
 
 public class KeyboardTestActivity extends Activity {
     private View codeTitleView;
@@ -21,6 +25,8 @@ public class KeyboardTestActivity extends Activity {
     private EditText inputView;
 
     private TextView metaInfoView;
+
+    private TextView touchInfoView;
 
     private View scanCodeTitleView;
 
@@ -38,6 +44,7 @@ public class KeyboardTestActivity extends Activity {
     public void onCreate(Bundle paramBundle) {
         super.onCreate(paramBundle);
         setContentView(R.layout.activity_keyboard_test);
+        this.touchInfoView = (TextView)findViewById(R.id.touch_info);
         this.codeView = (TextView)findViewById(R.id.code);
         this.codeTitleView = findViewById(R.id.codeTitle);
         this.scanCodeView = (TextView)findViewById(R.id.scanCode);
@@ -70,6 +77,22 @@ public class KeyboardTestActivity extends Activity {
                 return false;
             }
         });
+
+
+        this.inputView.setOnGenericMotionListener(new View.OnGenericMotionListener() {
+                @Override
+                public boolean onGenericMotion(View v, MotionEvent event) {
+                    //Log.v(TAG, "onGenericMotionEvent(): event " + event);
+                    KeyboardTestActivity.this.touchInfoView.setText("touch X = "+event.getX()+", Y ="+event.getY());
+                    return true;
+                }
+        });
+
+
+
+
+        //this.inputView
+
         this.inputView.requestFocus();
         this.metaInfoView = (TextView)findViewById(R.id.meta_info);
         this.deviceInfoView = (TextView)findViewById(R.id.device_info);

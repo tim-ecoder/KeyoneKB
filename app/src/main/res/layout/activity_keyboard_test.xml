@@ -12,6 +12,7 @@
             <TextView android:textSize="40.0sp" android:gravity="center" android:id="@+id/code" android:layout_width="fill_parent" android:layout_height="fill_parent" android:text="0" android:layout_weight="1.0" />
         </LinearLayout>
         <TextView android:id="@+id/device_info" android:visibility="gone" android:layout_width="fill_parent" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/touch_info" android:layout_width="fill_parent" android:layout_height="wrap_content" />
         <TextView android:id="@+id/meta_info" android:layout_width="fill_parent" android:layout_height="wrap_content" />
         <EditText android:id="@+id/input" android:layout_width="fill_parent" android:layout_height="wrap_content" android:hint="@string/keyboard_test_input_hint" />
     </LinearLayout>

@@ -1,13 +1,22 @@
 package com.sateda.keyonekb;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Point;
+import android.net.Uri;
 import android.os.Environment;
+import android.os.PowerManager;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telecom.TelecomManager;
 import android.util.Log;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -18,6 +27,7 @@ import android.widget.Switch;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.security.Key;
 import java.util.Map;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -29,8 +39,14 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String APP_PREFERENCES_SENS_BOTTON_BAR = "sens_botton_bar";
     public static final String APP_PREFERENCES_SHOW_TOAST = "show_toast";
     public static final String APP_PREFERENCES_ALT_SPACE = "alt_space";
-    public static final String APP_PREFERENCES_SYMPAD = "sympad";
+    public static final String APP_PREFERENCES_LONGPRESS_ALT = "longpress_alt";
+    public static final String APP_PREFERENCES_SPACE_ACCEPT_CALL = "space_accept_call";
     public static final String APP_PREFERENCES_FLAG = "flag";
+    public static final String APP_PREFERENCES_HEIGHT_BOTTON_BAR = "height_botton_bar";
+    public static final String APP_PREFERENCES_POCKET_PATCH = "pocket_patch";
+
+
+    private static final int REQUEST_PERMISSION_CODE = 101;
 
     private SharedPreferences mSettings;
 
@@ -40,9 +56,12 @@ public class SettingsActivity extends AppCompatActivity {
     private Switch toast_show_lang;
     private SeekBar sens_botton_bar;
     private Switch switch_alt_space;
-    private Switch switch_sympad;
+    private Switch switch_longpress_alt;
+    private Switch switch_space_accept_call;
     private Switch switch_flag;
     private RelativeLayout layout;
+    private SeekBar height_botton_bar;
+    private Switch switch_pocket_patch;
 
     private float touchY;
 
@@ -52,6 +71,7 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         layout = (RelativeLayout) findViewById(R.id.activity_settings);
+        //layout.setMinimumHeight(5000);
 
         switch_ru_lang = (Switch) findViewById(R.id.switch_ru_lang);
         switch_ru_lang.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -111,11 +131,27 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_sympad = (Switch) findViewById(R.id.switch_sympad);
-        switch_sympad.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        switch_longpress_alt = (Switch) findViewById(R.id.switch_longpress_alt);
+        switch_longpress_alt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeSymPad(isChecked);
+                changeLongpressAlt(isChecked);
+            }
+        });
+
+        switch_space_accept_call = (Switch) findViewById(R.id.switch_space_accept_call);
+        switch_space_accept_call.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                changeSpaceAcceptCall(isChecked);
+            }
+        });
+
+        switch_pocket_patch = (Switch) findViewById(R.id.switch_pocket_patch);
+        switch_pocket_patch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                changePocketPatch(isChecked);
             }
         });
 
@@ -124,6 +160,24 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 changeFlag(isChecked);
+            }
+        });
+
+        height_botton_bar = (SeekBar) findViewById(R.id.seekBarBtnPanel);
+        height_botton_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                changeHeightBottonBar(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
 
@@ -150,11 +204,20 @@ public class SettingsActivity extends AppCompatActivity {
         if(mSettings.contains(APP_PREFERENCES_ALT_SPACE)) {
             switch_alt_space.setChecked(mSettings.getBoolean(APP_PREFERENCES_ALT_SPACE, true));
         }
-        if(mSettings.contains(APP_PREFERENCES_SYMPAD)) {
-            switch_sympad.setChecked(mSettings.getBoolean(APP_PREFERENCES_SYMPAD, false));
+        if(mSettings.contains(APP_PREFERENCES_LONGPRESS_ALT)) {
+            switch_longpress_alt.setChecked(mSettings.getBoolean(APP_PREFERENCES_LONGPRESS_ALT, false));
+        }
+        if(mSettings.contains(APP_PREFERENCES_SPACE_ACCEPT_CALL)) {
+            switch_space_accept_call.setChecked(mSettings.getBoolean(APP_PREFERENCES_SPACE_ACCEPT_CALL, false));
         }
         if(mSettings.contains(APP_PREFERENCES_FLAG)) {
             switch_flag.setChecked(mSettings.getBoolean(APP_PREFERENCES_FLAG, false));
+        }
+        if(mSettings.contains(APP_PREFERENCES_HEIGHT_BOTTON_BAR)) {
+            height_botton_bar.setProgress(mSettings.getInt(APP_PREFERENCES_HEIGHT_BOTTON_BAR, 10));
+        }
+        if(mSettings.contains(APP_PREFERENCES_POCKET_PATCH)) {
+            switch_pocket_patch.setChecked(mSettings.getBoolean(APP_PREFERENCES_POCKET_PATCH, false));
         }
     }
 
@@ -182,6 +245,12 @@ public class SettingsActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    private void changeHeightBottonBar(int val){
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt(APP_PREFERENCES_HEIGHT_BOTTON_BAR, val);
+        editor.apply();
+    }
+
     private void changeToast(boolean isChecked){
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putBoolean(APP_PREFERENCES_SHOW_TOAST, isChecked);
@@ -194,10 +263,31 @@ public class SettingsActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void changeSymPad(boolean isChecked){
+    private void changeLongpressAlt(boolean isChecked){
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_SYMPAD, isChecked);
+        editor.putBoolean(APP_PREFERENCES_LONGPRESS_ALT, isChecked);
         editor.apply();
+    }
+
+    private void changeSpaceAcceptCall(boolean isChecked){
+
+        if(isChecked && this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED){
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS)!=PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
+            }
+        }
+
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putBoolean(APP_PREFERENCES_SPACE_ACCEPT_CALL, isChecked);
+        editor.apply();
+    }
+
+    private void changePocketPatch(boolean isChecked){
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putBoolean(APP_PREFERENCES_POCKET_PATCH, isChecked);
+        editor.apply();
+        switch_translit_ru_lang.setEnabled(!isChecked);
+        switch_ua_lang.setEnabled(!isChecked);
     }
 
     private void changeFlag(boolean isChecked){
@@ -226,4 +316,33 @@ public class SettingsActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)  {
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        int step = 500;
+        if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN){
+            display.getSize(size);
+            if(layout.getY()+step <=  size.y - layout.getHeight() - 300){
+                layout.setY(layout.getY()+step);
+            }else{
+                layout.setY(size.y - layout.getHeight() - 300);
+            }
+            return true;
+        }
+        if(keyCode == KeyEvent.KEYCODE_VOLUME_UP){
+            display.getSize(size);
+            if(layout.getY()-step >=  10){
+                layout.setY(layout.getY()-step);
+            }else{
+                layout.setY(10);
+            }
+            return true;
+        }
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+            Intent switchActivityIntent = new Intent(this, MainActivity.class);
+            startActivity(switchActivityIntent);
+        }
+        return false;
+    }
 }

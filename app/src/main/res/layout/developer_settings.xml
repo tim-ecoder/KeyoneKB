@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/developer_settings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".SettingsActivity">
+        <Switch
+            android:id="@+id/switch_toast_package"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=" Toast package name"
+            android:textSize="24sp"
+            tools:checked="false" />
+        <TextView
+            android:id="@+id/text_toast_package"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/switch_toast_package"
+            android:text=" Будет каждый раз выводить имя пакета, при смене окна." />
+
+    </RelativeLayout>
+</ScrollView>
