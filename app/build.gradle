@@ -17,6 +17,8 @@ android {
 
     buildTypes {
         release {
+
+            //TODO: Проработать release-оптимизации. Нужны они для клавиатуры?
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -24,7 +26,7 @@ android {
     applicationVariants.all { variant ->
         variant.outputs.all {
             //outputFileName = "ApplicationName-${variant.name}-${variant.versionName}.apk"
-            //TODO: Не работает штатный механизм наименования файла от разработчика (если он был)
+            //TODO: сделал такую настройку т.е. не работает штатный механизм наименования файла от разработчика (если он был)
             outputFileName = "KeyoneKB.apk"
         }
     }
@@ -32,6 +34,8 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    //TODO: Иначе release версия не собирается
     lintOptions {
         abortOnError false
     }
