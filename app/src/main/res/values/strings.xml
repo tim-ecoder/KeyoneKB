@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">KeyoneKB</string>
+    <string name="btn_settings">Настройки</string>
+    <string name="btn_test_key">Тест кнопок</string>
+
+    <string name="keyboard_test_input_hint">"Press any button to see it's code"</string>
+    <string name="keyboard_test_show_scancode">Show scan code</string>
+    <string name="keyboard_test_scancode_title">Scan Code</string>
+    <string name="keyboard_test_code_title">Android KeyCode</string>
+    <string name="pref_key_keyboard_test">Тест клавиатуры</string>
+</resources>

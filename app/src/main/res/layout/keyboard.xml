@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.sateda.keyonekb.SatedaKeyboardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_alignParentBottom="true"
+
+    android:keyTextColor="@android:color/white"
+    android:keyBackground="@drawable/key_background"
+    android:keyPreviewLayout="@layout/key_preview"
+    android:background="@color/keyboard_background_color"
+    android:popupLayout="@layout/keyboard_popup_layout"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+</com.sateda.keyonekb.SatedaKeyboardView>

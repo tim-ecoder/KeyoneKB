@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_settings"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SettingsActivity">
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textView"
+        android:max="10"
+        android:progress="10" />
+
+    <Switch
+        android:id="@+id/switch_ru_lang"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=" Русский язык"
+        android:textSize="24sp"
+        tools:checked="true" />
+
+    <Switch
+        android:id="@+id/switch_translit_ru_lang"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider"
+        android:text=" Русский (translit)"
+        android:textSize="24sp"
+        tools:checked="true" />
+
+    <Switch
+        android:id="@+id/switch_ua_lang"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider2"
+        android:editable="false"
+        android:text=" Украинский язык"
+        android:textSize="24sp"
+        tools:checked="false" />
+
+    <Switch
+        android:id="@+id/toast_show_lang"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider4"
+        android:text=" Отображение Toast при смене языка"
+        android:textSize="24sp" />
+
+    <Switch
+        android:id="@+id/switch_alt_space"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider5"
+        android:text=" Выключать ALT пробелом"
+        android:textSize="24sp"
+        tools:checked="true" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider3"
+        android:text=" Чувствительность перемещения курсора свайпом по нижней панели:"
+        android:textColor="@color/black"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/textViewSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/seekBar"
+        android:text="Ниже        |        Выше"
+        android:textAlignment="center"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/text_toast_show_lang"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toast_show_lang"
+        android:text=" Необходимо включить, для корректной работы Text Layout Tools" />
+
+    <TextView
+        android:id="@+id/text_help_alt_space"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/switch_alt_space"
+        android:text=" В выключеном положении ALT режим будет отключен при вводе первой же клавиши, во включеном состоянии ALT символы будут набираться до тех пор, пока не будет нажат пробел" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/switch_ru_lang"
+        android:background="?android:attr/listDivider" />
+
+
+    <View
+        android:id="@+id/divider2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/switch_translit_ru_lang"
+        android:background="?android:attr/listDivider" />
+
+    <View
+        android:id="@+id/divider3"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/switch_ua_lang"
+        android:background="?android:attr/listDivider" />
+
+    <View
+        android:id="@+id/divider4"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/textViewSeekBar"
+        android:background="?android:attr/listDivider" />
+
+    <View
+        android:id="@+id/divider5"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/text_toast_show_lang"
+        android:background="?android:attr/listDivider" />
+
+    <View
+        android:id="@+id/divider6"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/text_help_alt_space"
+        android:background="?android:attr/listDivider" />
+
+    <Switch
+        android:id="@+id/switch_sympad"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider6"
+        android:text=" SymPad"
+        android:textSize="24sp"
+        tools:checked="false" />
+
+    <TextView
+        android:id="@+id/text_help_sympad"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/switch_sympad"
+        android:text=" Вместо панели навигации будет SymPad. Для активации необходимо зажать клавишу Sym на 1 секунду." />
+
+    <View
+        android:id="@+id/divider7"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/text_help_sympad"
+        android:background="?android:attr/listDivider" />
+
+    <Switch
+        android:id="@+id/switch_flag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider7"
+        android:text=" Флаг на нижней панели"
+        android:textSize="24sp"
+        tools:checked="false" />
+</RelativeLayout>

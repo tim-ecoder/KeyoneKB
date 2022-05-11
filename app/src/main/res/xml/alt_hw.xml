@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<keys>
+	<key scan_code="16" alt="35"  alt_shift="126"/>
+	<key scan_code="17" alt="49"  alt_shift="715" />
+	<key scan_code="18" alt="50"  alt_shift="123" />
+	<key scan_code="19" alt="51"  alt_shift="125" />
+	<key scan_code="20" alt="40"  alt_shift="91" alt_popup="{[(&#60;«" />
+	<key scan_code="21" alt="41"  alt_shift="93" alt_popup="}])>»" />
+	<key scan_code="22" alt="95"  alt_shift="60" />
+	<key scan_code="23" alt="45"  alt_shift="62" />
+	<key scan_code="24" alt="43"  alt_shift="94" alt_popup="+±" alt_shift_popup="→←↓↑" />
+	<key scan_code="25" alt="64"  alt_shift="37" />
+
+	<key scan_code="30" alt="42"  alt_shift="61" />
+	<key scan_code="31" alt="52"  alt_shift="247" />
+	<key scan_code="32" alt="53"  alt_shift="177" />
+	<key scan_code="33" alt="54"  alt_shift="8226" />
+	<key scan_code="34" alt="47"  alt_shift="92" />
+	<key scan_code="35" alt="58"  alt_shift="124" />
+	<key scan_code="36" alt="59"  alt_shift="38" />
+	<key scan_code="37" alt="39"  alt_shift="169" />
+	<key scan_code="38" alt="34"  alt_shift="765" />
+
+	<key scan_code="44" alt="55"  alt_shift="171" />
+	<key scan_code="45" alt="56"  alt_shift="187" />
+	<key scan_code="46" alt="57"  alt_shift="8482" />
+	<key scan_code="47" alt="63"  alt_shift="191"  alt_popup="&#191;&#63;" />
+	<key scan_code="48" alt="33"  alt_shift="161" />
+	<key scan_code="49" alt="44"  alt_shift="425" />
+	<key scan_code="50" alt="46"  alt_shift="167" />
+	<key scan_code="5"  alt="36"  alt_shift="8364"  alt_popup="₽₴₩£₪¥$€" alt_shift_popup="₽₴₩£₪¥$€" />
+</keys>
