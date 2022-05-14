@@ -74,6 +74,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     private Keyboard keyboard_symbol;
 
     private Boolean fixBbkContact = false; // костыль для приложения Блекбери контакты
+    private Boolean fixBbkDialer  = false; // аналогичный костыль для приложения Телефон чтобы в нем искалось на русском языке
     private Boolean fixBbkLauncher = false;
 
     private SharedPreferences mSettings;
@@ -336,6 +337,12 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             fixBbkLauncher = false;
         }
 
+        if(attribute.packageName.equals("com.android.dialer")) {
+            fixBbkDialer = true;
+        }else{
+            fixBbkDialer = false;
+        }
+
         if(!attribute.packageName.equals(lastPackageName))
         {
             lastPackageName = attribute.packageName;
@@ -443,6 +450,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                                                        && event.getScanCode() != 183){
             Log.d(TAG, "Oh! this fixBbkLauncher "+fixBbkLauncher);
             return super.onKeyDown(keyCode, event);
+            //TODO: Почему смена языка выделена в блоке Launcher?
         }else if(fixBbkLauncher &&  !this.isInputViewShown() && event.getScanCode() == 11 && event.getRepeatCount() == 0 ){
             ChangeLanguage();
             return true;
@@ -639,11 +647,13 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         //Log.d(TAG, "onKeyDown shiftPressFirstButtonBig="+shiftPressFirstButtonBig+" shiftPressAllButtonBig="+shiftPressAllButtonBig+" altShift="+altShift);
 
 
+        //НЕПОСРЕДСТВЕННО СМЕНА ЯЗЫКА НУЛЕМ
         if(event.getScanCode() == 11 && event.getRepeatCount() == 0 && alt == false ){
             ChangeLanguage();
             return true;
         }else if(event.getScanCode() == 11 && event.getRepeatCount() == 1 && alt == false ){
             pref_touch_keyboard = !pref_touch_keyboard;
+            //TODO: Сделать переход в режим тача вместо зажатия
             ChangeLanguageBack();
             return true;
         }else if(event.getScanCode() == 11 && event.getRepeatCount() > 1 && alt == false ){
@@ -689,11 +699,18 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         if(code != 0){
             if(fixBbkContact && !isEnglishKb){
                 if(ic!=null){
-                    ic.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_SEARCH));
-                    ic.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_UP, KeyEvent.KEYCODE_SEARCH));
+                    keyDownUp(KeyEvent.KEYCODE_SEARCH);
                 }
                 fixBbkContact = false;
             }
+            if(fixBbkDialer && !isEnglishKb){
+                if(!this.isInputViewShown() && ic!=null){
+                    ic.commitText(String.valueOf((char) '0'), 1);
+                    keyDownUp(KeyEvent.KEYCODE_DEL);
+                }
+                fixBbkDialer = false;
+            }
+
             mAltPressTime = 0;
             if(event.isAltPressed()) altPlusBtn = true;
             if(pref_alt_space == false && altPressFirstButtonBig == true) altPressFirstButtonBig = false;
@@ -1517,7 +1534,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
             if (tm != null && this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "handleAltOnCalling endCall");
-                tm.endCall();
+                //TODO: Problem: tm.endCall();
                 //keyDownUp(KeyEvent.KEYCODE_ENDCALL);
                 return true;
             }

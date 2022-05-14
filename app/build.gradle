@@ -3,6 +3,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('C:\\Users\\User\\keystores\\upload-keystore-ecoder.jks')
+            storePassword 'qwerty'
+            keyAlias 'key0'
+            keyPassword 'qwerty'
+        }
+    }
     compileSdkVersion 28
 
     defaultConfig {
@@ -13,6 +21,7 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.debug
     }
 
     buildTypes {
