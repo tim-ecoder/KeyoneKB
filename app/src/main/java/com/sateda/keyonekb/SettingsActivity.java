@@ -43,6 +43,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String APP_PREFERENCES_SPACE_ACCEPT_CALL = "space_accept_call";
     public static final String APP_PREFERENCES_FLAG = "flag";
     public static final String APP_PREFERENCES_HEIGHT_BOTTON_BAR = "height_botton_bar";
+    //TODO: unihertz-kill
     public static final String APP_PREFERENCES_POCKET_PATCH = "pocket_patch";
 
 
