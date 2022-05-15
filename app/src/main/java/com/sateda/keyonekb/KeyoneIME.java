@@ -3,15 +3,12 @@ package com.sateda.keyonekb;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -27,11 +24,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputBinding;
 import android.view.inputmethod.InputConnection;
-import android.view.inputmethod.InputMethodManager;
 import android.view.textservice.SentenceSuggestionsInfo;
 import android.view.textservice.SpellCheckerSession;
 import android.view.textservice.SuggestionsInfo;
@@ -41,10 +35,7 @@ import com.sateda.keyonekb.input.CallStateCallback;
 
 import org.xmlpull.v1.XmlPullParser;
 
-import java.lang.reflect.Method;
-
 import static android.content.ContentValues.TAG;
-import static android.view.View.INVISIBLE;
 
 public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
 
@@ -63,6 +54,13 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     public static final String APP_PREFERENCES_FLAG = "flag";
     public static final String APP_PREFERENCES_HEIGHT_BOTTON_BAR = "height_botton_bar";
     public static final String APP_PREFERENCES_POCKET_PATCH = "pocket_patch";
+    public static final int KEY_0 = 11;
+    public static final int CHAR_0 = 48;
+    public static final int KEY_SYM = 100;
+    public static final int SCAN_CODE_SHIFT = 110;
+    public static final int DOUBLE_CLICK_TIME = 400;
+    public static final int CHAR_SPACE = 32;
+    public static final int DOUBLE_SPACE_TIME = 500;
 
     private CallStateCallback callStateCallback;
 
@@ -73,9 +71,9 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     private Keyboard keyboard_empty;
     private Keyboard keyboard_symbol;
 
-    private Boolean fixBbkContact = false; // костыль для приложения Блекбери контакты
-    private Boolean fixBbkDialer  = false; // аналогичный костыль для приложения Телефон чтобы в нем искалось на русском языке
-    private Boolean fixBbkLauncher = false;
+    private Boolean startInputAtBbContactsApp = false; // костыль для приложения Блекбери контакты
+    private Boolean startInputAtBbPhoneApp = false; // аналогичный костыль для приложения Телефон чтобы в нем искалось на русском языке
+    private Boolean startInputAtBbLauncherApp = false;
 
     private SharedPreferences mSettings;
 
@@ -88,7 +86,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
     private boolean ctrlPressed = false; // только первая буква будет большая
 
-    private long mShiftPressTime;
+    private long mShiftFirstPressTime;
     private boolean shiftPressFirstButtonBig; // только первая буква будет большая
     private boolean shiftPressFirstButtonBigDoublePress; // только первая буква будет большая (для двойного нажатия на одну и туже кнопку)
     private boolean shiftAfterPoint; // большая буква после точки (все отдано на откуп операционке, скорее всего надо будет удалить эту переменную)
@@ -104,7 +102,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     private boolean navigationSymbol;
     private boolean fnSymbol;
 
-    private boolean menuKeyPressed; //нажатие клавишь с зажатым альтом
+    private boolean menuEmulatedKeyPressed; //нажатие клавишь с зажатым альтом
 
     private boolean altPressed; //нажатие клавишь с зажатым альтом
     private boolean altPlusBtn;
@@ -139,11 +137,11 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     private int sens_botton_bar = 10;
     private boolean show_toast = false;
     private boolean pref_alt_space = true;
-    private boolean pref_pocket_patch = false;
+    //private boolean pref_pocket_patch = false;
     private boolean pref_flag = false;
     private boolean pref_longpress_alt = false;
-
-    private boolean pref_touch_keyboard = false;
+    private boolean key_0_hold = false;
+    private boolean enable_keyboard_gestures = false;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -156,7 +154,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             tm.listen(callStateCallback, PhoneStateListener.LISTEN_CALL_STATE);
         }
 
-        mShiftPressTime = 0;
+        mShiftFirstPressTime = 0;
         shiftPressFirstButtonBig = false;
         shiftPressFirstButtonBigDoublePress = false;
         shiftAfterPoint = false;
@@ -166,7 +164,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         mAltPressTime = 0;
         altPressFirstButtonBig = false;
         altPressAllButtonBig = false;
-        menuKeyPressed = false;
+        menuEmulatedKeyPressed = false;
         altShift = false;
         altPressed = false;
         altPlusBtn = false;
@@ -174,6 +172,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         navigationSymbol = false;
         fnSymbol = false;
         ctrlPressed = false;
+        key_0_hold = false;
 
         pref_height_botton_bar = 10;
 
@@ -226,8 +225,9 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         boolean lang_translit_ru_on = false;
         boolean lang_ua_on = false;
 
+        //TODO: unihertz-kill удалить настройку
         if(mSettings.contains(APP_PREFERENCES_POCKET_PATCH)) {
-            pref_pocket_patch = mSettings.getBoolean(APP_PREFERENCES_POCKET_PATCH, false);
+            //pref_pocket_patch = mSettings.getBoolean(APP_PREFERENCES_POCKET_PATCH, false);
         }
 
         if(mSettings.contains(APP_PREFERENCES_RU_LANG)) {
@@ -239,12 +239,12 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
         if(mSettings.contains(APP_PREFERENCES_TRANSLIT_RU_LANG)) {
             lang_translit_ru_on = mSettings.getBoolean(APP_PREFERENCES_TRANSLIT_RU_LANG, false);
-            if(lang_translit_ru_on && !pref_pocket_patch) langCount++;
+            if(lang_translit_ru_on) langCount++;
         }
 
         if(mSettings.contains(APP_PREFERENCES_UA_LANG)) {
             lang_ua_on = mSettings.getBoolean(APP_PREFERENCES_UA_LANG, false);
-            if(lang_ua_on && !pref_pocket_patch) langCount++;
+            if(lang_ua_on) langCount++;
         }
 
         if(mSettings.contains(APP_PREFERENCES_SENS_BOTTON_BAR)) {
@@ -274,18 +274,15 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         langArray[0] = R.xml.english_hw;
         langCount = 1;
         if(lang_ru_on){
-            if(!pref_pocket_patch) {
-                langArray[langCount] = R.xml.russian_hw;
-            }else{
-                langArray[langCount] = R.xml.pocket_russian_hw;
-            }
+
+            langArray[langCount] = R.xml.russian_hw;
             langCount++;
         }
-        if(lang_translit_ru_on && !pref_pocket_patch){
+        if(lang_translit_ru_on){
             langArray[langCount] = R.xml.russian_translit_hw;
             langCount++;
         }
-        if(lang_ua_on && !pref_pocket_patch){
+        if(lang_ua_on){
             langArray[langCount] = R.xml.ukraine_hw;
             langCount++;
         }
@@ -309,7 +306,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             altPressFirstButtonBig = false;
             altPressAllButtonBig = false;
             altShift = false;
-            UpdateNotify();
+            UpdateOnScreenStatus();
         }
 
         if(lastPackageName.equals("com.sateda.keyonekb")) loadSetting();
@@ -326,29 +323,35 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         // the underlying state of the text editor could have changed in any way.
 
         if(attribute.packageName.equals("com.blackberry.contacts")) {
-            fixBbkContact = true;
+            startInputAtBbContactsApp = true;
         }else{
-            fixBbkContact = false;
+            startInputAtBbContactsApp = false;
         }
 
         if(attribute.packageName.equals("com.blackberry.blackberrylauncher")) {
-            fixBbkLauncher = true;
+            startInputAtBbLauncherApp = true;
         }else{
-            fixBbkLauncher = false;
+            startInputAtBbLauncherApp = false;
         }
 
         if(attribute.packageName.equals("com.android.dialer")) {
-            fixBbkDialer = true;
+            startInputAtBbPhoneApp = true;
         }else{
-            fixBbkDialer = false;
+            startInputAtBbPhoneApp = false;
         }
 
+        // Обрабатываем переход между приложениями
         if(!attribute.packageName.equals(lastPackageName))
         {
             lastPackageName = attribute.packageName;
+
+            //Отключаем режим навигации
+            //TODO: ExtractMethod не думаю что это делается только тут
             navigationSymbol = false;
             fnSymbol = false;
             keyboardView.setFnSymbol(fnSymbol);
+
+            //Пробовал отключать ни на что не влияет
             if(!keyboardView.isShown()) {
                 keyboardView.setVisibility(View.VISIBLE);
             }
@@ -428,7 +431,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 updateShiftKeyState(attribute);
         }
 
-        UpdateNotify();
+        UpdateOnScreenStatus();
         // Update the label on the enter key, depending on what the application
         // says it will do.
     }
@@ -438,93 +441,113 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         keyboardView.hidePopup(false);
         Log.d(TAG, "onKeyDown "+event);
+
+        int scanCode = event.getScanCode();
+        int repeatCount = event.getRepeatCount();
+        boolean inputViewShown = this.isInputViewShown();
+
+        //region BB Launcher HACK
         //обработка главного экрана Блекбери
         //он хочет получать только родные клавиши, по этому ему отправляем почти все клавиши неизменными
-        if(fixBbkLauncher &&  !this.isInputViewShown() && event.getScanCode() != 11
-                                                       && keyCode != KeyEvent.KEYCODE_SHIFT_LEFT
-                                                       && keyCode != KeyEvent.KEYCODE_SPACE
-                                                       && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT
-                                                       && keyCode != KeyEvent.KEYCODE_ALT_LEFT
-                                                       && event.getScanCode() != 100
-                                                       && event.getScanCode() != 110
-                                                       && event.getScanCode() != 183){
-            Log.d(TAG, "Oh! this fixBbkLauncher "+fixBbkLauncher);
+        if(startInputAtBbLauncherApp
+            && !inputViewShown
+            && scanCode != KEY_0
+            && keyCode != KeyEvent.KEYCODE_SHIFT_LEFT
+            && keyCode != KeyEvent.KEYCODE_SPACE
+            && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT
+            && keyCode != KeyEvent.KEYCODE_ALT_LEFT
+            && scanCode != KEY_SYM
+            && scanCode != SCAN_CODE_SHIFT
+            && scanCode != 183){
+            Log.d(TAG, "Oh! this fixBbkLauncher "+ startInputAtBbLauncherApp);
             return super.onKeyDown(keyCode, event);
+
             //TODO: Почему смена языка выделена в блоке Launcher?
-        }else if(fixBbkLauncher &&  !this.isInputViewShown() && event.getScanCode() == 11 && event.getRepeatCount() == 0 ){
+        }else if(startInputAtBbLauncherApp &&  !inputViewShown && scanCode == KEY_0 && repeatCount == 0 ){
             ChangeLanguage();
             return true;
-        }else if(fixBbkLauncher &&  !this.isInputViewShown() && event.getScanCode() == 11 && event.getRepeatCount() == 1 ){
-            pref_touch_keyboard = !pref_touch_keyboard;
+        }/* Пока деактивируем режим kbd_gestures
+        else if(startInputAtBbLauncherApp &&  !inputViewShown && scanCode == KEY_0 && repeatCount == 1 ){
+            //enable_keyboard_gestures = !enable_keyboard_gestures;
+            //TODO: Сделать что-то с этим костылем
             ChangeLanguageBack();
             return true;
         }
+        */
+        else if(startInputAtBbLauncherApp && !inputViewShown){
+            return true;
+        }
+
+        //endregion
 
         long now = System.currentTimeMillis();
-        InputConnection ic = getCurrentInputConnection();
+        InputConnection inputConnection = getCurrentInputConnection();
 
         // Обработайте нажатие, верните true, если обработка выполнена
         boolean is_double_press = false;
         boolean shift = false;
-        boolean alt = false;
+        boolean altMode = false;
         int navigationKeyCode = 0;
         int code = 0;
 
-        //нажатие клавиши CTRL
-        if((!pref_pocket_patch && (keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT || event.getScanCode() == 110)) || (pref_pocket_patch && event.getScanCode() == 183)){
+        EditorInfo currentInputEditorInfo = getCurrentInputEditorInfo();
+
+        //region нажатие клавиши CTRL
+        if(keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT || scanCode == SCAN_CODE_SHIFT){
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-            if(ic!=null)ic.sendKeyEvent(new KeyEvent(
+            if(inputConnection!=null)
+                inputConnection.sendKeyEvent(new KeyEvent(
                     now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
             ctrlPressed = true;
             //show hide display keyboard
+            //TODO: Вынести в настройку
             if(shiftPressed && keyboardView.isShown()) {
                 keyboardView.setVisibility(View.GONE);
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
             }else if(shiftPressed && !keyboardView.isShown()) {
                 keyboardView.setVisibility(View.VISIBLE);
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
             }
             //Двойное нажатие Ctrl активирует сенсор на клавиатуре
-            if(event.getRepeatCount() == 0) {
+            if(repeatCount == 0) {
                 if (mCtrlPressTime + 500 > now && !shiftPressed) {
-                    pref_touch_keyboard = !pref_touch_keyboard;
+                    enable_keyboard_gestures = !enable_keyboard_gestures;
                     mCtrlPressTime = 0;
-                    UpdateNotify();
+                    UpdateOnScreenStatus();
                 } else {
                     mCtrlPressTime = now;
                 }
             }
             return true;
         }
+        //endregion
 
-        if(ctrlPressed && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT && event.getScanCode() != 110 ||
-                (ctrlPressed && pref_pocket_patch && event.getScanCode() != 183)){
+        //region CTRL+CVXA..etc
+
+        if(ctrlPressed && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT && scanCode != SCAN_CODE_SHIFT){
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-            if(ic!=null)ic.sendKeyEvent(new KeyEvent(
+            if(inputConnection!=null)
+                inputConnection.sendKeyEvent(new KeyEvent(
                     now, now, KeyEvent.ACTION_DOWN, keyCode, 0, meta));
-            updateShiftKeyState(getCurrentInputEditorInfo());
+            updateShiftKeyState(currentInputEditorInfo);
             return true;
         }
 
-        //нажатие клавиши ALT
-        if ((!pref_pocket_patch && keyCode == KeyEvent.KEYCODE_ALT_LEFT) || (pref_pocket_patch && event.getScanCode() == 100)){
+        //endregion
+
+        //region Нажатие клавиши ALT
+        if (keyCode == KeyEvent.KEYCODE_ALT_LEFT){
 
             if (handleAltOnCalling()) {
                 return true;
             }
 
-            if(pref_pocket_patch && shiftPressed == true && event.getRepeatCount() == 0){
-                    ChangeLanguage();
-                    updateShiftKeyState(getCurrentInputEditorInfo());
-                    UpdateNotify();
-                    return true;
-            }
             if(showSymbol == true){
                 showSymbol = false;
                 altPressFirstButtonBig = false;
                 altPressAllButtonBig = false;
                 altShift = false;
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
             }else  if(altPressAllButtonBig == false && altPressFirstButtonBig == false){
                 altShift = false;
                 mAltPressTime = now;
@@ -536,24 +559,25 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 altPressFirstButtonBig = false;
                 altPressAllButtonBig = false;
                 altShift = false;
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
             } else if (!altPressed && altPressAllButtonBig == true){
                 altPressFirstButtonBig = false;
                 altPressAllButtonBig = false;
                 altShift = false;
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
             }
             altPressed = true;
-            UpdateNotify();
+            UpdateOnScreenStatus();
             return true;
         }
+        //endregion
 
-        //Нажатие клавиши SYM
-        if (((!pref_pocket_patch && event.getScanCode() == 100) || (pref_pocket_patch && event.getScanCode() == 127)) && event.getRepeatCount() == 0 || (keyCode == KeyEvent.KEYCODE_3 && DEBUG)){
+        //region Нажатие клавиши SYM
+        if ( scanCode == KEY_SYM && repeatCount == 0 || (keyCode == KeyEvent.KEYCODE_3 && DEBUG)){
 
             if(altPressed){ //вызов меню
-                menuKeyPressed = true;
-                if(ic!=null)ic.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MENU));
+                menuEmulatedKeyPressed = true;
+                if(inputConnection!=null)inputConnection.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MENU));
                 return true;
             }
 
@@ -562,7 +586,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 showSymbol = false;
                 altPressFirstButtonBig = false;
                 altPressAllButtonBig = false;
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
             }else if(!showSymbol){
                 showSymbol = true;
                 altShift = true;
@@ -574,60 +598,65 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 showSymbol = false;
                 altPressFirstButtonBig = false;
                 altPressAllButtonBig = false;
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
             }
 
-            UpdateNotify();
+            UpdateOnScreenStatus();
             return true;
-        } else if (((!pref_pocket_patch && event.getScanCode() == 100) || (pref_pocket_patch && event.getScanCode() == 127))
-                      && event.getRepeatCount() >= 1 && !navigationSymbol){
+
+        } else if ( scanCode == KEY_SYM && repeatCount >= 1 && !navigationSymbol){
+            //Двойное нажание SYM -> Режим навигации
             navigationSymbol = true;
             fnSymbol = false;
+            //TODO: BUG: там не используется передаваемый параметр
             keyboardView.setFnSymbol(fnSymbol);
-            UpdateNotify();
+            UpdateOnScreenStatus();
             return true;
-        } else if (((!pref_pocket_patch && event.getScanCode() == 100) || (pref_pocket_patch && event.getScanCode() == 127))
-                    && event.getRepeatCount() >= 1 && navigationSymbol){
+        } else if (scanCode == KEY_SYM && repeatCount >= 1 && navigationSymbol){
             return true;
         }
+        //endregion
 
-        //навигационные клавиши
+        //region Режим "Навигационные клавиши"
         if(navigationSymbol &&
-                ((event.getScanCode() == 11) ||
-                        (event.getScanCode() == 5) ||
-                        (event.getScanCode() >= 16 && event.getScanCode() <= 25) ||
-                        (event.getScanCode() >= 30 && event.getScanCode() <= 38) ||
-                        (event.getScanCode() >= 44 && event.getScanCode() <= 50)))
+                ((scanCode == 11) ||
+                        (scanCode == 5) ||
+                        (scanCode >= 16 && scanCode <= 25) ||
+                        (scanCode >= 30 && scanCode <= 38) ||
+                        (scanCode >= 44 && scanCode <= 50)))
         {
-            navigationKeyCode = getNavigationCode(event.getScanCode());
+            navigationKeyCode = getNavigationCode(scanCode);
 
             Log.d(TAG, "navigationKeyCode "+navigationKeyCode);
             if(navigationKeyCode == -7)
             {
                 fnSymbol = !fnSymbol;
-                UpdateNotify();
+                UpdateOnScreenStatus();
                 keyboardView.setFnSymbol(fnSymbol);
                 return true;
             }
-            if(ic!=null && navigationKeyCode != 0) ic.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_DOWN, navigationKeyCode));
+            if(inputConnection!=null && navigationKeyCode != 0) inputConnection.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_DOWN, navigationKeyCode));
             return true;
         }
+        //endregion
 
-        if(altPressFirstButtonBig || altPressAllButtonBig || altPressed) alt = true;
+        if(altPressFirstButtonBig || altPressAllButtonBig || altPressed) altMode = true;
         //Log.d(TAG, "onKeyDown altPressFirstButtonBig="+altPressFirstButtonBig+" altPressAllButtonBig="+altPressAllButtonBig+" altPressed="+altPressed);
 
+        //region SHIFT
         if (!shiftPressed && (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT || (keyCode == KeyEvent.KEYCODE_2 && DEBUG))){
             if (handleShiftOnCalling()) {
                 return true;
             }
-            if(!alt){
+            if(!altMode)
+            {
                 if(shiftPressAllButtonBig == false && shiftPressFirstButtonBig == false){
-                    mShiftPressTime = now;
+                    mShiftFirstPressTime = now;
                     shiftPressFirstButtonBig = true;
-                } else if (shiftPressFirstButtonBig == true && mShiftPressTime + 1000 > now){
+                } else if (shiftPressFirstButtonBig == true && mShiftFirstPressTime + 1000 > now){
                     shiftPressFirstButtonBig = false;
                     shiftPressAllButtonBig = true;
-                } else if (shiftPressFirstButtonBig == true && mShiftPressTime + 1000 < now){
+                } else if (shiftPressFirstButtonBig == true && mShiftFirstPressTime + 1000 < now){
                     shiftPressFirstButtonBig = false;
                     shiftPressAllButtonBig = false;
                 } else if (shiftPressAllButtonBig == true){
@@ -638,115 +667,141 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 altShift = !altShift;
             }
             shiftPressed = true;
-            UpdateNotify();
+            UpdateOnScreenStatus();
             return true;
 
         }
         if(shiftPressFirstButtonBig || shiftPressAllButtonBig || shiftPressed) shift = true;
-        if(alt) shift = altShift;
+        //endregion
+
+        if(altMode) shift = altShift;
         //Log.d(TAG, "onKeyDown shiftPressFirstButtonBig="+shiftPressFirstButtonBig+" shiftPressAllButtonBig="+shiftPressAllButtonBig+" altShift="+altShift);
 
 
-        //НЕПОСРЕДСТВЕННО СМЕНА ЯЗЫКА НУЛЕМ
-        if(event.getScanCode() == 11 && event.getRepeatCount() == 0 && alt == false ){
+        //region НЕПОСРЕДСТВЕННО СМЕНА ЯЗЫКА НУЛЕМ
+        if(scanCode == KEY_0 && repeatCount == 0 && !event.isLongPress() && altMode == false ){
             ChangeLanguage();
             return true;
-        }else if(event.getScanCode() == 11 && event.getRepeatCount() == 1 && alt == false ){
-            pref_touch_keyboard = !pref_touch_keyboard;
-            //TODO: Сделать переход в режим тача вместо зажатия
+        }else if(scanCode == KEY_0 && repeatCount == 1 && altMode == false ){
+            //TODO: Работает через раз и не во всех приложениях
+            //TODO: Добавить навигацию внутри текстового поля включительно с выделением
+            key_0_hold = true;
+            enable_keyboard_gestures = true;
             ChangeLanguageBack();
+            UpdateOnScreenStatus();
             return true;
-        }else if(event.getScanCode() == 11 && event.getRepeatCount() > 1 && alt == false ){
+        }else if(scanCode == KEY_0 && repeatCount > 1 && altMode == false ){
             return true;
-        }else if(event.getScanCode() == 11 && alt == true ){
-            if(ic!=null)ic.commitText(String.valueOf((char) 48), 1);
+        }else if(scanCode == KEY_0 && altMode == true ){
+            if(inputConnection!=null)
+                inputConnection.commitText(String.valueOf((char) CHAR_0), 1);
             return true;
         }
+        //endregion
 
-        if(event.getRepeatCount() == 0) {
-            code = KeyToButton(event.getScanCode(), alt, shift, false);
-            //if (!alt && code != 0 && !shiftPressFirstButtonBigDoublePress) shiftPressFirstButtonBigDoublePress = shiftPressFirstButtonBig;
-        }else if(event.getRepeatCount() == 1) { //удержание клавиши
+        //region Ввод символов одиночным нажатием или удержанием
+
+        if(repeatCount == 0) { //Единичное нажание
+            code = KeyToButton(scanCode, altMode, shift, false);
+            //if (!altMode && code != 0 && !shiftPressFirstButtonBigDoublePress) shiftPressFirstButtonBigDoublePress = shiftPressFirstButtonBig;
+        }else if(repeatCount == 1) { //удержание клавиши
             if(!pref_longpress_alt) {
-                code = KeyToButton(event.getScanCode(), alt, true, false);
+                code = KeyToButton(scanCode, altMode, true, false);
             }else {
-                alt = true;
-                code = KeyToButton(event.getScanCode(), alt, false, false);
+                altMode = true;
+                code = KeyToButton(scanCode, altMode, false, false);
             }
-            if(code != 0 && ic!=null)ic.deleteSurroundingText(1,0);
-        }else{
-            code = KeyToButton(event.getScanCode(), alt, shift, false);
+            if(code != 0 && inputConnection!=null) {
+                //TODO: Удаляем символ. Да. А где вводим, дальше по коду?
+                inputConnection.deleteSurroundingText(1, 0);
+            }
+        }else{ //TODO: Непонятная ситуация
+            code = KeyToButton(scanCode, altMode, shift, false);
             if(code != 0) return true;
         }
+        //endregion
+
+        //region Обрабока сдвоенных букв
         int code_double_press = 0;
-        Log.d(TAG, "onKeyDown prev_key_press_btn_r0="+prev_key_press_btn_r0+" event.getScanCode() ="+event.getScanCode()+" shiftPressFirstButtonBig="+shiftPressFirstButtonBig);
-        if(prev_key_press_btn_r0 == event.getScanCode() && event.getRepeatCount() == 0 &&  now < prev_key_press_time+400){
+        Log.d(TAG, "onKeyDown prev_key_press_btn_r0="+prev_key_press_btn_r0+" event.getScanCode() ="+ scanCode +" shiftPressFirstButtonBig="+shiftPressFirstButtonBig);
+        if(prev_key_press_btn_r0 == scanCode && repeatCount == 0 &&  now < prev_key_press_time + DOUBLE_CLICK_TIME){
             if(shiftPressFirstButtonBigDoublePress) {
-                code_double_press = KeyToButton(event.getScanCode(), alt, shiftPressFirstButtonBigDoublePress, true);
-            }else{
-                code_double_press = KeyToButton(event.getScanCode(), alt, shift, true);
+                code_double_press = KeyToButton(scanCode, altMode, true, true);
+            } else {
+                code_double_press = KeyToButton(scanCode, altMode, shift, true);
             }
             if(code != code_double_press && code_double_press != 0){
                 is_double_press = true;
-                if(ic!=null)ic.deleteSurroundingText(1,0);
+                if(inputConnection!=null) {
+                    //TODO: Удаляем символ, а где вводим?
+                    inputConnection.deleteSurroundingText(1, 0);
+                }
                 code = code_double_press;
             }
-        }else if(prev_key_press_btn_r1 == event.getScanCode() && event.getRepeatCount() == 1){
+        } else if(prev_key_press_btn_r1 == scanCode && repeatCount == 1){
             is_double_press = true;
-            code = KeyToButton(event.getScanCode(), alt, true, true);;
+            code = KeyToButton(scanCode, altMode, true, true);;
         }
+        //endregion
 
-        if(code != 0){
-            if(fixBbkContact && !isEnglishKb){
-                if(ic!=null){
-                    keyDownUp(KeyEvent.KEYCODE_SEARCH);
+        if(code != 0)
+        {
+            //region BB Apps HACK
+            if(startInputAtBbContactsApp && !isEnglishKb){
+                if(inputConnection!=null){
+                    //TODO: BUG почему-то первый введенный символ игнорируется
+                    keyDownUp(KeyEvent.KEYCODE_SEARCH, inputConnection);
                 }
-                fixBbkContact = false;
+                startInputAtBbContactsApp = false;
             }
-            if(fixBbkDialer && !isEnglishKb){
-                if(!this.isInputViewShown() && ic!=null){
-                    ic.commitText(String.valueOf((char) '0'), 1);
-                    keyDownUp(KeyEvent.KEYCODE_DEL);
+            //TODO: BUG почему-то после поимска по буквам в BbLauncher выделяется виджет погоды
+            if(startInputAtBbPhoneApp && !isEnglishKb){
+                if(!inputViewShown && inputConnection!=null){
+                    inputConnection.commitText(String.valueOf((char) '0'), 1);
+                    keyDownUp(KeyEvent.KEYCODE_DEL, inputConnection);
                 }
-                fixBbkDialer = false;
+                startInputAtBbPhoneApp = false;
             }
+            //endregion
 
             mAltPressTime = 0;
             if(event.isAltPressed()) altPlusBtn = true;
+
             if(pref_alt_space == false && altPressFirstButtonBig == true) altPressFirstButtonBig = false;
-            if(is_double_press || alt == true){
+
+            if(is_double_press || altMode == true){
                 prev_key_press_btn_r1 = prev_key_press_btn_r0;
                 prev_key_press_btn_r0 = 0;
                 if (shiftPressFirstButtonBig == true){
                     shiftPressFirstButtonBig = false;
-                    UpdateNotify();
+                    UpdateOnScreenStatus();
                 }
                 shiftPressFirstButtonBigDoublePress = false;
             }else{
                 prev_key_press_time = now;
-                prev_key_press_btn_r0 = event.getScanCode();
+                prev_key_press_btn_r0 = scanCode;
                 prev_key_press_btn_r1 = 0;
                 Log.d(TAG, "onKeyDown shiftPressFirstButtonBig="+shiftPressFirstButtonBig);
                 if (shiftPressFirstButtonBig == false) shiftPressFirstButtonBigDoublePress = false;
                 if (shiftPressFirstButtonBig == true){
                     shiftPressFirstButtonBigDoublePress = true;
                     shiftPressFirstButtonBig = false;
-                    UpdateNotify();
+                    UpdateOnScreenStatus();
                 }
             }
 
-            if(ic!=null)
+            if(inputConnection!=null)
             {
-                //ic.commitText(String.valueOf((char) code), 1);
+                //inputConnection.commitText(String.valueOf((char) code), 1);
                 sendKeyChar((char) code);
-                press_code_true = event.getScanCode();
+                press_code_true = scanCode;
             }
             else
             {
-                Log.d(TAG, "onKeyDown ic==null");
+                Log.d(TAG, "onKeyDown inputConnection==null");
             }
-            if(!this.isInputViewShown() && ic!=null){
-                if(ic.getTextBeforeCursor(1,0).length() > 0) this.showWindow(true);
+            if(!inputViewShown && inputConnection!=null){
+                if(inputConnection.getTextBeforeCursor(1,0).length() > 0) this.showWindow(true);
             }
             //это отслеживать больше не нужно. По этому закоментил
             //if(shiftAfterPoint && isAlphabet(code)) shiftAfterPoint = false;
@@ -754,48 +809,51 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             return true;
         }
 
+        //region Обработка ENTER-ов, SPACE-ов, DEL-ов
         switch (keyCode) {
             case KeyEvent.KEYCODE_ENTER:
-                keyDownUp(KeyEvent.KEYCODE_ENTER);
+                keyDownUp(KeyEvent.KEYCODE_ENTER, inputConnection);
                 prev_key_press_btn_r0 = 0;
                 if (altPressFirstButtonBig == true){
                     altPressFirstButtonBig = false;
                     altShift = false;
-                    UpdateNotify();
+                    UpdateOnScreenStatus();
                 }
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
                 return true;
             case KeyEvent.KEYCODE_SPACE:
 
                 if (altPressFirstButtonBig == true){
                     altPressFirstButtonBig = false;
                     altShift = false;
-                    UpdateNotify();
+                    UpdateOnScreenStatus();
                 }
-                if(shiftPressed && event.getRepeatCount() == 0){
+                if(shiftPressed && repeatCount == 0){
                     ChangeLanguage();
-                    updateShiftKeyState(getCurrentInputEditorInfo());
-                    UpdateNotify();
+                    updateShiftKeyState(currentInputEditorInfo);
+                    UpdateOnScreenStatus();
                     return true;
                 }
                 Log.d(TAG, "KEYCODE_SPACE prev_key_press_btn_r0 "+prev_key_press_btn_r0+" "+keyCode );
 
-                if(this.isInputViewShown() && prev_key_press_btn_r0 == keyCode && now < prev_key_press_time+500 && ic!=null){
-                    CharSequence back_letter = ic.getTextBeforeCursor(2,0);
+                //Двойной пробел -> "."
+                if(inputViewShown && prev_key_press_btn_r0 == keyCode && now < prev_key_press_time+ DOUBLE_SPACE_TIME && inputConnection!=null){
+                    CharSequence back_letter = inputConnection.getTextBeforeCursor(2,0);
                     Log.d(TAG, "KEYCODE_SPACE back_letter "+back_letter);
                     if(back_letter.length() == 2) {
                         if (Character.isLetterOrDigit(back_letter.charAt(0)) && back_letter.charAt(1) == ' ') {
-                            ic.deleteSurroundingText(1, 0);
-                            ic.commitText(".", 1);
+                            inputConnection.deleteSurroundingText(1, 0);
+                            inputConnection.commitText(".", 1);
                         }
                     }
-                }else if(prev_key_press_btn_r0 == keyCode && now < prev_key_press_time+500 && handleShiftOnCalling()){
+                }else if(prev_key_press_btn_r0 == keyCode && now < prev_key_press_time+DOUBLE_SPACE_TIME && handleShiftOnCalling()){
                     //Accept call
                     return true;
                 }
-                if(ic!=null)ic.commitText(String.valueOf((char) 32), 1);
+                if(inputConnection!=null)
+                    inputConnection.commitText(String.valueOf((char) CHAR_SPACE), 1);
                 Log.d(TAG, "KEYCODE_SPACE");
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
                 prev_key_press_time = now;
                 prev_key_press_btn_r0 = keyCode;
                 return true;
@@ -803,16 +861,17 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 Log.d(TAG, "KEYCODE_DEL");
                 prev_key_press_btn_r0 = 0;
                 if(!shiftPressed) {
-                    keyDownUp(KeyEvent.KEYCODE_DEL);
+                    keyDownUp(KeyEvent.KEYCODE_DEL, inputConnection);
                 }else{
-                    if(ic!=null)ic.deleteSurroundingText(0,1);
+                    if(inputConnection!=null)inputConnection.deleteSurroundingText(0,1);
                 }
-                updateShiftKeyState(getCurrentInputEditorInfo());
+                updateShiftKeyState(currentInputEditorInfo);
                 return true;
 
             default:
                 prev_key_press_btn_r0 = 0;
         }
+        //endregion
 
         return false;
     }
@@ -823,46 +882,58 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         int navigationKeyCode = 0;
         InputConnection ic = getCurrentInputConnection();
         // Обработайте отпускание клавиши, верните true, если обработка выполнена
-        if ((!pref_pocket_patch && keyCode == KeyEvent.KEYCODE_ALT_LEFT) || (pref_pocket_patch && event.getScanCode() == 100) || (keyCode == KeyEvent.KEYCODE_1 && DEBUG)){
-            if(menuKeyPressed){ //вызов меню
-                menuKeyPressed = false;
+        int scanCode = event.getScanCode();
+
+        if(key_0_hold && scanCode == KEY_0 ) {
+            key_0_hold = false;
+            enable_keyboard_gestures = false;
+            UpdateOnScreenStatus();
+            return true;
+        }
+
+        //region отжатие ALT
+        if ((keyCode == KeyEvent.KEYCODE_ALT_LEFT) || (keyCode == KeyEvent.KEYCODE_1 && DEBUG)){
+            if(menuEmulatedKeyPressed){ //вызов меню
+                menuEmulatedKeyPressed = false;
                 ic.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MENU));
             }
             altPressed = false;
             if(altPlusBtn){
                 altPressFirstButtonBig = false;
                 altPressAllButtonBig = false;
-                UpdateNotify();
+                UpdateOnScreenStatus();
                 altPlusBtn = false;
                 updateShiftKeyState(getCurrentInputEditorInfo());
             }
         }
+        //endregion
+
         if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT || (keyCode == KeyEvent.KEYCODE_2 && DEBUG)){
             shiftPressed = false;
         }
 
-        if((!pref_pocket_patch && (keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT || event.getScanCode() == 110)) || (pref_pocket_patch && event.getScanCode() == 183)){
+        if(keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT || scanCode == SCAN_CODE_SHIFT){
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
             long now = System.currentTimeMillis();
-            getCurrentInputConnection().sendKeyEvent(new KeyEvent(
+            ic.sendKeyEvent(new KeyEvent(
                     now, now, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
             ctrlPressed = false;
             return true;
         }
 
-        if(keyCode == 100 && menuKeyPressed){ //вызов меню
-            menuKeyPressed = false;
+        if(keyCode == KEY_SYM && menuEmulatedKeyPressed){ //вызов меню
+            menuEmulatedKeyPressed = false;
             ic.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MENU));
         }
 
         if(navigationSymbol &&
-                ((event.getScanCode() == 11) ||
-                        (event.getScanCode() == 5) ||
-                        (event.getScanCode() >= 16 && event.getScanCode() <= 25) ||
-                        (event.getScanCode() >= 30 && event.getScanCode() <= 38) ||
-                        (event.getScanCode() >= 44 && event.getScanCode() <= 50)))
+                ((scanCode == 11) ||
+                        (scanCode == 5) ||
+                        (scanCode >= 16 && scanCode <= 25) ||
+                        (scanCode >= 30 && scanCode <= 38) ||
+                        (scanCode >= 44 && scanCode <= 50)))
         {
-            navigationKeyCode = getNavigationCode(event.getScanCode());
+            navigationKeyCode = getNavigationCode(scanCode);
 
             if(navigationKeyCode == -7) return true;
             if(ic!=null && navigationKeyCode != 0) ic.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_UP, navigationKeyCode));
@@ -872,11 +943,12 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         if(keyCode == KeyEvent.KEYCODE_ENTER ||keyCode == KeyEvent.KEYCODE_SPACE || keyCode == KeyEvent.KEYCODE_DEL) return true;
 
         //если клавиша обработана при нажатии, то она же будет обработана и при отпускании
-        if(press_code_true == event.getScanCode()) return true;
+        if(press_code_true == scanCode) return true;
 
         return false;
     }
 
+    //TODO: Вынести в XML
     public int getNavigationCode(int scanCode) {
         int keyEventCode = 0;
         switch (scanCode){
@@ -1012,20 +1084,20 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             switch (primaryCode) {
 
                 case 19: //UP
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_UP);
+                    keyDownUp(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
                 case 20: //DOWN
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN);
+                    keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
 
                 case 21: //LEFT
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT);
+                    keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT);
+                    keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
 
@@ -1039,12 +1111,12 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 case 123: //END
                 case 92:  //Page UP
                 case 93:  //Page DOWN
-                    keyDownUp(primaryCode);
+                    keyDownUp(primaryCode, inputConnection);
                     break;
 
                 case -7:  //Switch F1-F12
                     fnSymbol = !fnSymbol;
-                    UpdateNotify();
+                    UpdateOnScreenStatus();
                     keyboardView.setFnSymbol(fnSymbol);
                     break;
 
@@ -1054,7 +1126,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUp(KeyEvent.KEYCODE_ENTER);
+                    keyDownUp(KeyEvent.KEYCODE_ENTER, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
 
@@ -1065,11 +1137,11 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             switch (primaryCode) {
 
                 case 21: //LEFT
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT);
+                    keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT);
+                    keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
 
@@ -1079,7 +1151,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUp(KeyEvent.KEYCODE_ENTER);
+                    keyDownUp(KeyEvent.KEYCODE_ENTER, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
                 default:
@@ -1149,7 +1221,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 if(this.isInputViewShown()) {
                     CharSequence c = inputConnection.getTextAfterCursor(1, 0);
                     if(c.length() > 0) {
-                        keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT);
+                        keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                         updateShiftKeyState(getCurrentInputEditorInfo());
                     }
                     touchX = motionEvent.getX();
@@ -1159,7 +1231,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 if(this.isInputViewShown()) {
                     CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
                     if (c.length() > 0) {
-                        keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT);
+                        keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                         updateShiftKeyState(getCurrentInputEditorInfo());
                     }
                     touchX = motionEvent.getX();
@@ -1181,11 +1253,13 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             return false;
         }
 
-        if(pref_touch_keyboard && !navigationSymbol){
+        if(enable_keyboard_gestures && !navigationSymbol){
             //если клавиатура показана, то гасим действия.
+            /*
             if(this.isInputViewShown()) {
                 return true;
             }
+            */
             return false;
         }
 
@@ -1240,6 +1314,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         String alt_shift_popup = "";
 
         try {
+            //TODO: Сделать предзагрузку (чтобы не парсить xml каждый раз в момент смены языка) или на худой конец lazy-load или кеширование
             XmlPullParser parser = getResources().getXml(id);
 
             while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
@@ -1299,11 +1374,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
         try {
             XmlPullParser parser;
-            if(!pref_pocket_patch) {
-                parser = getResources().getXml(R.xml.alt_hw);
-            }else{
-                parser = getResources().getXml(R.xml.pocket_alt_hw);
-            }
+            parser = getResources().getXml(R.xml.alt_hw);
 
             while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
                 scan_code = 0;
@@ -1370,7 +1441,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         return result;
     }
 
-    private void UpdateNotify() {
+    private void UpdateOnScreenStatus() {
         //notificationManager.cancelAll();
         Log.d(TAG, "UpdateNotify shiftPressFirstButtonBig="+shiftPressFirstButtonBig+" shiftPressAllButtonBig="+shiftPressAllButtonBig+" altPressAllButtonBig="+altPressAllButtonBig+" altPressFirstButtonBig="+altPressFirstButtonBig);
         if(navigationSymbol){
@@ -1392,11 +1463,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         }else if(showSymbol) {
             builder.setSmallIcon(R.mipmap.ic_kb_sym);
             builder.setContentTitle("Символы 1-9");
-            if (!pref_pocket_patch){
-                keyboard_symbol = new Keyboard(this, R.xml.symbol);
-            }else {
-                keyboard_symbol = new Keyboard(this, R.xml.pocket_symbol);
-            }
+            keyboard_symbol = new Keyboard(this, R.xml.symbol);
             keyboardView.setKeyboard(keyboard_symbol);
             if(altShift) {
                 keyboardView.setAltLayer(scan_code, alt_shift, alt_shift_popup);
@@ -1430,19 +1497,19 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             keyboardView.setAlt();
         }else if(shiftPressAllButtonBig){
             if(langArray[langNum] == R.xml.ukraine_hw) {
-                if(pref_touch_keyboard == false) {
+                if(enable_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_ukr_shift_all);
                 }else{
                     builder.setSmallIcon(R.mipmap.ic_ukr_shift_all_touch);
                 }
             }else if(langArray[langNum] == R.xml.russian_hw || langArray[langNum] == R.xml.pocket_russian_hw || langArray[langNum] == R.xml.russian_translit_hw) {
-                if(pref_touch_keyboard == false) {
+                if(enable_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_rus_shift_all);
                 }else{
                     builder.setSmallIcon(R.mipmap.ic_rus_shift_all_touch);
                 }
             }else{
-                if(pref_touch_keyboard == false) {
+                if(enable_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_eng_shift_all);
                 }else{
                     builder.setSmallIcon(R.mipmap.ic_eng_shift_all_touch);
@@ -1455,19 +1522,19 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             keyboardView.setLetterKB();
         }else if(shiftPressFirstButtonBig){
             if(langArray[langNum] == R.xml.ukraine_hw) {
-                if(pref_touch_keyboard == false) {
+                if(enable_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_ukr_shift_first);
                 }else{
                     builder.setSmallIcon(R.mipmap.ic_ukr_shift_first_touch);
                 }
             }else if(langArray[langNum] == R.xml.russian_hw || langArray[langNum] == R.xml.pocket_russian_hw || langArray[langNum] == R.xml.russian_translit_hw) {
-                if(pref_touch_keyboard == false) {
+                if(enable_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_rus_shift_first);
                 }else{
                     builder.setSmallIcon(R.mipmap.ic_rus_shift_first_touch);
                 }
             }else{
-                if(pref_touch_keyboard == false) {
+                if(enable_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_eng_shift_first);
                 }else{
                     builder.setSmallIcon(R.mipmap.ic_eng_shift_first_touch);
@@ -1480,19 +1547,19 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             keyboardView.setLetterKB();
         }else{
             if(langArray[langNum] == R.xml.ukraine_hw) {
-                if(pref_touch_keyboard == false) {
+                if(enable_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_ukr_small);
                 }else{
                     builder.setSmallIcon(R.mipmap.ic_ukr_small_touch);
                 }
             }else if(langArray[langNum] == R.xml.russian_hw || langArray[langNum] == R.xml.pocket_russian_hw || langArray[langNum] == R.xml.russian_translit_hw) {
-                if(pref_touch_keyboard == false) {
+                if(enable_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_rus_small);
                 }else{
                     builder.setSmallIcon(R.mipmap.ic_rus_small_touch);
                 }
             }else{
-                if(pref_touch_keyboard == false) {
+                if(enable_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_eng_small);
                 }else{
                     builder.setSmallIcon(R.mipmap.ic_eng_small_touch);
@@ -1564,7 +1631,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             toast = Toast.makeText(getApplicationContext(), langStr, Toast.LENGTH_SHORT);
             toast.show();
         }
-        UpdateNotify();
+        UpdateOnScreenStatus();
     }
 
     private void ChangeLanguageBack() {
@@ -1580,7 +1647,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             toast = Toast.makeText(getApplicationContext(), langStr, Toast.LENGTH_SHORT);
             toast.show();
         }
-        UpdateNotify();
+        UpdateOnScreenStatus();
     }
 
     private boolean isAlphabet(int code) {
@@ -1591,13 +1658,12 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         }
     }
 
-    private void keyDownUp(int keyEventCode) {
-        InputConnection ic = getCurrentInputConnection();
+    private void keyDownUp(int keyEventCode, InputConnection ic) {
         if (ic == null) return;
 
-        getCurrentInputConnection().sendKeyEvent(
+        ic.sendKeyEvent(
                 new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
-        getCurrentInputConnection().sendKeyEvent(
+        ic.sendKeyEvent(
                 new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
     }
 
@@ -1616,7 +1682,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 shiftPressFirstButtonBig = false;
             }
 
-            UpdateNotify();
+            UpdateOnScreenStatus();
         }
     }
 
