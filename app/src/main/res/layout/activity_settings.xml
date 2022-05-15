@@ -129,7 +129,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_alt_space"
-        android:text=" В выключеном положении ALT режим будет отключен при вводе первой же клавиши, во включеном состоянии ALT символы будут набираться до тех пор, пока не будет нажат пробел" />
+        android:text="ВКЛ:  ALT символы/цифры будут набираться до тех пор, пока не будет нажат пробел; ВЫКЛ:  ALT символы/цифры будет отключен сразу после ввода первого символа (как в blackberry keyboard)." />
 
     <View
         android:id="@+id/divider6"
@@ -159,7 +159,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider7"
-        android:text=" Зажатие клавиши печатает ALT символ"
+        android:text="При удержании буквы ввод соответствующих знаков из ALT/SYM раскладки"
         android:textSize="24sp"
         tools:checked="true" />
 
@@ -225,7 +225,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider10"
-        android:text=" Pocket Patch"
+        android:text="Default onScreenPanel"
         android:textSize="24sp"
         tools:checked="true" />
 
@@ -234,7 +234,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_pocket_patch"
-        android:text=" Необходимо активировать этот патч, если у Вас телефон Unihertz Titan Pocket" />
+        android:text="Показывать навигационную панельку на экране (на которой стрелочки и флажок)" />
 
 </RelativeLayout>
 </ScrollView>

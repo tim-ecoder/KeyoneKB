@@ -6,29 +6,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
-import android.net.Uri;
-import android.os.Environment;
-import android.os.PowerManager;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.telecom.TelecomManager;
-import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.security.Key;
-import java.util.Map;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -44,7 +31,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String APP_PREFERENCES_FLAG = "flag";
     public static final String APP_PREFERENCES_HEIGHT_BOTTON_BAR = "height_botton_bar";
     //TODO: unihertz-kill
-    public static final String APP_PREFERENCES_POCKET_PATCH = "pocket_patch";
+    public static final String APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD = "show_default_onscreen_keyboard";
 
 
     private static final int REQUEST_PERMISSION_CODE = 101;
@@ -62,7 +49,7 @@ public class SettingsActivity extends AppCompatActivity {
     private Switch switch_flag;
     private RelativeLayout layout;
     private SeekBar height_botton_bar;
-    private Switch switch_pocket_patch;
+    private Switch switch_show_default_onscreen_keyboard;
 
     private float touchY;
 
@@ -148,11 +135,11 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_pocket_patch = (Switch) findViewById(R.id.switch_pocket_patch);
-        switch_pocket_patch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        switch_show_default_onscreen_keyboard = (Switch) findViewById(R.id.switch_pocket_patch);
+        switch_show_default_onscreen_keyboard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changePocketPatch(isChecked);
+                changeShowDefaultOnScreenKeyboard(isChecked);
             }
         });
 
@@ -217,8 +204,8 @@ public class SettingsActivity extends AppCompatActivity {
         if(mSettings.contains(APP_PREFERENCES_HEIGHT_BOTTON_BAR)) {
             height_botton_bar.setProgress(mSettings.getInt(APP_PREFERENCES_HEIGHT_BOTTON_BAR, 10));
         }
-        if(mSettings.contains(APP_PREFERENCES_POCKET_PATCH)) {
-            switch_pocket_patch.setChecked(mSettings.getBoolean(APP_PREFERENCES_POCKET_PATCH, false));
+        if(mSettings.contains(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD)) {
+            switch_show_default_onscreen_keyboard.setChecked(mSettings.getBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, true));
         }
     }
 
@@ -283,12 +270,10 @@ public class SettingsActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void changePocketPatch(boolean isChecked){
+    private void changeShowDefaultOnScreenKeyboard(boolean isChecked){
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_POCKET_PATCH, isChecked);
+        editor.putBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, isChecked);
         editor.apply();
-        switch_translit_ru_lang.setEnabled(!isChecked);
-        switch_ua_lang.setEnabled(!isChecked);
     }
 
     private void changeFlag(boolean isChecked){
