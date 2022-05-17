@@ -27,6 +27,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.CursorAnchorInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.textservice.SentenceSuggestionsInfo;
@@ -822,15 +823,18 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         {
             //region BB Apps HACK
             if(startInputAtBbContactsApp && !isEnglishKb){
-                if(inputConnection!=null){
-                    //TODO: BUG почему-то первый введенный символ игнорируется
-                    keyDownUp(KeyEvent.KEYCODE_SEARCH, inputConnection);
+                if(!isInputViewShown() && inputConnection!=null){
+                    //BUG почему-то первый введенный символ игнорируется
+                    //keyDownUp(KeyEvent.KEYCODE_SEARCH, inputConnection);
+                    //Для теста используем другой хак
+                    inputConnection.commitText(String.valueOf((char) '0'), 1);
+                    keyDownUp(KeyEvent.KEYCODE_DEL, inputConnection);
                 }
                 startInputAtBbContactsApp = false;
             }
             //TODO: BUG почему-то после поиска по буквам в BbLauncher выделяется виджет погоды
             if(startInputAtBbPhoneApp && !isEnglishKb){
-                if(!inputViewShown && inputConnection!=null){
+                if(!isInputViewShown() && inputConnection!=null){
                     inputConnection.commitText(String.valueOf((char) '0'), 1);
                     keyDownUp(KeyEvent.KEYCODE_DEL, inputConnection);
                 }
@@ -1342,6 +1346,11 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         }
         return false;
     }
+    @Override
+    public void onUpdateCursorAnchorInfo(CursorAnchorInfo cursorAnchorInfo)
+    {
+        //TODO: Готовимся работать с курсором
+    }
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent motionEvent) {
@@ -1418,15 +1427,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                                 keyDownUp(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
                             }else
                             {
-                                //this
-                                //keyDownUp(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
-
-                                //this.getCurrentInputEditorInfo().se
-                                //Если ушли из поля ввода надо вернуться, коли мы уже были в нем
-                                if(false)
-                                {
-                                    keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
-                                }
+                                //TODO: Сделать хождение по большим текстам, пока оставляем только горизонтальные движения
+                                //keyDownUp2(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
                             }
                             Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
                         } else {
@@ -1435,12 +1437,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                             }
                             else
                             {
-
-                                //keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
-                                //this.get
-                                //Если ушли из поля ввода надо вернуться, коли мы уже были в нем
-                                if(false)
-                                    keyDownUp(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                                //TODO: Родная клава просто вылеает из режима Keypad, когда заползаешь за поле ввода, найти где это происходит и сделать также или как минимум взять это условие в вернуть курсор обратно
+                                //keyDownUp2(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
                             }
                             Log.d(TAG, "onGenericMotionEvent" + motion_delta_min_y + " KEYCODE_DPAD_DOWN " + motionEvent);
                         }
