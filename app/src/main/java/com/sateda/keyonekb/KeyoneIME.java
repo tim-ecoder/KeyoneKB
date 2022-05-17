@@ -3,14 +3,12 @@ package com.sateda.keyonekb;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -492,16 +490,6 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
         int scanCode = event.getScanCode();
         int repeatCount = event.getRepeatCount();
-        /*
-        event.startTracking();
-        if(scanCode == SCAN_CODE_KEY_0 && repeatCount > 1 && !altMode ) {
-            //TODO: Проверить как будут жесты по клавиатуре при зажатом нуле  работать без этого и удалить если норм
-            KeyEvent.DispatcherState ds = getKeyDispatcherState();
-            ds.reset();
-            //Log.d(TAG, "onKeyDown DS:"+ds);
-            return true;
-        }
-        */
         boolean inputViewShown = this.isInputViewShown();
 
         //region BB Launcher HACK
@@ -824,19 +812,16 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             //region BB Apps HACK
             if(startInputAtBbContactsApp && !isEnglishKb){
                 if(!isInputViewShown() && inputConnection!=null){
-                    //BUG почему-то первый введенный символ игнорируется
-                    //keyDownUp(KeyEvent.KEYCODE_SEARCH, inputConnection);
-                    //Для теста используем другой хак
-                    inputConnection.commitText(String.valueOf((char) '0'), 1);
-                    keyDownUp(KeyEvent.KEYCODE_DEL, inputConnection);
+                    //Данный хак работает неплохо на первый взгляд и не выделяется виджет погоды на рабочем столе
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_0, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DEL, inputConnection);
                 }
                 startInputAtBbContactsApp = false;
             }
-            //TODO: BUG почему-то после поиска по буквам в BbLauncher выделяется виджет погоды
             if(startInputAtBbPhoneApp && !isEnglishKb){
                 if(!isInputViewShown() && inputConnection!=null){
-                    inputConnection.commitText(String.valueOf((char) '0'), 1);
-                    keyDownUp(KeyEvent.KEYCODE_DEL, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_0, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DEL, inputConnection);
                 }
                 startInputAtBbPhoneApp = false;
             }
@@ -1372,6 +1357,10 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             int motionEventAction = motionEvent.getAction();
             if(!showSymbolOnScreenKeyboard){
 
+//                if(!this.isInputViewShown()) {
+//                    //Если мы не в поле ввода передаем жесты дальше
+//                    return false;
+//                }
                 //Жесть по клавиатуре всегда начинается с ACTION_DOWN
                 if(motionEventAction == MotionEvent.ACTION_DOWN) {
                     Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
@@ -1393,26 +1382,26 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                             return true;
                         if (deltaX > 0) {
                             if(!this.isInputViewShown()) {
-                                keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                             }
                             else
                             {
                                 CharSequence c = inputConnection.getTextAfterCursor(1, 0);
                                 if(c.length() > 0) {
-                                    keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                                     updateShiftKeyState(getCurrentInputEditorInfo());
                                 }
                             }
                             Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_RIGHT " + motionEvent);
                         } else {
                             if(!this.isInputViewShown()) {
-                                keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                             }
                             else
                             {
                                 CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
                                 if (c.length() > 0) {
-                                    keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                                     updateShiftKeyState(getCurrentInputEditorInfo());
                                 }
                             }
@@ -1424,7 +1413,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                         //int times = Math.round(absDeltaY / motion_delta_min_y);
                         if (deltaY < 0) {
                             if(!this.isInputViewShown()) {
-                                keyDownUp(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
                             }else
                             {
                                 //TODO: Сделать хождение по большим текстам, пока оставляем только горизонтальные движения
@@ -1433,7 +1422,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                             Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
                         } else {
                             if(!this.isInputViewShown()) {
-                                keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
                             }
                             else
                             {
@@ -1634,7 +1623,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
     private void UpdateKeyboardModeVisualization() {
         //notificationManager.cancelAll();
-        Log.d(TAG, "UpdateNotify shiftPressFirstButtonBig="+shiftPressFirstButtonBig+" shiftPressAllButtonBig="+shiftPressAllButtonBig+" altPressAllButtonBig="+altPressAllButtonBig+" altPressFirstButtonBig="+altPressFirstButtonBig);
+        Log.d(TAG, "UpdateKeyboardModeVisualization shiftPressFirstButtonBig="+shiftPressFirstButtonBig+" shiftPressAllButtonBig="+shiftPressAllButtonBig+" altPressAllButtonBig="+altPressAllButtonBig+" altPressFirstButtonBig="+altPressFirstButtonBig);
         if(navigationOnScreenKeyboardMode){
             if(!fnSymbolOnScreenKeyboardMode)
             {
@@ -1651,9 +1640,9 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             keyboardView.setNavigationLayer();
 
-            keyboardView.setVisibility(View.VISIBLE);
-            updateShiftKeyState(getCurrentInputEditorInfo());
-
+            MakeVisible();
+            //updateShiftKeyState(getCurrentInputEditorInfo());
+            notificationManager.notify(1, builder.build());
         }else if(showSymbolOnScreenKeyboard) {
             builder.setSmallIcon(R.mipmap.ic_kb_sym);
             builder.setContentTitle("Символы 1-9");
@@ -1664,9 +1653,10 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }else{
                 keyboardView.setAltLayer(scan_code, alt, alt_popup);
             }
-            keyboardView.setVisibility(View.VISIBLE);
-            updateShiftKeyState(getCurrentInputEditorInfo());
+            MakeVisible();
+            //updateShiftKeyState(getCurrentInputEditorInfo());
             //keyboardView.setAlt();
+            notificationManager.notify(1, builder.build());
         }else if(altPressAllButtonBig){
             builder.setSmallIcon(R.mipmap.ic_kb_sym);
             builder.setContentTitle("Символы 1-9");
@@ -1685,6 +1675,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
 
             keyboardView.setAlt();
+            notificationManager.notify(1, builder.build());
         }else if(altPressFirstButtonBig){
             builder.setSmallIcon(R.mipmap.ic_kb_sym_one);
             builder.setContentTitle("Символы 1-9");
@@ -1700,6 +1691,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
 
             keyboardView.setAlt();
+            notificationManager.notify(1, builder.build());
         }else if(shiftPressAllButtonBig){
             if(langArray[langNum] == R.xml.ukraine_hw) {
                 if(mode_keyboard_gestures == false) {
@@ -1726,9 +1718,9 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             keyboardView.setShiftAll();
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             keyboardView.setLetterKB();
-            if(!pref_show_default_onscreen_keyboard){
-                keyboardView.setVisibility(View.GONE);
-            }
+            HideIfPrefAndVisible();
+
+            notificationManager.notify(1, builder.build());
 
         }else if(shiftPressFirstButtonBig){
             if(langArray[langNum] == R.xml.ukraine_hw) {
@@ -1756,18 +1748,25 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             keyboardView.setShiftFirst();
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             keyboardView.setLetterKB();
-            if(!pref_show_default_onscreen_keyboard){
-                keyboardView.setVisibility(View.GONE);
-            }
+            HideIfPrefAndVisible();
 
             notificationManager.notify(1, builder.build());
         }else{
             // Inside method: +notificationManager.notify(1, builder.build());
             UpdateKeyboardGesturesModeVisualization();
         }
+    }
 
+    private void HideIfPrefAndVisible()
+    {
+        if(!pref_show_default_onscreen_keyboard && keyboardView.getVisibility() == View.VISIBLE){
+            keyboardView.setVisibility(View.GONE);
+        }
+    }
 
-
+    private void MakeVisible() {
+        if (keyboardView.getVisibility() != View.VISIBLE)
+            keyboardView.setVisibility(View.VISIBLE);
     }
 
     private void UpdateKeyboardGesturesModeVisualization() {
@@ -1896,24 +1895,37 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
     }
 
+    private void keyDownUp4dpadMovements(int keyEventCode, InputConnection ic) {
+        if (ic == null) return;
+        long uptimeMillis = SystemClock.uptimeMillis();
+
+        ic.sendKeyEvent(
+                new KeyEvent(uptimeMillis, uptimeMillis, KeyEvent.ACTION_DOWN, keyEventCode, 0, 0, -1, 0, 6));
+        ic.sendKeyEvent(
+                new KeyEvent(SystemClock.uptimeMillis(), uptimeMillis, KeyEvent.ACTION_UP, keyEventCode, 0, 0, -1, 0, 6));
+    }
+
     //TODO: Разобраться, он вызывается постоянно зачем-то
     private void updateShiftKeyState(EditorInfo editorInfo) {
+        //Если мы вывалились из зоны ввода текста
+//        if(!isInputViewShown())
+//            return;
         Log.d(TAG, "updateShiftKeyState editorInfo "+editorInfo.inputType);
+
         if (editorInfo != null && !altPressFirstButtonBig && !altPressAllButtonBig && !altPressed ) {
-            int caps = 0;
-            //TODO: Заачем второй раз?
-            EditorInfo ei = getCurrentInputEditorInfo();
-            if (ei != null && ei.inputType != InputType.TYPE_NULL) {
-                caps = getCurrentInputConnection().getCursorCapsMode(editorInfo.inputType);
-                if(caps != 0)Log.d(TAG, "updateShiftKeyState");
+            int makeFirstBig = 0;
+            if (editorInfo != null && editorInfo.inputType != InputType.TYPE_NULL) {
+                makeFirstBig = getCurrentInputConnection().getCursorCapsMode(editorInfo.inputType);
+                if(makeFirstBig != 0) Log.d(TAG, "updateShiftKeyState");
             }
-            if(caps != 0 && !shiftPressAllButtonBig){
+            if(makeFirstBig != 0 && !shiftPressAllButtonBig){
                 shiftPressFirstButtonBig = true;
-            }else {
+                UpdateKeyboardModeVisualization();
+            }else if (makeFirstBig == 0 && shiftPressAllButtonBig) {
                 shiftPressFirstButtonBig = false;
+                UpdateKeyboardModeVisualization();
             }
 
-            UpdateKeyboardModeVisualization();
         }
     }
 
