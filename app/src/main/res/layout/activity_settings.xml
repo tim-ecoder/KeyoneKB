@@ -225,7 +225,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider10"
-        android:text="Default onScreenPanel"
+        android:text="Показывать нижнюю наэкранную свайп-панель"
         android:textSize="24sp"
         tools:checked="true" />
 
@@ -234,7 +234,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_pocket_patch"
-        android:text="Показывать навигационную панельку на экране (на которой стрелочки и флажок)" />
+        android:text="На которой стрелочки и язык с флажком. Открывание наэкранной SYM, NAV клавиатуры в любом случае будет работать." />
 
 </RelativeLayout>
 </ScrollView>

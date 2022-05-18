@@ -93,17 +93,17 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     private boolean ctrlPressed = false; // только первая буква будет большая
 
     private long mShiftFirstPressTime;
-    private boolean shiftPressFirstButtonBig; // только первая буква будет большая
+    private boolean oneTimeShiftOneTimeBigMode; // только первая буква будет большая
     private boolean shiftPressFirstButtonBigDoublePress; // только первая буква будет большая (для двойного нажатия на одну и туже кнопку)
     private boolean shiftAfterPoint; // большая буква после точки (все отдано на откуп операционке, скорее всего надо будет удалить эту переменную)
-    private boolean shiftPressAllButtonBig; //все следующий буквы будут большие
+    private boolean doubleShiftCapsMode; //все следующий буквы будут большие
     private boolean shiftPressed; //нажатие клавишь с зажатым альтом
 
     private long mCtrlPressTime;
     private long mKey0PressTime;
     private long mAltPressTime;
-    private boolean altPressFirstButtonBig;
-    private boolean altPressAllButtonBig;
+    private boolean altPressSingleSymbolAltedMode;
+    private boolean doubleAltPressAllSymbolsAlted;
     private boolean altShift;
     private boolean showSymbolOnScreenKeyboard;
     private boolean navigationOnScreenKeyboardMode;
@@ -165,16 +165,16 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         }
 
         mShiftFirstPressTime = 0;
-        shiftPressFirstButtonBig = false;
+        oneTimeShiftOneTimeBigMode = false;
         shiftPressFirstButtonBigDoublePress = false;
         shiftAfterPoint = false;
-        shiftPressAllButtonBig  = false;
+        doubleShiftCapsMode = false;
         shiftPressed = false;
         mKey0PressTime = 0;
         mCtrlPressTime = 0;
         mAltPressTime = 0;
-        altPressFirstButtonBig = false;
-        altPressAllButtonBig = false;
+        altPressSingleSymbolAltedMode = false;
+        doubleAltPressAllSymbolsAlted = false;
         menuEmulatedKeyPressed = false;
         altShift = false;
         altPressed = false;
@@ -337,8 +337,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     @Override public void onFinishInput() {
         if(showSymbolOnScreenKeyboard == true) {
             showSymbolOnScreenKeyboard = false;
-            altPressFirstButtonBig = false;
-            altPressAllButtonBig = false;
+            altPressSingleSymbolAltedMode = false;
+            doubleAltPressAllSymbolsAlted = false;
             altShift = false;
             UpdateKeyboardModeVisualization();
         }
@@ -409,13 +409,13 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             case InputType.TYPE_CLASS_DATETIME:
                 // Numbers and dates default to the symbols keyboard, with
                 // no extra features.
-                altPressAllButtonBig = true;
+                doubleAltPressAllSymbolsAlted = true;
                 break;
 
             case InputType.TYPE_CLASS_PHONE:
                 // Phones will also default to the symbols keyboard, though
                 // often you will want to have a dedicated phone keyboard.
-                altPressAllButtonBig = true;
+                doubleAltPressAllSymbolsAlted = true;
                 break;
 
             case InputType.TYPE_CLASS_TEXT:
@@ -423,8 +423,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 // normal alphabetic keyboard, and assume that we should
                 // be doing predictive text (showing candidates as the
                 // user types).
-                altPressAllButtonBig = false;
-                altPressFirstButtonBig = false;
+                doubleAltPressAllSymbolsAlted = false;
+                altPressSingleSymbolAltedMode = false;
 
                 // We now look for a few special variations of text that will
                 // modify our behavior.
@@ -463,10 +463,10 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             default:
                 // For all unknown input types, default to the alphabetic
                 // keyboard with no special features.
-                altPressAllButtonBig = false;
-                altPressFirstButtonBig = false;
-                shiftPressFirstButtonBig = false;
-                shiftPressAllButtonBig = false;
+                doubleAltPressAllSymbolsAlted = false;
+                altPressSingleSymbolAltedMode = false;
+                oneTimeShiftOneTimeBigMode = false;
+                doubleShiftCapsMode = false;
                 updateShiftKeyState(attribute);
         }
 
@@ -592,25 +592,25 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
             if(showSymbolOnScreenKeyboard == true){
                 showSymbolOnScreenKeyboard = false;
-                altPressFirstButtonBig = false;
-                altPressAllButtonBig = false;
+                altPressSingleSymbolAltedMode = false;
+                doubleAltPressAllSymbolsAlted = false;
                 altShift = false;
                 updateShiftKeyState(currentInputEditorInfo);
-            }else  if(altPressAllButtonBig == false && altPressFirstButtonBig == false){
+            }else  if(doubleAltPressAllSymbolsAlted == false && altPressSingleSymbolAltedMode == false){
                 altShift = false;
                 mAltPressTime = now;
-                altPressFirstButtonBig = true;
-            } else if (!altPressed && altPressFirstButtonBig == true && mAltPressTime + 1000 > now){
-                altPressFirstButtonBig = false;
-                altPressAllButtonBig = true;
-            } else if (!altPressed && altPressFirstButtonBig == true && mAltPressTime + 1000 < now){
-                altPressFirstButtonBig = false;
-                altPressAllButtonBig = false;
+                altPressSingleSymbolAltedMode = true;
+            } else if (!altPressed && altPressSingleSymbolAltedMode == true && mAltPressTime + 1000 > now){
+                altPressSingleSymbolAltedMode = false;
+                doubleAltPressAllSymbolsAlted = true;
+            } else if (!altPressed && altPressSingleSymbolAltedMode == true && mAltPressTime + 1000 < now){
+                altPressSingleSymbolAltedMode = false;
+                doubleAltPressAllSymbolsAlted = false;
                 altShift = false;
                 updateShiftKeyState(currentInputEditorInfo);
-            } else if (!altPressed && altPressAllButtonBig == true){
-                altPressFirstButtonBig = false;
-                altPressAllButtonBig = false;
+            } else if (!altPressed && doubleAltPressAllSymbolsAlted == true){
+                altPressSingleSymbolAltedMode = false;
+                doubleAltPressAllSymbolsAlted = false;
                 altShift = false;
                 updateShiftKeyState(currentInputEditorInfo);
             }
@@ -632,20 +632,20 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             if(navigationOnScreenKeyboardMode) {
                 navigationOnScreenKeyboardMode = false;
                 showSymbolOnScreenKeyboard = false;
-                altPressFirstButtonBig = false;
-                altPressAllButtonBig = false;
+                altPressSingleSymbolAltedMode = false;
+                doubleAltPressAllSymbolsAlted = false;
                 updateShiftKeyState(currentInputEditorInfo);
             }else if(!showSymbolOnScreenKeyboard){
                 showSymbolOnScreenKeyboard = true;
                 altShift = true;
-                altPressAllButtonBig = true;
-                altPressFirstButtonBig = false;
+                doubleAltPressAllSymbolsAlted = true;
+                altPressSingleSymbolAltedMode = false;
             } else if(showSymbolOnScreenKeyboard && altShift){
                 altShift = false;
             } else if(showSymbolOnScreenKeyboard && !altShift) {
                 showSymbolOnScreenKeyboard = false;
-                altPressFirstButtonBig = false;
-                altPressAllButtonBig = false;
+                altPressSingleSymbolAltedMode = false;
+                doubleAltPressAllSymbolsAlted = false;
                 updateShiftKeyState(currentInputEditorInfo);
             }
 
@@ -689,7 +689,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         }
         //endregion
 
-        if(altPressFirstButtonBig || altPressAllButtonBig || altPressed) altMode = true;
+        if(altPressSingleSymbolAltedMode || doubleAltPressAllSymbolsAlted || altPressed) altMode = true;
         //Log.d(TAG, "onKeyDown altPressFirstButtonBig="+altPressFirstButtonBig+" altPressAllButtonBig="+altPressAllButtonBig+" altPressed="+altPressed);
 
         //region Нажатие клавиши SHIFT
@@ -699,18 +699,18 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
             if(!altMode)
             {
-                if(shiftPressAllButtonBig == false && shiftPressFirstButtonBig == false){
+                if(doubleShiftCapsMode == false && oneTimeShiftOneTimeBigMode == false){
                     mShiftFirstPressTime = now;
-                    shiftPressFirstButtonBig = true;
-                } else if (shiftPressFirstButtonBig == true && mShiftFirstPressTime + 1000 > now){
-                    shiftPressFirstButtonBig = false;
-                    shiftPressAllButtonBig = true;
-                } else if (shiftPressFirstButtonBig == true && mShiftFirstPressTime + 1000 < now){
-                    shiftPressFirstButtonBig = false;
-                    shiftPressAllButtonBig = false;
-                } else if (shiftPressAllButtonBig == true){
-                    shiftPressFirstButtonBig = false;
-                    shiftPressAllButtonBig = false;
+                    oneTimeShiftOneTimeBigMode = true;
+                } else if (oneTimeShiftOneTimeBigMode == true && mShiftFirstPressTime + 1000 > now){
+                    oneTimeShiftOneTimeBigMode = false;
+                    doubleShiftCapsMode = true;
+                } else if (oneTimeShiftOneTimeBigMode == true && mShiftFirstPressTime + 1000 < now){
+                    oneTimeShiftOneTimeBigMode = false;
+                    doubleShiftCapsMode = false;
+                } else if (doubleShiftCapsMode == true){
+                    oneTimeShiftOneTimeBigMode = false;
+                    doubleShiftCapsMode = false;
                 }
             }else{
                 altShift = !altShift;
@@ -720,7 +720,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             return true;
         }
         //TODO: Выделение с шифтом в приложении BB.Notes не работает
-        if(shiftPressFirstButtonBig || shiftPressAllButtonBig || shiftPressed) shift = true;
+        if(oneTimeShiftOneTimeBigMode || doubleShiftCapsMode || shiftPressed) shift = true;
         //endregion
 
         if(altMode) shift = altShift;
@@ -785,7 +785,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
         //region Обрабока сдвоенных букв. Подготовка СИМВОЛА на печать
         int code_double_press = 0;
-        Log.d(TAG, "onKeyDown prev_key_press_btn_r0="+prev_key_press_btn_r0+" event.getScanCode() ="+ scanCode +" shiftPressFirstButtonBig="+shiftPressFirstButtonBig);
+        Log.d(TAG, "onKeyDown prev_key_press_btn_r0="+prev_key_press_btn_r0+" event.getScanCode() ="+ scanCode +" shiftPressFirstButtonBig="+ oneTimeShiftOneTimeBigMode);
         if(prev_key_press_btn_r0 == scanCode && repeatCount == 0 &&  now < prev_key_press_time + DOUBLE_CLICK_TIME){
             if(shiftPressFirstButtonBigDoublePress) {
                 code_double_press = KeyToButton(scanCode, altMode, true, true);
@@ -830,13 +830,13 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             mAltPressTime = 0;
             if(event.isAltPressed()) altPlusBtn = true;
 
-            if(pref_alt_space == false && altPressFirstButtonBig == true) altPressFirstButtonBig = false;
+            if(pref_alt_space == false && altPressSingleSymbolAltedMode == true) altPressSingleSymbolAltedMode = false;
 
             if(is_double_press || altMode == true){
                 prev_key_press_btn_r1 = prev_key_press_btn_r0;
                 prev_key_press_btn_r0 = 0;
-                if (shiftPressFirstButtonBig == true){
-                    shiftPressFirstButtonBig = false;
+                if (oneTimeShiftOneTimeBigMode == true){
+                    oneTimeShiftOneTimeBigMode = false;
                     UpdateKeyboardModeVisualization();
                 }
                 shiftPressFirstButtonBigDoublePress = false;
@@ -844,11 +844,11 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 prev_key_press_time = now;
                 prev_key_press_btn_r0 = scanCode;
                 prev_key_press_btn_r1 = 0;
-                Log.d(TAG, "onKeyDown shiftPressFirstButtonBig="+shiftPressFirstButtonBig);
-                if (shiftPressFirstButtonBig == false) shiftPressFirstButtonBigDoublePress = false;
-                if (shiftPressFirstButtonBig == true){
+                Log.d(TAG, "onKeyDown shiftPressFirstButtonBig="+ oneTimeShiftOneTimeBigMode);
+                if (oneTimeShiftOneTimeBigMode == false) shiftPressFirstButtonBigDoublePress = false;
+                if (oneTimeShiftOneTimeBigMode == true){
                     shiftPressFirstButtonBigDoublePress = true;
-                    shiftPressFirstButtonBig = false;
+                    oneTimeShiftOneTimeBigMode = false;
                     UpdateKeyboardModeVisualization();
                 }
             }
@@ -880,8 +880,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             case KeyEvent.KEYCODE_ENTER:
                 keyDownUp(KeyEvent.KEYCODE_ENTER, inputConnection);
                 prev_key_press_btn_r0 = 0;
-                if (altPressFirstButtonBig == true){
-                    altPressFirstButtonBig = false;
+                if (altPressSingleSymbolAltedMode == true){
+                    altPressSingleSymbolAltedMode = false;
                     altShift = false;
                     UpdateKeyboardModeVisualization();
                 }
@@ -889,8 +889,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 return true;
             case KeyEvent.KEYCODE_SPACE:
 
-                if (altPressFirstButtonBig == true){
-                    altPressFirstButtonBig = false;
+                if (altPressSingleSymbolAltedMode == true){
+                    altPressSingleSymbolAltedMode = false;
                     altShift = false;
                     UpdateKeyboardModeVisualization();
                 }
@@ -986,8 +986,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
             altPressed = false;
             if(altPlusBtn){
-                altPressFirstButtonBig = false;
-                altPressAllButtonBig = false;
+                altPressSingleSymbolAltedMode = false;
+                doubleAltPressAllSymbolsAlted = false;
                 UpdateKeyboardModeVisualization();
                 altPlusBtn = false;
                 updateShiftKeyState(getCurrentInputEditorInfo());
@@ -1170,20 +1170,20 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             switch (primaryCode) {
 
                 case 19: //UP
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
                 case 20: //DOWN
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
 
                 case 21: //LEFT
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
 
@@ -1221,13 +1221,16 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
         }else{
             switch (primaryCode) {
-
+                //Хак чтобы не ставился пробел после свайпа по свайп-анели
+                case 0: //SPACE
+                case 32: //SPACE
+                    break;
                 case 21: //LEFT
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                     updateShiftKeyState(getCurrentInputEditorInfo());
                     break;
 
@@ -1308,7 +1311,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 if(this.isInputViewShown()) {
                     CharSequence c = inputConnection.getTextAfterCursor(1, 0);
                     if(c.length() > 0) {
-                        keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                        keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                         updateShiftKeyState(getCurrentInputEditorInfo());
                     }
                     lastGestureX = motionEvent.getX();
@@ -1318,7 +1321,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 if(this.isInputViewShown()) {
                     CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
                     if (c.length() > 0) {
-                        keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                        keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                         updateShiftKeyState(getCurrentInputEditorInfo());
                     }
                     lastGestureX = motionEvent.getX();
@@ -1326,6 +1329,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 }
             }
         }else{
+            //TODO: Разобраться что это
             if(motionEventAction == MotionEvent.ACTION_MOVE)keyboardView.coordsToIndexKey(motionEvent.getX());
             if(motionEventAction == MotionEvent.ACTION_UP  )keyboardView.hidePopup(true);
         }
@@ -1357,10 +1361,11 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             int motionEventAction = motionEvent.getAction();
             if(!showSymbolOnScreenKeyboard){
 
-//                if(!this.isInputViewShown()) {
-//                    //Если мы не в поле ввода передаем жесты дальше
-//                    return false;
-//                }
+                if(!this.isInputViewShown()) {
+                    //Если мы не в поле ввода передаем жесты дальше
+                    return false;
+                }
+
                 //Жесть по клавиатуре всегда начинается с ACTION_DOWN
                 if(motionEventAction == MotionEvent.ACTION_DOWN) {
                     Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
@@ -1623,7 +1628,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
     private void UpdateKeyboardModeVisualization() {
         //notificationManager.cancelAll();
-        Log.d(TAG, "UpdateKeyboardModeVisualization shiftPressFirstButtonBig="+shiftPressFirstButtonBig+" shiftPressAllButtonBig="+shiftPressAllButtonBig+" altPressAllButtonBig="+altPressAllButtonBig+" altPressFirstButtonBig="+altPressFirstButtonBig);
+        Log.d(TAG, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode="+ oneTimeShiftOneTimeBigMode +" doubleShiftCapsMode="+ doubleShiftCapsMode +" doubleAltPressAllSymbolsAlted="+ doubleAltPressAllSymbolsAlted +" altPressSingleSymbolAltedMode="+ altPressSingleSymbolAltedMode);
         if(navigationOnScreenKeyboardMode){
             if(!fnSymbolOnScreenKeyboardMode)
             {
@@ -1641,7 +1646,6 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             keyboardView.setNavigationLayer();
 
             MakeVisible();
-            //updateShiftKeyState(getCurrentInputEditorInfo());
             notificationManager.notify(1, builder.build());
         }else if(showSymbolOnScreenKeyboard) {
             builder.setSmallIcon(R.mipmap.ic_kb_sym);
@@ -1654,10 +1658,9 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 keyboardView.setAltLayer(scan_code, alt, alt_popup);
             }
             MakeVisible();
-            //updateShiftKeyState(getCurrentInputEditorInfo());
             //keyboardView.setAlt();
             notificationManager.notify(1, builder.build());
-        }else if(altPressAllButtonBig){
+        }else if(doubleAltPressAllSymbolsAlted){
             builder.setSmallIcon(R.mipmap.ic_kb_sym);
             builder.setContentTitle("Символы 1-9");
 
@@ -1676,7 +1679,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
             keyboardView.setAlt();
             notificationManager.notify(1, builder.build());
-        }else if(altPressFirstButtonBig){
+        }else if(altPressSingleSymbolAltedMode){
             builder.setSmallIcon(R.mipmap.ic_kb_sym_one);
             builder.setContentTitle("Символы 1-9");
 
@@ -1692,7 +1695,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
             keyboardView.setAlt();
             notificationManager.notify(1, builder.build());
-        }else if(shiftPressAllButtonBig){
+        }else if(doubleShiftCapsMode){
             if(langArray[langNum] == R.xml.ukraine_hw) {
                 if(mode_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_ukr_shift_all);
@@ -1722,7 +1725,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
             notificationManager.notify(1, builder.build());
 
-        }else if(shiftPressFirstButtonBig){
+        }else if(oneTimeShiftOneTimeBigMode){
             if(langArray[langNum] == R.xml.ukraine_hw) {
                 if(mode_keyboard_gestures == false) {
                     builder.setSmallIcon(R.mipmap.ic_ukr_shift_first);
@@ -1905,28 +1908,40 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 new KeyEvent(SystemClock.uptimeMillis(), uptimeMillis, KeyEvent.ACTION_UP, keyEventCode, 0, 0, -1, 0, 6));
     }
 
-    //TODO: Разобраться, он вызывается постоянно зачем-то
+    //TODO: Иногда вызывается по несколько раз подряд (видимо из разных мест)
     private void updateShiftKeyState(EditorInfo editorInfo) {
         //Если мы вывалились из зоны ввода текста
 //        if(!isInputViewShown())
 //            return;
-        Log.d(TAG, "updateShiftKeyState editorInfo "+editorInfo.inputType);
+        //TODO: Минорно. Если надо знать какие флаги их надо расшифровывать
+        Log.d(TAG, "updateShiftKeyState editorInfo "+Integer.toBinaryString(editorInfo.inputType));
+        if(!isInputViewShown())
+            return;
+        if(editorInfo == null)
+            return;
+        if (altPressSingleSymbolAltedMode
+                || doubleAltPressAllSymbolsAlted
+                || altPressed
+                || doubleShiftCapsMode)
+            return;
 
-        if (editorInfo != null && !altPressFirstButtonBig && !altPressAllButtonBig && !altPressed ) {
-            int makeFirstBig = 0;
-            if (editorInfo != null && editorInfo.inputType != InputType.TYPE_NULL) {
-                makeFirstBig = getCurrentInputConnection().getCursorCapsMode(editorInfo.inputType);
-                if(makeFirstBig != 0) Log.d(TAG, "updateShiftKeyState");
-            }
-            if(makeFirstBig != 0 && !shiftPressAllButtonBig){
-                shiftPressFirstButtonBig = true;
-                UpdateKeyboardModeVisualization();
-            }else if (makeFirstBig == 0 && shiftPressAllButtonBig) {
-                shiftPressFirstButtonBig = false;
-                UpdateKeyboardModeVisualization();
-            }
-
+        int makeFirstBig = 0;
+        if (editorInfo.inputType != InputType.TYPE_NULL) {
+            makeFirstBig = getCurrentInputConnection().getCursorCapsMode(editorInfo.inputType);
         }
+
+        if(makeFirstBig != 0){
+            if(!oneTimeShiftOneTimeBigMode) {
+                oneTimeShiftOneTimeBigMode = true;
+                UpdateKeyboardModeVisualization();
+            }
+        }else if (makeFirstBig == 0) {
+            if(oneTimeShiftOneTimeBigMode) {
+                oneTimeShiftOneTimeBigMode = false;
+                UpdateKeyboardModeVisualization();
+            }
+        }
+        Log.d(TAG, "updateShiftKeyState oneTimeShiftOneTimeBigMode = " + oneTimeShiftOneTimeBigMode);
     }
 
     @Override public View onCreateCandidatesView() {
