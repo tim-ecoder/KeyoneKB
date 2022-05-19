@@ -3,6 +3,7 @@ package com.sateda.keyonekb;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -145,13 +146,12 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     private int gesture_motion_sensivity = 10;
     private boolean pref_show_toast = false;
     private boolean pref_alt_space = true;
-     private boolean pref_flag = false;
+    private boolean pref_flag = false;
     private boolean pref_longpress_alt = false;
     private boolean pref_show_default_onscreen_keyboard = true;
     private boolean key_0_hold = false;
 
     private boolean mode_keyboard_gestures = false;
-    private boolean mode_altMode = false;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -574,9 +574,20 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
         if(ctrlPressed && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT && scanCode != SCAN_CODE_SHIFT){
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-            if(inputConnection!=null)
-                inputConnection.sendKeyEvent(new KeyEvent(
-                    now, now, KeyEvent.ACTION_DOWN, keyCode, 0, meta));
+
+            if(inputConnection!=null) {
+                //TODO: Пробуем KEYCODE_SEARCH где работает, а где нет
+                if(keyCode == KeyEvent.KEYCODE_S) {
+                    keyDownUp(KeyEvent.KEYCODE_SEARCH, inputConnection);
+                }
+//                if(keyCode == KeyEvent.KEYCODE_T)
+//                    this.keyDownUp(KeyEvent.KEYCODE_TAB, inputConnection);
+                else {
+                    //TODO: BUG? А где ACTION_UP, понятно что работает и так, но все же
+                    inputConnection.sendKeyEvent(new KeyEvent(
+                            now, now, KeyEvent.ACTION_DOWN, keyCode, 0, meta));
+                }
+            }
             updateShiftKeyState(currentInputEditorInfo);
             return true;
         }
@@ -600,10 +611,10 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 altShift = false;
                 mAltPressTime = now;
                 altPressSingleSymbolAltedMode = true;
-            } else if (!altPressed && altPressSingleSymbolAltedMode == true && mAltPressTime + 1000 > now){
+            } else if (!altPressed && altPressSingleSymbolAltedMode == true && mAltPressTime + DOUBLE_CLICK_TIME > now){
                 altPressSingleSymbolAltedMode = false;
                 doubleAltPressAllSymbolsAlted = true;
-            } else if (!altPressed && altPressSingleSymbolAltedMode == true && mAltPressTime + 1000 < now){
+            } else if (!altPressed && altPressSingleSymbolAltedMode == true && mAltPressTime + DOUBLE_CLICK_TIME < now){
                 altPressSingleSymbolAltedMode = false;
                 doubleAltPressAllSymbolsAlted = false;
                 altShift = false;
@@ -727,36 +738,42 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         //Log.d(TAG, "onKeyDown shiftPressFirstButtonBig="+shiftPressFirstButtonBig+" shiftPressAllButtonBig="+shiftPressAllButtonBig+" altShift="+altShift);
 
         //region Обработка KEY_0 (смена языка, зажатие, ATL+KEY_0='0'
-        if(scanCode == SCAN_CODE_KEY_0 && repeatCount == 0 && altMode == false ){
-            //Перенос смену языка в KeyUp чтобы не делать хак обратной смены языка для случая удержания
-            //ChangeLanguage();
-            //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_DOWN, 500f, 500f, 0));
-            //SystemClock.sleep(10);
-            return true;
-        }else if(scanCode == SCAN_CODE_KEY_0 && repeatCount == 1 && altMode == false ){
-            //TODO: BUG Работает через раз в приложениях BB, не работает в сторонних приложениях
-            //TODO: Добавить навигацию внутри текстового поля включительно с выделением
-            key_0_hold = true;
-            mode_keyboard_gestures = true;
-            //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_MOVE, 500f, 500f, 0));
-            //SystemClock.sleep(10);
-            //Хак больше не нужен
-            //ChangeLanguageBack();
-            //Вызываем тут облегченную версию апдейта только верха и толькоо "точки"
-            //UpdateOnScreenStatus();
-            UpdateKeyboardGesturesModeVisualization();
-            return true;
-        }else if(scanCode == SCAN_CODE_KEY_0 && repeatCount > 1 && altMode == false ){
-            //SystemClock.sleep(100);
-            //Пробуем костылизировать чтобы разбить спам KEY_DOWN при зажатии
-            //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_UP, 500f, 500f, 0));
-            //SystemClock.sleep(10);
-            //TODO: Как-то надо операционку подтолкнуть дать воздуха для других событий через спам
-            return true;
-        }else if(scanCode == SCAN_CODE_KEY_0 && altMode == true ){
-            if(inputConnection!=null)
-                inputConnection.commitText(String.valueOf((char) CHAR_0), 1);
-            return true;
+        if(scanCode == SCAN_CODE_KEY_0) {
+            if (!altMode) {
+                if (repeatCount == 0) {
+                    //Перенос смену языка в KeyUp чтобы не делать хак обратной смены языка для случая удержания
+                    //ChangeLanguage();
+                    //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_DOWN, 500f, 500f, 0));
+                    //SystemClock.sleep(10);
+                    return true;
+                } else if (repeatCount == 1) {
+                    //TODO: BUG Работает через раз в приложениях BB, не работает в сторонних приложениях
+                    //TODO: Добавить навигацию внутри текстового поля включительно с выделением
+                    key_0_hold = true;
+                    mode_keyboard_gestures = true;
+                    //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_MOVE, 500f, 500f, 0));
+                    //SystemClock.sleep(10);
+                    //Хак больше не нужен
+                    //ChangeLanguageBack();
+                    //Вызываем тут облегченную версию апдейта только верха и толькоо "точки"
+                    //UpdateOnScreenStatus();
+                    UpdateKeyboardGesturesModeVisualization();
+                    return true;
+                } else if (repeatCount > 1) {
+                    //SystemClock.sleep(100);
+                    //Пробуем костылизировать чтобы разбить спам KEY_DOWN при зажатии
+                    //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_UP, 500f, 500f, 0));
+                    //SystemClock.sleep(10);
+                    //TODO: Как-то надо операционку подтолкнуть дать воздуха для других событий через спам
+                    return true;
+                }
+            //If AltMode=true
+            } else {
+                altPlusBtn = true;
+                if (inputConnection != null)
+                    inputConnection.commitText(String.valueOf((char) CHAR_0), 1);
+                return true;
+            }
         }
         //endregion
 
@@ -828,6 +845,9 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             //endregion
 
             mAltPressTime = 0;
+
+            // Это нужно только для выхода из других режимов Alt
+            //TODO: Есть ощущение что это можно и легче как-то сделать
             if(event.isAltPressed()) altPlusBtn = true;
 
             if(pref_alt_space == false && altPressSingleSymbolAltedMode == true) altPressSingleSymbolAltedMode = false;
@@ -950,10 +970,29 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         // Обработайте отпускание клавиши, верните true, если обработка выполнена
         int scanCode = event.getScanCode();
 
+        //region отжатие ALT
+        if ((keyCode == KeyEvent.KEYCODE_ALT_LEFT) || (keyCode == KeyEvent.KEYCODE_1 && DEBUG)){
+            if(menuEmulatedKeyPressed){ //вызов меню
+                menuEmulatedKeyPressed = false;
+                ic.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MENU));
+            }
+            altPressed = false;
+            if(altPlusBtn){
+                //Если отпустили Alt после Alt+Bnt то надо оключить любой режим-Альтп и визуализацию
+                altPressSingleSymbolAltedMode = false;
+                doubleAltPressAllSymbolsAlted = false;
+                UpdateKeyboardModeVisualization();
+                altPlusBtn = false;
+                updateShiftKeyState(getCurrentInputEditorInfo());
+            }
+            return true;
+        }
+        //endregion
+
         //region отжание KEY_0
         if(scanCode == SCAN_CODE_KEY_0) {
             //long now = System.currentTimeMillis();
-            if (!key_0_hold && event.getRepeatCount() == 0 && !event.isLongPress() && mode_altMode == false ){
+            if (!key_0_hold && event.getRepeatCount() == 0 && altPressed == false ){
                 /* TODO: На подумать активировать режим Gestures по двойному KEY0
                 //Двойное нажатие KEY_0 активирует сенсор на клавиатуре
                 if(mKey0PressTime == 0) {
@@ -974,23 +1013,6 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 mode_keyboard_gestures = false;
                 UpdateKeyboardModeVisualization();
                 return true;
-            }
-        }
-        //endregion
-
-        //region отжатие ALT
-        if ((keyCode == KeyEvent.KEYCODE_ALT_LEFT) || (keyCode == KeyEvent.KEYCODE_1 && DEBUG)){
-            if(menuEmulatedKeyPressed){ //вызов меню
-                menuEmulatedKeyPressed = false;
-                ic.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MENU));
-            }
-            altPressed = false;
-            if(altPlusBtn){
-                altPressSingleSymbolAltedMode = false;
-                doubleAltPressAllSymbolsAlted = false;
-                UpdateKeyboardModeVisualization();
-                altPlusBtn = false;
-                updateShiftKeyState(getCurrentInputEditorInfo());
             }
         }
         //endregion
