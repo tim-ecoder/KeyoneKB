@@ -522,7 +522,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         */
         else if(inputAtBbLauncherApp && !inputViewShown){
             return true;
-        }
+       }
 
         //endregion
 
@@ -1911,12 +1911,12 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     //TODO: Иногда вызывается по несколько раз подряд (видимо из разных мест)
     private void updateShiftKeyState(EditorInfo editorInfo) {
         //Если мы вывалились из зоны ввода текста
-//        if(!isInputViewShown())
-//            return;
+        //NOTE: Проверка не дает вводить Заглавную прям на первом входе в приложение. Видимо не успевает еще активироваться.
+        //if(!isInputViewShown())
+        //    return;
         //TODO: Минорно. Если надо знать какие флаги их надо расшифровывать
         Log.d(TAG, "updateShiftKeyState editorInfo "+Integer.toBinaryString(editorInfo.inputType));
-        if(!isInputViewShown())
-            return;
+
         if(editorInfo == null)
             return;
         if (altPressSingleSymbolAltedMode
