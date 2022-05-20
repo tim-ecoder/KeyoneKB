@@ -68,6 +68,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     public static final int DOUBLE_CLICK_TIME2 = 500;
     public static final int SCAN_CODE_CURRENCY = 183;
     public static final int MAGIC_KEYBOARD_GESTURE_MOTION_CONST = 36;
+    public static final int ROW_4_BEGIN_Y = 400;
 
     private CallStateCallback callStateCallback;
 
@@ -745,21 +746,30 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                     //ChangeLanguage();
                     //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_DOWN, 500f, 500f, 0));
                     //SystemClock.sleep(10);
+                    if (System.currentTimeMillis() - lastGestureSwipingBeginTime < 1000) {
+                        Log.d(TAG, "GestureMode at key_0_down first time");
+                        mode_keyboard_gestures = true;
+                        key_0_hold = true;
+                        UpdateKeyboardGesturesModeVisualization();
+                    }
                     return true;
-                } else if (repeatCount == 1) {
-                    //TODO: BUG Работает через раз в приложениях BB, не работает в сторонних приложениях
-                    //TODO: Добавить навигацию внутри текстового поля включительно с выделением
-                    key_0_hold = true;
-                    mode_keyboard_gestures = true;
-                    //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_MOVE, 500f, 500f, 0));
-                    //SystemClock.sleep(10);
-                    //Хак больше не нужен
-                    //ChangeLanguageBack();
-                    //Вызываем тут облегченную версию апдейта только верха и толькоо "точки"
-                    //UpdateOnScreenStatus();
-                    UpdateKeyboardGesturesModeVisualization();
-                    return true;
-                } else if (repeatCount > 1) {
+
+//                } else if (repeatCount == 1) {
+//                    //TODO: BUG Работает через раз в приложениях BB, не работает в сторонних приложениях
+//                    //TODO: Добавить навигацию внутри текстового поля включительно с выделением
+//                    if(System.currentTimeMillis() - lastGestureSwipingBeginTime < DOUBLE_CLICK_TIME2) {
+//                        key_0_hold = true;
+//                        mode_keyboard_gestures = true;
+//                        //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_MOVE, 500f, 500f, 0));
+//                        //SystemClock.sleep(10);
+//                        //Хак больше не нужен
+//                        //ChangeLanguageBack();
+//                        //Вызываем тут облегченную версию апдейта только верха и толькоо "точки"
+//                        //UpdateOnScreenStatus();
+//                        UpdateKeyboardGesturesModeVisualization();
+//                    }
+//                    return true;
+                } else if (repeatCount >= 1) {
                     //SystemClock.sleep(100);
                     //Пробуем костылизировать чтобы разбить спам KEY_DOWN при зажатии
                     //this.getWindow().dispatchGenericMotionEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis()+10,MotionEvent.ACTION_UP, 500f, 500f, 0));
@@ -1008,7 +1018,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 */
                 ChangeLanguage();
                 return true;
-            }else if (key_0_hold) {
+            }else if (key_0_hold || mode_keyboard_gestures) {
                 key_0_hold = false;
                 mode_keyboard_gestures = false;
                 UpdateKeyboardModeVisualization();
@@ -1016,6 +1026,10 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
         }
         //endregion
+
+        //Если идет набор текста, не учитываем движения по клавиатуре для резкого включения жестов-с-зажатым-нулеи
+        lastGestureSwipingBeginTime = 0;
+        enteredGestureMovement = false;
 
         //region отжатие SHIFT LEFT, SHIFT RIGHT
         if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT || (keyCode == KeyEvent.KEYCODE_2 && DEBUG)){
@@ -1363,11 +1377,37 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         //TODO: Готовимся работать с курсором
     }
 
+    private long lastGestureSwipingBeginTime = 0;
+    private boolean enteredGestureMovement = false;
+
     @Override
     public boolean onGenericMotionEvent(MotionEvent motionEvent) {
-        if (DEBUG) Log.v(TAG, "onGenericMotionEvent(): " + motionEvent);
+        //Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
 
-
+        if(!mode_keyboard_gestures && motionEvent.getY() <= ROW_4_BEGIN_Y)
+        {
+            Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
+            if(motionEvent.getAction() == MotionEvent.ACTION_UP
+                    || motionEvent.getAction() == MotionEvent.ACTION_CANCEL
+                    || motionEvent.getAction() == MotionEvent.ACTION_POINTER_UP
+            ) {
+                lastGestureSwipingBeginTime = 0;
+                enteredGestureMovement = false;
+            }
+            if(motionEvent.getAction() == MotionEvent.ACTION_MOVE && enteredGestureMovement) {
+                lastGestureSwipingBeginTime = System.currentTimeMillis();
+                lastGestureX = motionEvent.getX();
+                lastGestureY = motionEvent.getY();
+            }
+            if(motionEvent.getAction() == MotionEvent.ACTION_DOWN
+            || motionEvent.getAction() == MotionEvent.ACTION_POINTER_DOWN)
+            {
+                lastGestureSwipingBeginTime = System.currentTimeMillis();
+                lastGestureX = motionEvent.getX();
+                lastGestureY = motionEvent.getY();
+                enteredGestureMovement = true;
+            }
+        }
         if(mode_keyboard_gestures && !navigationOnScreenKeyboardMode){
 
             //TODO: Подумать отдельно обрабатывать жесты по горизонтали и отдельно по вертикали ориентируясь на событие ACTION_UP
@@ -1378,7 +1418,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             float motionEventY = motionEvent.getY();
 
             //Не ловим движение на нижнем ряду где поблел и переключение языка
-            if(motionEventY > 400) return true;
+            if(motionEventY > ROW_4_BEGIN_Y) return true;
 
             int motionEventAction = motionEvent.getAction();
             if(!showSymbolOnScreenKeyboard){
@@ -1389,13 +1429,17 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 }
 
                 //Жесть по клавиатуре всегда начинается с ACTION_DOWN
-                if(motionEventAction == MotionEvent.ACTION_DOWN) {
+                if(motionEventAction == MotionEvent.ACTION_DOWN
+                || motionEventAction == MotionEvent.ACTION_POINTER_DOWN) {
                     Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
                     lastGestureX = motionEventX;
                     lastGestureY = motionEventY;
+                    return true;
                 }
 
-                if(motionEventAction == MotionEvent.ACTION_MOVE || motionEventAction == MotionEvent.ACTION_UP) {
+                if(motionEventAction == MotionEvent.ACTION_MOVE
+                        || motionEventAction == MotionEvent.ACTION_UP
+                        || motionEventAction == MotionEvent.ACTION_POINTER_UP) {
                     float deltaX = motionEventX - lastGestureX;
                     float absDeltaX = deltaX < 0 ? -1*deltaX : deltaX;
                     float deltaY = motionEventY - lastGestureY;
@@ -1464,6 +1508,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                     lastGestureY = motionEventY;
                 }
             }else{
+
+                //TODO: Разобраться зачем это
                 if(motionEventAction == MotionEvent.ACTION_MOVE)keyboardView.coordsToIndexKey(motionEventX);
                 if(motionEventAction == MotionEvent.ACTION_UP  )keyboardView.hidePopup(true);
             }
