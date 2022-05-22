@@ -1074,6 +1074,11 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         }
         //endregion
 
+        if(mode_keyboard_gestures) {
+            mode_keyboard_gestures = false;
+            UpdateKeyboardGesturesModeVisualization();
+        }
+
         //TODO: По идее функционал вызова меню и прочи KEYCODE_ACTION надо отправлять в "Переназначение клавиш"
         if(keyCode == KEY_SYM && menuEmulatedKeyPressed){ //вызов меню
             menuEmulatedKeyPressed = false;
