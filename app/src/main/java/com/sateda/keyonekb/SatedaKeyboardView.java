@@ -144,62 +144,83 @@ public class SatedaKeyboardView extends KeyboardView {
         draw_lang = lang;
     }
 
-    public void setAltLayer(int[] scan_code, int[] label, String[] alt_popup){
+    public void setAltLayer(KeyoneIME.KeybordLayout keybordLayout, boolean isAltShift){
         alt = true;
         showSymbol = true;
         fnSymbol = false;
         List<Keyboard.Key> keys = getKeyboard().getKeys();
-        max_keys = 0;
         int arr_inc = 0;
-        for(int i = 0; i < MAX_KEY_COUNT; i++){
-            if(scan_code[i] != 0) max_keys++;
+        int i = 0;
+
+        for(KeyoneIME.KeyLayouts keyLayouts : keybordLayout.KeyLayoutsMap.values()){
             KeyLabel[i] = "";
             KeyLabel_x[i] = 0;
             KeyLabel_y[i] = 0;
-            altPopup[i] = alt_popup[i];
-            altPopupLabel[i] = String.valueOf((char) label[i]);
+            if(!isAltShift) {
+                altPopup[i] = keyLayouts.alt_popup;
+                altPopupLabel[i] = String.valueOf((char) keyLayouts.alt);
+            }
+            else {
+                altPopup[i] = keyLayouts.alt_shift_popup;
+                altPopupLabel[i] = String.valueOf((char) keyLayouts.alt_shift);
+            }
+            i++;
         }
 
         for(Keyboard.Key key: keys) {
-            for(int i = 0; i < max_keys; i++){
-                if(key.codes[0] == scan_code[i] && key.label.equals(" ") && (scan_code[i] == 5 || (scan_code[i]>= 16 && scan_code[i] <= 25) || (scan_code[i]>= 30 && scan_code[i] <= 38)|| (scan_code[i]>= 44 && scan_code[i] <= 50))){
+            if(key == null)
+                continue;
+            KeyoneIME.KeyLayouts keyLayouts = keybordLayout.KeyLayoutsMap.get(key.codes[0]);
+            if(keyLayouts == null)
+                continue;
+            if(key.label.equals(" ")
+                    && (keyLayouts.scan_code == 5
+                        || (keyLayouts.scan_code >= 16 && keyLayouts.scan_code <= 25)
+                        || (keyLayouts.scan_code >= 30 && keyLayouts.scan_code <= 38)
+                        || (keyLayouts.scan_code >= 44 && keyLayouts.scan_code <= 50))){
 
-                    KeyLabel_x[arr_inc] = key.x + (key.width - 25);
-                    KeyLabel_y[arr_inc] = key.y + 40;
+                KeyLabel_x[arr_inc] = key.x + (key.width - 25);
+                KeyLabel_y[arr_inc] = key.y + 40;
 
-                    if (key.codes[0] == KEY_Q) { KeyLabel[arr_inc] = "Q"; }
-                    else if (key.codes[0] == KEY_W) { KeyLabel[arr_inc] = "W"; }
-                    else if (key.codes[0] == KEY_E) { KeyLabel[arr_inc] = "E"; }
-                    else if (key.codes[0] == KEY_R) { KeyLabel[arr_inc] = "R"; }
-                    else if (key.codes[0] == KEY_T) { KeyLabel[arr_inc] = "T"; }
-                    else if (key.codes[0] == KEY_Y) { KeyLabel[arr_inc] = "Y"; }
-                    else if (key.codes[0] == KEY_U) { KeyLabel[arr_inc] = "U"; }
-                    else if (key.codes[0] == KEY_I) { KeyLabel[arr_inc] = "I"; }
-                    else if (key.codes[0] == KEY_O) { KeyLabel[arr_inc] = "O"; }
-                    else if (key.codes[0] == KEY_P) { KeyLabel[arr_inc] = "P"; }
-                    else if (key.codes[0] == KEY_A) { KeyLabel[arr_inc] = "A"; }
-                    else if (key.codes[0] == KEY_S) { KeyLabel[arr_inc] = "S"; }
-                    else if (key.codes[0] == KEY_D) { KeyLabel[arr_inc] = "D"; }
-                    else if (key.codes[0] == KEY_F) { KeyLabel[arr_inc] = "F"; }
-                    else if (key.codes[0] == KEY_G) { KeyLabel[arr_inc] = "G"; }
-                    else if (key.codes[0] == KEY_H) { KeyLabel[arr_inc] = "H"; }
-                    else if (key.codes[0] == KEY_J) { KeyLabel[arr_inc] = "J"; }
-                    else if (key.codes[0] == KEY_K) { KeyLabel[arr_inc] = "K"; }
-                    else if (key.codes[0] == KEY_L) { KeyLabel[arr_inc] = "L"; }
-                    else if (key.codes[0] == KEY_Z) { KeyLabel[arr_inc] = "Z"; }
-                    else if (key.codes[0] == KEY_X) { KeyLabel[arr_inc] = "X"; }
-                    else if (key.codes[0] == KEY_C) { KeyLabel[arr_inc] = "C"; }
-                    else if (key.codes[0] == KEY_V) { KeyLabel[arr_inc] = "V"; }
-                    else if (key.codes[0] == KEY_B) { KeyLabel[arr_inc] = "B"; }
-                    else if (key.codes[0] == KEY_N) { KeyLabel[arr_inc] = "N"; }
-                    else if (key.codes[0] == KEY_M) { KeyLabel[arr_inc] = "M"; }
-                    else if (key.codes[0] == KEY_DOLLAR) { KeyLabel[arr_inc] = "$"; }
+                if (key.codes[0] == KEY_Q) { KeyLabel[arr_inc] = "Q"; }
+                else if (key.codes[0] == KEY_W) { KeyLabel[arr_inc] = "W"; }
+                else if (key.codes[0] == KEY_E) { KeyLabel[arr_inc] = "E"; }
+                else if (key.codes[0] == KEY_R) { KeyLabel[arr_inc] = "R"; }
+                else if (key.codes[0] == KEY_T) { KeyLabel[arr_inc] = "T"; }
+                else if (key.codes[0] == KEY_Y) { KeyLabel[arr_inc] = "Y"; }
+                else if (key.codes[0] == KEY_U) { KeyLabel[arr_inc] = "U"; }
+                else if (key.codes[0] == KEY_I) { KeyLabel[arr_inc] = "I"; }
+                else if (key.codes[0] == KEY_O) { KeyLabel[arr_inc] = "O"; }
+                else if (key.codes[0] == KEY_P) { KeyLabel[arr_inc] = "P"; }
+                else if (key.codes[0] == KEY_A) { KeyLabel[arr_inc] = "A"; }
+                else if (key.codes[0] == KEY_S) { KeyLabel[arr_inc] = "S"; }
+                else if (key.codes[0] == KEY_D) { KeyLabel[arr_inc] = "D"; }
+                else if (key.codes[0] == KEY_F) { KeyLabel[arr_inc] = "F"; }
+                else if (key.codes[0] == KEY_G) { KeyLabel[arr_inc] = "G"; }
+                else if (key.codes[0] == KEY_H) { KeyLabel[arr_inc] = "H"; }
+                else if (key.codes[0] == KEY_J) { KeyLabel[arr_inc] = "J"; }
+                else if (key.codes[0] == KEY_K) { KeyLabel[arr_inc] = "K"; }
+                else if (key.codes[0] == KEY_L) { KeyLabel[arr_inc] = "L"; }
+                else if (key.codes[0] == KEY_Z) { KeyLabel[arr_inc] = "Z"; }
+                else if (key.codes[0] == KEY_X) { KeyLabel[arr_inc] = "X"; }
+                else if (key.codes[0] == KEY_C) { KeyLabel[arr_inc] = "C"; }
+                else if (key.codes[0] == KEY_V) { KeyLabel[arr_inc] = "V"; }
+                else if (key.codes[0] == KEY_B) { KeyLabel[arr_inc] = "B"; }
+                else if (key.codes[0] == KEY_N) { KeyLabel[arr_inc] = "N"; }
+                else if (key.codes[0] == KEY_M) { KeyLabel[arr_inc] = "M"; }
+                else if (key.codes[0] == KEY_DOLLAR) { KeyLabel[arr_inc] = "$"; }
 
-                    key.codes[0] = label[i];
-                    key.label = String.valueOf((char) label[i]);
-
-                    arr_inc++;
+                if(!isAltShift) {
+                    key.codes[0] = keyLayouts.alt;
+                    key.label = String.valueOf((char) keyLayouts.alt);
                 }
+                else {
+                    key.codes[0] = keyLayouts.alt_shift;
+                    key.label = String.valueOf((char) keyLayouts.alt_shift);
+                }
+
+                arr_inc++;
+
             }
         }
     }
@@ -251,9 +272,10 @@ public class SatedaKeyboardView extends KeyboardView {
 
         int popupX = 0;
 
-        for(int i = 0; i < MAX_KEY_COUNT; i++){
+        for(int i = 0; i < altPopupLabel.length; i++){
             if(altPopupLabel[i].equals(popupKey.label)){
                 indexAltPopup = i;
+                break;
             }
         }
 
