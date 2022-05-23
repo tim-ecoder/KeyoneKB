@@ -48,7 +48,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider2"
-        android:editable="false"
         android:text=" Украинский язык"
         android:textSize="24sp"
         tools:checked="false" />
@@ -129,7 +128,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_alt_space"
-        android:text="ВКЛ:  ALT символы/цифры будут набираться до тех пор, пока не будет нажат пробел; ВЫКЛ:  ALT символы/цифры будет отключен сразу после ввода первого символа (как в blackberry keyboard)." />
+        android:text="ВКЛ: ALT символы/цифры будут набираться до тех пор, пока не будет нажат пробел;\n
+ВЫКЛ: ALT символы/цифры будет отключен сразу после ввода первого символа (как в blackberry keyboard)." />
 
     <View
         android:id="@+id/divider6"
@@ -221,7 +221,7 @@
         android:background="?android:attr/listDivider" />
 
     <Switch
-        android:id="@+id/switch_pocket_patch"
+        android:id="@+id/switch_show_default_onscreen_keyboard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider10"
@@ -233,8 +233,49 @@
         android:id="@+id/text_help_pocket_patch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/switch_pocket_patch"
-        android:text="На которой стрелочки и язык с флажком. Открывание наэкранной SYM, NAV клавиатуры в любом случае будет работать." />
+        android:layout_below="@id/switch_show_default_onscreen_keyboard"
+        android:text="На которой стрелки и язык (с флажком) и которая появляется в полях ввода.\n
+Открывание наэкранной SYM, NAV клавиатуры в любом случае будет работать.\n
+Открыть/закрыть панель при любой настройке можно Shift+Ctrl." />
+    <View
+        android:id="@+id/divider11"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/text_help_pocket_patch"
+        android:background="?android:attr/listDivider" />
+    <Switch
+        android:id="@+id/switch_keyboard_gestures_at_views_enabled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider11"
+        android:text="Режим жестов по клавиатуре всегда включен"
+        android:textSize="24sp"
+        tools:checked="true" />
+
+    <TextView
+        android:id="@+id/text_help_switch_keyboard_gestures_at_views_enabled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/switch_keyboard_gestures_at_views_enabled"
+        android:text="Принцип работы сходен с Blackberry Keyboard.\n
+ВКЛ: режим жестов по клавиатуре будет работать по всех приложениях (чаще всего как прокрутка).
+Кроме(!) полей ввода, где режим жестов надо включать явно (см. дальше).\n
+ВЫКЛ: Режим жестов работает только в полях ввода, где его нужно включать явно.\n
+Включение режима жестов в полях ввода:\n
+A. Временный (удобно, чтобы вернуться на несколько символов, подправить и вернуться обратно):\n
+1. Ставим палец на клавиатуру;\n
+2. Зажимаем KEY '0';\n
+3. Делаем свайп по клавиатуре влево или вправо.\n
+Б. Постоянный (удобно, если есть только одна рука или чтобы куда-то далеко по тексту ехать несколькими свайпами:\n
+1. K1: 2хRShift; K2: 2хCtrl;\n
+2. Делаем свайпы влево или вправо;\n
+3. Автоматически отключается, когда начинаешь вводить текст."  />
+    <View
+        android:id="@+id/divider12"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/text_help_switch_keyboard_gestures_at_views_enabled"
+        android:background="?android:attr/listDivider" />
 
 </RelativeLayout>
 </ScrollView>

@@ -30,9 +30,8 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String APP_PREFERENCES_SPACE_ACCEPT_CALL = "space_accept_call";
     public static final String APP_PREFERENCES_FLAG = "flag";
     public static final String APP_PREFERENCES_HEIGHT_BOTTON_BAR = "height_botton_bar";
-    //TODO: unihertz-kill
     public static final String APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD = "show_default_onscreen_keyboard";
-
+    public static final String APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
 
     private static final int REQUEST_PERMISSION_CODE = 101;
 
@@ -50,6 +49,7 @@ public class SettingsActivity extends AppCompatActivity {
     private RelativeLayout layout;
     private SeekBar height_botton_bar;
     private Switch switch_show_default_onscreen_keyboard;
+    private Switch switch_keyboard_gestures_at_views_enabled;
 
     private float touchY;
 
@@ -135,11 +135,19 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_show_default_onscreen_keyboard = (Switch) findViewById(R.id.switch_pocket_patch);
+        switch_show_default_onscreen_keyboard = (Switch) findViewById(R.id.switch_show_default_onscreen_keyboard);
         switch_show_default_onscreen_keyboard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 changeShowDefaultOnScreenKeyboard(isChecked);
+            }
+        });
+
+        switch_keyboard_gestures_at_views_enabled = (Switch) findViewById(R.id.switch_keyboard_gestures_at_views_enabled);
+        switch_keyboard_gestures_at_views_enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                changeKeyboardGesturesAtViewsEnabled(isChecked);
             }
         });
 
@@ -207,6 +215,9 @@ public class SettingsActivity extends AppCompatActivity {
         if(mSettings.contains(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD)) {
             switch_show_default_onscreen_keyboard.setChecked(mSettings.getBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, true));
         }
+        if(mSettings.contains(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED)) {
+            switch_keyboard_gestures_at_views_enabled.setChecked(mSettings.getBoolean(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, true));
+        }
     }
 
     private void changeRuLang(boolean isChecked){
@@ -273,6 +284,12 @@ public class SettingsActivity extends AppCompatActivity {
     private void changeShowDefaultOnScreenKeyboard(boolean isChecked){
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, isChecked);
+        editor.apply();
+    }
+
+    private void changeKeyboardGesturesAtViewsEnabled(boolean isChecked){
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putBoolean(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, isChecked);
         editor.apply();
     }
 
