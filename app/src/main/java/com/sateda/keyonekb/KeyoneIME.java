@@ -915,9 +915,12 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             {
                 Log.d(TAG, "onKeyDown inputConnection==null");
             }
-               if (!inputViewShown && inputConnection != null) {
-                if (inputConnection.getTextBeforeCursor(1, 0).length() > 0)
-                    this.showWindow(true);
+
+            //TODO: Разобраться зачем это надо!
+           if (!inputViewShown && inputConnection != null) {
+               CharSequence text = inputConnection.getTextBeforeCursor(1, 0);
+            if (text != null && text.length() > 0)
+                this.showWindow(true);
 
             }
             //это отслеживать больше не нужно. По этому закоментил
