@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -16,7 +17,7 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.NotificationCompat;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -129,7 +130,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     private float lastGestureX;
     private float lastGestureY;
 
-    private android.support.v7.app.NotificationCompat.Builder builder;
+    private android.support.v4.app.NotificationCompat.Builder builder;
+//    private Notification.Builder builder2;
     private StringBuilder mComposing = new StringBuilder();
 
 
@@ -216,28 +218,34 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         intent.setClassName("com.sateda.keyonekb.satedakeyboard", "com.sateda.keyboard.keyonekb.MainActivity");
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        //Борьба с Warning для SDK_V=27 (KEY2 вестимо)
-        //04-10 20:36:34.040 13838-13838/xxx.xxxx.xxxx W/Notification: Use of stream types is deprecated for operations other than volume control
-        //See the documentation of setSound() for what to use instead with android.media.AudioAttributes to qualify your playback use case
-//        String channelId = "default_channel_id";
-//        String channelDescription = "Default Channel";
-//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-//            NotificationChannel notificationChannel = notificationManager.getNotificationChannel(channelId);
-//            if (notificationChannel == null) {
-//                int importance = NotificationManager.IMPORTANCE_HIGH; //Set the importance level
-//                notificationChannel = new NotificationChannel(channelId, channelDescription, importance);
-//                notificationChannel.setLightColor(Color.GREEN); //Set if it is necesssary
-//                notificationChannel.enableVibration(false); //Set if it is necesssary
-//                notificationManager.createNotificationChannel(notificationChannel);
-//            }
-//        }
-//         new NotificationCompat.Builder(getApplicationContext(), channelId);
 
-        //NotificationCompat.Builder builder;
+        if (android.os.Build.VERSION.SDK_INT >= 27) {
+            //Борьба с Warning для SDK_V=27 (KEY2 вестимо)
+            //04-10 20:36:34.040 13838-13838/xxx.xxxx.xxxx W/Notification: Use of stream types is deprecated for operations other than volume control
+            //See the documentation of setSound() for what to use instead with android.media.AudioAttributes to qualify your playback use case
+            /*
+            String channelId = "default_channel_id";
+            String channelDescription = "Default Channel";
+            NotificationChannel notificationChannel = notificationManager.getNotificationChannel(channelId);
+            if (notificationChannel == null) {
+                int importance = NotificationManager.IMPORTANCE_HIGH; //Set the importance level
+                notificationChannel = new NotificationChannel(channelId, channelDescription, importance);
+                //notificationChannel.setLightColor(Color.GREEN); //Set if it is necesssary
+                notificationChannel.enableVibration(false); //Set if it is necesssary
+                notificationManager.createNotificationChannel(notificationChannel);
+            }
+            builder2 = new Notification.Builder(getApplicationContext(), channelId);
 
-        Context context = getApplicationContext();
+             */
+        }
+        else
+        {
+            builder = new android.support.v7.app.NotificationCompat.Builder(getApplicationContext());
+        }
 
-        builder = new android.support.v7.app.NotificationCompat.Builder(context);
+
+        builder = new android.support.v4.app.NotificationCompat.Builder(getApplicationContext());
+
 
         //builder.setSmallIcon(R.mipmap.ic_rus_small);
         //builder.setContentTitle("Русский");
@@ -923,6 +931,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 this.showWindow(true);
 
             }
+
+
             //это отслеживать больше не нужно. По этому закоментил
             //if(shiftAfterPoint && isAlphabet(codeForSendCode)) shiftAfterPoint = false;
             //if(!shiftPressAllButtonBig && (codeForSendCode == 46 || codeForSendCode == 63 ||  codeForSendCode == 33 || codeForSendCode == 191)) shiftAfterPoint = true;
@@ -1207,6 +1217,37 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         Log.d(TAG, "onCreateInputView");
         keyboardView.setOnKeyboardActionListener(this);
         return keyboardView;
+    }
+
+    //private int lastOrientation = 0;
+    private int lastVisibility = -1;
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        /*
+        if(lastOrientation == 0)
+            lastOrientation = newConfig.orientation;
+        else if (lastOrientation != newConfig.orientation) {
+            lastOrientation = newConfig.orientation;
+        }
+
+         */
+
+        if(newConfig.orientation == 2) {
+            if(keyboardView.getVisibility() == View.VISIBLE) {
+                lastVisibility = View.VISIBLE;
+                keyboardView.setVisibility(View.GONE);
+            }
+        }
+        else if(newConfig.orientation == 1) {
+            if(lastVisibility == View.VISIBLE) {
+                lastVisibility = 0;
+                keyboardView.setVisibility(View.VISIBLE);
+            }
+            else
+                keyboardView.setVisibility(View.GONE);
+        }
+
     }
 
     @Override
