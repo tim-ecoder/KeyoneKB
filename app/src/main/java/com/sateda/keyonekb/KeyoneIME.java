@@ -3,6 +3,8 @@ package com.sateda.keyonekb;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -18,6 +20,7 @@ import android.os.SystemClock;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.NotificationCompat;
+import android.support.v7.app.NotificationCompat.Builder;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -131,7 +134,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     private float lastGestureY;
 
     private android.support.v4.app.NotificationCompat.Builder builder;
-//    private Notification.Builder builder2;
+    private Notification.Builder builder2;
     private StringBuilder mComposing = new StringBuilder();
 
 
@@ -223,37 +226,35 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             //Борьба с Warning для SDK_V=27 (KEY2 вестимо)
             //04-10 20:36:34.040 13838-13838/xxx.xxxx.xxxx W/Notification: Use of stream types is deprecated for operations other than volume control
             //See the documentation of setSound() for what to use instead with android.media.AudioAttributes to qualify your playback use case
-            /*
-            String channelId = "default_channel_id";
-            String channelDescription = "Default Channel";
+
+            String channelId = "KeyoneKbNotificationChannel2";
+            String channelDescription = "KeyoneKbNotificationChannel";
             NotificationChannel notificationChannel = notificationManager.getNotificationChannel(channelId);
             if (notificationChannel == null) {
-                int importance = NotificationManager.IMPORTANCE_HIGH; //Set the importance level
-                notificationChannel = new NotificationChannel(channelId, channelDescription, importance);
+                notificationChannel = new NotificationChannel(channelId, channelDescription, NotificationManager.IMPORTANCE_LOW);
                 //notificationChannel.setLightColor(Color.GREEN); //Set if it is necesssary
                 notificationChannel.enableVibration(false); //Set if it is necesssary
+                notificationChannel.setSound(null, null);
                 notificationManager.createNotificationChannel(notificationChannel);
             }
             builder2 = new Notification.Builder(getApplicationContext(), channelId);
-
-             */
+            builder2.setOngoing(true);
+            builder2.setAutoCancel(true);
+            builder2.setVisibility(Notification.VISIBILITY_SECRET);
         }
         else
         {
-            builder = new android.support.v7.app.NotificationCompat.Builder(getApplicationContext());
+            builder = new Builder(getApplicationContext());
+            builder.setOngoing(true);
+            builder.setAutoCancel(false);
+            builder.setVisibility(NotificationCompat.VISIBILITY_SECRET);
+            builder.setPriority(NotificationCompat.PRIORITY_LOW);
+
         }
 
-
-        builder = new android.support.v4.app.NotificationCompat.Builder(getApplicationContext());
-
-
+        //notificationManager.notify(1, builder.build());
         //builder.setSmallIcon(R.mipmap.ic_rus_small);
         //builder.setContentTitle("Русский");
-        builder.setOngoing(true);
-        builder.setAutoCancel(false);
-        builder.setVisibility(NotificationCompat.VISIBILITY_SECRET);
-        builder.setPriority(NotificationCompat.PRIORITY_MAX);
-        //notificationManager.notify(1, builder.build());
 
         UpdateKeyboardModeVisualization();
     }
@@ -1773,21 +1774,23 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         Log.d(TAG, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode="+ oneTimeShiftOneTimeBigMode +" doubleShiftCapsMode="+ doubleShiftCapsMode +" doubleAltPressAllSymbolsAlted="+ doubleAltPressAllSymbolsAlted +" altPressSingleSymbolAltedMode="+ altPressSingleSymbolAltedMode);
         KeybordLayout keyboardLayout = KeybordLayoutList.get(CurrentLanguageListIndex);
         String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
+        boolean changed = false;
+
         if(navigationOnScreenKeyboardMode){
             if(!fnSymbolOnScreenKeyboardMode){
-                builder.setSmallIcon(R.mipmap.ic_kb_nav);
-                builder.setContentTitle(TITLE_NAV_TEXT);
+                changed |= SetSmallIcon(R.mipmap.ic_kb_nav);
+                changed |= SetContentTitle(TITLE_NAV_TEXT);
             } else {
-                builder.setSmallIcon(R.mipmap.ic_kb_nav_fn);
-                builder.setContentTitle(TITLE_NAV_FV_TEXT);
+                changed |= SetSmallIcon(R.mipmap.ic_kb_nav_fn);
+                changed |= SetContentTitle(TITLE_NAV_FV_TEXT);
             }
             onScreenKeyboardSymbols = keybardNavigation;
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             keyboardView.setNavigationLayer();
             MakeVisible();
         }else if(showSymbolOnScreenKeyboard) {
-            builder.setSmallIcon(R.mipmap.ic_kb_sym);
-            builder.setContentTitle(TITLE_SYM_TEXT);
+            changed |= SetSmallIcon(R.mipmap.ic_kb_sym);
+            changed |= SetContentTitle(TITLE_SYM_TEXT);
             //TODO: Тут плодятся объекты зачем-то
             onScreenKeyboardSymbols = new Keyboard(this, R.xml.symbol);;
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
@@ -1799,8 +1802,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
             MakeVisible();
         }else if(doubleAltPressAllSymbolsAlted){
-            builder.setSmallIcon(R.mipmap.ic_kb_sym);
-            builder.setContentTitle(TITLE_SYM_TEXT);
+            changed |= SetSmallIcon(R.mipmap.ic_kb_sym);
+            changed |= SetContentTitle(TITLE_SYM_TEXT);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateGesturePanelData) {
                 if (altShift) {
@@ -1812,8 +1815,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
             HideGesturePanelOnHidePreferenceAndVisibleState();
         }else if(altPressSingleSymbolAltedMode){
-            builder.setSmallIcon(R.mipmap.ic_kb_sym_one);
-            builder.setContentTitle(TITLE_SYM_TEXT);
+            changed |= SetSmallIcon(R.mipmap.ic_kb_sym_one);
+            changed |= SetContentTitle(TITLE_SYM_TEXT);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateGesturePanelData) {
                 if (altShift) {
@@ -1825,7 +1828,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
             HideGesturePanelOnHidePreferenceAndVisibleState();
         }else if(doubleShiftCapsMode){
-            builder.setContentTitle(languageOnScreenNaming);
+            changed |= SetContentTitle(languageOnScreenNaming);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateGesturePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
@@ -1834,7 +1837,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             }
             HideGesturePanelOnHidePreferenceAndVisibleState();
         }else if(oneTimeShiftOneTimeBigMode){
-            builder.setContentTitle(languageOnScreenNaming);
+            changed |= SetContentTitle(languageOnScreenNaming);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateGesturePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
@@ -1844,7 +1847,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             HideGesturePanelOnHidePreferenceAndVisibleState();
         } else {
             // Случай со строными буквами
-            builder.setContentTitle(languageOnScreenNaming);
+            changed |= SetContentTitle(languageOnScreenNaming);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateGesturePanelData) {
                 keyboardView.notShift();
@@ -1856,7 +1859,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
 
         //INSIDE: notificationManager.notify(1, builder.build());
-        UpdateKeyboardGesturesModeVisualization();
+        UpdateKeyboardGesturesModeVisualization(changed);
     }
 
     private void HideGesturePanelOnHidePreferenceAndVisibleState()
@@ -1872,7 +1875,13 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     }
 
     private void UpdateKeyboardGesturesModeVisualization() {
+        UpdateKeyboardGesturesModeVisualization(false);
+    }
+
+    private void UpdateKeyboardGesturesModeVisualization(boolean changedTitle) {
         KeybordLayout keyboardLayout = KeybordLayoutList.get(CurrentLanguageListIndex);
+
+        boolean changed = changedTitle;
 
         if(navigationOnScreenKeyboardMode
         || showSymbolOnScreenKeyboard
@@ -1881,24 +1890,64 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             //Ничего делать не надо т.к. иконка для жестов не меняется
         } else if(doubleShiftCapsMode){
             if(mode_keyboard_gestures)
-                builder.setSmallIcon(keyboardLayout.IconCapsTouch);
+                changed |= SetSmallIcon(keyboardLayout.IconCapsTouch);
             else
-                builder.setSmallIcon(keyboardLayout.IconCaps);
+                changed |= SetSmallIcon(keyboardLayout.IconCaps);
 
         } else if(oneTimeShiftOneTimeBigMode){
             if(mode_keyboard_gestures)
-                builder.setSmallIcon(keyboardLayout.IconFirstShiftTouch);
+                changed |= SetSmallIcon(keyboardLayout.IconFirstShiftTouch);
             else
-                builder.setSmallIcon(keyboardLayout.IconFirstShift);
+                changed |= SetSmallIcon(keyboardLayout.IconFirstShift);
         } else {
             // Случай со строными буквами
             if(mode_keyboard_gestures)
-                builder.setSmallIcon(keyboardLayout.IconLittleTouch);
+                changed |= SetSmallIcon(keyboardLayout.IconLittleTouch);
             else
-                builder.setSmallIcon(keyboardLayout.IconLittle);
+                changed |= SetSmallIcon(keyboardLayout.IconLittle);
         }
+        if(changed)
+                NotificationManagerNotify();
+    }
 
-        notificationManager.notify(1, builder.build());
+    private void NotificationManagerNotify() {
+        if(builder != null)
+            notificationManager.notify(1, builder.build());
+        else if (builder2 != null) {
+            notificationManager.notify(1, builder2.build());
+        }
+    }
+
+    int currentIcon = 0;
+    String currentTitle = "";
+
+    private boolean SetSmallIcon(int icon1) {
+        if(builder != null) {
+            builder.setSmallIcon(icon1);
+        } else if (builder2 != null) {
+            builder2.setSmallIcon(icon1);
+        }
+        //Changed
+        if(currentIcon != icon1) {
+            currentIcon = icon1;
+            return true;
+        }
+        else
+            return false;
+    }
+
+    private boolean SetContentTitle(String title) {
+        if(builder != null)
+            builder.setContentTitle(title);
+        else if (builder2 != null)
+            builder2.setContentTitle(title);
+        //Changed
+        if(currentTitle.compareTo(title) != 0) {
+            currentTitle = title;
+            return true;
+        }
+        else
+            return false;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
