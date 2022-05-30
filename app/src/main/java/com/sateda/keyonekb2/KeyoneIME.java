@@ -594,13 +594,18 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
     //endregion
 
+    //region KEY AS IS
+
     boolean onShotPressSendAsIs(KeyDownPress keyDownPress) {
         keyDownUp(keyDownPress.KeyCode, getCurrentInputConnection());
         return true;
 
     }
 
-    boolean onCtrlHoldOff(KeyDownPress keyDownPress) {
+    //endregion
+
+    //region SHIFT_RIGHT
+    boolean onShiftRightHoldOff(KeyDownPress keyDownPress) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         long now = System.currentTimeMillis();
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(
@@ -608,7 +613,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    boolean onCtrlHoldOn(KeyDownPress keyDownPress) {
+    boolean onShiftRightHoldOn(KeyDownPress keyDownPress) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         long now = System.currentTimeMillis();
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(
@@ -616,7 +621,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    //region SHIFT
+    //endregion
+
+    //region SHIFT_LEFT
 
     boolean onShiftShortPress(KeyDownPress keyDownPress) {
         doubleShiftCapsMode = false;
@@ -655,6 +662,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
     //endregion
 
+    //region KEY_0
     boolean onKey0ShortPress(KeyDownPress keyDownPress) {
         if (!IsAltMode()) {
             ChangeLanguage();
@@ -666,6 +674,19 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         return true;
     }
+
+    boolean onKey0HoldOn(KeyDownPress keyDownPress) {
+        if (IsAltMode()) return true;
+        key_0_hold = true;
+        return true;
+    }
+
+    boolean onKey0HoldOff(KeyDownPress keyDownPress) {
+        if (IsAltMode()) return true;
+        key_0_hold = false;
+        return true;
+    }
+    //endregion
 
     //region LETTER
     boolean onLetterShortPress(KeyDownPress keyDownPress) {
@@ -720,6 +741,43 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         keyboardView.hidePopup(false);
         Log.v(TAG, "onKeyDown " + event);
+
+        int keyCode1 = event.getKeyCode();
+        int repeatCount = event.getRepeatCount();
+        boolean inputViewShown = this.isInputViewShown();
+
+        //region BB Launcher HACK
+        //обработка главного экрана Блекбери
+        //он хочет получать только родные клавиши, по этому ему отправляем почти все клавиши неизменными
+        if(inputAtBbLauncherApp
+                && !inputViewShown
+                && keyCode1 != SCAN_CODE_KEY_0
+                && keyCode != KeyEvent.KEYCODE_SHIFT_LEFT
+                && keyCode != KeyEvent.KEYCODE_SPACE
+                && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT
+                && keyCode != KeyEvent.KEYCODE_ALT_LEFT
+                && keyCode1 != SCAN_CODE_KEY_SYM
+                && keyCode1 != SCAN_CODE_SHIFT
+                && keyCode1 != SCAN_CODE_CURRENCY){
+            Log.d(TAG, "Oh! this fixBbkLauncher "+ inputAtBbLauncherApp);
+            return super.onKeyDown(keyCode, event);
+
+        }else if(inputAtBbLauncherApp &&  !inputViewShown && keyCode1 == SCAN_CODE_KEY_0 && repeatCount == 0 ){
+            //Смена языка в BB Launcher сама заработала в onKeyUp без хака
+            //ChangeLanguage();
+            return true;
+        }/* Пока деактивируем режим kbd_gestures в пользу двойного ctrl или удержания
+        else if(startInputAtBbLauncherApp &&  !inputViewShown && keyCode1 == KEY_0 && repeatCount == 1 ){
+            //enable_keyboard_gestures = !enable_keyboard_gestures;
+            //Хак
+            ChangeLanguageBack();
+            return true;
+        }
+        */
+        else if(inputAtBbLauncherApp && !inputViewShown){
+            return true;
+        }
+
         needUpdateVisualIntraEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyDown(keyCode, event);
         if(!processed)
@@ -1226,6 +1284,38 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.v(TAG, "onKeyUp " + event);
+
+        //region отжание KEY_0
+
+        int scanCode = event.getScanCode();
+        if(scanCode == SCAN_CODE_KEY_0) {
+            //long now = System.currentTimeMillis();
+            if (!key_0_hold && event.getRepeatCount() == 0 && altPressed == false ){
+                /*
+                //Двойное нажатие KEY_0 активирует сенсор на клавиатуре
+                //Но может и пригодиться где-то еще
+                if(mKey0PressTime == 0) {
+                    mKey0PressTime = now;
+                } else if (mKey0PressTime + DOUBLE_CLICK_TIME > now) {
+                    enable_keyboard_gestures = !enable_keyboard_gestures;
+                    mKey0PressTime = 0;
+                    UpdateKeyboardGesturesModeVisualization();
+                } else {
+                    //Пробуем перенос смены языка в KeyUp
+                    ChangeLanguage();
+                }
+                */
+                ChangeLanguage();
+                return true;
+            }else if (key_0_hold || mode_keyboard_gestures) {
+                key_0_hold = false;
+                mode_keyboard_gestures = false;
+                UpdateKeyboardModeVisualization();
+                return true;
+            }
+        }
+        //endregion
+
         needUpdateVisualIntraEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyUp(keyCode, event);
         if(!processed)
@@ -1852,6 +1942,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_0;
         keyAction.OnShortPress = (KeyDownPress kdp) -> onKey0ShortPress(kdp);
+        keyAction.OnHoldOn = (KeyDownPress kdp) -> onKey0HoldOn(kdp);
+        keyAction.OnHoldOff = (KeyDownPress kdp) -> onKey0HoldOff(kdp);
         KeyActionsOptionList.add(keyAction);
 
         keyAction = new KeyActionsOption();
@@ -1869,8 +1961,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 //KeyEvent.KEYCODE_CTRL_LEFT,
                 KeyEvent.KEYCODE_SHIFT_RIGHT,
         };
-        keyAction.OnHoldOn = (KeyDownPress kdp) -> onCtrlHoldOn(kdp);
-        keyAction.OnHoldOff = (KeyDownPress kdp) -> onCtrlHoldOff(kdp);
+        keyAction.OnHoldOn = (KeyDownPress kdp) -> onShiftRightHoldOn(kdp);
+        keyAction.OnHoldOff = (KeyDownPress kdp) -> onShiftRightHoldOff(kdp);
         KeyActionsOptionList.add(keyAction);
     }
 
