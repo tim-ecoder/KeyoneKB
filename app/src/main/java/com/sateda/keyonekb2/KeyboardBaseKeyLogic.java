@@ -71,7 +71,8 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
             //Потом разделить
             if(keyActionsOption.OnShortPress != null
             || keyActionsOption.OnDoublePress != null
-            || keyActionsOption.OnLongPress != null) {
+            || keyActionsOption.OnLongPress != null
+            || keyActionsOption.OnHoldOn != null) {
                 KeyHoldPlusDownList.add(keyDownPress1);
             }
             //TODO: HoldOn and Off only if not key_up and not long_press and not double_press
@@ -89,7 +90,20 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
             keyDownPress1.KeyActionsOption = keyActionsOption;
             LastPressKeyDown = keyDownPress1;
             KeyDownList.add(keyDownPress1);
-        } else if (repeatCount1 > 0) {
+            /*
+        } else if(keyActionsOption.OnShortPress == null && keyActionsOption.OnHoldOn != null) {
+            KeyDownPress keyDownPress1 = new KeyDownPress();
+            keyDownPress1.KeyDownTime = now2;
+            keyDownPress1.KeyCode = keyCode;
+            keyDownPress1.ScanCode = scanCode;
+            keyDownPress1.KeyActionsOption = keyActionsOption;
+            LastPressKeyDown = keyDownPress1;
+            keyDownPress1.HoldBeginTime = now2;
+            KeyHoldList.add(keyDownPress1);
+            ProcessHoldBegin(keyDownPress1);
+            */
+        }
+        else if (repeatCount1 > 0) {
             KeyDownPress keyDownPress = FindAtKeyDownList(keyCode, scanCode);
             if (keyDownPress == null) {
                 Log.e(TAG2, "onKeyDown: repeatCount() > 1; KeyDownPress not found.");

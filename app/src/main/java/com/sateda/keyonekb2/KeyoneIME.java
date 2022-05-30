@@ -247,7 +247,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setClassName("com.sateda.keyonekb.satedakeyboard", "com.sateda.keyboard.keyonekb.MainActivity");
+        intent.setClassName("com.sateda.keyonekb2.satedakeyboard", "com.sateda.keyboard.keyonekb2.MainActivity");
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 
@@ -402,7 +402,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             UpdateKeyboardModeVisualization();
         }
 
-        if(lastPackageName.equals("com.sateda.keyonekb")) loadSetting();
+        if(lastPackageName.equals("com.sateda.keyonekb2")) loadSetting();
 
         //TODO: Подумать, чтобы не надо было инициализировать свайп-клавиаутуру по настройке pref_show_default_onscreen_keyboard
          keyboardView.showFlag(pref_flag);
@@ -604,18 +604,20 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //endregion
 
-    //region SHIFT_RIGHT
-    boolean onShiftRightHoldOff(KeyDownPress keyDownPress) {
+    //region K2:CTRL_LEFT (K1: SHIFT_RIGHT)
+    boolean onCtrlHoldOff(KeyDownPress keyDownPress) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         long now = System.currentTimeMillis();
+        ctrlImitatedByShiftRightPressed = false;
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(
                 now, now, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
         return true;
     }
 
-    boolean onShiftRightHoldOn(KeyDownPress keyDownPress) {
+    boolean onCtrlHoldOn(KeyDownPress keyDownPress) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         long now = System.currentTimeMillis();
+        ctrlImitatedByShiftRightPressed = true;
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(
                 now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
         return true;
@@ -690,6 +692,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //region LETTER
     boolean onLetterShortPress(KeyDownPress keyDownPress) {
+        if(ctrlImitatedByShiftRightPressed) {
+            int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
+            keyDownUp(keyDownPress.KeyCode, getCurrentInputConnection(), meta);
+            return true;
+        }
         int code2send = KeyToCharCode(keyDownPress.ScanCode, IsAltMode(), IsShiftMode(), false);
         SendLetterOrSymbol(code2send);
         return true;
@@ -1958,11 +1965,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         keyAction = new KeyActionsOption();
         keyAction.KeyCodeArray = new int[] {
-                //KeyEvent.KEYCODE_CTRL_LEFT,
+                KeyEvent.KEYCODE_CTRL_LEFT,
                 KeyEvent.KEYCODE_SHIFT_RIGHT,
         };
-        keyAction.OnHoldOn = (KeyDownPress kdp) -> onShiftRightHoldOn(kdp);
-        keyAction.OnHoldOff = (KeyDownPress kdp) -> onShiftRightHoldOff(kdp);
+        keyAction.KeyHoldPlusKey = true;
+        keyAction.OnHoldOn = (KeyDownPress kdp) -> onCtrlHoldOn(kdp);
+        keyAction.OnHoldOff = (KeyDownPress kdp) -> onCtrlHoldOff(kdp);
         KeyActionsOptionList.add(keyAction);
     }
 
@@ -2402,6 +2410,16 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
         ic.sendKeyEvent(
                 new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
+    }
+
+    private void keyDownUp(int keyEventCode, InputConnection ic, int meta) {
+        if (ic == null) return;
+        long now = SystemClock.uptimeMillis();
+
+        ic.sendKeyEvent(
+                new KeyEvent(now - 10, now - 10, KeyEvent.ACTION_DOWN, keyEventCode, 0, meta));
+        ic.sendKeyEvent(
+                new KeyEvent(now, now, KeyEvent.ACTION_UP, keyEventCode, 0, meta));
     }
 
     private void keyDownUp4dpadMovements(int keyEventCode, InputConnection ic) {
