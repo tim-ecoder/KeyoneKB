@@ -69,7 +69,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     public static final int SCAN_CODE_CHAR_SPACE = 32;
     public static final int SCAN_CODE_CURRENCY = 183;
     public static final int SCAN_CODE_KEY_SYM = 100;
-    public static final int SCAN_CODE_SHIFT = 110;
+    public static final int SCAN_CODE_CTRL = 110;
 
     public static final int SCAN_CODE_KEY_0 = 11;
     public static final int SCAN_CODE_CHAR_0 = 48;
@@ -547,7 +547,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT
             && keyCode != KeyEvent.KEYCODE_ALT_LEFT
             && scanCode != SCAN_CODE_KEY_SYM
-            && scanCode != SCAN_CODE_SHIFT
+            && scanCode != SCAN_CODE_CTRL
             && scanCode != SCAN_CODE_CURRENCY){
             Log.d(TAG, "Oh! this fixBbkLauncher "+ inputAtBbLauncherApp);
             return super.onKeyDown(keyCode, event);
@@ -583,7 +583,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         EditorInfo currentInputEditorInfo = getCurrentInputEditorInfo();
         boolean visualUpdated = false;
         //region нажатие клавиши CTRL, CTRL+SHIFT, 2xCTRL (SHIFT_RIGHT->CTRL IMITATION)
-        if(keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT || scanCode == SCAN_CODE_SHIFT){
+        if(keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT || scanCode == SCAN_CODE_CTRL){
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
             if(inputConnection!=null)
                 inputConnection.sendKeyEvent(new KeyEvent(
@@ -613,7 +613,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
         //region CTRL+CVXA..etc (incl. SHIFT_RIGHT->CTRL IMITATION)
 
-        if(ctrlImitatedByShiftRightPressed && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT && scanCode != SCAN_CODE_SHIFT){
+        if(ctrlImitatedByShiftRightPressed && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT && scanCode != SCAN_CODE_CTRL){
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
 
             if(inputConnection!=null) {
@@ -1075,7 +1075,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         //endregion
 
         //region отжатие SHIFT RIGHT
-        if(keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT || scanCode == SCAN_CODE_SHIFT){
+        if(keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT || scanCode == SCAN_CODE_CTRL){
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
             long now = System.currentTimeMillis();
             ic.sendKeyEvent(new KeyEvent(
