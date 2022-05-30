@@ -1,4 +1,4 @@
-package com.sateda.keyonekb;
+package com.sateda.keyonekb2;
 
 import org.junit.Test;
 

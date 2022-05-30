@@ -1,4 +1,4 @@
-package com.sateda.keyonekb.input;
+package com.sateda.keyonekb2.input;
 
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;

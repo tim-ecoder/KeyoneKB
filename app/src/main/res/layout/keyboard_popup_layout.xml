@@ -6,7 +6,7 @@
     android:orientation="horizontal"
     android:background="#FFF"
     >
-    <com.sateda.keyonekb.SatedaKeyboardView
+    <com.sateda.keyonekb2.SatedaKeyboardView
         android:id="@android:id/keyboardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

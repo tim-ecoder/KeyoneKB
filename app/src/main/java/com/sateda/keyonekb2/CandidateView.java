@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.sateda.keyonekb;
+package com.sateda.keyonekb2;
 
 import android.content.Context;
 import android.content.res.Resources;

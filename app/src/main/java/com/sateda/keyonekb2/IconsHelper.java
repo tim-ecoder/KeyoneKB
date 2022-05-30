@@ -1,4 +1,4 @@
-package com.sateda.keyonekb;
+package com.sateda.keyonekb2;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
