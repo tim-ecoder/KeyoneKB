@@ -557,7 +557,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //region ALT
 
-    boolean onAltShortPress(KeyDownPress keyDownPress) {
+    boolean onAltShortPress(KeyPressData keyPressData) {
         doubleAltPressAllSymbolsAlted = false;
 
         if(altPressSingleSymbolAltedMode)
@@ -569,7 +569,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     }
 
-    boolean onAltDoublePress(KeyDownPress keyDownPress) {
+    boolean onAltDoublePress(KeyPressData keyPressData) {
         altPressSingleSymbolAltedMode = false;
         if(doubleAltPressAllSymbolsAlted)
             doubleAltPressAllSymbolsAlted = false;
@@ -579,7 +579,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    boolean onAltHoldOn(KeyDownPress keyDownPress) {
+    boolean onAltHoldOn(KeyPressData keyPressData) {
         altPressed = true;
         doubleAltPressAllSymbolsAlted = false;
         altPressSingleSymbolAltedMode = false;
@@ -587,25 +587,58 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    boolean onAltHoldOff(KeyDownPress keyDownPress) {
+    boolean onAltHoldOff(KeyPressData keyPressData) {
         altPressed = false;
         SetNeedUpdateVisualState();
         return true;
     }
     //endregion
 
-    //region KEY AS IS
+    //region OTHER
 
-    boolean onShotPressSendAsIs(KeyDownPress keyDownPress) {
-        keyDownUp(keyDownPress.KeyCode, getCurrentInputConnection());
+    boolean onShortPressSendAsIs(KeyPressData keyPressData) {
+        keyDownUp(keyPressData.KeyCode, getCurrentInputConnection());
         return true;
 
     }
 
+    boolean onUndoLastSymbol(KeyPressData keyPressData) {
+        DeleteLastSymbol();
+        SetNeedUpdateVisualState();
+        return true;
+    }
+
+    boolean onDoNothing(KeyPressData keyPressData) {
+        return true;
+    }
+
+    private void DeleteLastSymbol() {
+        InputConnection inputConnection = getCurrentInputConnection();
+        if(inputConnection!=null) {
+            inputConnection.deleteSurroundingText(1, 0);
+        }
+    }
+
+    boolean onSpaceDoublePress(KeyPressData keyPressData) {
+        InputConnection inputConnection = getCurrentInputConnection();
+        CharSequence back_letter = inputConnection.getTextBeforeCursor(2,0);
+        Log.d(TAG2, "KEYCODE_SPACE back_letter "+back_letter);
+        if(back_letter.length() == 2 && Character.isLetterOrDigit(back_letter.charAt(0)) && back_letter.charAt(1) == ' ') {
+            inputConnection.deleteSurroundingText(1, 0);
+            inputConnection.commitText(". ", 2);
+        } else {
+            inputConnection.commitText(" ", 1);
+        }
+
+        SetNeedUpdateVisualState();
+        return true;
+    }
     //endregion
 
+
+
     //region K2:CTRL_LEFT (K1: SHIFT_RIGHT)
-    boolean onCtrlHoldOff(KeyDownPress keyDownPress) {
+    boolean onCtrlHoldOff(KeyPressData keyPressData) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         long now = System.currentTimeMillis();
         ctrlImitatedByShiftRightPressed = false;
@@ -614,7 +647,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    boolean onCtrlHoldOn(KeyDownPress keyDownPress) {
+    boolean onCtrlHoldOn(KeyPressData keyPressData) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         long now = System.currentTimeMillis();
         ctrlImitatedByShiftRightPressed = true;
@@ -627,7 +660,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //region SHIFT_LEFT
 
-    boolean onShiftShortPress(KeyDownPress keyDownPress) {
+    boolean onShiftShortPress(KeyPressData keyPressData) {
         doubleShiftCapsMode = false;
 
         if(shiftPressFirstButtonBigDoublePress)
@@ -639,7 +672,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     }
 
-    boolean onShiftDoublePress(KeyDownPress keyDownPress) {
+    boolean onShiftDoublePress(KeyPressData keyPressData) {
         shiftPressFirstButtonBigDoublePress = false;
         if(doubleShiftCapsMode)
             doubleShiftCapsMode = false;
@@ -649,7 +682,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    boolean onShiftHoldOn(KeyDownPress keyDownPress) {
+    boolean onShiftHoldOn(KeyPressData keyPressData) {
         shiftPressed = true;
         doubleShiftCapsMode = false;
         shiftPressFirstButtonBigDoublePress = false;
@@ -657,7 +690,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    boolean onShiftHoldOff(KeyDownPress keyDownPress) {
+    boolean onShiftHoldOff(KeyPressData keyPressData) {
         shiftPressed = false;
         SetNeedUpdateVisualState();
         return true;
@@ -665,7 +698,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //endregion
 
     //region KEY_0
-    boolean onKey0ShortPress(KeyDownPress keyDownPress) {
+    boolean onKey0ShortPress(KeyPressData keyPressData) {
         if (!IsAltMode()) {
             ChangeLanguage();
             SetNeedUpdateVisualState();
@@ -677,13 +710,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    boolean onKey0HoldOn(KeyDownPress keyDownPress) {
+    boolean onKey0HoldOn(KeyPressData keyPressData) {
         if (IsAltMode()) return true;
         key_0_hold = true;
         return true;
     }
 
-    boolean onKey0HoldOff(KeyDownPress keyDownPress) {
+    boolean onKey0HoldOff(KeyPressData keyPressData) {
         if (IsAltMode()) return true;
         key_0_hold = false;
         return true;
@@ -691,13 +724,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //endregion
 
     //region LETTER
-    boolean onLetterShortPress(KeyDownPress keyDownPress) {
+    boolean onLetterShortPress(KeyPressData keyPressData) {
         if(ctrlImitatedByShiftRightPressed) {
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-            keyDownUp(keyDownPress.KeyCode, getCurrentInputConnection(), meta);
+            keyDownUp(keyPressData.KeyCode, getCurrentInputConnection(), meta);
             return true;
         }
-        int code2send = KeyToCharCode(keyDownPress.ScanCode, IsAltMode(), IsShiftMode(), false);
+        int code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), false);
         SendLetterOrSymbol(code2send);
         return true;
     }
@@ -720,23 +753,22 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         needUpdateVisualIntraEvent = true;
     }
 
-    boolean onLetterDoublePress(KeyDownPress keyDownPress) {
+    boolean onLetterDoublePress(KeyPressData keyPressData) {
         InputConnection inputConnection = getCurrentInputConnection();
-        int code2send = KeyToCharCode(keyDownPress.ScanCode, IsAltMode(), IsShiftMode(), true);
+        int code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
         if(inputConnection!=null) {
-            //TODO: Подумать может быть не удалять символ, а вместо этого подождать второго нажатия?
             inputConnection.deleteSurroundingText(1, 0);
         }
         SendLetterOrSymbol(code2send);
         return true;
     }
 
-    boolean onLetterLongPress(KeyDownPress keyDownPress) {
+    boolean onLetterLongPress(KeyPressData keyPressData) {
         if(pref_long_press_key_alt_symbol) {
-            int code2send = KeyToCharCode(keyDownPress.ScanCode, true, IsShiftMode(), false);
+            int code2send = KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
             SendLetterOrSymbol(code2send);
         } else {
-            int code2send = KeyToCharCode(keyDownPress.ScanCode, IsAltMode(), true, false);
+            int code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, false);
             SendLetterOrSymbol(code2send);
         }
         return true;
@@ -850,6 +882,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         EditorInfo currentInputEditorInfo = getCurrentInputEditorInfo();
         boolean visualUpdated = false;
+
         //region нажатие клавиши CTRL, CTRL+SHIFT, 2xCTRL (SHIFT_RIGHT->CTRL IMITATION)
         if(keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT || keyCode1 == SCAN_CODE_SHIFT){
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
@@ -1917,61 +1950,69 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     void LoadKeyActionOptions() {
-        KeyActionsOption keyAction = new KeyActionsOption();
+        KeyProcessingMode keyAction = new KeyProcessingMode();
         keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_ALT_LEFT;
         keyAction.KeyHoldPlusKey = true;
         keyAction.WaitForDoublePress = true;
-        keyAction.OnShortPress = (KeyDownPress kdp) -> onAltShortPress(kdp);
-        keyAction.OnDoublePress = (KeyDownPress kdp) -> onAltDoublePress(kdp);
-        keyAction.OnHoldOn = (KeyDownPress kdp) -> onAltHoldOn(kdp);
-        keyAction.OnHoldOff = (KeyDownPress kdp) -> onAltHoldOff(kdp);
-        KeyActionsOptionList.add(keyAction);
+        keyAction.OnShortPress = this::onAltShortPress;
+        keyAction.OnDoublePress = this::onAltDoublePress;
+        keyAction.OnHoldOn = this::onAltHoldOn;
+        keyAction.OnHoldOff = this::onAltHoldOff;
+        keyProcessingModeList.add(keyAction);
 
-        keyAction = new KeyActionsOption();
+        keyAction = new KeyProcessingMode();
         keyAction.KeyCodeArray = KEY2_LATIN_ALPHABET_KEYS_CODES;
-        keyAction.OnShortPress = (KeyDownPress kdp) -> onLetterShortPress(kdp);
-        keyAction.OnDoublePress = (KeyDownPress kdp) -> onLetterDoublePress(kdp);
-        keyAction.OnLongPress = (KeyDownPress kdp) -> onLetterLongPress(kdp);
-        KeyActionsOptionList.add(keyAction);
+        keyAction.OnShortPress = this::onLetterShortPress;
+        keyAction.OnDoublePress = this::onLetterDoublePress;
+        keyAction.OnLongPress = this::onLetterLongPress;
+        keyProcessingModeList.add(keyAction);
 
-        keyAction = new KeyActionsOption();
+        keyAction = new KeyProcessingMode();
         keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_SHIFT_LEFT;
         keyAction.KeyHoldPlusKey = true;
-        keyAction.OnShortPress = (KeyDownPress kdp) -> onShiftShortPress(kdp);
-        keyAction.OnDoublePress = (KeyDownPress kdp) -> onShiftDoublePress(kdp);
-        keyAction.OnHoldOn = (KeyDownPress kdp) -> onShiftHoldOn(kdp);
-        keyAction.OnHoldOff = (KeyDownPress kdp) -> onShiftHoldOff(kdp);
-        KeyActionsOptionList.add(keyAction);
+        keyAction.OnShortPress = this::onShiftShortPress;
+        keyAction.OnDoublePress = this::onShiftDoublePress;
+        keyAction.OnHoldOn = this::onShiftHoldOn;
+        keyAction.OnHoldOff = this::onShiftHoldOff;
+        keyProcessingModeList.add(keyAction);
 
-        keyAction = new KeyActionsOption();
+        keyAction = new KeyProcessingMode();
         keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_0;
-        keyAction.OnShortPress = (KeyDownPress kdp) -> onKey0ShortPress(kdp);
-        keyAction.OnHoldOn = (KeyDownPress kdp) -> onKey0HoldOn(kdp);
-        keyAction.OnHoldOff = (KeyDownPress kdp) -> onKey0HoldOff(kdp);
-        KeyActionsOptionList.add(keyAction);
+        keyAction.OnShortPress = this::onKey0ShortPress;
+        keyAction.OnHoldOn = this::onKey0HoldOn;
+        keyAction.OnHoldOff = this::onKey0HoldOff;
+        keyProcessingModeList.add(keyAction);
 
-        keyAction = new KeyActionsOption();
+        keyAction = new KeyProcessingMode();
         keyAction.KeyCodeArray = new int[] {
                 KeyEvent.KEYCODE_ENTER,
-                KeyEvent.KEYCODE_SPACE,
                 KeyEvent.KEYCODE_DEL,
                 KeyEvent.KEYCODE_SYM,
         };
-        keyAction.OnShortPress = (KeyDownPress kdp) -> onShotPressSendAsIs(kdp);
-        KeyActionsOptionList.add(keyAction);
+        keyAction.OnShortPress = this::onShortPressSendAsIs;
+        keyProcessingModeList.add(keyAction);
 
-        keyAction = new KeyActionsOption();
+        keyAction = new KeyProcessingMode();
+        keyAction.KeyCodeScanCode = new KeyCodeScanCode();
+        keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_SPACE;
+        keyAction.OnShortPress = this::onShortPressSendAsIs;
+        //keyAction.OnUndoShortPress = this::onUndoLastSymbol;
+        keyAction.OnUndoShortPress = this::onDoNothing;
+        keyAction.OnDoublePress = this::onSpaceDoublePress;
+        keyProcessingModeList.add(keyAction);
+
+        keyAction = new KeyProcessingMode();
         keyAction.KeyCodeArray = new int[] {
                 KeyEvent.KEYCODE_CTRL_LEFT,
                 KeyEvent.KEYCODE_SHIFT_RIGHT,
         };
         keyAction.KeyHoldPlusKey = true;
-        keyAction.OnHoldOn = (KeyDownPress kdp) -> onCtrlHoldOn(kdp);
-        keyAction.OnHoldOff = (KeyDownPress kdp) -> onCtrlHoldOff(kdp);
-        KeyActionsOptionList.add(keyAction);
+        keyAction.OnHoldOn = this::onCtrlHoldOn;
+        keyAction.OnHoldOff = this::onCtrlHoldOff;
+        keyProcessingModeList.add(keyAction);
     }
 
     public class KeyLayouts
