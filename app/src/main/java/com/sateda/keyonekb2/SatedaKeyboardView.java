@@ -8,7 +8,6 @@ import android.graphics.drawable.Drawable;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.support.annotation.NonNull;
-import android.text.Spanned;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -152,17 +151,17 @@ public class SatedaKeyboardView extends KeyboardView {
         int arr_inc = 0;
         int i = 0;
 
-        for(KeyoneIME.KeyLayouts keyLayouts : keybordLayout.KeyLayoutsMap.values()){
+        for(KeyoneIME.KeyVariants keyVariants : keybordLayout.KeyVariantsMap.values()){
             KeyLabel[i] = "";
             KeyLabel_x[i] = 0;
             KeyLabel_y[i] = 0;
             if(!isAltShift) {
-                altPopup[i] = keyLayouts.alt_popup;
-                altPopupLabel[i] = String.valueOf((char) keyLayouts.alt);
+                altPopup[i] = keyVariants.alt_popup;
+                altPopupLabel[i] = String.valueOf((char) keyVariants.alt);
             }
             else {
-                altPopup[i] = keyLayouts.alt_shift_popup;
-                altPopupLabel[i] = String.valueOf((char) keyLayouts.alt_shift);
+                altPopup[i] = keyVariants.alt_shift_popup;
+                altPopupLabel[i] = String.valueOf((char) keyVariants.alt_shift);
             }
             i++;
         }
@@ -170,14 +169,14 @@ public class SatedaKeyboardView extends KeyboardView {
         for(Keyboard.Key key: keys) {
             if(key == null)
                 continue;
-            KeyoneIME.KeyLayouts keyLayouts = keybordLayout.KeyLayoutsMap.get(key.codes[0]);
-            if(keyLayouts == null)
+            KeyoneIME.KeyVariants keyVariants = keybordLayout.KeyVariantsMap.get(key.codes[0]);
+            if(keyVariants == null)
                 continue;
             if(key.label.equals(" ")
-                    && (keyLayouts.scan_code == 5
-                        || (keyLayouts.scan_code >= 16 && keyLayouts.scan_code <= 25)
-                        || (keyLayouts.scan_code >= 30 && keyLayouts.scan_code <= 38)
-                        || (keyLayouts.scan_code >= 44 && keyLayouts.scan_code <= 50))){
+                    && (keyVariants.scan_code == 5
+                        || (keyVariants.scan_code >= 16 && keyVariants.scan_code <= 25)
+                        || (keyVariants.scan_code >= 30 && keyVariants.scan_code <= 38)
+                        || (keyVariants.scan_code >= 44 && keyVariants.scan_code <= 50))){
 
                 KeyLabel_x[arr_inc] = key.x + (key.width - 25);
                 KeyLabel_y[arr_inc] = key.y + 40;
@@ -211,12 +210,12 @@ public class SatedaKeyboardView extends KeyboardView {
                 else if (key.codes[0] == KEY_DOLLAR) { KeyLabel[arr_inc] = "$"; }
 
                 if(!isAltShift) {
-                    key.codes[0] = keyLayouts.alt;
-                    key.label = String.valueOf((char) keyLayouts.alt);
+                    key.codes[0] = keyVariants.alt;
+                    key.label = String.valueOf((char) keyVariants.alt);
                 }
                 else {
-                    key.codes[0] = keyLayouts.alt_shift;
-                    key.label = String.valueOf((char) keyLayouts.alt_shift);
+                    key.codes[0] = keyVariants.alt_shift;
+                    key.label = String.valueOf((char) keyVariants.alt_shift);
                 }
 
                 arr_inc++;

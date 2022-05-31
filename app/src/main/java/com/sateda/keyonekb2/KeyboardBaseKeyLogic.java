@@ -2,35 +2,28 @@ package com.sateda.keyonekb2;
 
 import android.inputmethodservice.InputMethodService;
 import android.util.Log;
-import android.util.Pair;
 import android.view.KeyEvent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 
 public class KeyboardBaseKeyLogic extends InputMethodService {
 
-    int TIME_DOUBLE_PRESS = 300;
+    int TIME_DOUBLE_PRESS = 400;
     int TIME_LONG_PRESS = 300;
-    int TIME_SHORT_PRESS = 100;
+    int TIME_SHORT_PRESS = 200;
 
-    List<KeyPressData> KeyHoldList = new ArrayList<>();
-    List<KeyPressData> KeyDownList = new ArrayList<>();
-    List<KeyPressData> KeyHoldPlusDownList = new ArrayList<>();
+    List<KeyPressData> KeyDownList1 = new ArrayList<>();
+
+    long AnyHoldPlusButtonSingnalTime = 0;
 
     public static final String TAG2 = "KeyoneKb2";
 
     protected List<KeyProcessingMode> keyProcessingModeList = new ArrayList<>();
     KeyPressData LastShortPressKeyUpForDoublePress = null;
-    KeyPressData LastPressKeyDown = null;
     KeyPressData LastDoublePress = null;
-    final ExecutorService ExecutorService = Executors.newFixedThreadPool(2);
 
-    public KeyboardBaseKeyLogic() {
-        //Executors.prestartAllCoreThreads();
-    }
 
     KeyPressData LastShortPressKey1 = null;
 
@@ -50,37 +43,97 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
             return false;
         //Только короткое нажатие - делаем действие сразу FAST_TRACK
         if (keyProcessingMode.IsShortPressOnly()) {
+            AnyHoldPlusButtonSingnalTime = now;
+
             KeyPressData keyPressData1 = new KeyPressData();
             keyPressData1.KeyDownTime = now;
             keyPressData1.KeyCode = keyCode;
             keyPressData1.ScanCode = scanCode;
             keyPressData1.KeyProcessingMode = keyProcessingMode;
             ProcessShortPress(keyPressData1);
+
+
             return true;
         }
 
         if(keyProcessingMode.IsShortDoublePressMode()) {
+            AnyHoldPlusButtonSingnalTime = now;
+
             KeyPressData keyPressData1 = new KeyPressData();
             keyPressData1.KeyDownTime = now;
             keyPressData1.KeyCode = keyCode;
             keyPressData1.ScanCode = scanCode;
             keyPressData1.KeyProcessingMode = keyProcessingMode;
             if(repeatCount1 == 0)
-                KeyDownList.add(keyPressData1);
+                KeyDownList1.add(keyPressData1);
 
             if(LastShortPressKey1 == null || !IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
                 ProcessShortPress(keyPressData1);
             } else if(LastShortPressKey1 != null && IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
                 if(now - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) {
-                    ProcessUndoLastPress(keyPressData1);
+                    ProcessUndoLastShortPress(keyPressData1);
+                    keyPressData1.DoublePressTime = now;
                     ProcessDoublePress(keyPressData1);
                 }
                 else ProcessShortPress(keyPressData1);
             }
             return true;
         }
+        if(keyProcessingMode.IsLetterShortDoubleLongPressMode()) {
+            if(repeatCount1 == 0) {
+                AnyHoldPlusButtonSingnalTime = now;
 
+                KeyPressData keyPressData1 = new KeyPressData();
+                keyPressData1.KeyDownTime = now;
+                keyPressData1.KeyCode = keyCode;
+                keyPressData1.ScanCode = scanCode;
+                keyPressData1.KeyProcessingMode = keyProcessingMode;
+                KeyDownList1.add(keyPressData1);
 
+                if (LastShortPressKey1 == null || !IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
+                    ProcessShortPress(keyPressData1);
+                } else if (LastShortPressKey1 != null && IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
+                    if (now - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) {
+                        keyPressData1.DoublePressTime = now;
+                        ProcessUndoLastShortPress(keyPressData1);
+                        ProcessDoublePress(keyPressData1);
+                    } else ProcessShortPress(keyPressData1);
+                }
+            } else {
+                KeyPressData keyPressData2 = FindAtKeyDownList(keyCode, scanCode);
+                if(keyPressData2.LongPressBeginTime == 0
+                    && now - keyPressData2.KeyDownTime > TIME_LONG_PRESS) {
+                    keyPressData2.LongPressBeginTime = now;
+                    ProcessUndoLastShortPress(keyPressData2);
+                    ProcessLongPress(keyPressData2);
+                }
+            }
+            return true;
+        }
+        if(keyProcessingMode.IsMetaShortDoubleHoldPlusButtonPressMode()) {
+            if(repeatCount1 == 0) {
+                KeyPressData keyPressData1 = new KeyPressData();
+                keyPressData1.KeyDownTime = now;
+                keyPressData1.KeyCode = keyCode;
+                keyPressData1.ScanCode = scanCode;
+                keyPressData1.KeyProcessingMode = keyProcessingMode;
+                KeyDownList1.add(keyPressData1);
+
+                if (LastShortPressKey1 != null
+                    && IsSameKeyDownPress(LastShortPressKey1, keyPressData1)
+                    && (now - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) ) {
+
+                    keyPressData1.DoublePressTime = now;
+                    ProcessUndoLastShortPress(keyPressData1);
+                    ProcessDoublePress(keyPressData1);
+
+                } else {
+                    keyPressData1.HoldBeginTime = now;
+                    ProcessHoldBegin(keyPressData1);
+                }
+            }
+            return true;
+        }
         return true;
     }
 
@@ -95,49 +148,68 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
         }
         if(keyProcessingMode.IsShortDoublePressMode()) {
             KeyPressData keyPressData = FindAtKeyDownList(keyCode, scanCode);
-            KeyDownList.remove(keyPressData);
+            if(keyPressData == null) {
+                Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
+                return false;
+            }
+            KeyDownList1.remove(keyPressData);
             if(now - keyPressData.KeyDownTime <= TIME_SHORT_PRESS) {
                 keyPressData.KeyUpTime = now;
                 LastShortPressKey1 = keyPressData;
             }
+            return true;
         }
+        if(keyProcessingMode.IsLetterShortDoubleLongPressMode()) {
+            KeyPressData keyPressData = FindAtKeyDownList(keyCode, scanCode);
+            if(keyPressData == null) {
+                Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
+                return false;
+            }
+            KeyDownList1.remove(keyPressData);
+            if(now - keyPressData.KeyDownTime <= TIME_SHORT_PRESS) {
+                keyPressData.KeyUpTime = now;
+                LastShortPressKey1 = keyPressData;
+            }
+            return true;
+        }
+        if(keyProcessingMode.IsMetaShortDoubleHoldPlusButtonPressMode()) {
+            KeyPressData keyPressData = FindAtKeyDownList(keyCode, scanCode);
+            if(keyPressData == null) {
+                Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
+                return false;
+            }
 
+            KeyDownList1.remove(keyPressData);
+            keyPressData.KeyUpTime = now;
+            if(now - keyPressData.KeyDownTime <= TIME_SHORT_PRESS
+                && !(AnyHoldPlusButtonSingnalTime > keyPressData.KeyDownTime)
+                && keyPressData.DoublePressTime == 0) {
+                ProcessKeyUnhold(keyPressData);
+                ProcessShortPress(keyPressData);
+                LastShortPressKey1 = keyPressData;
+            } else if (keyPressData.HoldBeginTime != 0) {
+                ProcessKeyUnhold(keyPressData);
+            }
+            return true;
+        }
 
         return true;
     }
 
+    //Для нажатий, где нельзя себе позволить FAST_TRACK (OnKeyDown) реакцию (например откатывать OnShorPress нельзя)
+    //final ExecutorService ExecutorService = Executors.newFixedThreadPool(2);
     private void ProcessShortPressIfNoDoublePress(KeyPressData keyPressData) {
         try {
             Thread.sleep(TIME_DOUBLE_PRESS - (keyPressData.KeyUpTime - keyPressData.KeyDownTime));
             long now = System.currentTimeMillis();
             if(IsLastSameDoublePress(keyPressData.KeyCode, keyPressData.ScanCode)
-            && LastDoublePress.DoublePressTime > keyPressData.KeyUpTime )
-               return;
+                && LastDoublePress.DoublePressTime > keyPressData.KeyUpTime )
+                   return;
             Log.e(TAG2, "ProcessShortPressIfNoDoublePress: NOW: "+now+" DELTA_UP_TIME "+ (now - keyPressData.KeyUpTime) + " DELTA_DOWN_TIME "+(now - keyPressData.KeyDownTime));
             LastShortPressKeyUpForDoublePress = keyPressData;
             keyPressData.KeyUpTime = now;
             ProcessShortPress(keyPressData);
         } catch (Exception ex) {}
-    }
-
-    private boolean IsLastShortPressedSame(KeyPressData keyPressData) {
-        if(LastShortPressKeyUpForDoublePress == null)
-            return false;
-        return IsLastShortPressedSame(keyPressData.KeyCode, keyPressData.ScanCode);
-    }
-
-    private boolean IsLastShortPressedSame(int keyCode, int scanCode) {
-        if(LastShortPressKeyUpForDoublePress == null)
-            return false;
-        return LastShortPressKeyUpForDoublePress.KeyCode == keyCode
-                || LastShortPressKeyUpForDoublePress.ScanCode == scanCode;
-    }
-
-    private boolean IsLastKeyDownSame(int keyCode, int scanCode) {
-        if(LastPressKeyDown == null)
-            return false;
-        return LastPressKeyDown.KeyCode == keyCode
-                || LastPressKeyDown.ScanCode == scanCode;
     }
 
     private boolean IsLastSameDoublePress(int keyCode, int scanCode) {
@@ -148,39 +220,9 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
     }
 
     KeyPressData FindAtKeyDownList(int keyCode, int scanCode) {
-        for (KeyPressData keyCodeScanCode : KeyDownList) {
+        for (KeyPressData keyCodeScanCode : KeyDownList1) {
             if (keyCodeScanCode.ScanCode == scanCode || keyCodeScanCode.KeyCode == keyCode)
                 return keyCodeScanCode;
-        }
-        return null;
-    }
-
-    KeyPressData FindAtKeyHoldPlusDownList(int keyCode, int scanCode) {
-        for (KeyPressData keyCodeScanCode : KeyHoldPlusDownList) {
-            if (keyCodeScanCode.ScanCode == scanCode || keyCodeScanCode.KeyCode == keyCode)
-                return keyCodeScanCode;
-        }
-        return null;
-    }
-
-    KeyPressData FindAtHoldKeyList(int keyCode, int scanCode) {
-        for (KeyPressData keyPressData : KeyHoldList) {
-            if (keyPressData.ScanCode == scanCode || keyPressData.KeyCode == keyCode)
-                return keyPressData;
-        }
-        return null;
-    }
-
-    //TODO: Удалить
-    Pair<KeyProcessingMode, Processable> FindAtKeyActionOptionList(int keyCode, int scanCode, KeyPressType keyPressType) {
-        KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyCode, scanCode);
-        if (keyProcessingMode == null)
-            return null;
-        Processable delegate = null;
-        delegate = GetKeyProcessor(keyPressType, keyProcessingMode);
-        if (delegate != null) {
-            Pair<KeyProcessingMode, Processable> pair = new Pair<>(keyProcessingMode, delegate);
-            return pair;
         }
         return null;
     }
@@ -213,35 +255,6 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
             }
         }
         return null;
-    }
-
-    private Processable GetKeyProcessor(KeyPressType keyPressType, KeyProcessingMode keyProcessingMode) {
-        Processable delegate = null;
-        switch (keyPressType) {
-            case ShortPress:
-                if (keyProcessingMode.OnShortPress != null)
-                    delegate = keyProcessingMode.OnShortPress;
-                break;
-            case LongPress:
-                if (keyProcessingMode.OnLongPress != null)
-                    delegate = keyProcessingMode.OnLongPress;
-                break;
-            case DoublePress:
-                if (keyProcessingMode.OnDoublePress != null)
-                    delegate = keyProcessingMode.OnDoublePress;
-                break;
-            case HoldOn:
-                if (keyProcessingMode.OnHoldOn != null)
-                    delegate = keyProcessingMode.OnHoldOn;
-                break;
-            case HoldOff:
-                if (keyProcessingMode.OnHoldOff != null)
-                    delegate = keyProcessingMode.OnHoldOff;
-                break;
-            default:
-                delegate = null;
-        }
-        return delegate;
     }
 
     void ProcessHoldBegin(KeyPressData keyPressData) {
@@ -283,20 +296,12 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
         }
     }
 
-    void ProcessUndoLastPress(KeyPressData keyPressData) {
+    void ProcessUndoLastShortPress(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnUndoShortPress != null) {
             Log.d(TAG2, "UNDO_SHORT_PRESS "+ keyPressData.KeyCode);
             keyProcessingMode.OnUndoShortPress.Process(keyPressData);
         }
-    }
-
-    enum KeyPressType {
-        ShortPress,
-        DoublePress,
-        LongPress,
-        HoldOn,
-        HoldOff,
     }
 
     interface Processable {
@@ -315,6 +320,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
         public boolean KeyHoldPlusKey;
         public boolean WaitForDoublePress;
 
+        //Только короткое нажатие, если зажать - символ будет повторяться
         public boolean IsShortPressOnly() {
             if(OnDoublePress != null) return false;
             if(OnLongPress != null) return false;
@@ -325,6 +331,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
             return true;
         }
 
+        //И короткое и двойное и длинное (зажатие уже не работает)
         public boolean IsLetterShortDoubleLongPressMode() {
             if(OnHoldOn != null) return false;
             if(OnHoldOff != null) return false;
@@ -336,6 +343,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
                     && OnLongPress != null;
         }
 
+        //Зажатие срабатывает сразу по keyDown а вот короткое нажатие по отжатию (если успел), двойное тоже работает
         public boolean IsMetaShortDoubleHoldPlusButtonPressMode() {
             if(OnLongPress != null) return false;
             return KeyHoldPlusKey
@@ -346,6 +354,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
                     && OnHoldOff != null;
         }
 
+        //Одинарное и двойное нажате, если зажать будет печататься много
         public boolean IsShortDoublePressMode() {
             if(OnLongPress != null) return false;
             if(OnHoldOn != null) return false;
