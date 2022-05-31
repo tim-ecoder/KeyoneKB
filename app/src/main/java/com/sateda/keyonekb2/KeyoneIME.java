@@ -135,6 +135,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean doubleShiftCapsMode; //все следующий буквы будут большие
     private boolean shiftPressed; //нажатие клавишь с зажатым альтом
 
+    private boolean symPadAltShift;
+
     private boolean altPressSingleSymbolAltedMode;
     private boolean doubleAltPressAllSymbolsAlted;
     private boolean showSymbolOnScreenKeyboard;
@@ -596,6 +598,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         needUpdateVisualInsideSingleEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyDown(keyCode, event);
+        if(keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
+            return false;
         if(!processed)
             return false;
 
@@ -1292,6 +1296,19 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         return result;
     }
+
+    private void HideSwypePanelOnHidePreferenceAndVisibleState()
+    {
+        if(!pref_show_default_onscreen_keyboard && keyboardView.getVisibility() == View.VISIBLE){
+            keyboardView.setVisibility(View.GONE);
+        }
+    }
+
+    private void MakeVisible() {
+        if (keyboardView.getVisibility() != View.VISIBLE)
+            keyboardView.setVisibility(View.VISIBLE);
+    }
+
     private void UpdateKeyboardModeVisualization()
     {
         UpdateKeyboardModeVisualization(pref_show_default_onscreen_keyboard);
@@ -1321,7 +1338,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             onScreenKeyboardSymbols = new Keyboard(this, R.xml.symbol);;
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             //TODO: Сделать предзагрузку этой клавиатуры
-            if(IsAltMode() && IsShiftMode()) {
+            if(symPadAltShift) {
                 keyboardView.setAltLayer(KeybordLayoutList.get(CurrentLanguageListIndex), true);
             }else{
                 keyboardView.setAltLayer(KeybordLayoutList.get(CurrentLanguageListIndex), false);
@@ -1388,17 +1405,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         UpdateKeyboardGesturesModeVisualization(changed);
     }
 
-    private void HideSwypePanelOnHidePreferenceAndVisibleState()
-    {
-        if(!pref_show_default_onscreen_keyboard && keyboardView.getVisibility() == View.VISIBLE){
-            keyboardView.setVisibility(View.GONE);
-        }
-    }
 
-    private void MakeVisible() {
-        if (keyboardView.getVisibility() != View.VISIBLE)
-            keyboardView.setVisibility(View.VISIBLE);
-    }
 
     private void UpdateKeyboardGesturesModeVisualization() {
         UpdateKeyboardGesturesModeVisualization(false);
@@ -1564,7 +1571,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private void keyDownUp4dpadMovements(int keyEventCode, InputConnection ic) {
         if (ic == null) return;
         long uptimeMillis = SystemClock.uptimeMillis();
-
         ic.sendKeyEvent(
                 new KeyEvent(uptimeMillis, uptimeMillis, KeyEvent.ACTION_DOWN, keyEventCode, 0, 0, -1, 0, 6));
         ic.sendKeyEvent(
@@ -1726,8 +1732,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //region ALT
 
     boolean onAltShortPress(KeyPressData keyPressData) {
-        doubleAltPressAllSymbolsAlted = false;
-        altPressSingleSymbolAltedMode = !altPressSingleSymbolAltedMode;
+        if(showSymbolOnScreenKeyboard) {
+            symPadAltShift = !symPadAltShift;
+        } else {
+            doubleAltPressAllSymbolsAlted = false;
+            altPressSingleSymbolAltedMode = !altPressSingleSymbolAltedMode;
+        }
         SetNeedUpdateVisualState();
         return true;
 
@@ -1773,18 +1783,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }else if(!showSymbolOnScreenKeyboard){
             showSymbolOnScreenKeyboard = true;
             doubleAltPressAllSymbolsAlted = true;
-            doubleShiftCapsMode = true;
+            symPadAltShift = true;
             altPressSingleSymbolAltedMode = false;
-        } else if(doubleShiftCapsMode) {
-            //&& showSymbolOnScreenKeyboard
-            doubleShiftCapsMode = false;
         } else {
-            //showSymbolOnScreenKeyboard
-            //&& !doubleShiftCapsMode
+            symPadAltShift = false;
             showSymbolOnScreenKeyboard = false;
             altPressSingleSymbolAltedMode = false;
             doubleAltPressAllSymbolsAlted = false;
-            doubleShiftCapsMode = false;
             //TODO: Поубирать
             DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
         }
@@ -1913,9 +1918,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //region SHIFT_LEFT
 
     boolean onShiftShortPress(KeyPressData keyPressData) {
-        doubleShiftCapsMode = false;
-        oneTimeShiftOneTimeBigMode = !oneTimeShiftOneTimeBigMode;
-        SetNeedUpdateVisualState();
+        if(showSymbolOnScreenKeyboard) {
+            symPadAltShift = !symPadAltShift;
+            SetNeedUpdateVisualState();
+        } else {
+            doubleShiftCapsMode = false;
+            oneTimeShiftOneTimeBigMode = !oneTimeShiftOneTimeBigMode;
+            SetNeedUpdateVisualState();
+        }
         return true;
     }
 
@@ -1992,7 +2002,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         int code2send = 0;
         if(IsAltMode())
-            code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), shiftPressed || doubleShiftCapsMode, false);
+            code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), shiftPressed || symPadAltShift, false);
         else
             code2send = KeyToCharCode(keyPressData.ScanCode, false, IsShiftMode(), false);
         SendLetterOrSymbol(code2send);
