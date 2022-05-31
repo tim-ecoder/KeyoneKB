@@ -595,8 +595,10 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                     now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
             ctrlImitatedByShiftRightPressed = true;
             if(shiftPressed && keyboardView.isShown()) {
+                pref_show_default_onscreen_keyboard = false;
                 keyboardView.setVisibility(View.GONE);
             }else if(shiftPressed && !keyboardView.isShown()) {
+                pref_show_default_onscreen_keyboard = true;
                 UpdateKeyboardModeVisualization(true);
                 keyboardView.setVisibility(View.VISIBLE);
             }
