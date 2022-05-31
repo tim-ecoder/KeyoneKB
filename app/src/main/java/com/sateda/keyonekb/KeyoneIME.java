@@ -160,6 +160,11 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
     private Keyboard keybardNavigation;
     private Keyboard keyboardSymbols;
 
+    @Override
+    public void onDestroy() {
+        notificationManager.cancelAll();
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onCreate() {
@@ -628,7 +633,6 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
 
         //region Нажатие клавиши ALT
         if (keyCode == KeyEvent.KEYCODE_ALT_LEFT){
-            visualUpdated = false;
             if (handleAltOnCalling()) {
                 return true;
             }
@@ -638,7 +642,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 altPressSingleSymbolAltedMode = false;
                 doubleAltPressAllSymbolsAlted = false;
                 altShift = false;
-                visualUpdated = IsFirstBigCharStateAndUpdateVisualization(currentInputEditorInfo);
+                IsFirstBigCharStateAndUpdateVisualization(currentInputEditorInfo);
             }else  if(!doubleAltPressAllSymbolsAlted && !altPressSingleSymbolAltedMode){
                 altShift = false;
                 mAltPressTime = now;
@@ -650,15 +654,15 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 altPressSingleSymbolAltedMode = false;
                 doubleAltPressAllSymbolsAlted = false;
                 altShift = false;
-                visualUpdated = IsFirstBigCharStateAndUpdateVisualization(currentInputEditorInfo);
+                IsFirstBigCharStateAndUpdateVisualization(currentInputEditorInfo);
             } else if (!altPressed && doubleAltPressAllSymbolsAlted){
                 altPressSingleSymbolAltedMode = false;
                 doubleAltPressAllSymbolsAlted = false;
                 altShift = false;
-                visualUpdated = IsFirstBigCharStateAndUpdateVisualization(currentInputEditorInfo);
+               IsFirstBigCharStateAndUpdateVisualization(currentInputEditorInfo);
             }
             altPressed = true;
-            if(!visualUpdated) UpdateKeyboardModeVisualization();
+            UpdateKeyboardModeVisualization();
             return true;
         }
         //endregion
@@ -873,7 +877,10 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
             //TODO: Есть ощущение что это можно и легче как-то сделать
             if(event.isAltPressed()) altPlusBtn = true;
 
-            if(pref_alt_space == false && altPressSingleSymbolAltedMode == true) altPressSingleSymbolAltedMode = false;
+            if(pref_alt_space == false && altPressSingleSymbolAltedMode == true) {
+                altPressSingleSymbolAltedMode = false;
+                UpdateKeyboardModeVisualization();
+            }
 
             if(is_double_press || _altMode == true){
                 prev_key_press_btn_r1 = prev_key_press_btn_r0;
@@ -1030,6 +1037,8 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 altPlusBtn = false;
                 if(!IsFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo()))
                     UpdateKeyboardModeVisualization();
+            } else {
+                UpdateKeyboardModeVisualization();
             }
             return true;
         }
@@ -1071,6 +1080,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         //region отжатие SHIFT LEFT
         if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT || (keyCode == KeyEvent.KEYCODE_2 && DEBUG)){
             shiftPressed = false;
+            UpdateKeyboardModeVisualization();
         }
         //endregion
 
@@ -1801,7 +1811,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 keyboardView.setAltLayer(KeybordLayoutList.get(CurrentLanguageListIndex), false);
             }
             MakeVisible();
-        }else if(doubleAltPressAllSymbolsAlted){
+        }else if(doubleAltPressAllSymbolsAlted || altPressed){
             changed |= SetSmallIcon(R.mipmap.ic_kb_sym);
             changed |= SetContentTitle(TITLE_SYM_TEXT);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
@@ -1827,7 +1837,7 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
                 keyboardView.setAlt();
             }
             HideGesturePanelOnHidePreferenceAndVisibleState();
-        }else if(doubleShiftCapsMode){
+        }else if(doubleShiftCapsMode || shiftPressed){
             changed |= SetContentTitle(languageOnScreenNaming);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateGesturePanelData) {
@@ -1886,9 +1896,10 @@ public class KeyoneIME extends InputMethodService implements KeyboardView.OnKeyb
         if(navigationOnScreenKeyboardMode
         || showSymbolOnScreenKeyboard
         || doubleAltPressAllSymbolsAlted
-        || altPressSingleSymbolAltedMode){
+        || altPressSingleSymbolAltedMode
+        || altPressed){
             //Ничего делать не надо т.к. иконка для жестов не меняется
-        } else if(doubleShiftCapsMode){
+        } else if(doubleShiftCapsMode || shiftPressed){
             if(mode_keyboard_gestures)
                 changed |= SetSmallIcon(keyboardLayout.IconCapsTouch);
             else
