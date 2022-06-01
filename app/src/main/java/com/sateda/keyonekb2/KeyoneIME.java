@@ -1856,6 +1856,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(shiftPressed)
             ChangeLanguage();
         else {
+            if(altPressSingleSymbolAltedMode && pref_alt_space) {
+                altPressSingleSymbolAltedMode = false;
+            }
             InputConnection inputConnection = getCurrentInputConnection();
             inputConnection.commitText(" ", 1);
         }
@@ -2046,7 +2049,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     private void ResetSingleAltSingleShiftModeAfterOneLetter() {
-        if(altPressSingleSymbolAltedMode) {
+        if(altPressSingleSymbolAltedMode && !pref_alt_space) {
             altPressSingleSymbolAltedMode = false;
             SetNeedUpdateVisualState();
         }
