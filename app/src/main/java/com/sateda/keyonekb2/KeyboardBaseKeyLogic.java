@@ -11,6 +11,7 @@ import java.util.List;
 public class KeyboardBaseKeyLogic extends InputMethodService {
 
     int TIME_DOUBLE_PRESS = 400;
+    int TIME_SHORT_2ND_LONG_PRESS = 600;
     int TIME_LONG_PRESS = 300;
     int TIME_SHORT_PRESS = 200;
 
@@ -45,11 +46,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
         if (keyProcessingMode.IsShortPressOnly()) {
             AnyHoldPlusButtonSingnalTime = now;
 
-            KeyPressData keyPressData1 = new KeyPressData();
-            keyPressData1.KeyDownTime = now;
-            keyPressData1.KeyCode = keyCode;
-            keyPressData1.ScanCode = scanCode;
-            keyPressData1.KeyProcessingMode = keyProcessingMode;
+            KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, now, keyProcessingMode, event.getMetaState());
             ProcessShortPress(keyPressData1);
 
 
@@ -59,11 +56,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
         if(keyProcessingMode.IsShortDoublePressMode()) {
             AnyHoldPlusButtonSingnalTime = now;
 
-            KeyPressData keyPressData1 = new KeyPressData();
-            keyPressData1.KeyDownTime = now;
-            keyPressData1.KeyCode = keyCode;
-            keyPressData1.ScanCode = scanCode;
-            keyPressData1.KeyProcessingMode = keyProcessingMode;
+            KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, now, keyProcessingMode, event.getMetaState());
             if(repeatCount1 == 0)
                 KeyDownList1.add(keyPressData1);
 
@@ -83,11 +76,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
             if(repeatCount1 == 0) {
                 AnyHoldPlusButtonSingnalTime = now;
 
-                KeyPressData keyPressData1 = new KeyPressData();
-                keyPressData1.KeyDownTime = now;
-                keyPressData1.KeyCode = keyCode;
-                keyPressData1.ScanCode = scanCode;
-                keyPressData1.KeyProcessingMode = keyProcessingMode;
+                KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, now, keyProcessingMode, event.getMetaState());
                 KeyDownList1.add(keyPressData1);
 
                 if (LastShortPressKey1 == null || !IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
@@ -102,21 +91,22 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
             } else {
                 KeyPressData keyPressData2 = FindAtKeyDownList(keyCode, scanCode);
                 if(keyPressData2.LongPressBeginTime == 0
-                    && now - keyPressData2.KeyDownTime > TIME_LONG_PRESS) {
+                    && now - keyPressData2.KeyDownTime > TIME_LONG_PRESS ) {
                     keyPressData2.LongPressBeginTime = now;
+                    if(IsSameKeyDownPress(LastShortPressKey1, keyPressData2)
+                        && now - LastShortPressKey1.KeyUpTime <= TIME_SHORT_2ND_LONG_PRESS) {
+                        keyPressData2.Short2ndLongPress = true;
+                    }
                     ProcessUndoLastShortPress(keyPressData2);
                     ProcessLongPress(keyPressData2);
                 }
+
             }
             return true;
         }
         if(keyProcessingMode.IsMetaShortDoubleHoldPlusButtonPressMode()) {
             if(repeatCount1 == 0) {
-                KeyPressData keyPressData1 = new KeyPressData();
-                keyPressData1.KeyDownTime = now;
-                keyPressData1.KeyCode = keyCode;
-                keyPressData1.ScanCode = scanCode;
-                keyPressData1.KeyProcessingMode = keyProcessingMode;
+                KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, now, keyProcessingMode, event.getMetaState());
                 KeyDownList1.add(keyPressData1);
 
                 if (LastShortPressKey1 != null
@@ -135,6 +125,16 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
             return true;
         }
         return true;
+    }
+
+    private KeyPressData CreateKeyPressData(int keyCode, int scanCode, long now, KeyProcessingMode keyProcessingMode, int meta) {
+        KeyPressData keyPressData1 = new KeyPressData();
+        keyPressData1.KeyDownTime = now;
+        keyPressData1.KeyCode = keyCode;
+        keyPressData1.ScanCode = scanCode;
+        keyPressData1.KeyProcessingMode = keyProcessingMode;
+        keyPressData1.MetaBase = meta;
+        return keyPressData1;
     }
 
     protected boolean ProcessNewStatusModelOnKeyUp(int keyCode, KeyEvent event) {
@@ -375,6 +375,8 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
         public long HoldBeginTime = 0;
         public long KeyUpTime = 0;
         public long DoublePressTime = 0;
+        public boolean Short2ndLongPress = false;
         public KeyProcessingMode KeyProcessingMode;
+        public int MetaBase = 0;
     }
 }

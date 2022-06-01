@@ -538,13 +538,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         //он хочет получать только родные клавиши, по этому ему отправляем почти все клавиши неизменными
         if(inputAtBbLauncherApp
                 && !inputViewShown
-                && keyCode != KeyEvent.KEYCODE_0
-                && keyCode != KeyEvent.KEYCODE_SHIFT_LEFT
-                && keyCode != KeyEvent.KEYCODE_SPACE
-                && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT
-                && keyCode != KeyEvent.KEYCODE_ALT_LEFT
-                && keyCode != KeyEvent.KEYCODE_SYM
-                && scanCode != SCAN_CODE_CURRENCY) {
+                && IsBbLauncherKeyCode(keyCode, scanCode, event.getMetaState())) {
             Log.d(TAG, "Oh! this fixBbkLauncher " + inputAtBbLauncherApp);
             return super.onKeyDown(keyCode, event);
         }
@@ -596,6 +590,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
             return false;
 
+        return true;
+    }
+
+    private boolean IsBbLauncherKeyCode(int keyCode, int scanCode, int meta) {
+        if(keyCode == KeyEvent.KEYCODE_0 && (meta & KeyEvent.META_ALT_ON) == 0) return false;
+        if(keyCode == KeyEvent.KEYCODE_SPACE && IsShiftMeta(meta)) return false;
         return true;
     }
 
@@ -1834,8 +1834,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
     }
 
+    boolean IsShiftMeta(int meta) {
+        return (meta & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
+    }
+
     boolean onSpaceShortPress(KeyPressData keyPressData) {
-        if(shiftPressed)
+        if(shiftPressed || IsShiftMeta (keyPressData.MetaBase))
             ChangeLanguage();
         else {
             if(altPressSingleSymbolAltedMode && pref_alt_space) {
@@ -2065,7 +2069,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             int code2send = KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
             SendLetterOrSymbol(code2send);
         } else {
-            int code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, false);
+            int code2send;
+            if(keyPressData.Short2ndLongPress) {
+                code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, true);
+            } else {
+                code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, false);
+            }
             SendLetterOrSymbol(code2send);
         }
         return true;
