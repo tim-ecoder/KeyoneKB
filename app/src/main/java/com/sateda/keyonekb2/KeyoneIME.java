@@ -596,6 +596,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean IsBbLauncherKeyCode(int keyCode, int scanCode, int meta) {
         if(keyCode == KeyEvent.KEYCODE_0 && (meta & KeyEvent.META_ALT_ON) == 0) return false;
         if(keyCode == KeyEvent.KEYCODE_SPACE && IsShiftMeta(meta)) return false;
+        if(keyCode == KeyEvent.KEYCODE_CTRL_LEFT) return false;
+        if(keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) return false;
         return true;
     }
 
@@ -1885,7 +1887,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     boolean onCtrlDoublePress(KeyPressData keyPressData) {
-        mode_keyboard_gestures = !mode_keyboard_gestures;
+        if(isInputViewShown()) {
+            mode_keyboard_gestures = !mode_keyboard_gestures;
+        } else {
+            pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
+        }
         SetNeedUpdateVisualState();
         return true;
     }
