@@ -598,8 +598,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         needUpdateVisualInsideSingleEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyDown(keyCode, event);
-        if(keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
-            return false;
         if(!processed)
             return false;
 
@@ -612,6 +610,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
+
+        if(keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
+            return false;
+
         return true;
     }
 
@@ -654,6 +656,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
+
+        if(keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
+            return false;
+
         return true;
     }
 
