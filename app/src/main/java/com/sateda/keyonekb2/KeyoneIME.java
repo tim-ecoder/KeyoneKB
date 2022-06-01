@@ -66,9 +66,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     public static final String APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
 
     public static final int SCAN_CODE_CURRENCY = 183;
-    public static final int SCAN_CODE_KEY_SYM = 100;
-    public static final int SCAN_CODE_SHIFT = 110;
-
     public static final int SCAN_CODE_KEY_0 = 11;
     public static final int SCAN_CODE_CHAR_0 = 48;
 
@@ -541,32 +538,17 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         //он хочет получать только родные клавиши, по этому ему отправляем почти все клавиши неизменными
         if(inputAtBbLauncherApp
                 && !inputViewShown
-                && scanCode != SCAN_CODE_KEY_0
+                && keyCode != KeyEvent.KEYCODE_0
                 && keyCode != KeyEvent.KEYCODE_SHIFT_LEFT
                 && keyCode != KeyEvent.KEYCODE_SPACE
                 && keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT
                 && keyCode != KeyEvent.KEYCODE_ALT_LEFT
-                && scanCode != SCAN_CODE_KEY_SYM
-                && scanCode != SCAN_CODE_SHIFT
-                && scanCode != SCAN_CODE_CURRENCY){
-            Log.d(TAG, "Oh! this fixBbkLauncher "+ inputAtBbLauncherApp);
+                && keyCode != KeyEvent.KEYCODE_SYM
+                && scanCode != SCAN_CODE_CURRENCY) {
+            Log.d(TAG, "Oh! this fixBbkLauncher " + inputAtBbLauncherApp);
             return super.onKeyDown(keyCode, event);
+        }
 
-        }else if(inputAtBbLauncherApp &&  !inputViewShown && scanCode == SCAN_CODE_KEY_0 && repeatCount == 0 ){
-            //Смена языка в BB Launcher сама заработала в onKeyUp без хака
-            //ChangeLanguage();
-            return true;
-        }/* Пока деактивируем режим kbd_gestures в пользу двойного ctrl или удержания
-        else if(startInputAtBbLauncherApp &&  !inputViewShown && scanCode == KEY_0 && repeatCount == 1 ){
-            //enable_keyboard_gestures = !enable_keyboard_gestures;
-            //Хак
-            ChangeLanguageBack();
-            return true;
-        }
-        */
-        else if(inputAtBbLauncherApp && !inputViewShown){
-            return true;
-        }
         //endregion
 
         //region Режим "Навигационные клавиши"
@@ -617,14 +599,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    private boolean IsShiftMode() {
-        return oneTimeShiftOneTimeBigMode || doubleShiftCapsMode || shiftPressed;
-    }
-
-    private boolean IsAltMode() {
-        return altPressSingleSymbolAltedMode || doubleAltPressAllSymbolsAlted || altPressed;
-    }
-
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.v(TAG, "onKeyUp " + event);
@@ -661,6 +635,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return false;
 
         return true;
+    }
+
+    private boolean IsShiftMode() {
+        return oneTimeShiftOneTimeBigMode || doubleShiftCapsMode || shiftPressed;
+    }
+
+    private boolean IsAltMode() {
+        return altPressSingleSymbolAltedMode || doubleAltPressAllSymbolsAlted || altPressed;
     }
 
     //TODO: Вынести в XML
