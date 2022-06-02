@@ -202,7 +202,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         keybardNavigation = new Keyboard(this, R.xml.navigation);
 
         notificationProcessor.Initialize(getApplicationContext());
-        UpdateGestureModeVisualization();
+        UpdateGestureModeVisualization(false);
         UpdateKeyboardModeVisualization();
     }
 
@@ -272,14 +272,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     @Override public void onFinishInput() {
-        //if(showSymbolOnScreenKeyboard) {
+        if(showSymbolOnScreenKeyboard) {
             showSymbolOnScreenKeyboard = false;
             altPressSingleSymbolAltedMode = false;
             doubleAltPressAllSymbolsAlted = false;
             mode_keyboard_gestures = false;
             UpdateKeyboardModeVisualization();
-            UpdateGestureModeVisualization();
-        //}
+            UpdateGestureModeVisualization(false);
+        }
 
         if(lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards();
 
@@ -291,25 +291,25 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         Log.d(TAG, "onFinishInput ");
     }
 
-    @Override public void onStartInput(EditorInfo attribute, boolean restarting) {
-        super.onStartInput(attribute, restarting);
-        Log.d(TAG, "onStartInput "+attribute.packageName+" "+attribute.label);
+    @Override public void onStartInput(EditorInfo editorInfo, boolean restarting) {
+        super.onStartInput(editorInfo, restarting);
+        Log.d(TAG, "onStartInput "+editorInfo.packageName+" "+editorInfo.label);
         // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
 
-        if(attribute.packageName.equals("com.blackberry.contacts")) {
+        if(editorInfo.packageName.equals("com.blackberry.contacts")) {
             startInputAtBbContactsApp = true;
         }else{
             startInputAtBbContactsApp = false;
         }
 
-        if(attribute.packageName.equals("com.blackberry.blackberrylauncher")) {
+        if(editorInfo.packageName.equals("com.blackberry.blackberrylauncher")) {
             inputAtBbLauncherApp = true;
         }else{
             inputAtBbLauncherApp = false;
         }
 
-        if(attribute.packageName.equals("com.android.dialer")) {
+        if(editorInfo.packageName.equals("com.android.dialer")) {
             startInputAtBbPhoneApp = true;
         }else{
             startInputAtBbPhoneApp = false;
@@ -317,7 +317,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         /*
         // ХАК для телеграма т.к. когда входишь в диалог он создает какой-то еще Input и несколько символов улетает туда
-        if(attribute.packageName.equals("org.telegram.messenger") && attribute.inputType == 0) {
+        if(editorInfo.packageName.equals("org.telegram.messenger") && editorInfo.inputType == 0) {
             startInputAtTelegram = true;
         }else{
             startInputAtTelegram = false;
@@ -325,9 +325,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
          */
 
         // Обрабатываем переход между приложениями
-        if(!attribute.packageName.equals(lastPackageName))
+        if(!editorInfo.packageName.equals(lastPackageName))
         {
-            lastPackageName = attribute.packageName;
+            lastPackageName = editorInfo.packageName;
 
             //Отключаем режим навигации
             navigationOnScreenKeyboardMode = false;
@@ -349,7 +349,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         // We are now going to initialize our state based on the type of
         // text being edited.
-        switch (attribute.inputType & InputType.TYPE_MASK_CLASS) {
+        switch (editorInfo.inputType & InputType.TYPE_MASK_CLASS) {
             case InputType.TYPE_CLASS_NUMBER:
             case InputType.TYPE_CLASS_DATETIME:
                 // Numbers and dates default to the symbols keyboard, with
@@ -370,7 +370,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
                 // We now look for a few special variations of text that will
                 // modify our behavior.
-                int variation = attribute.inputType & InputType.TYPE_MASK_VARIATION;
+                int variation = editorInfo.inputType & InputType.TYPE_MASK_VARIATION;
                 if (variation == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
                         variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) {
                     // Do not display predictions / what the user is typing
@@ -386,7 +386,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     //mPredictionOn = false;
                 }
 
-                if ((attribute.inputType & InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE) != 0) {
+                if ((editorInfo.inputType & InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE) != 0) {
                     // If this is an auto-complete text view, then our predictions
                     // will not be shown and instead we will allow the editor
                     // to supply their own.  We only show the editor's
@@ -399,7 +399,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 // We also want to look at the current state of the editor
                 // to decide whether our alphabetic keyboard should start out
                 // shifted.
-                DetermineFirstBigCharAndReturnChangedState(attribute);
+                DetermineFirstBigCharAndReturnChangedState(editorInfo);
                 break;
 
             default:
@@ -410,9 +410,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 oneTimeShiftOneTimeBigMode = false;
                 doubleShiftCapsMode = false;
                 mode_keyboard_gestures = false;
-                DetermineFirstBigCharAndReturnChangedState(attribute);
+                DetermineFirstBigCharAndReturnChangedState(editorInfo);
         }
-        UpdateGestureModeVisualization();
+
+        UpdateGestureModeVisualization(editorInfo.inputType > 0);
         UpdateKeyboardModeVisualization();
         // Update the label on the enter key, depending on what the application
         // says it will do.
@@ -433,14 +434,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         Log.v(TAG, "onKeyDown " + event);
 
         int scanCode = event.getScanCode();
-        int repeatCount = event.getRepeatCount();
-        boolean inputViewShown = this.isInputViewShown();
 
         //region BB Launcher HACK
         //обработка главного экрана Блекбери
         //он хочет получать только родные клавиши, по этому ему отправляем почти все клавиши неизменными
         if(inputAtBbLauncherApp
-                && !inputViewShown
+                && !IsInputMode()
                 && IsBbLauncherKeyCode(keyCode, scanCode, event.getMetaState())) {
             Log.d(TAG, "Oh! this fixBbkLauncher " + inputAtBbLauncherApp);
             return super.onKeyDown(keyCode, event);
@@ -481,9 +480,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return false;
 
         //Это нужно чтобы показать клаву (перейти в режим редактирования)
-        if (!inputViewShown && inputConnection != null) {
+        if (!isInputViewShown() && inputConnection != null && IsInputMode()) {
+            /*
             CharSequence text = inputConnection.getTextBeforeCursor(1, 0);
             if (text != null && text.length() > 0)
+
+             */
                 this.showWindow(true);
         }
         if(needUpdateVisualInsideSingleEvent)
@@ -882,7 +884,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         if (pref_keyboard_gestures_at_views_enable
                 && !navigationOnScreenKeyboardMode
-                && !this.isInputViewShown()) {
+                && !IsInputMode()) {
             return false;
         }
         if (!mode_keyboard_gestures && motionEvent.getY() <= ROW_4_BEGIN_Y) {
@@ -913,7 +915,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         if (pref_keyboard_gestures_at_views_enable
                 && !showSymbolOnScreenKeyboard
-                && !this.isInputViewShown()){
+                && !IsInputMode()){
                 //Если мы не в поле ввода передаем жесты дальше
                 return false;
         }
@@ -1020,25 +1022,21 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             keyboardView.setVisibility(View.VISIBLE);
     }
 
-    private void UpdateGestureModeVisualization() {
+    private void UpdateGestureModeVisualization(boolean isInput) {
         boolean changed = false;
 
-        if (isInputViewShown() && mode_keyboard_gestures) {
+        if (isInput && mode_keyboard_gestures) {
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
-            if(changed)
-                notificationProcessor.UpdateNotificationGestureMode();
-        } else if (!isInputViewShown() && pref_keyboard_gestures_at_views_enable){
+        } else if (!isInput && pref_keyboard_gestures_at_views_enable){
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
-            if(changed)
-                notificationProcessor.UpdateNotificationGestureMode();
         } else {
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_off);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
-            if(changed)
-                notificationProcessor.UpdateNotificationGestureMode();
         }
+        if(changed)
+            notificationProcessor.UpdateNotificationGestureMode();
 
 
     }
@@ -1600,13 +1598,17 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
+    private boolean IsInputMode() {
+        return getCurrentInputEditorInfo().inputType > 0;
+    }
+
     boolean onCtrlDoublePress(KeyPressData keyPressData) {
-        if(isInputViewShown()) {
+        if(IsInputMode()) {
             mode_keyboard_gestures = !mode_keyboard_gestures;
         } else {
             pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
         }
-        UpdateGestureModeVisualization();
+        UpdateGestureModeVisualization(IsInputMode());
         SetNeedUpdateVisualState();
         return true;
     }
@@ -1696,8 +1698,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if (System.currentTimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
             Log.d(TAG, "GestureMode at key_0_down first time");
             mode_keyboard_gestures = true;
-            //UpdateKeyboardGesturesModeVisualization();
-            UpdateGestureModeVisualization();
+            UpdateGestureModeVisualization(IsInputMode());
         }
         return true;
     }
@@ -1705,8 +1706,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onKey0HoldOff(KeyPressData keyPressData) {
         if (IsAltMode()) return true;
         mode_keyboard_gestures = false;
-        //UpdateKeyboardGesturesModeVisualization();
-        UpdateGestureModeVisualization();
+        UpdateGestureModeVisualization(IsInputMode());
         return true;
     }
     //endregion
@@ -1732,14 +1732,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         InputConnection inputConnection = getCurrentInputConnection();
         //region BB Apps HACK
         if(startInputAtBbContactsApp && !keyboardLayoutManager.isEnglishKb){
-            if(inputConnection!=null){
+            if(inputConnection!=null && !IsInputMode()){
                 //Данный хак работает неплохо на первый взгляд и не выделяется виджет погоды на рабочем столе
                 keyDownUp4dpadMovements(KeyEvent.KEYCODE_SEARCH, inputConnection);
             }
             startInputAtBbContactsApp = false;
         }
         if(startInputAtBbPhoneApp && !keyboardLayoutManager.isEnglishKb){
-            if(inputConnection!=null && !isInputViewShown()){
+            if(inputConnection!=null && !IsInputMode()){
                 keyDownUp4dpadMovements(KeyEvent.KEYCODE_0, inputConnection);
                 keyDownUp4dpadMovements(KeyEvent.KEYCODE_DEL, inputConnection);
             }
@@ -1754,7 +1754,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private void ResetGesturesMode() {
         if(mode_keyboard_gestures) {
             mode_keyboard_gestures = false;
-            UpdateGestureModeVisualization();
+            UpdateGestureModeVisualization(IsInputMode());
         }
     }
 
