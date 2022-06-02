@@ -3,12 +3,7 @@ package com.sateda.keyonekb2;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -18,8 +13,6 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
-import android.support.v7.app.NotificationCompat;
-import android.support.v7.app.NotificationCompat.Builder;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -39,8 +32,6 @@ import android.widget.Toast;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import static android.content.ContentValues.TAG;
-
-import java.util.ArrayList;
 
 @Keep
 public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -103,21 +94,18 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     private CallStateCallback callStateCallback;
 
-    private NotificationManager notificationManager;
-
+    private final NotificationProcessor notificationProcessor = new NotificationProcessor();
     private SatedaKeyboardView keyboardView;
     private Keyboard onScreenKeyboardDefaultGesturesAndLanguage;
     private Keyboard onScreenKeyboardSymbols;
+
+    KeyboardLayoutManager keyboardLayoutManager = new KeyboardLayoutManager();
 
     private Boolean startInputAtBbContactsApp = false; // костыль для приложения Блекбери контакты
     private Boolean startInputAtBbPhoneApp = false; // аналогичный костыль для приложения Телефон чтобы в нем искалось на русском языке
     private Boolean inputAtBbLauncherApp = false;
 
     private SharedPreferences mSettings;
-
-    private boolean isEnglishKb = false;
-    private int CurrentLanguageListIndex = 0;
-    private int LangListCount = 0;
 
     private Toast toast;
 
@@ -131,22 +119,16 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     private boolean altPressSingleSymbolAltedMode;
     private boolean doubleAltPressAllSymbolsAlted;
-    private boolean showSymbolOnScreenKeyboard;
+    private boolean showSymbolOnScreenKeyboard = false;
     private boolean navigationOnScreenKeyboardMode;
     private boolean fnSymbolOnScreenKeyboardMode;
 
-    private boolean menuEmulatedKeyPressed; //нажатие клавишь с зажатым альтом
-
     private boolean altPressed; //нажатие клавишь с зажатым альтом
-    //private boolean altPlusBtn;
 
     private String lastPackageName = "";
 
     private float lastGestureX;
     private float lastGestureY;
-
-    private android.support.v4.app.NotificationCompat.Builder builder;
-    private Notification.Builder builder2;
 
     private boolean mode_keyboard_gestures = false;
 
@@ -165,7 +147,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     @Override
     public void onDestroy() {
-        notificationManager.cancelAll();
+        notificationProcessor.CancelAll();
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -185,7 +167,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         shiftPressed = false;
         altPressSingleSymbolAltedMode = false;
         doubleAltPressAllSymbolsAlted = false;
-        menuEmulatedKeyPressed = false;
         altPressed = false;
         showSymbolOnScreenKeyboard = false;
         navigationOnScreenKeyboardMode = false;
@@ -216,52 +197,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         keybardNavigation = new Keyboard(this, R.xml.navigation);
 
-        notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setClassName("com.sateda.keyonekb2.satedakeyboard", "com.sateda.keyboard.keyonekb2.MainActivity");
-        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-
-        if (android.os.Build.VERSION.SDK_INT >= 27) {
-            //Борьба с Warning для SDK_V=27 (KEY2 вестимо)
-            //04-10 20:36:34.040 13838-13838/xxx.xxxx.xxxx W/Notification: Use of stream types is deprecated for operations other than volume control
-            //See the documentation of setSound() for what to use instead with android.media.AudioAttributes to qualify your playback use case
-
-            String channelId = "KeyoneKbNotificationChannel2";
-            String channelDescription = "KeyoneKbNotificationChannel";
-            NotificationChannel notificationChannel = notificationManager.getNotificationChannel(channelId);
-            if (notificationChannel == null) {
-                notificationChannel = new NotificationChannel(channelId, channelDescription, NotificationManager.IMPORTANCE_UNSPECIFIED);
-                //notificationChannel.setLightColor(Color.GREEN); //Set if it is necesssary
-                notificationChannel.enableVibration(false); //Set if it is necesssary
-                notificationChannel.setSound(null, null);
-                notificationManager.createNotificationChannel(notificationChannel);
-            }
-            builder2 = new Notification.Builder(getApplicationContext(), channelId);
-            builder2.setOngoing(true);
-            builder2.setAutoCancel(true);
-            builder2.setVisibility(Notification.VISIBILITY_SECRET);
-        }
-        else
-        {
-            builder = new Builder(getApplicationContext());
-            builder.setOngoing(true);
-            builder.setAutoCancel(false);
-            builder.setVisibility(NotificationCompat.VISIBILITY_SECRET);
-            builder.setPriority(NotificationCompat.PRIORITY_LOW);
-
-        }
-
-        //notificationManager.notify(1, builder.build());
-        //builder.setSmallIcon(R.mipmap.ic_rus_small);
-        //builder.setContentTitle("Русский");
-
+        notificationProcessor.Initialize(getApplicationContext());
         UpdateKeyboardModeVisualization();
     }
 
+
+
     private void LoadSettingsAndKeyboards(){
-        LangListCount = 1;
         pref_show_toast = false;
         pref_gesture_motion_sensitivity = 10;
 
@@ -311,8 +253,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(mSettings.contains(APP_PREFERENCES_HEIGHT_BOTTON_BAR)) {
             pref_height_bottom_bar = mSettings.getInt(APP_PREFERENCES_HEIGHT_BOTTON_BAR, 10);
         }
-
-        LangListCount = LayoutLoader.LoadLayoutsAndIcons(lang_ru_on, lang_translit_ru_on, lang_ua_on, KeybordLayoutList, getResources());
+        keyboardLayoutManager.Initialize(lang_ru_on, lang_translit_ru_on, lang_ua_on, getResources());
     }
 
     @Override
@@ -326,7 +267,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     @Override public void onFinishInput() {
-        if(showSymbolOnScreenKeyboard == true) {
+        if(showSymbolOnScreenKeyboard) {
             showSymbolOnScreenKeyboard = false;
             altPressSingleSymbolAltedMode = false;
             doubleAltPressAllSymbolsAlted = false;
@@ -1061,31 +1002,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
 
-    public ArrayList<KeybordLayout> KeybordLayoutList = new ArrayList<KeybordLayout>();
-
-    private int KeyToCharCode(int key, boolean alt_press, boolean shift_press, boolean is_double_press)
-    {
-        int result = 0;
-        KeyVariants keyVariants = KeybordLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
-        if(keyVariants == null)
-            return 0;
-        if (alt_press == true && shift_press == true && keyVariants.alt_shift != 0) {
-            result = keyVariants.alt_shift;
-        } else if (alt_press == true && keyVariants.alt != 0) {
-            result = keyVariants.alt;
-        } else if (is_double_press == true && shift_press == true && keyVariants.double_press_shift != 0) {
-            result = keyVariants.double_press_shift;
-        } else if (is_double_press == true && keyVariants.double_press != 0) {
-            result = keyVariants.double_press;
-        } else if (shift_press == true && keyVariants.one_press_shift != 0) {
-            result = keyVariants.one_press_shift;
-        } else {
-            result = keyVariants.one_press;
-        }
-
-        return result;
-    }
-
     private void HideSwypePanelOnHidePreferenceAndVisibleState()
     {
         if(!pref_show_default_onscreen_keyboard && keyboardView.getVisibility() == View.VISIBLE){
@@ -1104,7 +1020,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
     private void UpdateKeyboardModeVisualization(boolean updateGesturePanelData) {
         Log.d(TAG, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode="+ oneTimeShiftOneTimeBigMode +" doubleShiftCapsMode="+ doubleShiftCapsMode +" doubleAltPressAllSymbolsAlted="+ doubleAltPressAllSymbolsAlted +" altPressSingleSymbolAltedMode="+ altPressSingleSymbolAltedMode);
-        KeybordLayout keyboardLayout = KeybordLayoutList.get(CurrentLanguageListIndex);
+        KeybordLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
         String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
         boolean changed = false;
 
@@ -1128,9 +1044,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             //TODO: Сделать предзагрузку этой клавиатуры
             if(symPadAltShift) {
-                keyboardView.setAltLayer(KeybordLayoutList.get(CurrentLanguageListIndex), true);
+                keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), true);
             }else{
-                keyboardView.setAltLayer(KeybordLayoutList.get(CurrentLanguageListIndex), false);
+                keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), false);
             }
             MakeVisible();
         }else if(doubleAltPressAllSymbolsAlted || altPressed){
@@ -1208,7 +1124,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     private void UpdateKeyboardGesturesModeVisualization(boolean changedTitle) {
-        KeybordLayout keyboardLayout = KeybordLayoutList.get(CurrentLanguageListIndex);
+        KeybordLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
 
         boolean changed = changedTitle;
 
@@ -1241,43 +1157,15 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     private void NotificationManagerNotify() {
-        if(builder != null)
-            notificationManager.notify(1, builder.build());
-        else if (builder2 != null) {
-            notificationManager.notify(1, builder2.build());
-        }
+        notificationProcessor.UpdateNotification();
     }
 
-    int currentIcon = 0;
-    String currentTitle = "";
-
     private boolean SetSmallIcon(int icon1) {
-        if(builder != null) {
-            builder.setSmallIcon(icon1);
-        } else if (builder2 != null) {
-            builder2.setSmallIcon(icon1);
-        }
-        //Changed
-        if(currentIcon != icon1) {
-            currentIcon = icon1;
-            return true;
-        }
-        else
-            return false;
+        return notificationProcessor.SetSmallIcon(icon1);
     }
 
     private boolean SetContentTitle(String title) {
-        if(builder != null)
-            builder.setContentTitle(title);
-        else if (builder2 != null)
-            builder2.setContentTitle(title);
-        //Changed
-        if(currentTitle.compareTo(title) != 0) {
-            currentTitle = title;
-            return true;
-        }
-        else
-            return false;
+        return notificationProcessor.SetContentTitle(title);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -1323,15 +1211,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     private void ChangeLanguage() {
-        CurrentLanguageListIndex++;
-        if(CurrentLanguageListIndex > LangListCount - 1) CurrentLanguageListIndex = 0;
-        if(CurrentLanguageListIndex == 0){
-            isEnglishKb = true;
-        }else{
-            isEnglishKb = false;
-        }
+        keyboardLayoutManager.ChangeLayout();
         if(pref_show_toast) {
-            toast = Toast.makeText(getApplicationContext(), KeybordLayoutList.get(CurrentLanguageListIndex).LanguageOnScreenNaming, Toast.LENGTH_SHORT);
+            toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().LanguageOnScreenNaming, Toast.LENGTH_SHORT);
             toast.show();
         }
         UpdateKeyboardModeVisualization();
@@ -1565,7 +1447,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onSymShortPress(KeyPressData keyPressData) {
         if(altPressed) { //вызов меню
             InputConnection inputConnection = getCurrentInputConnection();
-            menuEmulatedKeyPressed = true;
             if(inputConnection!=null)
                 inputConnection.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MENU));
             return true;
@@ -1808,9 +1689,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         int code2send = 0;
         if(IsAltMode())
-            code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsSHiftSym2State(), false);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsSHiftSym2State(), false);
         else
-            code2send = KeyToCharCode(keyPressData.ScanCode, false, IsShiftMode(), false);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, IsShiftMode(), false);
         SendLetterOrSymbol(code2send);
         return true;
     }
@@ -1819,14 +1700,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         Log.v(TAG2, "KEY SEND: "+String.format("%c", code2send));
         InputConnection inputConnection = getCurrentInputConnection();
         //region BB Apps HACK
-        if(startInputAtBbContactsApp && !isEnglishKb){
+        if(startInputAtBbContactsApp && !keyboardLayoutManager.isEnglishKb){
             if(inputConnection!=null){
                 //Данный хак работает неплохо на первый взгляд и не выделяется виджет погоды на рабочем столе
                 keyDownUp4dpadMovements(KeyEvent.KEYCODE_SEARCH, inputConnection);
             }
             startInputAtBbContactsApp = false;
         }
-        if(startInputAtBbPhoneApp && !isEnglishKb){
+        if(startInputAtBbPhoneApp && !keyboardLayoutManager.isEnglishKb){
             if(inputConnection!=null && !isInputViewShown()){
                 keyDownUp4dpadMovements(KeyEvent.KEYCODE_0, inputConnection);
                 keyDownUp4dpadMovements(KeyEvent.KEYCODE_DEL, inputConnection);
@@ -1863,13 +1744,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onLetterDoublePress(KeyPressData keyPressData) {
 
         //TODO: По сути - это определение сдвоенная буква или нет, наверное можно как-то оптимальнее сделать потом
-        int code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
-        int code2sendNoDoublePress = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), false);
+        int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
+        int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), false);
         if(code2send != code2sendNoDoublePress) {
             DeleteLastSymbol();
             DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
         }
-        code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
+        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
         SendLetterOrSymbol(code2send);
         return true;
     }
@@ -1877,14 +1758,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onLetterLongPress(KeyPressData keyPressData) {
         DeleteLastSymbol();
         if(pref_long_press_key_alt_symbol) {
-            int code2send = KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
+            int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
             SendLetterOrSymbol(code2send);
         } else {
             int code2send;
             if(keyPressData.Short2ndLongPress) {
-                code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, true);
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, true);
             } else {
-                code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, false);
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, false);
             }
             SendLetterOrSymbol(code2send);
         }

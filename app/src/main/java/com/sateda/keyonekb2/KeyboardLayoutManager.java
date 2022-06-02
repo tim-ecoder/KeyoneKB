@@ -8,10 +8,18 @@ import org.xmlpull.v1.XmlPullParser;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class LayoutLoader {
-    static int  LoadLayoutsAndIcons(boolean lang_ru_on, boolean lang_translit_ru_on, boolean lang_ua_on, ArrayList<KeybordLayout> KeybordLayoutList, Resources resources) {
+public class KeyboardLayoutManager {
+
+    public ArrayList<KeybordLayout> KeybordLayoutList = new ArrayList<>();
+    private int CurrentLanguageListIndex = 0;
+    private int LangListCount = 0;
+    public boolean isEnglishKb = false;
+
+    public void Initialize(boolean lang_ru_on, boolean lang_translit_ru_on, boolean lang_ua_on, Resources resources) {
+        if(LangListCount != 0)
+            return;
         KeybordLayout currentLayout;
-        int LangListCount = 1;
+        LangListCount = 1;
         currentLayout = LoadLayoutAndCache(R.xml.english_hw, LangListCount - 1, KeybordLayoutList, resources);
         currentLayout.IconCaps = R.mipmap.ic_eng_shift_all;
         currentLayout.IconCapsTouch = R.mipmap.ic_eng_shift_all_touch;
@@ -50,7 +58,6 @@ public class LayoutLoader {
             currentLayout.IconLittle = R.mipmap.ic_ukr_small;
             currentLayout.IconLittleTouch = R.mipmap.ic_ukr_small_touch;
         }
-        return LangListCount;
     }
 
     private static KeybordLayout LoadLayoutAndCache(int xmlId, int currentKeyBoardSetId, ArrayList<KeybordLayout> KeybordLayoutList, Resources resources)
@@ -174,5 +181,42 @@ public class LayoutLoader {
         } catch (Throwable t) {
             Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+t.toString());
         }
+    }
+
+    public void ChangeLayout() {
+        CurrentLanguageListIndex++;
+        if(CurrentLanguageListIndex > LangListCount - 1) CurrentLanguageListIndex = 0;
+        if(CurrentLanguageListIndex == 0){
+            isEnglishKb = true;
+        }else{
+            isEnglishKb = false;
+        }
+    }
+
+    public KeybordLayout GetCurrentKeyboardLayout(){
+        return KeybordLayoutList.get(CurrentLanguageListIndex);
+    }
+
+    public int KeyToCharCode(int key, boolean alt_press, boolean shift_press, boolean is_double_press)
+    {
+        int result = 0;
+        KeyVariants keyVariants = KeybordLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
+        if(keyVariants == null)
+            return 0;
+        if (alt_press && shift_press && keyVariants.alt_shift != 0) {
+            result = keyVariants.alt_shift;
+        } else if (alt_press && keyVariants.alt != 0) {
+            result = keyVariants.alt;
+        } else if (is_double_press && shift_press && keyVariants.double_press_shift != 0) {
+            result = keyVariants.double_press_shift;
+        } else if (is_double_press && keyVariants.double_press != 0) {
+            result = keyVariants.double_press;
+        } else if (shift_press && keyVariants.one_press_shift != 0) {
+            result = keyVariants.one_press_shift;
+        } else {
+            result = keyVariants.one_press;
+        }
+
+        return result;
     }
 }
