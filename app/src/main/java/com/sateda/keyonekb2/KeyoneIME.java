@@ -38,12 +38,9 @@ import android.widget.Toast;
 
 import com.sateda.keyonekb2.input.CallStateCallback;
 
-import org.xmlpull.v1.XmlPullParser;
-
 import static android.content.ContentValues.TAG;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 @Keep
 public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -65,8 +62,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     public static final String APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_SWIPE_PANEL = "show_default_onscreen_keyboard";
     public static final String APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
 
-    public static final int SCAN_CODE_CURRENCY = 183;
-    public static final int SCAN_CODE_KEY_0 = 11;
     public static final int SCAN_CODE_CHAR_0 = 48;
 
     public static final int MAGIC_KEYBOARD_GESTURE_MOTION_CONST = 42;
@@ -237,7 +232,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             String channelDescription = "KeyoneKbNotificationChannel";
             NotificationChannel notificationChannel = notificationManager.getNotificationChannel(channelId);
             if (notificationChannel == null) {
-                notificationChannel = new NotificationChannel(channelId, channelDescription, NotificationManager.IMPORTANCE_LOW);
+                notificationChannel = new NotificationChannel(channelId, channelDescription, NotificationManager.IMPORTANCE_UNSPECIFIED);
                 //notificationChannel.setLightColor(Color.GREEN); //Set if it is necesssary
                 notificationChannel.enableVibration(false); //Set if it is necesssary
                 notificationChannel.setSound(null, null);
@@ -317,46 +312,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             pref_height_bottom_bar = mSettings.getInt(APP_PREFERENCES_HEIGHT_BOTTON_BAR, 10);
         }
 
-        KeybordLayout currentLayout;
-        LangListCount = 1;
-        currentLayout = LoadLayout2(R.xml.english_hw, LangListCount - 1);
-        currentLayout.IconCaps = R.mipmap.ic_eng_shift_all;
-        currentLayout.IconCapsTouch = R.mipmap.ic_eng_shift_all_touch;
-        currentLayout.IconFirstShift = R.mipmap.ic_eng_shift_first;
-        currentLayout.IconFirstShiftTouch = R.mipmap.ic_eng_shift_first_touch;
-        currentLayout.IconLittle = R.mipmap.ic_eng_small;
-        currentLayout.IconLittleTouch = R.mipmap.ic_eng_small_touch;
-
-        if(lang_ru_on){
-            LangListCount++;
-            currentLayout = LoadLayout2(R.xml.russian_hw, LangListCount - 1);
-            currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
-            currentLayout.IconCapsTouch = R.mipmap.ic_rus_shift_all_touch;
-            currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
-            currentLayout.IconFirstShiftTouch = R.mipmap.ic_rus_shift_first_touch;
-            currentLayout.IconLittle = R.mipmap.ic_rus_small;
-            currentLayout.IconLittleTouch = R.mipmap.ic_rus_small_touch;
-        }
-        if(lang_translit_ru_on){
-            LangListCount++;
-            currentLayout = LoadLayout2(R.xml.russian_translit_hw, LangListCount - 1);
-            currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
-            currentLayout.IconCapsTouch = R.mipmap.ic_rus_shift_all_touch;
-            currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
-            currentLayout.IconFirstShiftTouch = R.mipmap.ic_rus_shift_first_touch;
-            currentLayout.IconLittle = R.mipmap.ic_rus_small;
-            currentLayout.IconLittleTouch = R.mipmap.ic_rus_small_touch;
-        }
-        if(lang_ua_on){
-            LangListCount++;
-            currentLayout = LoadLayout2(R.xml.ukraine_hw, LangListCount - 1);
-            currentLayout.IconCaps = R.mipmap.ic_ukr_shift_all;
-            currentLayout.IconCapsTouch = R.mipmap.ic_ukr_shift_all_touch;
-            currentLayout.IconFirstShift = R.mipmap.ic_ukr_shift_first;
-            currentLayout.IconFirstShiftTouch = R.mipmap.ic_ukr_shift_first_touch;
-            currentLayout.IconLittle = R.mipmap.ic_ukr_small;
-            currentLayout.IconLittleTouch = R.mipmap.ic_ukr_small_touch;
-        }
+        LangListCount = LayoutLoader.LoadLayoutsAndIcons(lang_ru_on, lang_translit_ru_on, lang_ua_on, KeybordLayoutList, getResources());
     }
 
     @Override
@@ -1105,164 +1061,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
 
-
-    public class KeyVariants
-    {
-        public int scan_code = 0;
-        public int one_press = 0;
-        public int double_press = 0;
-        public int one_press_shift = 0;
-        public int double_press_shift = 0;
-        public int alt = 0;
-        public int shift = 0;
-        public int alt_shift = 0;
-        public String alt_popup = "";
-        public String alt_shift_popup = "";
-    }
-
-    public class KeybordLayout
-    {
-        public String LanguageOnScreenNaming = "";
-        public int XmlId = 0;
-        public int Id = 0;
-        public int IconCaps;
-        public int IconCapsTouch;
-        public int IconFirstShift;
-        public int IconFirstShiftTouch;
-        public int IconLittle;
-        public int IconLittleTouch;
-
-        public HashMap<Integer, KeyVariants> KeyVariantsMap = new HashMap<Integer, KeyVariants>();
-    }
-
     public ArrayList<KeybordLayout> KeybordLayoutList = new ArrayList<KeybordLayout>();
-
-    private KeybordLayout LoadLayout2(int xmlId, int currentKeyBoardSetId)
-    {
-
-        int scan_code = 0;
-        int one_press = 0;
-        int double_press = 0;
-        int double_press_shift = 0;
-        int alt = 0;
-        int shift = 0;
-        int alt_shift = 0;
-        String alt_popup = "";
-        String alt_shift_popup = "";
-        String languageOnScreenNaming = "";
-
-        KeybordLayout keyboardLayout = new KeybordLayout();
-        keyboardLayout.Id = xmlId;
-        keyboardLayout.KeyVariantsMap = new HashMap<Integer, KeyVariants>();
-
-        try {
-            XmlPullParser parser = getResources().getXml(xmlId);
-
-            while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-                scan_code = 0;
-                one_press = 0;
-                double_press = 0;
-                double_press_shift = 0;
-                alt = 0;
-                shift = 0;
-                alt_shift = 0;
-                alt_popup = "";
-                alt_shift_popup = "";
-
-                for (int i = 0; i < parser.getAttributeCount(); i++) {
-                    if (parser.getAttributeName(i).equals("lang")) languageOnScreenNaming = parser.getAttributeValue(i);
-                    if (parser.getAttributeName(i).equals("scan_code")) scan_code = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("one_press")) one_press = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("double_press")) double_press = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("double_press_shift")) double_press_shift = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("alt")) alt = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("shift")) shift = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("alt_shift")) alt_shift = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("alt_popup")) alt_popup = parser.getAttributeValue(i);
-                    if (parser.getAttributeName(i).equals("alt_shift_popup")) alt_shift_popup = parser.getAttributeValue(i);
-                }
-
-                if(scan_code != 0){
-                    KeyVariants keyLayout = new KeyVariants();
-                    keyLayout.scan_code = scan_code;
-                    keyLayout.one_press = one_press;
-                    keyLayout.one_press_shift = shift;
-                    keyLayout.double_press = double_press;
-                    keyLayout.double_press_shift = double_press_shift;
-                    keyLayout.alt = alt;
-                    keyLayout.alt_shift = alt_shift;
-                    keyLayout.alt_popup = alt_popup;
-                    keyLayout.alt_shift_popup = alt_shift_popup;
-
-                    keyboardLayout.KeyVariantsMap.put(scan_code, keyLayout);
-                }
-                parser.next();
-            }
-            keyboardLayout.LanguageOnScreenNaming = languageOnScreenNaming;
-            keyboardLayout.XmlId = xmlId;
-            KeybordLayoutList.add(currentKeyBoardSetId, keyboardLayout);
-        } catch (Throwable t) {
-            Toast.makeText(this,
-                    "Ошибка при загрузке XML-документа: " + t.toString(),
-                    Toast.LENGTH_LONG).show();
-        }
-
-        LoadAltLayout2(keyboardLayout.KeyVariantsMap);
-        return keyboardLayout;
-    }
-
-    private void LoadAltLayout2(HashMap<Integer, KeyVariants> keyLayoutsHashMap)
-    {
-        int scan_code = 0;
-        int alt = 0;
-        int alt_shift = 0;
-        String alt_popup = "";
-        String alt_shift_popup = "";
-
-        try {
-            XmlPullParser parser;
-            parser = getResources().getXml(R.xml.alt_hw);
-
-            while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-                scan_code = 0;
-                alt = 0;
-                alt_shift = 0;
-                alt_popup = "";
-                alt_shift_popup = "";
-
-                for (int i = 0; i < parser.getAttributeCount(); i++) {
-                    if (parser.getAttributeName(i).equals("scan_code")) scan_code = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("alt")) alt = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("alt_shift")) alt_shift = Integer.parseInt(parser.getAttributeValue(i));
-                    if (parser.getAttributeName(i).equals("alt_popup")) alt_popup = parser.getAttributeValue(i);
-                    if (parser.getAttributeName(i).equals("alt_shift_popup")) alt_shift_popup = parser.getAttributeValue(i);
-                }
-
-                if(scan_code != 0){
-                    KeyVariants keyVariants = keyLayoutsHashMap.get(scan_code);
-                    if(keyVariants == null)
-                    {
-                        keyVariants = new KeyVariants();
-                        keyLayoutsHashMap.put(scan_code, keyVariants);
-                    }
-
-                    if(alt != 0 && keyVariants.alt == 0)
-                        keyVariants.alt = alt;
-                    if(alt_shift != 0 && keyVariants.alt_shift == 0)
-                        keyVariants.alt_shift = alt_shift;
-                    if(!alt_popup.isEmpty() && keyVariants.alt_popup.isEmpty())
-                        keyVariants.alt_popup = alt_popup;
-                    if(!alt_shift_popup.isEmpty() && keyVariants.alt_shift_popup.isEmpty())
-                        keyVariants.alt_shift_popup = alt_popup;
-                }
-                parser.next();
-            }
-        } catch (Throwable t) {
-            Toast.makeText(this,
-                    "Ошибка при загрузке XML-документа: " + t.toString(),
-                    Toast.LENGTH_LONG).show();
-        }
-    }
 
     private int KeyToCharCode(int key, boolean alt_press, boolean shift_press, boolean is_double_press)
     {
@@ -1339,7 +1138,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             changed |= SetContentTitle(TITLE_SYM_TEXT);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateGesturePanelData) {
-                if (IsAltMode() && IsShiftMode()) {
+                if (IsSym2Mode()) {
                     keyboardView.setLang(TITLE_SYM2_TEXT);
                 } else {
                     keyboardView.setLang(TITLE_SYM_TEXT);
@@ -1352,7 +1151,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             changed |= SetContentTitle(TITLE_SYM_TEXT);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateGesturePanelData) {
-                if (IsAltMode() && IsShiftMode()) {
+                if (IsSym2Mode()) {
                     keyboardView.setLang(TITLE_SYM2_TEXT);
                 } else {
                     keyboardView.setLang(TITLE_SYM_TEXT);
@@ -1395,6 +1194,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         UpdateKeyboardGesturesModeVisualization(changed);
     }
 
+    private boolean IsSym2Mode() {
+        return IsAltMode() && IsSHiftSym2State();
+    }
+
+    private boolean IsSHiftSym2State() {
+        return shiftPressed || symPadAltShift;
+    }
 
 
     private void UpdateKeyboardGesturesModeVisualization() {
@@ -1539,7 +1345,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
     }
 
-    private void keyDownUp(int keyEventCode, InputConnection ic) {
+    private static void keyDownUp(int keyEventCode, InputConnection ic) {
         if (ic == null) return;
 
         ic.sendKeyEvent(
@@ -1548,7 +1354,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
     }
 
-    private void keyDownUp(int keyEventCode, InputConnection ic, int meta) {
+    private static void keyDownUp(int keyEventCode, InputConnection ic, int meta) {
         if (ic == null) return;
         long now = SystemClock.uptimeMillis();
 
@@ -1558,7 +1364,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 new KeyEvent(now, now, KeyEvent.ACTION_UP, keyEventCode, 0, meta));
     }
 
-    private void keyDownUp4dpadMovements(int keyEventCode, InputConnection ic) {
+    private static void keyDownUp4dpadMovements(int keyEventCode, InputConnection ic) {
         if (ic == null) return;
         long uptimeMillis = SystemClock.uptimeMillis();
         ic.sendKeyEvent(
@@ -1724,13 +1530,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onAltShortPress(KeyPressData keyPressData) {
         if(showSymbolOnScreenKeyboard) {
             symPadAltShift = !symPadAltShift;
-        } else {
+        } else if(doubleAltPressAllSymbolsAlted){
             doubleAltPressAllSymbolsAlted = false;
+            altPressSingleSymbolAltedMode = false;
+        } else {
             altPressSingleSymbolAltedMode = !altPressSingleSymbolAltedMode;
         }
         SetNeedUpdateVisualState();
         return true;
-
     }
 
     boolean onAltDoublePress(KeyPressData keyPressData) {
@@ -1870,8 +1677,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
     //endregion
 
-
-
     //region K2:CTRL_LEFT (K1: SHIFT_RIGHT)
 
     boolean onCtrlShortPress(KeyPressData keyPressData) {
@@ -2003,7 +1808,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         int code2send = 0;
         if(IsAltMode())
-            code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), shiftPressed || symPadAltShift, false);
+            code2send = KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsSHiftSym2State(), false);
         else
             code2send = KeyToCharCode(keyPressData.ScanCode, false, IsShiftMode(), false);
         SendLetterOrSymbol(code2send);

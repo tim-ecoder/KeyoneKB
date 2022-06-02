@@ -143,7 +143,7 @@ public class SatedaKeyboardView extends KeyboardView {
         draw_lang = lang;
     }
 
-    public void setAltLayer(KeyoneIME.KeybordLayout keybordLayout, boolean isAltShift){
+    public void setAltLayer(KeybordLayout keybordLayout, boolean isAltShift){
         alt = true;
         showSymbol = true;
         fnSymbol = false;
@@ -151,7 +151,7 @@ public class SatedaKeyboardView extends KeyboardView {
         int arr_inc = 0;
         int i = 0;
 
-        for(KeyoneIME.KeyVariants keyVariants : keybordLayout.KeyVariantsMap.values()){
+        for(KeyVariants keyVariants : keybordLayout.KeyVariantsMap.values()){
             KeyLabel[i] = "";
             KeyLabel_x[i] = 0;
             KeyLabel_y[i] = 0;
@@ -169,7 +169,7 @@ public class SatedaKeyboardView extends KeyboardView {
         for(Keyboard.Key key: keys) {
             if(key == null)
                 continue;
-            KeyoneIME.KeyVariants keyVariants = keybordLayout.KeyVariantsMap.get(key.codes[0]);
+            KeyVariants keyVariants = keybordLayout.KeyVariantsMap.get(key.codes[0]);
             if(keyVariants == null)
                 continue;
             if(key.label.equals(" ")
