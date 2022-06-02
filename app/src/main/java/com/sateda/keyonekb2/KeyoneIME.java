@@ -166,16 +166,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
 
 
-        oneTimeShiftOneTimeBigMode = false;
-        doubleShiftCapsMode = false;
-        shiftPressed = false;
-        altPressSingleSymbolAltedMode = false;
-        doubleAltPressAllSymbolsAlted = false;
-        altPressed = false;
-        showSymbolOnScreenKeyboard = false;
-        navigationOnScreenKeyboardMode = false;
-        fnSymbolOnScreenKeyboardMode = false;
-        ctrlImitatedByShiftRightPressed = false;
+
         pref_height_bottom_bar = 10;
 
         pref_show_toast = false;
@@ -272,6 +263,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     @Override public void onFinishInput() {
+
+        //TODO: Не смог понять нафига это нужно
         if(showSymbolOnScreenKeyboard) {
             showSymbolOnScreenKeyboard = false;
             altPressSingleSymbolAltedMode = false;
@@ -405,11 +398,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             default:
                 // For all unknown input types, default to the alphabetic
                 // keyboard with no special features.
-                doubleAltPressAllSymbolsAlted = false;
-                altPressSingleSymbolAltedMode = false;
-                oneTimeShiftOneTimeBigMode = false;
-                doubleShiftCapsMode = false;
-                mode_keyboard_gestures = false;
+                ResetMetaState();
                 DetermineFirstBigCharAndReturnChangedState(editorInfo);
         }
 
@@ -417,6 +406,15 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         UpdateKeyboardModeVisualization();
         // Update the label on the enter key, depending on what the application
         // says it will do.
+    }
+
+    private void ResetMetaState() {
+        doubleAltPressAllSymbolsAlted = false;
+        altPressSingleSymbolAltedMode = false;
+        oneTimeShiftOneTimeBigMode = false;
+        doubleShiftCapsMode = false;
+        symPadAltShift = false;
+        mode_keyboard_gestures = false;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
