@@ -16,9 +16,9 @@ public class NotificationProcessor {
     public static final int NOTIFICATION_ID1 = 1;
     public static final int NOTIFICATION_ID2 = 2;
     private final String gestureModeChannelId1 = "KeyoneKb2_NotificationChannel_GestureMode";
-    private final String gestureModeChannelDescription = "KeyoneKb2_NotificationChannel_GestureMode";
+    private final String gestureModeChannelDescription = "Режимы жестов (на полях ввода, на просмотре, выключен)";
     private final String layoutModeChannelId1 = "KeyoneKb2_NotificationChannel_KeyboardLayout";
-    private final String layoutModeChannelDescription = "KeyoneKb2_NotificationChannel_KeyboardLayout";
+    private final String layoutModeChannelDescription = "Раскладка клавиатуры (языки, символы и пр.)";
     private android.support.v4.app.NotificationCompat.Builder builderLayout;
     private Notification.Builder builder2Layout;
     private android.support.v4.app.NotificationCompat.Builder builderGesture;
@@ -51,7 +51,7 @@ public class NotificationProcessor {
             if(notificationChannelLayoutMode != null)
                 return;
 
-            notificationChannelLayoutMode = new NotificationChannel(layoutModeChannelId1, layoutModeChannelDescription, NotificationManager.IMPORTANCE_LOW);
+            notificationChannelLayoutMode = new NotificationChannel(layoutModeChannelId1, layoutModeChannelDescription, NotificationManager.IMPORTANCE_DEFAULT);
             //notificationChannel.setLightColor(Color.GREEN); //Set if it is necesssary
             notificationChannelLayoutMode.enableVibration(false); //Set if it is necesssary
             notificationChannelLayoutMode.setSound(null, null);
@@ -70,7 +70,7 @@ public class NotificationProcessor {
             builderLayout.setOngoing(true);
             builderLayout.setAutoCancel(false);
             builderLayout.setVisibility(NotificationCompat.VISIBILITY_SECRET);
-            builderLayout.setPriority(NotificationCompat.PRIORITY_LOW);
+            builderLayout.setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
         }
     }
@@ -84,7 +84,7 @@ public class NotificationProcessor {
             if(notificationChannelGestureMode != null)
                 return;
 
-            notificationChannelGestureMode = new NotificationChannel(gestureModeChannelId1, gestureModeChannelDescription, NotificationManager.IMPORTANCE_LOW);
+            notificationChannelGestureMode = new NotificationChannel(gestureModeChannelId1, gestureModeChannelDescription, NotificationManager.IMPORTANCE_DEFAULT);
             //notificationChannel.setLightColor(Color.GREEN); //Set if it is necesssary
             notificationChannelGestureMode.enableVibration(false); //Set if it is necesssary
             notificationChannelGestureMode.setSound(null, null);
@@ -102,7 +102,7 @@ public class NotificationProcessor {
             builderGesture = new NotificationCompat.Builder(context);
             builderGesture.setAutoCancel(false);
             builderGesture.setVisibility(NotificationCompat.VISIBILITY_SECRET);
-            builderGesture.setPriority(NotificationCompat.PRIORITY_LOW);
+            builderGesture.setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
         }
     }
