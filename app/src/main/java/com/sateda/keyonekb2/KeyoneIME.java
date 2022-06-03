@@ -478,13 +478,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return false;
 
         //Это нужно чтобы показать клаву (перейти в режим редактирования)
-        if (!isInputViewShown() && inputConnection != null && IsInputMode()) {
-            /*
-            CharSequence text = inputConnection.getTextBeforeCursor(1, 0);
-            if (text != null && text.length() > 0)
-
-             */
-                this.showWindow(true);
+        if (pref_show_default_onscreen_keyboard && !isInputViewShown() && inputConnection != null && IsInputMode()) {
+            this.showWindow(true);
         }
         if(needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
@@ -1007,17 +1002,38 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
+    private boolean IsInputMode() {
+        return getCurrentInputEditorInfo().inputType > 0;
+    }
 
-    private void HideSwypePanelOnHidePreferenceAndVisibleState()
-    {
-        if(!pref_show_default_onscreen_keyboard && keyboardView.getVisibility() == View.VISIBLE){
-            keyboardView.setVisibility(View.GONE);
+    void UpdateKeyboardVisibilityOnPrefChange() {
+        if(pref_show_default_onscreen_keyboard) {
+            UpdateKeyboardModeVisualization(true);
+            ShowKeyboard();
+        } else {
+            HideKeyboard();
         }
     }
 
-    private void MakeVisible() {
+    private void HideSwipePanelOnHidePreferenceAndVisibleState()
+    {
+        if(!pref_show_default_onscreen_keyboard) {
+            HideKeyboard();
+        }
+    }
+
+    private void HideKeyboard() {
+        if (keyboardView.getVisibility() == View.VISIBLE) {
+            keyboardView.setVisibility(View.GONE);
+        }
+        this.hideWindow();
+    }
+
+    private void ShowKeyboard() {
         if (keyboardView.getVisibility() != View.VISIBLE)
             keyboardView.setVisibility(View.VISIBLE);
+        if(!keyboardView.isShown())
+            this.showWindow(true);
     }
 
     private void UpdateGestureModeVisualization(boolean isInput) {
@@ -1043,12 +1059,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     {
         UpdateKeyboardModeVisualization(pref_show_default_onscreen_keyboard);
     }
-    private void UpdateKeyboardModeVisualization(boolean updateGesturePanelData) {
+    private void UpdateKeyboardModeVisualization(boolean updateSwipePanelData) {
         Log.d(TAG, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode="+ oneTimeShiftOneTimeBigMode +" doubleShiftCapsMode="+ doubleShiftCapsMode +" doubleAltPressAllSymbolsAlted="+ doubleAltPressAllSymbolsAlted +" altPressSingleSymbolAltedMode="+ altPressSingleSymbolAltedMode);
         KeybordLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
         String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
         boolean changed = false;
-
+        boolean needUsefullKeyboard = false;
         if(navigationOnScreenKeyboardMode){
             if(!fnSymbolOnScreenKeyboardMode){
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav);
@@ -1060,7 +1076,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             onScreenKeyboardSymbols = keybardNavigation;
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             keyboardView.setNavigationLayer();
-            MakeVisible();
+            needUsefullKeyboard = true;
         }else if(showSymbolOnScreenKeyboard) {
             changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
             changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
@@ -1073,12 +1089,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             }else{
                 keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), false);
             }
-            MakeVisible();
+            needUsefullKeyboard = true;
+
         }else if(doubleAltPressAllSymbolsAlted || altPressed){
             changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
             changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateGesturePanelData) {
+            if(updateSwipePanelData) {
                 if (IsSym2Mode()) {
                     keyboardView.setLang(TITLE_SYM2_TEXT);
                 } else {
@@ -1086,12 +1103,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 }
                 keyboardView.setAlt();
             }
-            HideSwypePanelOnHidePreferenceAndVisibleState();
         }else if(altPressSingleSymbolAltedMode){
             changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym_one);
             changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateGesturePanelData) {
+            if(updateSwipePanelData) {
                 if (IsSym2Mode()) {
                     keyboardView.setLang(TITLE_SYM2_TEXT);
                 } else {
@@ -1099,89 +1115,48 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 }
                 keyboardView.setAlt();
             }
-            HideSwypePanelOnHidePreferenceAndVisibleState();
         }else if(doubleShiftCapsMode || shiftPressed){
             changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
+            changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconCaps);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateGesturePanelData) {
+            if(updateSwipePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
                 keyboardView.setShiftAll();
                 keyboardView.setLetterKB();
             }
-            HideSwypePanelOnHidePreferenceAndVisibleState();
         }else if(oneTimeShiftOneTimeBigMode){
             changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
+            changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconFirstShift);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateGesturePanelData) {
+            if(updateSwipePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
                 keyboardView.setShiftFirst();
                 keyboardView.setLetterKB();
             }
-            HideSwypePanelOnHidePreferenceAndVisibleState();
+
         } else {
             // Случай со строными буквами
             changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
+            changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconLittle);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateGesturePanelData) {
+            if(updateSwipePanelData) {
                 keyboardView.notShift();
                 keyboardView.setLang(languageOnScreenNaming);
                 keyboardView.setLetterKB();
             }
-            HideSwypePanelOnHidePreferenceAndVisibleState();
         }
 
-        if(navigationOnScreenKeyboardMode
-                || showSymbolOnScreenKeyboard
-                || doubleAltPressAllSymbolsAlted
-                || altPressSingleSymbolAltedMode
-                || altPressed) {
-            //Ничего делать не надо т.к. иконка для жестов не меняется
-        } else if(doubleShiftCapsMode || shiftPressed){
-            changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconCaps);
+        if(needUsefullKeyboard)
+            if(IsInputMode())
+                ShowKeyboard();
+            else
+                HideKeyboard();
+        else
+            HideSwipePanelOnHidePreferenceAndVisibleState();
 
-        } else if(oneTimeShiftOneTimeBigMode){
-            changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconFirstShift);
-        } else {
-            changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconLittle);
-        }
         if(changed)
             notificationProcessor.UpdateNotificationLayoutMode();
     }
-
-    private void UpdateKeyboardGesturesModeVisualizationOld(boolean changedTitle) {
-        KeybordLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
-
-        boolean changed = changedTitle;
-
-        if(navigationOnScreenKeyboardMode
-        || showSymbolOnScreenKeyboard
-        || doubleAltPressAllSymbolsAlted
-        || altPressSingleSymbolAltedMode
-        || altPressed) {
-            //Ничего делать не надо т.к. иконка для жестов не меняется
-        } else if(doubleShiftCapsMode || shiftPressed){
-            if(mode_keyboard_gestures)
-                changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconCapsTouch);
-            else
-                changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconCaps);
-
-        } else if(oneTimeShiftOneTimeBigMode){
-            if(mode_keyboard_gestures)
-                changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconFirstShiftTouch);
-            else
-                changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconFirstShift);
-        } else {
-            // Случай со строными буквами
-            if(mode_keyboard_gestures)
-                changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconLittleTouch);
-            else
-                changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconLittle);
-        }
-        if(changed)
-            notificationProcessor.UpdateNotificationLayoutMode();
-    }
-
-
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean handleShiftOnCalling() {
@@ -1587,17 +1562,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onCtrlShortPress(KeyPressData keyPressData) {
         if(shiftPressed && keyboardView.isShown()) {
             pref_show_default_onscreen_keyboard = false;
-            keyboardView.setVisibility(View.GONE);
+            UpdateKeyboardVisibilityOnPrefChange();
         }else if(shiftPressed && !keyboardView.isShown()) {
-            UpdateKeyboardModeVisualization(true);
-            keyboardView.setVisibility(View.VISIBLE);
             pref_show_default_onscreen_keyboard = true;
+            UpdateKeyboardVisibilityOnPrefChange();
         }
         return true;
-    }
-
-    private boolean IsInputMode() {
-        return getCurrentInputEditorInfo().inputType > 0;
     }
 
     boolean onCtrlDoublePress(KeyPressData keyPressData) {
@@ -1607,6 +1577,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
         }
         UpdateGestureModeVisualization(IsInputMode());
+        //TODO: ???
         SetNeedUpdateVisualState();
         return true;
     }

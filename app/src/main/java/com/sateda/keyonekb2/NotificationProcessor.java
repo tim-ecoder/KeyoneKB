@@ -24,7 +24,6 @@ public class NotificationProcessor {
     private android.support.v4.app.NotificationCompat.Builder builderGesture;
     private Notification.Builder builder2Gesture;
     private NotificationManager notificationManager;
-    private String channelId;
     private NotificationChannel notificationChannelLayoutMode;
     private NotificationChannel notificationChannelGestureMode;
 
