@@ -1218,10 +1218,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     private boolean IsSym2Mode() {
-        return IsAltMode() && IsSHiftSym2State();
+        return IsAltMode() && IsShiftSym2State();
     }
 
-    private boolean IsSHiftSym2State() {
+    private boolean IsShiftSym2State() {
         return shiftPressed || symPadAltShift;
     }
 
@@ -1689,7 +1689,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         int code2send = 0;
         if(IsAltMode())
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsSHiftSym2State(), false);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftSym2State(), false);
         else
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, IsShiftMode(), false);
         SendLetterOrSymbol(code2send);
