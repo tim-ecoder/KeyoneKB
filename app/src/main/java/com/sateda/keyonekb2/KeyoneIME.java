@@ -891,13 +891,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 enteredGestureMovement = false;
             }
             if (motionEvent.getAction() == MotionEvent.ACTION_MOVE && enteredGestureMovement) {
-                lastGestureSwipingBeginTime = System.currentTimeMillis();
+                lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
                 lastGestureX = motionEvent.getX();
                 lastGestureY = motionEvent.getY();
             }
             if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
                     || motionEvent.getAction() == MotionEvent.ACTION_POINTER_DOWN) {
-                lastGestureSwipingBeginTime = System.currentTimeMillis();
+                lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
                 lastGestureX = motionEvent.getX();
                 lastGestureY = motionEvent.getY();
                 enteredGestureMovement = true;
@@ -1584,7 +1584,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     boolean onCtrlHoldOff(KeyPressData keyPressData) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-        long now = System.currentTimeMillis();
+        long now = SystemClock.uptimeMillis();
         ctrlImitatedByShiftRightPressed = false;
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(
                 now, now, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
@@ -1593,7 +1593,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     boolean onCtrlHoldOn(KeyPressData keyPressData) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-        long now = System.currentTimeMillis();
+        long now = SystemClock.uptimeMillis();
         ctrlImitatedByShiftRightPressed = true;
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(
                 now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
@@ -1664,7 +1664,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onKey0HoldOn(KeyPressData keyPressData) {
         if (IsAltMode()) return true;
 
-        if (System.currentTimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
+        if (SystemClock.uptimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
             Log.d(TAG, "GestureMode at key_0_down first time");
             mode_keyboard_gestures = true;
             UpdateGestureModeVisualization(IsInputMode());
