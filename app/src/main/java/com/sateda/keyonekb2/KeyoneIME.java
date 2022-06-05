@@ -1777,7 +1777,16 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onLetterLongPress(KeyPressData keyPressData) {
         DeleteLastSymbol();
         if(pref_long_press_key_alt_symbol) {
-            int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
+            int code2send;
+            if(keyPressData.Short2ndLongPress) {
+                int code2send1 = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
+                int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), false);
+                if(code2send1 == code2sendNoDoublePress)
+                    DeleteLastSymbol();
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, false);
+            } else {
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
+            }
             SendLetterOrSymbol(code2send);
         } else {
             int code2send;

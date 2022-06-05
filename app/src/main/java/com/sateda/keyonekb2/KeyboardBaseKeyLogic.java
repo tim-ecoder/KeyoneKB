@@ -272,7 +272,10 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
     void ProcessLongPress(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnLongPress != null) {
-            Log.d(TAG2, "LONG_PRESS "+ keyPressData.KeyCode);
+            if(keyPressData.Short2ndLongPress)
+                Log.d(TAG2, "SHORT_2ND_LONG_PRESS "+ keyPressData.KeyCode);
+            else
+                Log.d(TAG2, "LONG_PRESS "+ keyPressData.KeyCode);
             keyProcessingMode.OnLongPress.Process(keyPressData);
         }
     }
