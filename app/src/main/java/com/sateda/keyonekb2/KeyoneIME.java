@@ -473,7 +473,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 return true;
             }
             if(inputConnection!=null && navigationKeyCode != 0)
-                inputConnection.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_DOWN, navigationKeyCode));
+                inputConnection.sendKeyEvent(
+                        new KeyEvent(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), KeyEvent.ACTION_DOWN, navigationKeyCode, 0, event.getMetaState(), -1, 0, 6));
+
             return true;
         }
         //endregion
@@ -522,10 +524,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
             if(navigationKeyCode == -7) return true;
 
-            InputConnection ic = getCurrentInputConnection();
+            InputConnection inputConnection = getCurrentInputConnection();
             //TODO: Возможно надо перевести на способ отправки как в keyDownUp4dpadMovements (с флагами)
-            if(ic!=null && navigationKeyCode != 0) ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, navigationKeyCode));
-                return true;
+            if(inputConnection!=null && navigationKeyCode != 0) {
+                inputConnection.sendKeyEvent(
+                        new KeyEvent(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, navigationKeyCode, 0, event.getMetaState(), -1, 0, 6));
+            }
+            return true;
         }
         //endregion
 
@@ -729,7 +734,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 case 123: //END
                 case 92:  //Page UP
                 case 93:  //Page DOWN
-                    keyDownUp(primaryCode, inputConnection);
+                    keyDownUp4dpadMovements(primaryCode, inputConnection);
                     break;
 
                 case -7:  //Switch F1-F12
@@ -744,7 +749,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUp(KeyEvent.KEYCODE_ENTER, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_ENTER, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
 
@@ -772,7 +777,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUp(KeyEvent.KEYCODE_ENTER, inputConnection);
+                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_ENTER, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
                 default:
