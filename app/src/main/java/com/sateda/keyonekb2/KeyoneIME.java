@@ -32,6 +32,8 @@ import android.widget.Toast;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import static android.content.ContentValues.TAG;
+import static android.view.inputmethod.InputConnection.CURSOR_UPDATE_MONITOR;
+import static java.lang.Thread.sleep;
 
 @Keep
 public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -282,6 +284,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             onScreenKeyboardDefaultGesturesAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
 
         Log.d(TAG, "onFinishInput ");
+    }
+
+    @Override public void onFinishInputView(boolean finishingInput) {
+        Log.d(TAG, "onFinishInputView "+finishingInput);
     }
 
     @Override public void onStartInput(EditorInfo editorInfo, boolean restarting) {
@@ -861,11 +867,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         return false;
     }
-    @Override
-    public void onUpdateCursorAnchorInfo(CursorAnchorInfo cursorAnchorInfo)
-    {
-        //TODO: Готовимся работать с курсором
-    }
 
     private long lastGestureSwipingBeginTime = 0;
     private boolean enteredGestureMovement = false;
@@ -1039,10 +1040,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private void UpdateGestureModeVisualization(boolean isInput) {
         boolean changed = false;
 
-        if (isInput && mode_keyboard_gestures) {
+        if (isInput && mode_keyboard_gestures && !navigationOnScreenKeyboardMode) {
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
-        } else if (!isInput && pref_keyboard_gestures_at_views_enable){
+        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !navigationOnScreenKeyboardMode){
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
         } else {
@@ -1245,13 +1246,17 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 new KeyEvent(now, now, KeyEvent.ACTION_UP, keyEventCode, 0, meta));
     }
 
-    private static void keyDownUp4dpadMovements(int keyEventCode, InputConnection ic) {
+    private void keyDownUp4dpadMovements(int keyEventCode, InputConnection ic) {
         if (ic == null) return;
+        //this.sendDownUpKeyEvents(keyEventCode);
+
         long uptimeMillis = SystemClock.uptimeMillis();
         ic.sendKeyEvent(
                 new KeyEvent(uptimeMillis, uptimeMillis, KeyEvent.ACTION_DOWN, keyEventCode, 0, 0, -1, 0, 6));
         ic.sendKeyEvent(
                 new KeyEvent(SystemClock.uptimeMillis(), uptimeMillis, KeyEvent.ACTION_UP, keyEventCode, 0, 0, -1, 0, 6));
+
+
     }
 
     private boolean DetermineFirstBigCharStateAndUpdateVisualization(EditorInfo editorInfo)
@@ -1457,6 +1462,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             altPressSingleSymbolAltedMode = false;
             doubleAltPressAllSymbolsAlted = false;
             DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
+            UpdateGestureModeVisualization(IsInputMode());
         }else if(!showSymbolOnScreenKeyboard){
             showSymbolOnScreenKeyboard = true;
             doubleAltPressAllSymbolsAlted = true;
@@ -1485,6 +1491,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             //TODO: Зачем это?
             keyboardView.setFnSymbol(fnSymbolOnScreenKeyboardMode);
             SetNeedUpdateVisualState();
+            UpdateGestureModeVisualization(IsInputMode());
         }
         return true;
     }
@@ -1702,15 +1709,21 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         //region BB Apps HACK
         if(startInputAtBbContactsApp && !keyboardLayoutManager.isEnglishKb){
             if(inputConnection!=null && !IsInputMode()){
-                //Данный хак работает неплохо на первый взгляд и не выделяется виджет погоды на рабочем столе
+                //Данный хак работает неплохо но если быстро вводить, то теряется первый символ
                 keyDownUp4dpadMovements(KeyEvent.KEYCODE_SEARCH, inputConnection);
+                try {
+                    Thread.sleep(50); }
+                catch (Throwable t) {}
             }
             startInputAtBbContactsApp = false;
         }
         if(startInputAtBbPhoneApp && !keyboardLayoutManager.isEnglishKb){
             if(inputConnection!=null && !IsInputMode()){
-                keyDownUp4dpadMovements(KeyEvent.KEYCODE_0, inputConnection);
+                keyDownUp4dpadMovements(KeyEvent.KEYCODE_4, inputConnection);
                 keyDownUp4dpadMovements(KeyEvent.KEYCODE_DEL, inputConnection);
+                try {
+                Thread.sleep(50); }
+                catch (Throwable t) {}
             }
             startInputAtBbPhoneApp = false;
         }
