@@ -64,6 +64,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     public static final String TITLE_SYM_TEXT = "Символы 1-9";
     public static final String TITLE_SYM2_TEXT = "СИМВОЛЫ {} [] | / ";
     public static final String TITLE_GESTURE_INPUT = "Жесты по текстовому вводу";
+    public static final String TITLE_GESTURE_INPUT_UP_DOWN = "Жесты по текстовому вводу (+вверх/вниз)";
     public static final String TITLE_GESTURE_VIEW = "Жесты по режиму просмотра";
     public static final String TITLE_GESTURE_OFF = "Жесты по клавиатуре выключены";
 
@@ -136,7 +137,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private float lastGestureY;
 
     private boolean mode_keyboard_gestures = false;
-
+    private boolean mode_keyboard_gestures_plus_up_down = false;
     //settings
     private int pref_height_bottom_bar = 10;
     private int pref_gesture_motion_sensitivity = 10;
@@ -272,6 +273,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             altPressSingleSymbolAltedMode = false;
             doubleAltPressAllSymbolsAlted = false;
             mode_keyboard_gestures = false;
+            //mode_keyboard_gestures_plus_up_down = false;
             UpdateKeyboardModeVisualization();
             UpdateGestureModeVisualization(false);
         }
@@ -288,6 +290,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     @Override public void onFinishInputView(boolean finishingInput) {
         Log.d(TAG, "onFinishInputView "+finishingInput);
+        //keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, getCurrentInputConnection());
+        //keyDownUp(KeyEvent.KEYCODE_TAB, getCurrentInputConnection(), KeyEvent.META_SHIFT_ON);
     }
 
     @Override public void onStartInput(EditorInfo editorInfo, boolean restarting) {
@@ -421,6 +425,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         doubleShiftCapsMode = false;
         symPadAltShift = false;
         mode_keyboard_gestures = false;
+        //mode_keyboard_gestures_plus_up_down = false;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -974,22 +979,21 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
                             Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
                         }
-                    } else {
+                    } else if (mode_keyboard_gestures_plus_up_down){
                         if(absDeltaY < motion_delta_min_y)
                             return true;
                         //int times = Math.round(absDeltaY / motion_delta_min_y);
                         if (deltaY < 0) {
 
                             //TODO: Сделать хождение по большим текстам, пока оставляем только горизонтальные движения
-                            //keyDownUp2(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
-
-                            //Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
+                            keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
                         } else {
 
                             //TODO: Родная клава просто вылеает из режима Keypad, когда заползаешь за поле ввода, найти где это происходит и сделать также или как минимум взять это условие в вернуть курсор обратно
-                            //keyDownUp2(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                            keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
 
-                            //Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
+                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
                         }
                     }
 
@@ -1047,7 +1051,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         if (isInput && mode_keyboard_gestures && !navigationOnScreenKeyboardMode) {
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
-            changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
+            if(mode_keyboard_gestures_plus_up_down)
+                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
+            else
+                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
         } else if (!isInput && pref_keyboard_gestures_at_views_enable && !navigationOnScreenKeyboardMode){
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
@@ -1257,11 +1264,23 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         long uptimeMillis = SystemClock.uptimeMillis();
         ic.sendKeyEvent(
-                new KeyEvent(uptimeMillis, uptimeMillis, KeyEvent.ACTION_DOWN, keyEventCode, 0, 0, -1, 0, 6));
+                new KeyEvent(
+                        uptimeMillis,
+                        uptimeMillis,
+                        KeyEvent.ACTION_DOWN,
+                        keyEventCode,
+                        0, 0, -1, 0,
+                        KeyEvent.FLAG_SOFT_KEYBOARD |
+                                KeyEvent.FLAG_KEEP_TOUCH_MODE));
         ic.sendKeyEvent(
-                new KeyEvent(SystemClock.uptimeMillis(), uptimeMillis, KeyEvent.ACTION_UP, keyEventCode, 0, 0, -1, 0, 6));
-
-
+                new KeyEvent(
+                        SystemClock.uptimeMillis(),
+                        uptimeMillis,
+                        KeyEvent.ACTION_UP,
+                        keyEventCode,
+                        0, 0, -1, 0,
+                        KeyEvent.FLAG_SOFT_KEYBOARD |
+                                KeyEvent.FLAG_KEEP_TOUCH_MODE));
     }
 
     private boolean DetermineFirstBigCharStateAndUpdateVisualization(EditorInfo editorInfo)
@@ -1650,7 +1669,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //region KEY_0
     boolean onKey0ShortPress(KeyPressData keyPressData) {
-        if (!IsAltMode()) {
+        if (IsCtrlPressed(keyPressData)){
+            mode_keyboard_gestures_plus_up_down = !mode_keyboard_gestures_plus_up_down;
+            Log.d(TAG2, "GestureMode Plus is "+mode_keyboard_gestures_plus_up_down);
+        } else if (!IsAltMode()) {
             ChangeLanguage();
             SetNeedUpdateVisualState();
         } else {
@@ -1660,6 +1682,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             ResetSingleAltSingleShiftModeAfterOneLetter();
         }
         return true;
+    }
+
+    private boolean IsCtrlPressed(KeyPressData keyPressData) {
+        return (keyPressData.MetaBase & (KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON)) > 0;
     }
 
     //onKey0DoublePress
@@ -1696,7 +1722,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onLetterShortPress(KeyPressData keyPressData) {
         if(ctrlImitatedByShiftRightPressed) {
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-            keyDownUp(keyPressData.KeyCode, getCurrentInputConnection(), meta);
+            keyDownUp(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
             return true;
         }
         int code2send = 0;
@@ -1739,6 +1765,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     private void ResetGesturesMode() {
+        //mode_keyboard_gestures_plus_up_down = false;
         if(mode_keyboard_gestures) {
             mode_keyboard_gestures = false;
             UpdateGestureModeVisualization(IsInputMode());
