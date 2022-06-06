@@ -28,7 +28,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
 
 
     KeyPressData LastShortPressKey1 = null;
-
+    KeyPressData LastDoublePressKey = null;
     boolean IsSameKeyDownPress(KeyPressData keyPressData1, KeyPressData keyPressData2) {
         return keyPressData1 != null && keyPressData2 != null
                 && (keyPressData1.KeyCode == keyPressData2.KeyCode
@@ -69,6 +69,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
                 if(eventTime - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) {
                     ProcessUndoLastShortPress(keyPressData1);
                     keyPressData1.DoublePressTime = eventTime;
+                    LastDoublePressKey = keyPressData1;
                     ProcessDoublePress(keyPressData1);
                 }
                 else ProcessShortPress(keyPressData1);
@@ -87,6 +88,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
                 } else if (LastShortPressKey1 != null && IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
                     if (eventTime - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) {
                         keyPressData1.DoublePressTime = eventTime;
+                        LastDoublePressKey = keyPressData1;
                         ProcessUndoLastShortPress(keyPressData1);
                         ProcessDoublePress(keyPressData1);
                     } else ProcessShortPress(keyPressData1);
@@ -117,8 +119,18 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
                     && (eventTime - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) ) {
 
                     keyPressData1.DoublePressTime = eventTime;
-                    ProcessUndoLastShortPress(keyPressData1);
-                    ProcessDoublePress(keyPressData1);
+
+                    if(keyPressData1.KeyProcessingMode.OnTriplePress != null
+                            && LastDoublePressKey != null
+                            && IsSameKeyDownPress(LastDoublePressKey, keyPressData1)
+                            && (LastShortPressKey1.KeyDownTime  - LastDoublePressKey.KeyDownTime <= TIME_DOUBLE_PRESS)) {
+                        ProcessTriplePress(keyPressData1);
+                    } else {
+                        keyPressData1.DoublePressTime = eventTime;
+                        LastDoublePressKey = keyPressData1;
+                        ProcessUndoLastShortPress(keyPressData1);
+                        ProcessDoublePress(keyPressData1);
+                    }
 
                 } else {
                     keyPressData1.HoldBeginTime = eventTime;
@@ -160,6 +172,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
             if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS) {
                 keyPressData.KeyUpTime = eventTime;
                 LastShortPressKey1 = keyPressData;
+
             }
             return true;
         }
@@ -303,6 +316,14 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
         }
     }
 
+    void ProcessTriplePress(KeyPressData keyPressData) {
+        KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
+        if(keyProcessingMode != null && keyProcessingMode.OnTriplePress != null) {
+            Log.d(TAG2, "TRIPLE_PRESS "+ keyPressData.KeyCode);
+            keyProcessingMode.OnTriplePress.Process(keyPressData);
+        }
+    }
+
     void ProcessUndoLastShortPress(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnUndoShortPress != null) {
@@ -320,6 +341,7 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
         public int[] KeyCodeArray;
         public Processable OnShortPress;
         public Processable OnDoublePress;
+        public Processable OnTriplePress;
         public Processable OnLongPress;
         public Processable OnHoldOn;
         public Processable OnHoldOff;

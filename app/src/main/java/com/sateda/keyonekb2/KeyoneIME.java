@@ -272,7 +272,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             altPressSingleSymbolAltedMode = false;
             doubleAltPressAllSymbolsAlted = false;
             mode_keyboard_gestures = false;
-            //mode_keyboard_gestures_plus_up_down = false;
+            mode_keyboard_gestures_plus_up_down = false;
             UpdateKeyboardModeVisualization();
             UpdateGestureModeVisualization(false);
         }
@@ -286,12 +286,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         Log.d(TAG, "onFinishInput ");
 
-    }
-
-    @Override public void onFinishInputView(boolean finishingInput) {
-        Log.d(TAG, "onFinishInputView "+finishingInput);
-        //keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, getCurrentInputConnection());
-        //
     }
 
     @Override public void onStartInput(EditorInfo editorInfo, boolean restarting) {
@@ -349,7 +343,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             //TODO: Зачем это?
             keyboardView.setFnSymbol(fnSymbolOnScreenKeyboardMode);
 
-            UpdateGestureModeVisualization(IsInputMode());
+            UpdateGestureModeVisualization();
         }
 
         // We are now going to initialize our state based on the type of
@@ -427,7 +421,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         doubleShiftCapsMode = false;
         symPadAltShift = false;
         mode_keyboard_gestures = false;
-        //mode_keyboard_gestures_plus_up_down = false;
+        mode_keyboard_gestures_plus_up_down = false;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -1440,6 +1434,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         keyAction.OnShortPress = this::onCtrlShortPress;
         keyAction.OnUndoShortPress = this::DoNothing;
         keyAction.OnDoublePress = this::onCtrlDoublePress;
+        keyAction.OnTriplePress = this::onCtrlTriplePress;
         keyAction.OnHoldOn = this::onCtrlHoldOn;
         keyAction.OnHoldOff = this::onCtrlHoldOff;
         keyProcessingModeList.add(keyAction);
@@ -1510,7 +1505,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             altPressSingleSymbolAltedMode = false;
             doubleAltPressAllSymbolsAlted = false;
             DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
-            UpdateGestureModeVisualization(IsInputMode());
+            UpdateGestureModeVisualization();
         }else if(!showSymbolOnScreenKeyboard){
             showSymbolOnScreenKeyboard = true;
             doubleAltPressAllSymbolsAlted = true;
@@ -1539,7 +1534,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             //TODO: Зачем это?
             keyboardView.setFnSymbol(false);
             SetNeedUpdateVisualState();
-            UpdateGestureModeVisualization(IsInputMode());
+            UpdateGestureModeVisualization();
         }
         return true;
     }
@@ -1553,7 +1548,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             //TODO: Зачем это?
             keyboardView.setFnSymbol(false);
             SetNeedUpdateVisualState();
-            UpdateGestureModeVisualization(IsInputMode());
+            UpdateGestureModeVisualization();
         }
         return true;
     }
@@ -1561,14 +1556,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onSymHoldOn(KeyPressData keyPressData) {
         metaSymPressed = true;
         SetNeedUpdateVisualState();
-        UpdateGestureModeVisualization(IsInputMode());
+        UpdateGestureModeVisualization();
         return true;
     }
 
     boolean onSymHoldOff(KeyPressData keyPressData) {
         metaSymPressed = false;
         SetNeedUpdateVisualState();
-        UpdateGestureModeVisualization(IsInputMode());
+        UpdateGestureModeVisualization();
         return true;
     }
 
@@ -1665,6 +1660,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         if(mode_keyboard_gestures && IsInputMode()) {
             mode_keyboard_gestures = false;
+            mode_keyboard_gestures_plus_up_down = false;
             UpdateGestureModeVisualization(true);
         }
         return true;
@@ -1676,10 +1672,25 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         } else {
             pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
         }
-        UpdateGestureModeVisualization(IsInputMode());
+        UpdateGestureModeVisualization();
         //TODO: ???
         SetNeedUpdateVisualState();
         return true;
+    }
+
+    boolean onCtrlTriplePress(KeyPressData keyPressData) {
+        if(IsInputMode()) {
+            mode_keyboard_gestures = true;
+            mode_keyboard_gestures_plus_up_down = true;
+        }
+        UpdateGestureModeVisualization();
+        //TODO: ???
+        SetNeedUpdateVisualState();
+        return true;
+    }
+
+    private void UpdateGestureModeVisualization() {
+        UpdateGestureModeVisualization(IsInputMode());
     }
 
     boolean onCtrlHoldOff(KeyPressData keyPressData) {
@@ -1738,10 +1749,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //region KEY_0
     boolean onKey0ShortPress(KeyPressData keyPressData) {
-        if (IsCtrlPressed(keyPressData)){
-            mode_keyboard_gestures_plus_up_down = !mode_keyboard_gestures_plus_up_down;
-            Log.d(TAG2, "GestureMode Plus is "+mode_keyboard_gestures_plus_up_down);
-        } else if (!IsAltMode()) {
+        if (!IsAltMode()) {
             ChangeLanguage();
             SetNeedUpdateVisualState();
         } else {
@@ -1775,7 +1783,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if (SystemClock.uptimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
             Log.d(TAG, "GestureMode at key_0_down first time");
             mode_keyboard_gestures = true;
-            UpdateGestureModeVisualization(IsInputMode());
+            UpdateGestureModeVisualization();
         }
         return true;
     }
@@ -1783,7 +1791,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onKey0HoldOff(KeyPressData keyPressData) {
         if (IsAltMode()) return true;
         mode_keyboard_gestures = false;
-        UpdateGestureModeVisualization(IsInputMode());
+        UpdateGestureModeVisualization();
         return true;
     }
     //endregion
@@ -1838,7 +1846,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         //mode_keyboard_gestures_plus_up_down = false;
         if(mode_keyboard_gestures) {
             mode_keyboard_gestures = false;
-            UpdateGestureModeVisualization(IsInputMode());
+            UpdateGestureModeVisualization();
         }
     }
 
