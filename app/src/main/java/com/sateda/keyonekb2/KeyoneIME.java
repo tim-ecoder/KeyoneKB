@@ -286,12 +286,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             onScreenKeyboardDefaultGesturesAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
 
         Log.d(TAG, "onFinishInput ");
+
     }
 
     @Override public void onFinishInputView(boolean finishingInput) {
         Log.d(TAG, "onFinishInputView "+finishingInput);
         //keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, getCurrentInputConnection());
-        //keyDownUp(KeyEvent.KEYCODE_TAB, getCurrentInputConnection(), KeyEvent.META_SHIFT_ON);
+        //
     }
 
     @Override public void onStartInput(EditorInfo editorInfo, boolean restarting) {
@@ -300,6 +301,17 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
 
+        /*
+        if(mode_keyboard_gestures
+                && mode_keyboard_gestures_plus_up_down
+                && !IsInputMode()
+                && lastPackageName.equals(editorInfo.packageName)) {
+            keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, getCurrentInputConnection());
+            //keyDownUp(KeyEvent.KEYCODE_TAB, getCurrentInputConnection(), KeyEvent.META_SHIFT_ON);
+            //keyDownUp(KeyEvent.KEYCODE_TAB, getCurrentInputConnection());
+            return;
+        }
+*/
         if(editorInfo.packageName.equals("com.blackberry.contacts")) {
             startInputAtBbContactsApp = true;
         }else{
@@ -338,16 +350,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             //TODO: Зачем это?
             keyboardView.setFnSymbol(fnSymbolOnScreenKeyboardMode);
 
-            //Пробовал отключать ни на что не влияет
-            if(!keyboardView.isShown()) {
-                if(!pref_show_default_onscreen_keyboard)
-                    keyboardView.setVisibility(View.GONE);
-                else keyboardView.setVisibility(View.VISIBLE);
-            }
-        }
-
-        if (!restarting) {
-            Log.d(TAG, "onStartInput !restarting");
+            UpdateGestureModeVisualization(IsInputMode());
         }
 
         // We are now going to initialize our state based on the type of
@@ -984,16 +987,19 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                             return true;
                         //int times = Math.round(absDeltaY / motion_delta_min_y);
                         if (deltaY < 0) {
-
-                            //TODO: Сделать хождение по большим текстам, пока оставляем только горизонтальные движения
-                            keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
-                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
+                            CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
+                            if (c.length() > 0) {
+                                //TODO: Сделать хождение по большим текстам, пока оставляем только горизонтальные движения
+                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                                Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
+                            }
                         } else {
-
-                            //TODO: Родная клава просто вылеает из режима Keypad, когда заползаешь за поле ввода, найти где это происходит и сделать также или как минимум взять это условие в вернуть курсор обратно
-                            keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
-
-                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
+                            CharSequence c = inputConnection.getTextAfterCursor(1, 0);
+                            if(c.length() > 0) {
+                                //TODO: Родная клава просто вылеает из режима Keypad, когда заползаешь за поле ввода, найти где это происходит и сделать также или как минимум взять это условие в вернуть курсор обратно
+                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                                Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
+                            }
                         }
                     }
 
@@ -1050,11 +1056,15 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         boolean changed = false;
 
         if (isInput && mode_keyboard_gestures && !navigationOnScreenKeyboardMode) {
-            changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
-            if(mode_keyboard_gestures_plus_up_down)
+
+            if(mode_keyboard_gestures_plus_up_down) {
+                changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input_up_down);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
-            else
+            }
+            else {
+                changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
+            }
         } else if (!isInput && pref_keyboard_gestures_at_views_enable && !navigationOnScreenKeyboardMode){
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
