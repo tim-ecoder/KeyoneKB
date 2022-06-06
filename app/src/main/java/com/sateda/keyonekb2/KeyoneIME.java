@@ -483,10 +483,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyboardView.setFnSymbol(fnSymbolOnScreenKeyboardMode);
                 return true;
             }
-            if(inputConnection!=null && navigationKeyCode != 0)
-                inputConnection.sendKeyEvent(
-                        new KeyEvent(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), KeyEvent.ACTION_DOWN, navigationKeyCode, 0, event.getMetaState(), -1, 0, 6));
+            if(inputConnection!=null && navigationKeyCode != 0) {
+                //Удаляем из meta состояния SYM т.к. он мешает некоторым приложениям воспринимать NAV символы с зажатием SYM
+                int meta = event.getMetaState() & ~KeyEvent.META_SYM_ON;
+                keyDownUp(navigationKeyCode, inputConnection, meta);
 
+            }
             return true;
         }
         //endregion
@@ -523,6 +525,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         Log.v(TAG, "onKeyUp " + event);
 
         //region Блок навигационной клавиатуры
+
         int scanCode = event.getScanCode();
         //TODO: Разобраться
         if(IsNavMode() &&
@@ -531,6 +534,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 (scanCode >= 16 && scanCode <= 25) ||
                 (scanCode >= 30 && scanCode <= 38) ||
                 (scanCode >= 44 && scanCode <= 50))) {
+            /*
             int navigationKeyCode = getNavigationCode(scanCode);
 
             if(navigationKeyCode == -7) return true;
@@ -541,6 +545,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 inputConnection.sendKeyEvent(
                         new KeyEvent(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, navigationKeyCode, 0, event.getMetaState(), -1, 0, 6));
             }
+
+             */
             return true;
         }
         //endregion
@@ -1266,9 +1272,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         long now = SystemClock.uptimeMillis();
 
         ic.sendKeyEvent(
-                new KeyEvent(now - 10, now - 10, KeyEvent.ACTION_DOWN, keyEventCode, 0, meta));
+                new KeyEvent(now - 10, now - 10, KeyEvent.ACTION_DOWN, keyEventCode, 0, meta, -1, 0,
+                        KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE));
         ic.sendKeyEvent(
-                new KeyEvent(now, now, KeyEvent.ACTION_UP, keyEventCode, 0, meta));
+                new KeyEvent(now, now, KeyEvent.ACTION_UP, keyEventCode, 0, meta, -1, 0,
+                        KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE));
     }
 
     private void keyDownUp4dpadMovements(int keyEventCode, InputConnection ic) {
