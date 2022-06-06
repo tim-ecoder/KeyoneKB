@@ -127,6 +127,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean navigationOnScreenKeyboardMode;
     private boolean fnSymbolOnScreenKeyboardMode;
 
+    private boolean metaSymPressed;
     private boolean altPressed; //нажатие клавишь с зажатым альтом
 
     private String lastPackageName = "";
@@ -436,6 +437,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return false;
     }
 
+    private boolean IsNavMode() {
+        return navigationOnScreenKeyboardMode || metaSymPressed;
+    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -461,12 +466,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         int navigationKeyCode;
         InputConnection inputConnection = getCurrentInputConnection();
-        if(navigationOnScreenKeyboardMode &&
+        if(IsNavMode() &&
                 ((scanCode == 11) ||
-                        (scanCode == 5) ||
-                        (scanCode >= 16 && scanCode <= 25) ||
-                        (scanCode >= 30 && scanCode <= 38) ||
-                        (scanCode >= 44 && scanCode <= 50)))
+                (scanCode == 5) ||
+                (scanCode >= 16 && scanCode <= 25) ||
+                (scanCode >= 30 && scanCode <= 38) ||
+                (scanCode >= 44 && scanCode <= 50)))
         {
             navigationKeyCode = getNavigationCode(scanCode);
 
@@ -520,12 +525,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         //region Блок навигационной клавиатуры
         int scanCode = event.getScanCode();
         //TODO: Разобраться
-        if(navigationOnScreenKeyboardMode &&
+        if(IsNavMode() &&
                 ((scanCode == 11) ||
-                        (scanCode == 5) ||
-                        (scanCode >= 16 && scanCode <= 25) ||
-                        (scanCode >= 30 && scanCode <= 38) ||
-                        (scanCode >= 44 && scanCode <= 50))) {
+                (scanCode == 5) ||
+                (scanCode >= 16 && scanCode <= 25) ||
+                (scanCode >= 30 && scanCode <= 38) ||
+                (scanCode >= 44 && scanCode <= 50))) {
             int navigationKeyCode = getNavigationCode(scanCode);
 
             if(navigationKeyCode == -7) return true;
@@ -1053,7 +1058,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private void UpdateGestureModeVisualization(boolean isInput) {
         boolean changed = false;
 
-        if (isInput && mode_keyboard_gestures && !navigationOnScreenKeyboardMode) {
+        if (isInput && mode_keyboard_gestures && !IsNavMode()) {
 
             if(mode_keyboard_gestures_plus_up_down) {
                 changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input_up_down);
@@ -1063,7 +1068,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
             }
-        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !navigationOnScreenKeyboardMode){
+        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !IsNavMode()){
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
         } else {
@@ -1086,7 +1091,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
         boolean changed = false;
         boolean needUsefullKeyboard = false;
-        if(navigationOnScreenKeyboardMode){
+        if(IsNavMode()){
             if(!fnSymbolOnScreenKeyboardMode){
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav);
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_NAV_TEXT);
@@ -1387,8 +1392,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_SYM;
         keyAction.OnShortPress = this::onSymShortPress;
         keyAction.OnUndoShortPress = this::DoNothing;
-        keyAction.OnDoublePress = this::DoNothing;
-        keyAction.OnLongPress = this::onSymLongPress;
+        keyAction.OnDoublePress = this::onSymDoublePress;
+        //keyAction.OnLongPress = this::onSymLongPress;
+        keyAction.KeyHoldPlusKey = true;
+        keyAction.OnHoldOn = this::onSymHoldOn;
+        keyAction.OnHoldOff = this::onSymHoldOff;
         keyProcessingModeList.add(keyAction);
 
         //region KeyHoldPlusKey (ALT, SHIFT, CTRL, KEY_0)
@@ -1478,7 +1486,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
     //endregion
 
-    //region OTHER
+    //region SYM
 
     boolean onSymShortPress(KeyPressData keyPressData) {
         if(altPressed) { //вызов меню
@@ -1508,7 +1516,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             //TODO: Поубирать
             DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
         }
-        //TODO: Много лищних вызовов апдейта нотификаций
+        //TODO: Много лишних вызовов апдейта нотификаций
         SetNeedUpdateVisualState();
         return true;
 
@@ -1521,12 +1529,44 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             navigationOnScreenKeyboardMode = true;
             fnSymbolOnScreenKeyboardMode = false;
             //TODO: Зачем это?
-            keyboardView.setFnSymbol(fnSymbolOnScreenKeyboardMode);
+            keyboardView.setFnSymbol(false);
             SetNeedUpdateVisualState();
             UpdateGestureModeVisualization(IsInputMode());
         }
         return true;
     }
+
+    boolean onSymDoublePress(KeyPressData keyPressData) {
+        if (!navigationOnScreenKeyboardMode) {
+            //Двойное нажание SYM -> Режим навигации
+            //TODO: Вынести OnScreenKeyboardMode-ы в Enum
+            navigationOnScreenKeyboardMode = true;
+            fnSymbolOnScreenKeyboardMode = false;
+            //TODO: Зачем это?
+            keyboardView.setFnSymbol(false);
+            SetNeedUpdateVisualState();
+            UpdateGestureModeVisualization(IsInputMode());
+        }
+        return true;
+    }
+
+    boolean onSymHoldOn(KeyPressData keyPressData) {
+        metaSymPressed = true;
+        SetNeedUpdateVisualState();
+        UpdateGestureModeVisualization(IsInputMode());
+        return true;
+    }
+
+    boolean onSymHoldOff(KeyPressData keyPressData) {
+        metaSymPressed = false;
+        SetNeedUpdateVisualState();
+        UpdateGestureModeVisualization(IsInputMode());
+        return true;
+    }
+
+    //endregion
+
+    //region OTHER
 
     boolean onShortPressEnter(KeyPressData keyPressData) {
         ResetGesturesMode();
