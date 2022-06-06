@@ -1810,7 +1810,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     boolean onLetterDoublePress(KeyPressData keyPressData) {
-
+        if(ctrlImitatedByShiftRightPressed) {
+            int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
+            keyDownUp(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
+            return true;
+        }
         //TODO: По сути - это определение сдвоенная буква или нет, наверное можно как-то оптимальнее сделать потом
         int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
         int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), false);
@@ -1824,6 +1828,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     boolean onLetterLongPress(KeyPressData keyPressData) {
+        if(ctrlImitatedByShiftRightPressed) {
+            return true;
+        }
         DeleteLastSymbol();
         if(pref_long_press_key_alt_symbol) {
             int code2send;
