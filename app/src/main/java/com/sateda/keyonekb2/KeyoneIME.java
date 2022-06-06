@@ -21,7 +21,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.CursorAnchorInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.textservice.SentenceSuggestionsInfo;
@@ -32,7 +31,6 @@ import android.widget.Toast;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import static android.content.ContentValues.TAG;
-import static android.view.inputmethod.InputConnection.CURSOR_UPDATE_MONITOR;
 import static java.lang.Thread.sleep;
 
 @Keep
@@ -1367,7 +1365,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         keyAction = new KeyProcessingMode();
         keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_ENTER;
-        keyAction.OnShortPress = this::onShortPressSendAsIs;
+        keyAction.OnShortPress = this::onShortPressEnter;
         keyProcessingModeList.add(keyAction);
 
         keyAction = new KeyProcessingMode();
@@ -1530,6 +1528,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
+    boolean onShortPressEnter(KeyPressData keyPressData) {
+        ResetGesturesMode();
+        keyDownUp(keyPressData.KeyCode, getCurrentInputConnection());
+        return true;
+
+    }
+
     boolean onShortPressSendAsIs(KeyPressData keyPressData) {
         keyDownUp(keyPressData.KeyCode, getCurrentInputConnection());
         return true;
@@ -1537,6 +1542,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     boolean onDelShortPress(KeyPressData keyPressData) {
+        ResetGesturesMode();
         InputConnection inputConnection = getCurrentInputConnection();
         if(!shiftPressed) {
             keyDownUp(KeyEvent.KEYCODE_DEL, inputConnection);
@@ -1572,6 +1578,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(shiftPressed || IsShiftMeta (keyPressData.MetaBase))
             ChangeLanguage();
         else {
+            ResetGesturesMode();
             if(altPressSingleSymbolAltedMode && pref_alt_space) {
                 altPressSingleSymbolAltedMode = false;
             }
@@ -1607,6 +1614,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }else if(shiftPressed && !keyboardView.isShown()) {
             pref_show_default_onscreen_keyboard = true;
             UpdateKeyboardVisibilityOnPrefChange();
+        }
+        if(mode_keyboard_gestures && IsInputMode()) {
+            mode_keyboard_gestures = false;
+            UpdateGestureModeVisualization(true);
         }
         return true;
     }
@@ -1686,6 +1697,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             ChangeLanguage();
             SetNeedUpdateVisualState();
         } else {
+            ResetGesturesMode();
             InputConnection inputConnection = getCurrentInputConnection();
             if (inputConnection != null)
                 inputConnection.commitText(String.valueOf((char) SCAN_CODE_CHAR_0), 1);
