@@ -1248,7 +1248,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     private boolean IsShiftSym2State() {
-        return shiftPressed || symPadAltShift;
+        return shiftPressed || (showSymbolOnScreenKeyboard && symPadAltShift);
     }
 
 
