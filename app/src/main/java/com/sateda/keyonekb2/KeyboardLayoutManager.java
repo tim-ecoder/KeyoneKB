@@ -22,41 +22,29 @@ public class KeyboardLayoutManager {
         LangListCount = 1;
         currentLayout = LoadLayoutAndCache(R.xml.english_hw, LangListCount - 1, KeybordLayoutList, resources);
         currentLayout.IconCaps = R.mipmap.ic_eng_shift_all;
-        currentLayout.IconCapsTouch = R.mipmap.ic_eng_shift_all_touch;
         currentLayout.IconFirstShift = R.mipmap.ic_eng_shift_first;
-        currentLayout.IconFirstShiftTouch = R.mipmap.ic_eng_shift_first_touch;
         currentLayout.IconLittle = R.mipmap.ic_eng_small;
-        currentLayout.IconLittleTouch = R.mipmap.ic_eng_small_touch;
 
         if(lang_ru_on){
             LangListCount++;
             currentLayout = LoadLayoutAndCache(R.xml.russian_hw, LangListCount - 1, KeybordLayoutList, resources);
             currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
-            currentLayout.IconCapsTouch = R.mipmap.ic_rus_shift_all_touch;
             currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
-            currentLayout.IconFirstShiftTouch = R.mipmap.ic_rus_shift_first_touch;
             currentLayout.IconLittle = R.mipmap.ic_rus_small;
-            currentLayout.IconLittleTouch = R.mipmap.ic_rus_small_touch;
         }
         if(lang_translit_ru_on){
             LangListCount++;
             currentLayout = LoadLayoutAndCache(R.xml.russian_translit_hw, LangListCount - 1, KeybordLayoutList, resources);
             currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
-            currentLayout.IconCapsTouch = R.mipmap.ic_rus_shift_all_touch;
             currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
-            currentLayout.IconFirstShiftTouch = R.mipmap.ic_rus_shift_first_touch;
             currentLayout.IconLittle = R.mipmap.ic_rus_small;
-            currentLayout.IconLittleTouch = R.mipmap.ic_rus_small_touch;
         }
         if(lang_ua_on){
             LangListCount++;
             currentLayout = LoadLayoutAndCache(R.xml.ukraine_hw, LangListCount - 1, KeybordLayoutList, resources);
             currentLayout.IconCaps = R.mipmap.ic_ukr_shift_all;
-            currentLayout.IconCapsTouch = R.mipmap.ic_ukr_shift_all_touch;
             currentLayout.IconFirstShift = R.mipmap.ic_ukr_shift_first;
-            currentLayout.IconFirstShiftTouch = R.mipmap.ic_ukr_shift_first_touch;
             currentLayout.IconLittle = R.mipmap.ic_ukr_small;
-            currentLayout.IconLittleTouch = R.mipmap.ic_ukr_small_touch;
         }
     }
 
