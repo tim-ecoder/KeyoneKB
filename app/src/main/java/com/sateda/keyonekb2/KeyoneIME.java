@@ -55,7 +55,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     public static final int SCAN_CODE_CHAR_0 = 48;
 
-    public static final int MAGIC_KEYBOARD_GESTURE_MOTION_CONST = 42;
+    public static final int MAGIC_KEYBOARD_GESTURE_MOTION_CONST = 48;
     public static final int ROW_4_BEGIN_Y = 400;
     public static final String TITLE_NAV_TEXT = "Навигация";
     public static final String TITLE_NAV_FV_TEXT = "Навигация + F1-F10";
@@ -1069,7 +1069,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             needUsefullKeyboard = true;
         }else if(symbolOnScreenKeyboardMode) {
             changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
-            changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+            if (IsSym2Mode()) {
+                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
+            } else {
+                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+            }
             //TODO: Тут плодятся объекты зачем-то
             onScreenKeyboardSymbols = new Keyboard(this, R.xml.symbol);;
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
@@ -1083,7 +1087,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         }else if(doubleAltPressAllSymbolsAlted || metaAltPressed){
             changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
-            changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+            if (IsSym2Mode()) {
+                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
+            } else {
+                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+            }
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateSwipePanelData) {
                 if (IsSym2Mode()) {
@@ -1095,7 +1103,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             }
         }else if(altPressSingleSymbolAltedMode){
             changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym_one);
-            changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+            if (IsSym2Mode()) {
+                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
+            } else {
+                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+            }
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateSwipePanelData) {
                 if (IsSym2Mode()) {
