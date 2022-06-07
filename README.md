@@ -18,6 +18,6 @@
  https://github.com/tim-ecoder/KeyoneKB/wiki#%D0%98%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%86%D0%B8%D1%8F
 
 # БЛАГОДАРНОСТИ
-* Основатель: Артем Твердохлеб (UA) aka l3n1n-ua
+* Основатель: Артем Твердохлеб aka l3n1n-ua (UA)
 * Соавтор: krab-ubica (RUS)
-* Соавтор: Henry2005 aka CapitanNemo (RUS)
+* Соавтор: Henry2005 aka CapitanNemo (BY)
