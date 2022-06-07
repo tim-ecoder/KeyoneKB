@@ -244,17 +244,17 @@ public class SatedaKeyboardView extends KeyboardView {
         for(Keyboard.Key key: keys) {
 
             if (key.codes[0] == 111) { KeyLabel[arr_inc] = "Q"; } //ESC
-            if (key.codes[0] == 122) { KeyLabel[arr_inc] = "Y"; } //HOME
-            if (key.codes[0] == 19)  { KeyLabel[arr_inc] = "U"; } //Arrow Up
-            if (key.codes[0] == 123) { KeyLabel[arr_inc] = "I"; } //END
-            if (key.codes[0] == 92)  { KeyLabel[arr_inc] = "O"; } //Page Up
+            if (key.codes[0] == 122) { KeyLabel[arr_inc] = "W/Y"; } //HOME
+            if (key.codes[0] == 19)  { KeyLabel[arr_inc] = "E/U"; } //Arrow Up
+            if (key.codes[0] == 123) { KeyLabel[arr_inc] = "R/I"; } //END
+            if (key.codes[0] == 92)  { KeyLabel[arr_inc] = "T/O"; } //Page Up
             if (key.codes[0] == -7)  { KeyLabel[arr_inc] = "P"; } //FN
 
             if (key.codes[0] == 61)  { KeyLabel[arr_inc] = "A"; } //TAB
-            if (key.codes[0] == 21)  { KeyLabel[arr_inc] = "H"; } //Arrow Left
-            if (key.codes[0] == 20)  { KeyLabel[arr_inc] = "J"; } //Arrow Down
-            if (key.codes[0] == 22)  { KeyLabel[arr_inc] = "K"; } //Arrow Right
-            if (key.codes[0] == 93)  { KeyLabel[arr_inc] = "L"; } //Page Down
+            if (key.codes[0] == 21)  { KeyLabel[arr_inc] = "S/H"; } //Arrow Left
+            if (key.codes[0] == 20)  { KeyLabel[arr_inc] = "D/J"; } //Arrow Down
+            if (key.codes[0] == 22)  { KeyLabel[arr_inc] = "F/K"; } //Arrow Right
+            if (key.codes[0] == 93)  { KeyLabel[arr_inc] = "G/L"; } //Page Down
 
             KeyLabel_x[arr_inc] = key.x + (key.width - 25);
             KeyLabel_y[arr_inc] = key.y + 40;
