@@ -1779,7 +1779,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             SetNeedUpdateVisualState();
         } else {
             doubleShiftCapsMode = false;
-            oneTimeShiftOneTimeBigMode = !oneTimeShiftOneTimeBigMode;
+            //oneTimeShiftOneTimeBigMode = !oneTimeShiftOneTimeBigMode;
+            //oneTimeShiftOneTimeBigMode = false;
+            DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
             SetNeedUpdateVisualState();
         }
         return true;
