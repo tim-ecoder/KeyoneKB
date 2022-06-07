@@ -1,7 +1,11 @@
 package com.sateda.keyonekb2;
 
+import android.annotation.SuppressLint;
+import android.content.res.Resources;
 import android.inputmethodservice.InputMethodService;
+import android.os.Build;
 import android.os.SystemClock;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -11,10 +15,10 @@ import java.util.List;
 
 public class KeyboardBaseKeyLogic extends InputMethodService {
 
-    int TIME_DOUBLE_PRESS = 400;
-    int TIME_SHORT_2ND_LONG_PRESS = 600;
-    int TIME_LONG_PRESS = 300;
-    int TIME_SHORT_PRESS = 200;
+    int TIME_DOUBLE_PRESS;
+    int TIME_SHORT_2ND_LONG_PRESS;
+    int TIME_LONG_PRESS;
+    int TIME_SHORT_PRESS;
     public static String DEBUG_TEXT = "";
     public static boolean IS_KEYBOARD_TEST = false;
 
@@ -31,6 +35,18 @@ public class KeyboardBaseKeyLogic extends InputMethodService {
 
     KeyPressData LastShortPressKey1 = null;
     KeyPressData LastDoublePressKey = null;
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        TIME_DOUBLE_PRESS = Integer.parseInt(getString(R.string.KB_CORE_TIME_DOUBLE_PRESS));
+        TIME_SHORT_2ND_LONG_PRESS = Integer.parseInt(getString(R.string.KB_CORE_TIME_SHORT_2ND_LONG_PRESS));
+        TIME_LONG_PRESS = Integer.parseInt(getString(R.string.KB_CORE_TIME_LONG_PRESS));
+        TIME_SHORT_PRESS = Integer.parseInt(getString(R.string.KB_CORE_TIME_SHORT_PRESS));
+    }
+
     boolean IsSameKeyDownPress(KeyPressData keyPressData1, KeyPressData keyPressData2) {
         return keyPressData1 != null && keyPressData2 != null
                 && (keyPressData1.KeyCode == keyPressData2.KeyCode

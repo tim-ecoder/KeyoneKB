@@ -33,4 +33,18 @@
     <string name="pref_rus_lang_name">Русский язык</string>
     <string name="pref_rus_translit_name">Русский (translit)</string>
     <string name="pref_ua_lang_name">Украинский язык</string>
+    <string name="kb_state_nav_mode">Навигация</string>
+    <string name="kb_state_nav_fn_mode">Навигация + F1–F10</string>
+    <string name="kb_state_alt_mode">Символы 1–9</string>
+    <string name="kb_state_sym_mode">\"СИМВОЛЫ {} [] | / \"</string>
+    <string name="kb_state_gesture_input">Жесты по текстовому вводу</string>
+    <string name="kb_state_gesture_input_up_down">Жесты по текстовому вводу (+вверх/вниз)</string>
+    <string name="kb_state_gesture_view">Жесты по режиму просмотра</string>
+    <string name="kb_state_gesture_off">Жесты по клавиатуре выключены</string>
+    <string name="KB_CORE_MOTION_BASE_SENSITIVITY">48</string>
+    <string name="KB_CORE_ROW_4_BEGIN_Y">400</string>
+    <string name="KB_CORE_TIME_DOUBLE_PRESS">400</string>
+    <string name="KB_CORE_TIME_SHORT_2ND_LONG_PRESS">600</string>
+    <string name="KB_CORE_TIME_LONG_PRESS">300</string>
+    <string name="KB_CORE_TIME_SHORT_PRESS">200</string>
 </resources>

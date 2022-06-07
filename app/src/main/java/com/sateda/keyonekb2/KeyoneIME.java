@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
@@ -53,18 +54,18 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     public static final String APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_SWIPE_PANEL = "show_default_onscreen_keyboard";
     public static final String APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
 
-    public static final int SCAN_CODE_CHAR_0 = 48;
+    public static final int CHAR_0 = 48;
 
-    public static final int MAGIC_KEYBOARD_GESTURE_MOTION_CONST = 48;
-    public static final int ROW_4_BEGIN_Y = 400;
-    public static final String TITLE_NAV_TEXT = "Навигация";
-    public static final String TITLE_NAV_FV_TEXT = "Навигация + F1-F10";
-    public static final String TITLE_SYM_TEXT = "Символы 1-9";
-    public static final String TITLE_SYM2_TEXT = "СИМВОЛЫ {} [] | / ";
-    public static final String TITLE_GESTURE_INPUT = "Жесты по текстовому вводу";
-    public static final String TITLE_GESTURE_INPUT_UP_DOWN = "Жесты по текстовому вводу (+вверх/вниз)";
-    public static final String TITLE_GESTURE_VIEW = "Жесты по режиму просмотра";
-    public static final String TITLE_GESTURE_OFF = "Жесты по клавиатуре выключены";
+    public int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
+    public int ROW_4_BEGIN_Y;
+    public String TITLE_NAV_TEXT;
+    public String TITLE_NAV_FV_TEXT;
+    public String TITLE_SYM_TEXT;
+    public String TITLE_SYM2_TEXT;
+    public String TITLE_GESTURE_INPUT;
+    public String TITLE_GESTURE_INPUT_UP_DOWN;
+    public String TITLE_GESTURE_VIEW;
+    public String TITLE_GESTURE_OFF;
 
     private final int[] KEY2_LATIN_ALPHABET_KEYS_CODES = new int[] {
             KeyEvent.KEYCODE_4, //DOLLAR
@@ -149,7 +150,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean pref_keyboard_gestures_at_views_enable = true;
 
     //Предзагружаем клавиатуры, чтобы не плодить объекты
-    private Keyboard keybardNavigation;
+    private Keyboard keyboardNavigation;
 
     boolean needUpdateVisualInsideSingleEvent = false;
 
@@ -163,6 +164,17 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     @Override
     public void onCreate() {
         super.onCreate();
+
+        TITLE_NAV_TEXT = getString(R.string.kb_state_nav_mode);
+        TITLE_NAV_FV_TEXT = getString(R.string.kb_state_nav_fn_mode);
+        TITLE_SYM_TEXT = getString(R.string.kb_state_alt_mode);
+        TITLE_SYM2_TEXT = getString(R.string.kb_state_sym_mode);
+        TITLE_GESTURE_INPUT = getString(R.string.kb_state_gesture_input);
+        TITLE_GESTURE_INPUT_UP_DOWN = getString(R.string.kb_state_gesture_input_up_down);
+        TITLE_GESTURE_VIEW = getString(R.string.kb_state_gesture_view);
+        TITLE_GESTURE_OFF = getString(R.string.kb_state_gesture_off);
+        MAGIC_KEYBOARD_GESTURE_MOTION_CONST = Integer.parseInt(getString(R.string.KB_CORE_MOTION_BASE_SENSITIVITY));
+        ROW_4_BEGIN_Y = Integer.parseInt(getString(R.string.KB_CORE_ROW_4_BEGIN_Y));
 
         callStateCallback = new CallStateCallback();
         TelephonyManager tm = getTelephonyManager();
@@ -195,7 +207,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         keyboardView.clearAnimation();
         keyboardView.showFlag(pref_flag);
 
-        keybardNavigation = new Keyboard(this, R.xml.navigation);
+        keyboardNavigation = new Keyboard(this, R.xml.navigation);
 
         notificationProcessor.Initialize(getApplicationContext());
         UpdateGestureModeVisualization(false);
@@ -1063,7 +1075,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav_fn);
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_NAV_FV_TEXT);
             }
-            onScreenKeyboardSymbols = keybardNavigation;
+            onScreenKeyboardSymbols = keyboardNavigation;
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             keyboardView.setNavigationLayer();
             needUsefullKeyboard = true;
@@ -1832,7 +1844,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             ResetGesturesMode();
             InputConnection inputConnection = getCurrentInputConnection();
             if (inputConnection != null)
-                inputConnection.commitText(String.valueOf((char) SCAN_CODE_CHAR_0), 1);
+                inputConnection.commitText(String.valueOf((char) CHAR_0), 1);
             ResetSingleAltSingleShiftModeAfterOneLetter();
         }
         return true;
@@ -1847,7 +1859,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if (IsAltMode()) {
             InputConnection inputConnection = getCurrentInputConnection();
             if (inputConnection != null)
-                inputConnection.commitText(String.valueOf((char) SCAN_CODE_CHAR_0), 1);
+                inputConnection.commitText(String.valueOf((char) CHAR_0), 1);
             //ResetSingleAltSingleShiftModeAfterOneLetter();
         }
         return true;
