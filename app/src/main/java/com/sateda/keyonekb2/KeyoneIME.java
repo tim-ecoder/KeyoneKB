@@ -655,20 +655,20 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             switch (primaryCode) {
 
                 case 19: //UP
-                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
                 case 20: //DOWN
-                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
 
                 case 21: //LEFT
-                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
 
@@ -682,7 +682,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 case 123: //END
                 case 92:  //Page UP
                 case 93:  //Page DOWN
-                    keyDownUp4dpadMovements(primaryCode, inputConnection);
+                    keyDownUpNoMeta(primaryCode, inputConnection);
                     break;
 
                 case -7:  //Switch F1-F12
@@ -697,7 +697,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_ENTER, inputConnection);
+                    keyDownUpNoMeta(KeyEvent.KEYCODE_ENTER, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
 
@@ -711,11 +711,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 case 32: //SPACE
                     break;
                 case 21: //LEFT
-                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
 
@@ -725,7 +725,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUp4dpadMovements(KeyEvent.KEYCODE_ENTER, inputConnection);
+                    keyDownUpNoMeta(KeyEvent.KEYCODE_ENTER, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
                 default:
@@ -796,7 +796,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 if(this.isInputViewShown()) {
                     CharSequence c = inputConnection.getTextAfterCursor(1, 0);
                     if(c.length() > 0) {
-                        keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                        keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                         DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     }
                     lastGestureX = motionEvent.getX();
@@ -806,7 +806,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 if(this.isInputViewShown()) {
                     CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
                     if (c.length() > 0) {
-                        keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                        keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                         DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     }
                     lastGestureX = motionEvent.getX();
@@ -930,7 +930,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                         if (deltaX > 0) {
                             CharSequence c = inputConnection.getTextAfterCursor(1, 0);
                             if(c.length() > 0) {
-                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                                keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                                 DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                             }
 
@@ -938,7 +938,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                         } else {
                             CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
                             if (c.length() > 0) {
-                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                                keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                                 DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                             }
 
@@ -952,14 +952,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                             CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
                             if (c.length() > 0) {
                                 //TODO: Сделать хождение по большим текстам, пока оставляем только горизонтальные движения
-                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                                keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
                                 Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
                             }
                         } else {
                             CharSequence c = inputConnection.getTextAfterCursor(1, 0);
                             if(c.length() > 0) {
                                 //TODO: Родная клава просто вылеает из режима Keypad, когда заползаешь за поле ввода, найти где это происходит и сделать также или как минимум взять это условие в вернуть курсор обратно
-                                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                                keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
                                 Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
                             }
                         }
@@ -1247,7 +1247,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                         KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE));
     }
 
-    private void keyDownUp4dpadMovements(int keyEventCode, InputConnection ic) {
+    private void keyDownUpNoMeta(int keyEventCode, InputConnection ic) {
         if (ic == null) return;
         //this.sendDownUpKeyEvents(keyEventCode);
 
@@ -1895,7 +1895,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(startInputAtBbContactsApp && !keyboardLayoutManager.isEnglishKb){
             if(inputConnection!=null && !IsInputMode()){
                 //Данный хак работает неплохо но если быстро вводить, то теряется первый символ
-                keyDownUp4dpadMovements(KeyEvent.KEYCODE_SEARCH, inputConnection);
+                keyDownUpNoMeta(KeyEvent.KEYCODE_SEARCH, inputConnection);
                 try {
                     Thread.sleep(50); }
                 catch (Throwable t) {}
@@ -1904,8 +1904,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         if(startInputAtBbPhoneApp && !keyboardLayoutManager.isEnglishKb){
             if(inputConnection!=null && !IsInputMode()){
-                keyDownUp4dpadMovements(KeyEvent.KEYCODE_4, inputConnection);
-                keyDownUp4dpadMovements(KeyEvent.KEYCODE_DEL, inputConnection);
+                keyDownUpNoMeta(KeyEvent.KEYCODE_MINUS, inputConnection);
+                //sendKeyChar((char) '.');
+                try {
+                    Thread.sleep(20); }
+                catch (Throwable t) {}
+                keyDownUpNoMeta(KeyEvent.KEYCODE_DEL, inputConnection);
                 try {
                 Thread.sleep(50); }
                 catch (Throwable t) {}
