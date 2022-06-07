@@ -15,5 +15,28 @@
         <TextView android:id="@+id/touch_info" android:layout_width="fill_parent" android:layout_height="wrap_content" />
         <TextView android:id="@+id/meta_info" android:layout_width="fill_parent" android:layout_height="wrap_content" />
         <EditText android:id="@+id/input" android:layout_width="fill_parent" android:layout_height="wrap_content" android:hint="@string/keyboard_test_input_hint" />
+
+        <TextView
+            android:id="@+id/debug_info_text"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:scrollbarAlwaysDrawHorizontalTrack="false"
+            android:scrollbarAlwaysDrawVerticalTrack="false"
+            android:text="DEBUG INFO"
+            android:textAlignment="center" />
+        <ScrollView
+            android:id="@+id/debug_scroll"
+            android:layout_width="fill_parent"
+            android:layout_height="50mm"
+            android:scrollbars="vertical"
+            android:fillViewport="true">
+            <TextView
+                android:id="@+id/debug_info_data"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:hint="Debug info printed here.."
+                android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:scrollbars="vertical" />
+        </ScrollView>
     </LinearLayout>
 </ScrollView>

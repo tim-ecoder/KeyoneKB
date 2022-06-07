@@ -4,6 +4,7 @@ package com.sateda.keyonekb2;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import static android.content.ContentValues.TAG;
@@ -34,16 +36,39 @@ public class KeyboardTestActivity extends Activity {
 
     private CheckBox showScanCodeView;
 
+    private TextView debugView;
+
+    private ScrollView debugScrollView;
+
     private void updateViews(KeyEvent paramKeyEvent) {
         this.codeView.setText(String.valueOf(paramKeyEvent.getKeyCode()));
         this.scanCodeView.setText(String.valueOf(paramKeyEvent.getScanCode()));
         this.metaInfoView.setText("alt:" + paramKeyEvent.isAltPressed() + ", shift:" + paramKeyEvent.isShiftPressed());
+        if(!KeyoneIME.DEBUG_TEXT.isEmpty()) {
+            this.debugView.setText(KeyoneIME.DEBUG_TEXT);
+            debugScrollView.post(new Runnable() {
+
+                @Override
+                public void run() {
+                    debugScrollView.fullScroll(ScrollView.FOCUS_DOWN);
+                }
+            });
+        }
     }
 
+    public void onStop() {
+        KeyoneIME.IS_KEYBOARD_TEST = false;
+        KeyoneIME.DEBUG_TEXT = "";
+        super.onStop();
+    }
 
     public void onCreate(Bundle paramBundle) {
         super.onCreate(paramBundle);
         setContentView(R.layout.activity_keyboard_test);
+        KeyoneIME.IS_KEYBOARD_TEST = true;
+        this.debugView = (TextView)findViewById(R.id.debug_info_data);
+        this.debugView.setMovementMethod(new ScrollingMovementMethod());
+        this.debugScrollView = (ScrollView) findViewById(R.id.debug_scroll);
         this.touchInfoView = (TextView)findViewById(R.id.touch_info);
         this.codeView = (TextView)findViewById(R.id.code);
         this.codeTitleView = findViewById(R.id.codeTitle);

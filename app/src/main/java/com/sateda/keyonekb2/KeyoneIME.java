@@ -504,26 +504,30 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyEventCode = 111; //ESC
                 break;
             case 17: //W (1)
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 131; //F1
-                break;
-            case 18: //E (2)
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 132; //F2
-                break;
-            case 19: //R (3)
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 133; //F3
-                break;
-            case 20: //T
-                keyEventCode = 0; //-----------------------------------------------------
-                break;
+                if(fnSymbolOnScreenKeyboardMode) {
+                    keyEventCode = 131; //F1
+                    break;
+                }
             case 21: //Y
                 keyEventCode = 122; //Home
                 break;
+            case 18: //E (2)
+                if(fnSymbolOnScreenKeyboardMode) {
+                    keyEventCode = 132; //F2
+                    break;
+                }
             case 22: //U
                 keyEventCode = 19; //Arrow Up
                 break;
+            case 19: //R (3)
+                if(fnSymbolOnScreenKeyboardMode) {
+                    keyEventCode = 133; //F3
+                    break;
+                }
             case 23: //I
                 keyEventCode = 123; //END
                 break;
+            case 20: //T
             case 24: //O
                 keyEventCode = 92; //Page Up
                 break;
@@ -534,29 +538,33 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             case 30: //A
                 keyEventCode = 61; //Tab
                 break;
-            case 31: //S (4)
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 134; //F4
-                break;
-            case 32: //D (5)
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 135; //F5
-                break;
-            case 33: //F (6)
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 136; //F6
-                break;
-            case 34: //G
-                keyEventCode = 0; //-----------------------------------------------------
-                break;
+            case 31: //S
+                if(fnSymbolOnScreenKeyboardMode) {
+                    keyEventCode = 134; //F4
+                    break;
+                }
             case 35: //H
                 keyEventCode = 21; //Arrow Left
                 break;
+            case 32: //D
+                if(fnSymbolOnScreenKeyboardMode) {
+                    keyEventCode = 135; //F5
+                    break;
+                }
             case 36: //J
                 keyEventCode = 20; //Arrow Down
                 break;
+            case 33: //F
+                if(fnSymbolOnScreenKeyboardMode) {
+                    keyEventCode = 135; //F5
+                    break;
+                }
             case 37: //K
                 keyEventCode = 22; //Arrow Right
                 break;
+            case 34: //G
             case 38: //L
-                keyEventCode = 93; //Arrow Right
+                keyEventCode = 93; //Page down
                 break;
 
             case 44: //Z (7)
