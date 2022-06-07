@@ -1068,11 +1068,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             keyboardView.setNavigationLayer();
             needUsefullKeyboard = true;
         }else if(symbolOnScreenKeyboardMode) {
-            changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
+
             if (IsSym2Mode()) {
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
+                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
             } else {
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
             }
             //TODO: Тут плодятся объекты зачем-то
             onScreenKeyboardSymbols = new Keyboard(this, R.xml.symbol);;
@@ -1086,11 +1088,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             needUsefullKeyboard = true;
 
         }else if(doubleAltPressAllSymbolsAlted || metaAltPressed){
-            changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
             if (IsSym2Mode()) {
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
+                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
             } else {
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
             }
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateSwipePanelData) {
@@ -1102,11 +1105,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyboardView.setAlt();
             }
         }else if(altPressSingleSymbolAltedMode){
-            changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym_one);
             if (IsSym2Mode()) {
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
+                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym_one);
             } else {
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt_one);
             }
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
             if(updateSwipePanelData) {
