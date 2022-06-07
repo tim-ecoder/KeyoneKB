@@ -33,4 +33,37 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_sys_kb_setting"
         android:text="@string/btn_test_key" />
+    <View
+        android:id="@+id/divider12"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/btn_test_key"
+        android:background="?android:attr/listDivider" />
+
+    <TextView
+        android:id="@+id/manual_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider12"
+        android:text="@string/main_manual_text"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        tools:checked="true" />
+
+    <TextView
+        android:id="@+id/text_manual_link"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/manual_text"
+        android:autoLink="web"
+        android:text="@string/manual_link"
+        android:textAlignment="center" />
+
+    <View
+        android:id="@+id/divider13"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/text_manual_link"
+        android:background="?android:attr/listDivider" />
+
 </RelativeLayout>

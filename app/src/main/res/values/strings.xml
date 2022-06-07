@@ -3,11 +3,34 @@
     <string name="btn_settings">Настройки</string>
     <string name="btn_power_manager">Энергосбережение</string>
     <string name="btn_sys_kb_setting">Активировать клавиатуру</string>
-    <string name="btn_test_key">Тест кнопок</string>
+    <string name="btn_test_key">Проверка работы</string>
 
     <string name="keyboard_test_input_hint">"Press any button to see it's code"</string>
     <string name="keyboard_test_show_scancode">Show scan code</string>
     <string name="keyboard_test_scancode_title">Scan Code</string>
     <string name="keyboard_test_code_title">Android KeyCode</string>
     <string name="pref_key_keyboard_test">Тест клавиатуры</string>
+    <string name="main_manual_text">Инструкция</string>
+    <string name="manual_link">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
+    <string name="pref_p_1_name">1. Чувствительность перемещения курсора свайпом по нижней панели:</string>
+    <string name="pref_p_1_value">Ниже | Выше</string>
+    <string name="pref_p_2_name">2. Отображение Toast при смене языка</string>
+    <string name="pref_p_2_hint">Необходимо включить, для корректной работы Text Layout Tools</string>
+    <string name="pref_p_3_name">3. Выключать ALT пробелом</string>
+    <string name="pref_p_3_hint">ВКЛ: ALT символы/цифры будут набираться до тех пор, пока не будет нажат пробел;\n ВЫКЛ: ALT символы/цифры будут отключены сразу после ввода первого символа (как в blackberry keyboard).\n Больше полезностей для работы с символами см. инструкцию п.Г-Д</string>
+    <string name="pref_p_4_name">4. Флаг на нижней панели</string>
+    <string name="pref_p_5_name">5. При удержании буквы ввод соответствующих знаков из ALT/SYM раскладки</string>
+    <string name="pref_p_5_hint">Если настройка выключена, при зажатии будет вводиться Заглавная буква;\n Больше полезностей для работы Заглавными буквами см. инструкцию п.В</string>
+    <string name="pref_p_6_name">6. Поднимать трубку двойным пробелом</string>
+    <string name="pref_p_7_name">7. Высота нижней панели:</string>
+    <string name="pref_p_7_value">Меньше | Больше</string>
+    <string name="pref_p_8_name">8. Показывать нижнюю наэкранную свайп-панель</string>
+    <string name="pref_p_8_hint">На которой стрелки и язык (с флажком) и которая появляется в полях ввода.\n Открывание наэкранной SYM, NAV клавиатуры в любом случае будет работать.\n Открыть/закрыть панель при любой настройке можно Shift+Ctrl.</string>
+    <string name="pref_p_9_name">9. Режим жестов (по клавиатуре) в режиме просмотра всегда включен</string>
+    <string name="pref_p_9_hint">Для выключения режима жестов нажать 2xCTRL (K1: R_SHIFT).\n Для режима жестов по полю ввода нажать 2хCTRL.\n Больше полезностей для работы с жестами и с текстом см. инструкцию п.Ж</string>
+    <string name="pref_manual_name">Инструкция</string>
+    <string name="pref_manual_link">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
+    <string name="pref_rus_lang_name">Русский язык</string>
+    <string name="pref_rus_translit_name">Русский (translit)</string>
+    <string name="pref_ua_lang_name">Украинский язык</string>
 </resources>

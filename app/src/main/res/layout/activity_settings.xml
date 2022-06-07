@@ -16,7 +16,7 @@
         android:id="@+id/switch_ru_lang"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text=" Русский язык"
+        android:text="@string/pref_rus_lang_name"
         android:textSize="24sp"
         tools:checked="true" />
 
@@ -32,7 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider"
-        android:text=" Русский (translit)"
+        android:text="@string/pref_rus_translit_name"
         android:textSize="24sp"
         tools:checked="true" />
 
@@ -48,7 +48,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider2"
-        android:text=" Украинский язык"
+        android:text="@string/pref_ua_lang_name"
         android:textSize="24sp"
         tools:checked="false" />
 
@@ -64,7 +64,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider3"
-        android:text=" Чувствительность перемещения курсора свайпом по нижней панели:"
+        android:text="@string/pref_p_1_name"
         android:textColor="@color/black"
         android:textSize="24sp" />
 
@@ -81,7 +81,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/seekBar"
-        android:text="Ниже        |        Выше"
+        android:text="@string/pref_p_1_value"
         android:textAlignment="center"
         android:textSize="18sp" />
 
@@ -97,7 +97,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider4"
-        android:text=" Отображение Toast при смене языка"
+        android:text="@string/pref_p_2_name"
         android:textSize="24sp" />
 
     <TextView
@@ -105,7 +105,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/toast_show_lang"
-        android:text=" Необходимо включить, для корректной работы Text Layout Tools" />
+        android:text="@string/pref_p_2_hint" />
 
     <View
         android:id="@+id/divider5"
@@ -119,7 +119,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider5"
-        android:text=" Выключать ALT пробелом"
+        android:text="@string/pref_p_3_name"
         android:textSize="24sp"
         tools:checked="true" />
 
@@ -128,8 +128,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_alt_space"
-        android:text="ВКЛ: ALT символы/цифры будут набираться до тех пор, пока не будет нажат пробел;\n
-ВЫКЛ: ALT символы/цифры будут отключены сразу после ввода первого символа (как в blackberry keyboard)." />
+        android:text="@string/pref_p_3_hint" />
 
     <View
         android:id="@+id/divider6"
@@ -143,7 +142,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider6"
-        android:text=" Флаг на нижней панели"
+        android:text="@string/pref_p_4_name"
         android:textSize="24sp"
         tools:checked="false" />
 
@@ -159,15 +158,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider7"
-        android:text=" При удержании буквы ввод соответствующих знаков из ALT/SYM раскладки"
+        android:text="@string/pref_p_5_name"
         android:textSize="24sp"
         tools:checked="true" />
+    <TextView
+        android:id="@+id/help_switch_longpress_alt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/switch_longpress_alt"
+        android:text="@string/pref_p_5_hint" />
 
     <View
         android:id="@+id/divider8"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@id/switch_longpress_alt"
+        android:layout_below="@id/help_switch_longpress_alt"
         android:background="?android:attr/listDivider" />
 
     <Switch
@@ -175,7 +180,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider8"
-        android:text=" Поднимать трубку двойным пробелом"
+        android:text="@string/pref_p_6_name"
         android:textSize="24sp"
         tools:checked="true" />
 
@@ -191,7 +196,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider9"
-        android:text=" Высота нижней панели:"
+        android:text="@string/pref_p_7_name"
         android:textColor="@color/black"
         android:textSize="24sp" />
 
@@ -209,7 +214,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/seekBarBtnPanel"
-        android:text="Меньше        |        Больше"
+        android:text="@string/pref_p_7_value"
         android:textAlignment="center"
         android:textSize="18sp" />
 
@@ -225,7 +230,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider10"
-        android:text=" Показывать нижнюю наэкранную свайп-панель"
+        android:text="@string/pref_p_8_name"
         android:textSize="24sp"
         tools:checked="true" />
 
@@ -234,9 +239,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_show_default_onscreen_keyboard"
-        android:text=" На которой стрелки и язык (с флажком) и которая появляется в полях ввода.\n
-Открывание наэкранной SYM, NAV клавиатуры в любом случае будет работать.\n
-Открыть/закрыть панель при любой настройке можно Shift+Ctrl." />
+        android:text="@string/pref_p_8_hint" />
     <View
         android:id="@+id/divider11"
         android:layout_width="match_parent"
@@ -248,7 +251,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider11"
-        android:text=" Режим жестов по клавиатуре всегда включен"
+        android:text="@string/pref_p_9_name"
         android:textSize="24sp"
         tools:checked="true" />
 
@@ -257,24 +260,45 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_keyboard_gestures_at_views_enabled"
-        android:text=" Принцип работы сходен с Blackberry Keyboard.\n
-ВКЛ: режим жестов по клавиатуре будет работать по всех приложениях (чаще всего как прокрутка).
-Кроме(!) полей ввода, где режим жестов надо включать явно (см. дальше).\n
-ВЫКЛ: Режим жестов работает только в полях ввода, где его нужно включать явно.\n
-Включение режима жестов в полях ввода:\n
-A. Временный (удобно, чтобы вернуться на несколько символов, подправить и вернуться обратно):\n
-1. Ставим палец на клавиатуру;\n
-2. Зажимаем KEY '0';\n
-3. Делаем свайп по клавиатуре влево или вправо.\n
-Б. Постоянный (удобно, если есть только одна рука или чтобы куда-то далеко по тексту ехать несколькими свайпами:\n
-1. K1: 2хRShift; K2: 2хCtrl;\n
-2. Делаем свайпы влево или вправо;\n
-3. Автоматически отключается, когда начинаешь вводить текст."  />
+        android:text="@string/pref_p_9_hint"  />
     <View
         android:id="@+id/divider12"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_below="@id/text_help_switch_keyboard_gestures_at_views_enabled"
+        android:background="?android:attr/listDivider" />
+    <TextView
+        android:id="@+id/manual_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider12"
+        android:text="@string/pref_manual_name"
+        android:textSize="24sp"
+        tools:checked="true" />
+    <TextView
+        android:id="@+id/text_manual_link"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/manual_text"
+        android:autoLink="web"
+        android:text="@string/pref_manual_link"  />
+    <View
+        android:id="@+id/divider13"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_below="@id/text_manual_link"
+        android:background="?android:attr/listDivider" />
+    <View
+        android:id="@+id/divider14"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_below="@id/divider13"
+        android:background="?android:attr/listDivider" />
+    <View
+        android:id="@+id/divider15"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_below="@id/divider14"
         android:background="?android:attr/listDivider" />
 
 </RelativeLayout>
