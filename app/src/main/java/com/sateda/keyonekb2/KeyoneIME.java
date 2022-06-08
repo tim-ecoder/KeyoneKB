@@ -1804,14 +1804,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onShiftShortPress(KeyPressData keyPressData) {
         if(symbolOnScreenKeyboardMode) {
             symPadAltShift = !symPadAltShift;
-            SetNeedUpdateVisualState();
-        } else {
+        } else if(doubleShiftCapsMode) {
             doubleShiftCapsMode = false;
-            //oneTimeShiftOneTimeBigMode = !oneTimeShiftOneTimeBigMode;
-            //oneTimeShiftOneTimeBigMode = false;
             DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
-            SetNeedUpdateVisualState();
+        } else {
+            oneTimeShiftOneTimeBigMode = !oneTimeShiftOneTimeBigMode;
         }
+        SetNeedUpdateVisualState();
+
         return true;
     }
 
