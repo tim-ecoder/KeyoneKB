@@ -1998,8 +1998,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                         code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, false);
                     }
                 } else {
-//                    int code2send1 = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, IsShiftMode(), true);
-//                    int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, IsShiftMode(), false);
                     if (IsNotPairedLetter(keyPressData))
                         DeleteLastSymbol();
                     code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, false);
