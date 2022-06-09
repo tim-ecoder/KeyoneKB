@@ -1981,7 +1981,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return true;
         }
         int code2send;
-
+        /*
         if(IsAltMode()) {
             DeleteLastSymbol();
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, true);
@@ -1989,10 +1989,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return true;
         }
 
+         */
+
         DeleteLastSymbol();
         if(pref_long_press_key_alt_symbol) {
             if(keyPressData.Short2ndLongPress) {
                 if(IsAltMode()) {
+                    DeleteLastSymbol();
                     code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData.ScanCode);
                     if(code2send == 0) {
                         code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, false);
@@ -2004,7 +2007,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 }
 
             } else {
-                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
+                //!keyPressData.Short2ndLongPress
+                if(IsAltMode()) {
+                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, false);
+                } else {
+                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
+                }
             }
             SendLetterOrSymbol(code2send);
         } else {
