@@ -1981,16 +1981,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return true;
         }
         int code2send;
-        /*
-        if(IsAltMode()) {
-            DeleteLastSymbol();
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, true);
-            SendLetterOrSymbol(code2send);
-            return true;
-        }
-
-         */
-
         DeleteLastSymbol();
         if(pref_long_press_key_alt_symbol) {
             if(keyPressData.Short2ndLongPress) {
