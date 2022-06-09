@@ -1948,13 +1948,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         int code2send;
 
-        if(IsAltMode()) {
-            DeleteLastSymbol();
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, true);
-            SendLetterOrSymbol(code2send);
-            return true;
-        }
-
         if(IsNotPairedLetter(keyPressData)) {
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
             SendLetterOrSymbol(code2send);
@@ -1987,9 +1980,17 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(ctrlImitatedByShiftRightPressed) {
             return true;
         }
+        int code2send;
+
+        if(IsAltMode()) {
+            DeleteLastSymbol();
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, true);
+            SendLetterOrSymbol(code2send);
+            return true;
+        }
+
         DeleteLastSymbol();
         if(pref_long_press_key_alt_symbol) {
-            int code2send;
             if(keyPressData.Short2ndLongPress) {
                 if(IsAltMode()) {
                     code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData.ScanCode);
@@ -2009,7 +2010,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             }
             SendLetterOrSymbol(code2send);
         } else {
-            int code2send;
             if(keyPressData.Short2ndLongPress) {
                 code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, true);
             } else {
