@@ -207,4 +207,14 @@ public class KeyboardLayoutManager {
 
         return result;
     }
+
+    public int KeyToAltPopup(int key) {
+        int result = 0;
+        KeyVariants keyVariants = KeybordLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
+        if(keyVariants == null)
+            return 0;
+        if(keyVariants.alt_popup == null || keyVariants.alt_popup.isEmpty())
+            return 0;
+        return keyVariants.alt_popup.charAt(0);
+    }
 }
