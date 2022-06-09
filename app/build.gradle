@@ -17,8 +17,8 @@ android {
         applicationId "com.sateda.keyonekb2"
         minSdkVersion 25
         targetSdkVersion 25
-        versionCode 33
-        versionName "2.1-beta6.2"
+        versionCode 221
+        versionName "2.2-beta1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
@@ -34,7 +34,7 @@ android {
         variant.outputs.all {
             //outputFileName = "ApplicationName-${variant.name}-${variant.versionName}.apk"
             //TODO: сделал такую настройку т.е. не работает штатный механизм наименования файла от Основателя (если он был)
-            outputFileName = "KeyoneKB2-v2.1-beta6.2.apk"
+            outputFileName = "KeyoneKB2-v2.2-beta1.apk"
         }
     }
     compileOptions {

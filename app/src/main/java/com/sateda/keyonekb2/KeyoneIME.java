@@ -1946,11 +1946,16 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             keyDownUp(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
             return true;
         }
+        int code2send;
 
-        //TODO: По сути - это определение сдвоенная буква или нет, наверное можно как-то оптимальнее сделать потом
-        int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, false, true);
-        int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, false, false);
-        if(code2send == code2sendNoDoublePress) {
+        if(IsAltMode()) {
+            DeleteLastSymbol();
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, true);
+            SendLetterOrSymbol(code2send);
+            return true;
+        }
+
+        if(IsNotPairedLetter(keyPressData)) {
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
             SendLetterOrSymbol(code2send);
             return true;
@@ -1969,6 +1974,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), needShift, true);
         SendLetterOrSymbol(code2send);
         return true;
+    }
+
+    private boolean IsNotPairedLetter(KeyPressData keyPressData) {
+        //TODO: По сути - это определение сдвоенная буква или нет, наверное можно как-то оптимальнее сделать потом
+        int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, false, true);
+        int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, false, false);
+        return code2send == code2sendNoDoublePress;
     }
 
     boolean onLetterLongPress(KeyPressData keyPressData) {
