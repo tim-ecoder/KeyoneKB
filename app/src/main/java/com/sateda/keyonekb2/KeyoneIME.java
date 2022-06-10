@@ -1,4 +1,3 @@
-
 package com.sateda.keyonekb2;
 
 import android.Manifest;
@@ -13,6 +12,7 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -28,10 +28,14 @@ import android.view.textservice.SpellCheckerSession;
 import android.view.textservice.SuggestionsInfo;
 import android.widget.Toast;
 
+import com.android.internal.telephony.ITelephony;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import static android.content.ContentValues.TAG;
 import static java.lang.Thread.sleep;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 @Keep
 public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -66,7 +70,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     public String TITLE_GESTURE_VIEW;
     public String TITLE_GESTURE_OFF;
 
-    private final int[] KEY2_LATIN_ALPHABET_KEYS_CODES = new int[] {
+    private final int[] KEY2_LATIN_ALPHABET_KEYS_CODES = new int[]{
             KeyEvent.KEYCODE_4, //DOLLAR
             KeyEvent.KEYCODE_A,
             KeyEvent.KEYCODE_B,
@@ -154,6 +158,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     boolean needUpdateVisualInsideSingleEvent = false;
 
+    TelephonyManager telephonyManager;
+    TelecomManager telecomManager;
+
     @Override
     public void onDestroy() {
         notificationProcessor.CancelAll();
@@ -177,11 +184,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         ROW_4_BEGIN_Y = Integer.parseInt(getString(R.string.KB_CORE_ROW_4_BEGIN_Y));
 
         callStateCallback = new CallStateCallback();
-        TelephonyManager tm = getTelephonyManager();
-        if (tm != null) {
-            tm.listen(callStateCallback, PhoneStateListener.LISTEN_CALL_STATE);
-        }
+        telephonyManager = getTelephonyManager();
+        telecomManager = getTelecomManager();
 
+        if (telephonyManager != null) {
+            telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_CALL_STATE);
+        }
 
 
         pref_height_bottom_bar = 10;
@@ -194,11 +202,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         LoadSettingsAndKeyboards();
         LoadKeyProcessingMechanics();
 
-        onScreenKeyboardDefaultGesturesAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70+ pref_height_bottom_bar *5);
+        onScreenKeyboardDefaultGesturesAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
 
         onScreenKeyboardSymbols = new SatedaKeyboard(this, R.xml.symbol);
 
-        keyboardView = (SatedaKeyboardView) getLayoutInflater().inflate(R.layout.keyboard,null);
+        keyboardView = (SatedaKeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
         keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
         keyboardView.setOnKeyboardActionListener(this);
         keyboardView.setOnTouchListener(this);
@@ -215,9 +223,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
 
-
-
-
     @Override
     public void onPress(int primaryCode) {
         Log.d(TAG, "onPress");
@@ -228,10 +233,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     }
 
-    @Override public void onFinishInput() {
+    @Override
+    public void onFinishInput() {
 
         //TODO: Не смог понять нафига это нужно
-        if(symbolOnScreenKeyboardMode) {
+        if (symbolOnScreenKeyboardMode) {
             symbolOnScreenKeyboardMode = false;
             altPressSingleSymbolAltedMode = false;
             doubleAltPressAllSymbolsAlted = false;
@@ -241,10 +247,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             UpdateGestureModeVisualization(false);
         }
 
-        if(lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards();
+        if (lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards();
 
         //TODO: Подумать, чтобы не надо было инициализировать свайп-клавиаутуру по настройке pref_show_default_onscreen_keyboard
-         keyboardView.showFlag(pref_flag);
+        keyboardView.showFlag(pref_flag);
         if (onScreenKeyboardDefaultGesturesAndLanguage.getHeight() != 70 + pref_height_bottom_bar * 5)
             onScreenKeyboardDefaultGesturesAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
 
@@ -252,9 +258,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     }
 
-    @Override public void onStartInput(EditorInfo editorInfo, boolean restarting) {
+    @Override
+    public void onStartInput(EditorInfo editorInfo, boolean restarting) {
         super.onStartInput(editorInfo, restarting);
-        Log.d(TAG, "onStartInput "+editorInfo.packageName+" "+editorInfo.label);
+        Log.d(TAG, "onStartInput " + editorInfo.packageName + " " + editorInfo.label);
         // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
 
@@ -269,21 +276,21 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return;
         }
 */
-        if(editorInfo.packageName.equals("com.blackberry.contacts")) {
+        if (editorInfo.packageName.equals("com.blackberry.contacts")) {
             startInputAtBbContactsApp = true;
-        }else{
+        } else {
             startInputAtBbContactsApp = false;
         }
 
-        if(editorInfo.packageName.equals("com.blackberry.blackberrylauncher")) {
+        if (editorInfo.packageName.equals("com.blackberry.blackberrylauncher")) {
             inputAtBbLauncherApp = true;
-        }else{
+        } else {
             inputAtBbLauncherApp = false;
         }
 
-        if(editorInfo.packageName.equals("com.android.dialer")) {
+        if (editorInfo.packageName.equals("com.android.dialer")) {
             startInputAtBbPhoneApp = true;
-        }else{
+        } else {
             startInputAtBbPhoneApp = false;
         }
 
@@ -297,8 +304,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
          */
 
         // Обрабатываем переход между приложениями
-        if(!editorInfo.packageName.equals(lastPackageName))
-        {
+        if (!editorInfo.packageName.equals(lastPackageName)) {
             lastPackageName = editorInfo.packageName;
 
             //Отключаем режим навигации
@@ -381,7 +387,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public boolean onKeyMultiple(int keyCode, int count, KeyEvent event) {
-        Log.d(TAG, "onKeyMultiple "+event);
+        Log.d(TAG, "onKeyMultiple " + event);
         return false;
     }
 
@@ -396,7 +402,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         //region BB Launcher HACK
         //обработка главного экрана Блекбери
         //он хочет получать только родные клавиши, по этому ему отправляем почти все клавиши неизменными
-        if(inputAtBbLauncherApp
+        if (inputAtBbLauncherApp
                 && !IsInputMode()
                 && IsBbLauncherKeyCode(keyCode, scanCode, event.getMetaState())) {
             Log.d(TAG, "Oh! this fixBbkLauncher " + inputAtBbLauncherApp);
@@ -409,24 +415,22 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         int navigationKeyCode;
         InputConnection inputConnection = getCurrentInputConnection();
-        if(IsNavMode() &&
+        if (IsNavMode() &&
                 ((scanCode == 11) ||
-                (scanCode == 5) ||
-                (scanCode >= 16 && scanCode <= 25) ||
-                (scanCode >= 30 && scanCode <= 38) ||
-                (scanCode >= 44 && scanCode <= 50)))
-        {
+                        (scanCode == 5) ||
+                        (scanCode >= 16 && scanCode <= 25) ||
+                        (scanCode >= 30 && scanCode <= 38) ||
+                        (scanCode >= 44 && scanCode <= 50))) {
             navigationKeyCode = getNavigationCode(scanCode);
 
-            Log.d(TAG, "navigationKeyCode "+navigationKeyCode);
-            if(navigationKeyCode == -7)
-            {
+            Log.d(TAG, "navigationKeyCode " + navigationKeyCode);
+            if (navigationKeyCode == -7) {
                 fnSymbolOnScreenKeyboardMode = !fnSymbolOnScreenKeyboardMode;
                 UpdateKeyboardModeVisualization();
                 keyboardView.setFnSymbol(fnSymbolOnScreenKeyboardMode);
                 return true;
             }
-            if(inputConnection!=null && navigationKeyCode != 0) {
+            if (inputConnection != null && navigationKeyCode != 0) {
                 //Удаляем из meta состояния SYM т.к. он мешает некоторым приложениям воспринимать NAV символы с зажатием SYM
                 int meta = event.getMetaState() & ~KeyEvent.META_SYM_ON;
                 keyDownUp(navigationKeyCode, inputConnection, meta);
@@ -438,28 +442,28 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         needUpdateVisualInsideSingleEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyDown(keyCode, event);
-        if(!processed)
+        if (!processed)
             return false;
 
         //Это нужно чтобы показать клаву (перейти в режим редактирования)
         if (pref_show_default_onscreen_keyboard && !isInputViewShown() && inputConnection != null && IsInputMode()) {
             this.showWindow(true);
         }
-        if(needUpdateVisualInsideSingleEvent)
+        if (needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
 
-        if(keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
+        if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
             return false;
 
         return true;
     }
 
     private boolean IsBbLauncherKeyCode(int keyCode, int scanCode, int meta) {
-        if(keyCode == KeyEvent.KEYCODE_0 && (meta & KeyEvent.META_ALT_ON) == 0) return false;
-        if(keyCode == KeyEvent.KEYCODE_SPACE && IsShiftMeta(meta)) return false;
-        if(keyCode == KeyEvent.KEYCODE_CTRL_LEFT) return false;
-        if(keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) return false;
+        if (keyCode == KeyEvent.KEYCODE_0 && (meta & KeyEvent.META_ALT_ON) == 0) return false;
+        if (keyCode == KeyEvent.KEYCODE_SPACE && IsShiftMeta(meta)) return false;
+        if (keyCode == KeyEvent.KEYCODE_CTRL_LEFT) return false;
+        if (keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) return false;
         return true;
     }
 
@@ -471,12 +475,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         int scanCode = event.getScanCode();
         //TODO: Разобраться
-        if(IsNavMode() &&
+        if (IsNavMode() &&
                 ((scanCode == 11) ||
-                (scanCode == 5) ||
-                (scanCode >= 16 && scanCode <= 25) ||
-                (scanCode >= 30 && scanCode <= 38) ||
-                (scanCode >= 44 && scanCode <= 50))) {
+                        (scanCode == 5) ||
+                        (scanCode >= 16 && scanCode <= 25) ||
+                        (scanCode >= 30 && scanCode <= 38) ||
+                        (scanCode >= 44 && scanCode <= 50))) {
             /*
             int navigationKeyCode = getNavigationCode(scanCode);
 
@@ -496,13 +500,13 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         needUpdateVisualInsideSingleEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyUp(keyCode, event);
-        if(!processed)
+        if (!processed)
             return false;
-        if(needUpdateVisualInsideSingleEvent)
+        if (needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
 
-        if(keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
+        if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
             return false;
 
         return true;
@@ -511,12 +515,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //TODO: Вынести в XML
     public int getNavigationCode(int scanCode) {
         int keyEventCode = 0;
-        switch (scanCode){
+        switch (scanCode) {
             case 16: //Q
                 keyEventCode = 111; //ESC
                 break;
             case 17: //W (1)
-                if(fnSymbolOnScreenKeyboardMode) {
+                if (fnSymbolOnScreenKeyboardMode) {
                     keyEventCode = 131; //F1
                     break;
                 }
@@ -524,7 +528,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyEventCode = 122; //Home
                 break;
             case 18: //E (2)
-                if(fnSymbolOnScreenKeyboardMode) {
+                if (fnSymbolOnScreenKeyboardMode) {
                     keyEventCode = 132; //F2
                     break;
                 }
@@ -532,7 +536,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyEventCode = 19; //Arrow Up
                 break;
             case 19: //R (3)
-                if(fnSymbolOnScreenKeyboardMode) {
+                if (fnSymbolOnScreenKeyboardMode) {
                     keyEventCode = 133; //F3
                     break;
                 }
@@ -551,7 +555,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyEventCode = 61; //Tab
                 break;
             case 31: //S
-                if(fnSymbolOnScreenKeyboardMode) {
+                if (fnSymbolOnScreenKeyboardMode) {
                     keyEventCode = 134; //F4
                     break;
                 }
@@ -559,7 +563,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyEventCode = 21; //Arrow Left
                 break;
             case 32: //D
-                if(fnSymbolOnScreenKeyboardMode) {
+                if (fnSymbolOnScreenKeyboardMode) {
                     keyEventCode = 135; //F5
                     break;
                 }
@@ -567,7 +571,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyEventCode = 20; //Arrow Down
                 break;
             case 33: //F
-                if(fnSymbolOnScreenKeyboardMode) {
+                if (fnSymbolOnScreenKeyboardMode) {
                     keyEventCode = 135; //F5
                     break;
                 }
@@ -580,17 +584,17 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 break;
 
             case 44: //Z (7)
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 137; //F7
+                if (fnSymbolOnScreenKeyboardMode) keyEventCode = 137; //F7
                 break;
             case 45: //X (8)
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 138; //F8
+                if (fnSymbolOnScreenKeyboardMode) keyEventCode = 138; //F8
                 break;
             case 46: //C (9)
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 139; //F9
+                if (fnSymbolOnScreenKeyboardMode) keyEventCode = 139; //F9
                 break;
 
             case 11: //0
-                if(fnSymbolOnScreenKeyboardMode) keyEventCode = 140; //F10
+                if (fnSymbolOnScreenKeyboardMode) keyEventCode = 140; //F10
                 break;
 
             default:
@@ -601,8 +605,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     @Override
-    public boolean onKeyLongPress(int keyCode,KeyEvent event){
-        Log.d(TAG, "onKeyLongPress "+event);
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+        Log.d(TAG, "onKeyLongPress " + event);
         return false;
     }
 
@@ -619,18 +623,16 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        if(newConfig.orientation == 2) {
-            if(keyboardView.getVisibility() == View.VISIBLE) {
+        if (newConfig.orientation == 2) {
+            if (keyboardView.getVisibility() == View.VISIBLE) {
                 lastVisibility = View.VISIBLE;
                 keyboardView.setVisibility(View.GONE);
             }
-        }
-        else if(newConfig.orientation == 1) {
-            if(lastVisibility == View.VISIBLE) {
+        } else if (newConfig.orientation == 1) {
+            if (lastVisibility == View.VISIBLE) {
                 lastVisibility = 0;
                 keyboardView.setVisibility(View.VISIBLE);
-            }
-            else
+            } else
                 keyboardView.setVisibility(View.GONE);
         }
 
@@ -660,10 +662,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     @Override
     public void onKey(int primaryCode, int[] keyCodes) {
 
-        Log.d(TAG, "onKey "+primaryCode);
+        Log.d(TAG, "onKey " + primaryCode);
         InputConnection inputConnection = getCurrentInputConnection();
         playClick(primaryCode);
-        if(navigationOnScreenKeyboardMode) {
+        if (navigationOnScreenKeyboardMode) {
             switch (primaryCode) {
 
                 case 19: //UP
@@ -716,7 +718,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 default:
 
             }
-        }else{
+        } else {
             switch (primaryCode) {
                 //Хак чтобы не ставился пробел после свайпа по свайп-анели
                 case 0: //SPACE
@@ -748,7 +750,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     }
 
-    private void playClick(int i){
+    private void playClick(int i) {
 /* Пока запиливаем звук, он ругается в дебаге
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         switch(i){
@@ -774,7 +776,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     @Override
     public void onText(CharSequence text) {
-        Log.d(TAG, "onText: "+text);
+        Log.d(TAG, "onText: " + text);
     }
 
     @Override
@@ -802,33 +804,34 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         //Log.d(TAG, "onTouch "+motionEvent);
         InputConnection inputConnection = getCurrentInputConnection();
         int motionEventAction = motionEvent.getAction();
-        if(!symbolOnScreenKeyboardMode){
-            if(motionEventAction == MotionEvent.ACTION_DOWN) lastGestureX = motionEvent.getX();
-            if(motionEventAction == MotionEvent.ACTION_MOVE && lastGestureX +(36- pref_gesture_motion_sensitivity) < motionEvent.getX()){
-                if(this.isInputViewShown()) {
+        if (!symbolOnScreenKeyboardMode) {
+            if (motionEventAction == MotionEvent.ACTION_DOWN) lastGestureX = motionEvent.getX();
+            if (motionEventAction == MotionEvent.ACTION_MOVE && lastGestureX + (36 - pref_gesture_motion_sensitivity) < motionEvent.getX()) {
+                if (this.isInputViewShown()) {
                     CharSequence c = inputConnection.getTextAfterCursor(1, 0);
-                    if(c.length() > 0) {
+                    if (c.length() > 0) {
                         keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                         DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     }
                     lastGestureX = motionEvent.getX();
                     Log.d(TAG, "onTouch KEYCODE_DPAD_RIGHT " + motionEvent);
                 }
-            }else  if(motionEventAction == MotionEvent.ACTION_MOVE && lastGestureX -(36- pref_gesture_motion_sensitivity) > motionEvent.getX()){
-                if(this.isInputViewShown()) {
+            } else if (motionEventAction == MotionEvent.ACTION_MOVE && lastGestureX - (36 - pref_gesture_motion_sensitivity) > motionEvent.getX()) {
+                if (this.isInputViewShown()) {
                     CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
                     if (c.length() > 0) {
                         keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                         DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     }
                     lastGestureX = motionEvent.getX();
-                    Log.d(TAG, "onTouch sens_botton_bar "+ pref_gesture_motion_sensitivity +" KEYCODE_DPAD_LEFT " + motionEvent);
+                    Log.d(TAG, "onTouch sens_botton_bar " + pref_gesture_motion_sensitivity + " KEYCODE_DPAD_LEFT " + motionEvent);
                 }
             }
-        }else{
+        } else {
             //TODO: Разобраться что это
-            if(motionEventAction == MotionEvent.ACTION_MOVE)keyboardView.coordsToIndexKey(motionEvent.getX());
-            if(motionEventAction == MotionEvent.ACTION_UP  )keyboardView.hidePopup(true);
+            if (motionEventAction == MotionEvent.ACTION_MOVE)
+                keyboardView.coordsToIndexKey(motionEvent.getX());
+            if (motionEventAction == MotionEvent.ACTION_UP) keyboardView.hidePopup(true);
         }
         return false;
     }
@@ -842,18 +845,18 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     private void ResetGesturesMode() {
         //mode_keyboard_gestures_plus_up_down = false;
-        if(mode_keyboard_gestures) {
+        if (mode_keyboard_gestures) {
             mode_keyboard_gestures = false;
             UpdateGestureModeVisualization();
         }
     }
 
     private void ResetSingleAltSingleShiftModeAfterOneLetter() {
-        if(altPressSingleSymbolAltedMode && !pref_alt_space) {
+        if (altPressSingleSymbolAltedMode && !pref_alt_space) {
             altPressSingleSymbolAltedMode = false;
             SetNeedUpdateVisualState();
         }
-        if(oneTimeShiftOneTimeBigMode) {
+        if (oneTimeShiftOneTimeBigMode) {
             oneTimeShiftOneTimeBigMode = false;
             SetNeedUpdateVisualState();
         }
@@ -891,16 +894,15 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 enteredGestureMovement = true;
             }
         }
-        if(navigationOnScreenKeyboardMode)
+        if (navigationOnScreenKeyboardMode)
             return true;
 
         if (pref_keyboard_gestures_at_views_enable
                 && !symbolOnScreenKeyboardMode
-                && !IsInputMode()){
-                //Если мы не в поле ввода передаем жесты дальше
-                return false;
-        }
-        else if(mode_keyboard_gestures){
+                && !IsInputMode()) {
+            //Если мы не в поле ввода передаем жесты дальше
+            return false;
+        } else if (mode_keyboard_gestures) {
 
             //TODO: Подумать отдельно обрабатывать жесты по горизонтали и отдельно по вертикали ориентируясь на событие ACTION_UP
             //TODO: Для выделения с зажатым нулем - подумать переходить в режим выделения-с-SHIFT-ом через 2xSHIFT
@@ -910,38 +912,38 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             float motionEventY = motionEvent.getY();
 
             //Не ловим движение на нижнем ряду где поблел и переключение языка
-            if(motionEventY > ROW_4_BEGIN_Y) return true;
+            if (motionEventY > ROW_4_BEGIN_Y) return true;
 
             int motionEventAction = motionEvent.getAction();
-            if(!symbolOnScreenKeyboardMode){
+            if (!symbolOnScreenKeyboardMode) {
 
                 //Жесть по клавиатуре всегда начинается с ACTION_DOWN
-                if(motionEventAction == MotionEvent.ACTION_DOWN
-                || motionEventAction == MotionEvent.ACTION_POINTER_DOWN) {
-                    if(debug_gestures)
+                if (motionEventAction == MotionEvent.ACTION_DOWN
+                        || motionEventAction == MotionEvent.ACTION_POINTER_DOWN) {
+                    if (debug_gestures)
                         Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
                     lastGestureX = motionEventX;
                     lastGestureY = motionEventY;
                     return true;
                 }
 
-                if(motionEventAction == MotionEvent.ACTION_MOVE
+                if (motionEventAction == MotionEvent.ACTION_MOVE
                         || motionEventAction == MotionEvent.ACTION_UP
                         || motionEventAction == MotionEvent.ACTION_POINTER_UP) {
                     float deltaX = motionEventX - lastGestureX;
-                    float absDeltaX = deltaX < 0 ? -1*deltaX : deltaX;
+                    float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
                     float deltaY = motionEventY - lastGestureY;
-                    float absDeltaY = deltaY < 0 ? -1*deltaY : deltaY;
+                    float absDeltaY = deltaY < 0 ? -1 * deltaY : deltaY;
 
                     int motion_delta_min_x = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
                     int motion_delta_min_y = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
 
-                    if(absDeltaX >= absDeltaY) {
-                        if(absDeltaX < motion_delta_min_x)
+                    if (absDeltaX >= absDeltaY) {
+                        if (absDeltaX < motion_delta_min_x)
                             return true;
                         if (deltaX > 0) {
                             CharSequence c = inputConnection.getTextAfterCursor(1, 0);
-                            if(c.length() > 0) {
+                            if (c.length() > 0) {
                                 keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                                 DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                             }
@@ -956,8 +958,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
                             Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
                         }
-                    } else if (mode_keyboard_gestures_plus_up_down){
-                        if(absDeltaY < motion_delta_min_y)
+                    } else if (mode_keyboard_gestures_plus_up_down) {
+                        if (absDeltaY < motion_delta_min_y)
                             return true;
                         //int times = Math.round(absDeltaY / motion_delta_min_y);
                         if (deltaY < 0) {
@@ -969,7 +971,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                             }
                         } else {
                             CharSequence c = inputConnection.getTextAfterCursor(1, 0);
-                            if(c.length() > 0) {
+                            if (c.length() > 0) {
                                 //TODO: Родная клава просто вылеает из режима Keypad, когда заползаешь за поле ввода, найти где это происходит и сделать также или как минимум взять это условие в вернуть курсор обратно
                                 keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
                                 Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
@@ -980,11 +982,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     lastGestureX = motionEventX;
                     lastGestureY = motionEventY;
                 }
-            }else{
+            } else {
 
                 //TODO: Разобраться зачем это
-                if(motionEventAction == MotionEvent.ACTION_MOVE)keyboardView.coordsToIndexKey(motionEventX);
-                if(motionEventAction == MotionEvent.ACTION_UP  )keyboardView.hidePopup(true);
+                if (motionEventAction == MotionEvent.ACTION_MOVE)
+                    keyboardView.coordsToIndexKey(motionEventX);
+                if (motionEventAction == MotionEvent.ACTION_UP) keyboardView.hidePopup(true);
             }
             return true;
         }
@@ -1002,7 +1005,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     void UpdateKeyboardVisibilityOnPrefChange() {
-        if(pref_show_default_onscreen_keyboard) {
+        if (pref_show_default_onscreen_keyboard) {
             UpdateKeyboardModeVisualization(true);
             ShowKeyboard();
         } else {
@@ -1010,9 +1013,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
     }
 
-    private void HideSwipePanelOnHidePreferenceAndVisibleState()
-    {
-        if(!pref_show_default_onscreen_keyboard) {
+    private void HideSwipePanelOnHidePreferenceAndVisibleState() {
+        if (!pref_show_default_onscreen_keyboard) {
             HideKeyboard();
         }
     }
@@ -1027,7 +1029,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private void ShowKeyboard() {
         if (keyboardView.getVisibility() != View.VISIBLE)
             keyboardView.setVisibility(View.VISIBLE);
-        if(!keyboardView.isShown())
+        if (!keyboardView.isShown())
             this.showWindow(true);
     }
 
@@ -1036,39 +1038,38 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         if (isInput && mode_keyboard_gestures && !IsNavMode()) {
 
-            if(mode_keyboard_gestures_plus_up_down) {
+            if (mode_keyboard_gestures_plus_up_down) {
                 changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input_up_down);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
-            }
-            else {
+            } else {
                 changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
             }
-        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !IsNavMode()){
+        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !IsNavMode()) {
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
         } else {
             changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_off);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
         }
-        if(changed)
+        if (changed)
             notificationProcessor.UpdateNotificationGestureMode();
 
 
     }
 
-    private void UpdateKeyboardModeVisualization()
-    {
+    private void UpdateKeyboardModeVisualization() {
         UpdateKeyboardModeVisualization(pref_show_default_onscreen_keyboard);
     }
+
     private void UpdateKeyboardModeVisualization(boolean updateSwipePanelData) {
-        Log.d(TAG, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode="+ oneTimeShiftOneTimeBigMode +" doubleShiftCapsMode="+ doubleShiftCapsMode +" doubleAltPressAllSymbolsAlted="+ doubleAltPressAllSymbolsAlted +" altPressSingleSymbolAltedMode="+ altPressSingleSymbolAltedMode);
+        Log.d(TAG, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode=" + oneTimeShiftOneTimeBigMode + " doubleShiftCapsMode=" + doubleShiftCapsMode + " doubleAltPressAllSymbolsAlted=" + doubleAltPressAllSymbolsAlted + " altPressSingleSymbolAltedMode=" + altPressSingleSymbolAltedMode);
         KeybordLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
         String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
         boolean changed = false;
         boolean needUsefullKeyboard = false;
-        if(IsNavMode()){
-            if(!fnSymbolOnScreenKeyboardMode){
+        if (IsNavMode()) {
+            if (!fnSymbolOnScreenKeyboardMode) {
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav);
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_NAV_TEXT);
             } else {
@@ -1079,7 +1080,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             keyboardView.setNavigationLayer();
             needUsefullKeyboard = true;
-        }else if(symbolOnScreenKeyboardMode) {
+        } else if (symbolOnScreenKeyboardMode) {
 
             if (IsSym2Mode()) {
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
@@ -1089,17 +1090,18 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
             }
             //TODO: Тут плодятся объекты зачем-то
-            onScreenKeyboardSymbols = new Keyboard(this, R.xml.symbol);;
+            onScreenKeyboardSymbols = new Keyboard(this, R.xml.symbol);
+            ;
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             //TODO: Сделать предзагрузку этой клавиатуры
-            if(symPadAltShift) {
+            if (symPadAltShift) {
                 keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), true);
-            }else{
+            } else {
                 keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), false);
             }
             needUsefullKeyboard = true;
 
-        }else if(doubleAltPressAllSymbolsAlted || metaAltPressed){
+        } else if (doubleAltPressAllSymbolsAlted || metaAltPressed) {
             if (IsSym2Mode()) {
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
@@ -1108,7 +1110,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
             }
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateSwipePanelData) {
+            if (updateSwipePanelData) {
                 if (IsSym2Mode()) {
                     keyboardView.setLang(TITLE_SYM2_TEXT);
                 } else {
@@ -1116,7 +1118,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 }
                 keyboardView.setAlt();
             }
-        }else if(altPressSingleSymbolAltedMode){
+        } else if (altPressSingleSymbolAltedMode) {
             if (IsSym2Mode()) {
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym_one);
@@ -1125,7 +1127,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt_one);
             }
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateSwipePanelData) {
+            if (updateSwipePanelData) {
                 if (IsSym2Mode()) {
                     keyboardView.setLang(TITLE_SYM2_TEXT);
                 } else {
@@ -1133,20 +1135,20 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 }
                 keyboardView.setAlt();
             }
-        }else if(doubleShiftCapsMode || metaShiftPressed){
+        } else if (doubleShiftCapsMode || metaShiftPressed) {
             changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
             changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconCaps);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateSwipePanelData) {
+            if (updateSwipePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
                 keyboardView.setShiftAll();
                 keyboardView.setLetterKB();
             }
-        }else if(oneTimeShiftOneTimeBigMode){
+        } else if (oneTimeShiftOneTimeBigMode) {
             changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
             changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconFirstShift);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateSwipePanelData) {
+            if (updateSwipePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
                 keyboardView.setShiftFirst();
                 keyboardView.setLetterKB();
@@ -1157,26 +1159,36 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
             changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconLittle);
             keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
-            if(updateSwipePanelData) {
+            if (updateSwipePanelData) {
                 keyboardView.notShift();
                 keyboardView.setLang(languageOnScreenNaming);
                 keyboardView.setLetterKB();
             }
         }
 
-        if(needUsefullKeyboard)
-            if(IsInputMode())
+        if (needUsefullKeyboard)
+            if (IsInputMode())
                 ShowKeyboard();
             else
                 HideKeyboard();
         else
             HideSwipePanelOnHidePreferenceAndVisibleState();
 
-        if(changed)
+        if (changed)
             notificationProcessor.UpdateNotificationLayoutMode();
     }
 
     //endregion
+
+    //region CALL_MANAGE
+
+    private TelephonyManager getTelephonyManager() {
+        return (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
+    }
+
+    private TelecomManager getTelecomManager() {
+        return (TelecomManager) this.getSystemService(Context.TELECOM_SERVICE);
+    }
 
     private boolean IsCalling() {
         return callStateCallback.isCalling();
@@ -1186,7 +1198,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean AcceptCallOnCalling() {
         Log.d(TAG, "handleShiftOnCalling hello");
         // Accept calls using SHIFT key
-        if (callStateCallback.isCalling() ) {
+        if (callStateCallback.isCalling()) {
             Log.d(TAG, "handleShiftOnCalling callStateCallback - Calling");
             TelecomManager tm = getTelecomManager();
 
@@ -1200,29 +1212,33 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return false;
     }
 
-    private boolean handleAltOnCalling() {
-        // End calls using ALT key
-        if (callStateCallback.isCalling() ) {
-            TelecomManager tm = getTelecomManager();
-
-            if (tm != null && this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "handleAltOnCalling endCall");
-                //TODO: Problem: tm.endCall();
-                //keyDownUp(KeyEvent.KEYCODE_ENDCALL);
-                return true;
+    private boolean DeclinePhone() {
+        if (telecomManager != null && this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED && telecomManager.isInCall()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                if (telecomManager != null) {
+                    boolean success = telecomManager.endCall();
+                    return success;
+                }
+            } else {
+                try {
+                    Class classTelephony = Class.forName(telephonyManager.getClass().getName());
+                    Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
+                    methodGetITelephony.setAccessible(true);
+                    ITelephony telephonyService = (ITelephony) methodGetITelephony.invoke(telephonyManager);
+                    if (telephonyService != null) {
+                        return telephonyService.endCall();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.d("LOG", "Cant disconnect call");
+                    return false;
+                }
             }
-
         }
         return false;
     }
 
-    private TelephonyManager getTelephonyManager() {
-        return (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
-    }
-
-    private TelecomManager getTelecomManager() {
-        return (TelecomManager) this.getSystemService(Context.TELECOM_SERVICE);
-    }
+    //endregion
 
     private void ChangeLanguage() {
         keyboardLayoutManager.ChangeLayout();
@@ -1545,6 +1561,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //region ALT
 
     boolean onAltShortPress(KeyPressData keyPressData) {
+        if(IsCalling() && !IsInputMode()) {
+            if(DeclinePhone()) return true;
+        }
         if(symbolOnScreenKeyboardMode) {
             symPadAltShift = !symPadAltShift;
         } else if(doubleAltPressAllSymbolsAlted){
