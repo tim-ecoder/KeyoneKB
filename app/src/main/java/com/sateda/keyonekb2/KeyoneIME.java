@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
@@ -144,6 +143,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private int pref_gesture_motion_sensitivity = 10;
     private boolean pref_show_toast = false;
     private boolean pref_alt_space = true;
+    private boolean pref_space_accept_call = false;
     private boolean pref_flag = false;
     private boolean pref_long_press_key_alt_symbol = false;
     private boolean pref_show_default_onscreen_keyboard = true;
@@ -1179,7 +1179,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //endregion
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private boolean handleShiftOnCalling() {
+    private boolean AcceptCallOnCalling() {
         Log.d(TAG, "handleShiftOnCalling hello");
         // Accept calls using SHIFT key
         if (callStateCallback.isCalling() ) {
@@ -1417,6 +1417,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         if(mSettings.contains(APP_PREFERENCES_SHOW_TOAST)) {
             pref_show_toast = mSettings.getBoolean(APP_PREFERENCES_SHOW_TOAST, false);
+        }
+
+        if(mSettings.contains(APP_PREFERENCES_SPACE_ACCEPT_CALL)) {
+            pref_space_accept_call = mSettings.getBoolean(APP_PREFERENCES_SPACE_ACCEPT_CALL, false);
         }
 
         if(mSettings.contains(APP_PREFERENCES_ALT_SPACE)) {
@@ -1722,7 +1726,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     boolean onSpaceDoublePress(KeyPressData keyPressData) {
+        if(pref_space_accept_call && AcceptCallOnCalling())
+            return true;
         InputConnection inputConnection = getCurrentInputConnection();
         CharSequence back_letter = inputConnection.getTextBeforeCursor(2,0);
         Log.d(TAG2, "KEYCODE_SPACE back_letter "+back_letter);
