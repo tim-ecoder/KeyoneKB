@@ -1178,6 +1178,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //endregion
 
+    private boolean IsCalling() {
+        return callStateCallback.isCalling();
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean AcceptCallOnCalling() {
         Log.d(TAG, "handleShiftOnCalling hello");
@@ -1711,10 +1715,16 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return (meta & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
     }
 
+    //endregion
+    //region SPACE
+
     boolean onSpaceShortPress(KeyPressData keyPressData) {
         if(metaShiftPressed || IsShiftMeta (keyPressData.MetaBase))
             ChangeLanguage();
         else {
+            if(pref_space_accept_call && IsCalling() && !IsInputMode()) {
+                return true;
+            }
             ResetGesturesMode();
             if(altPressSingleSymbolAltedMode && pref_alt_space) {
                 altPressSingleSymbolAltedMode = false;
@@ -1954,6 +1964,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return true;
         }
         int code2send;
+
+        if(IsAltMode()) {
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
+            SendLetterOrSymbol(code2send);
+            return true;
+        }
 
         if(IsNotPairedLetter(keyPressData)) {
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
