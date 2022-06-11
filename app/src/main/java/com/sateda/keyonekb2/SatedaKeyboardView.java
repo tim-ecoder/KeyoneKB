@@ -224,8 +224,8 @@ public class SatedaKeyboardView extends KeyboardView {
         }
     }
 
-    public void setFnSymbol(boolean enable){
-        fnSymbol = enable;
+    public void SetFnKeyboardMode(boolean isEnabled){
+        fnSymbol = isEnabled;
         invalidateAllKeys();
     }
 
