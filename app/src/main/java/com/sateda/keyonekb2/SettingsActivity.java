@@ -23,13 +23,13 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String APP_PREFERENCES_RU_LANG = "switch_ru_lang";
     public static final String APP_PREFERENCES_TRANSLIT_RU_LANG = "switch_translit_ru_lang";
     public static final String APP_PREFERENCES_UA_LANG = "switch_ua_lang";
-    public static final String APP_PREFERENCES_SENS_BOTTON_BAR = "sens_botton_bar";
+    public static final String APP_PREFERENCES_SENS_BOTTOM_BAR = "sens_bottom_bar";
     public static final String APP_PREFERENCES_SHOW_TOAST = "show_toast";
     public static final String APP_PREFERENCES_ALT_SPACE = "alt_space";
-    public static final String APP_PREFERENCES_LONGPRESS_ALT = "longpress_alt";
-    public static final String APP_PREFERENCES_SPACE_ACCEPT_CALL = "space_accept_call";
+    public static final String APP_PREFERENCES_LONG_PRESS_ALT = "long_press_alt";
+    public static final String APP_PREFERENCES_MANAGE_CALL = "manage_call";
     public static final String APP_PREFERENCES_FLAG = "flag";
-    public static final String APP_PREFERENCES_HEIGHT_BOTTON_BAR = "height_botton_bar";
+    public static final String APP_PREFERENCES_HEIGHT_BOTTOM_BAR = "height_bottom_bar";
     public static final String APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD = "show_default_onscreen_keyboard";
     public static final String APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
 
@@ -41,13 +41,13 @@ public class SettingsActivity extends AppCompatActivity {
     private Switch switch_translit_ru_lang;
     private Switch switch_ua_lang;
     private Switch toast_show_lang;
-    private SeekBar sens_botton_bar;
+    private SeekBar sens_bottom_bar;
     private Switch switch_alt_space;
-    private Switch switch_longpress_alt;
-    private Switch switch_space_accept_call;
+    private Switch switch_long_press_alt;
+    private Switch switch_manage_call;
     private Switch switch_flag;
     private RelativeLayout layout;
-    private SeekBar height_botton_bar;
+    private SeekBar height_bottom_bar;
     private Switch switch_show_default_onscreen_keyboard;
     private Switch switch_keyboard_gestures_at_views_enabled;
 
@@ -93,11 +93,11 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        sens_botton_bar = (SeekBar) findViewById(R.id.seekBar);
-        sens_botton_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        sens_bottom_bar = (SeekBar) findViewById(R.id.seekBar);
+        sens_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                changeSensitivityBottonBar(progress);
+                changeSensitivityBottomBar(progress);
             }
 
             @Override
@@ -119,19 +119,19 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_longpress_alt = (Switch) findViewById(R.id.switch_longpress_alt);
-        switch_longpress_alt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        switch_long_press_alt = (Switch) findViewById(R.id.switch_long_press_alt);
+        switch_long_press_alt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeLongpressAlt(isChecked);
+                changeLongPressAlt(isChecked);
             }
         });
 
-        switch_space_accept_call = (Switch) findViewById(R.id.switch_space_accept_call);
-        switch_space_accept_call.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        switch_manage_call = (Switch) findViewById(R.id.switch_manage_call);
+        switch_manage_call.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeSpaceAcceptCall(isChecked);
+                changeManageCall(isChecked);
             }
         });
 
@@ -159,11 +159,11 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        height_botton_bar = (SeekBar) findViewById(R.id.seekBarBtnPanel);
-        height_botton_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        height_bottom_bar = (SeekBar) findViewById(R.id.seekBarBtnPanel);
+        height_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                changeHeightBottonBar(progress);
+                changeHeightBottomBar(progress);
             }
 
             @Override
@@ -191,8 +191,8 @@ public class SettingsActivity extends AppCompatActivity {
         if(mSettings.contains(APP_PREFERENCES_UA_LANG)) {
             switch_ua_lang.setChecked(mSettings.getBoolean(APP_PREFERENCES_UA_LANG, true));
         }
-        if(mSettings.contains(APP_PREFERENCES_SENS_BOTTON_BAR)) {
-            sens_botton_bar.setProgress(mSettings.getInt(APP_PREFERENCES_SENS_BOTTON_BAR, 10));
+        if(mSettings.contains(APP_PREFERENCES_SENS_BOTTOM_BAR)) {
+            sens_bottom_bar.setProgress(mSettings.getInt(APP_PREFERENCES_SENS_BOTTOM_BAR, 10));
         }
         if(mSettings.contains(APP_PREFERENCES_SHOW_TOAST)) {
             toast_show_lang.setChecked(mSettings.getBoolean(APP_PREFERENCES_SHOW_TOAST, false));
@@ -200,17 +200,17 @@ public class SettingsActivity extends AppCompatActivity {
         if(mSettings.contains(APP_PREFERENCES_ALT_SPACE)) {
             switch_alt_space.setChecked(mSettings.getBoolean(APP_PREFERENCES_ALT_SPACE, true));
         }
-        if(mSettings.contains(APP_PREFERENCES_LONGPRESS_ALT)) {
-            switch_longpress_alt.setChecked(mSettings.getBoolean(APP_PREFERENCES_LONGPRESS_ALT, false));
+        if(mSettings.contains(APP_PREFERENCES_LONG_PRESS_ALT)) {
+            switch_long_press_alt.setChecked(mSettings.getBoolean(APP_PREFERENCES_LONG_PRESS_ALT, false));
         }
-        if(mSettings.contains(APP_PREFERENCES_SPACE_ACCEPT_CALL)) {
-            switch_space_accept_call.setChecked(mSettings.getBoolean(APP_PREFERENCES_SPACE_ACCEPT_CALL, false));
+        if(mSettings.contains(APP_PREFERENCES_MANAGE_CALL)) {
+            switch_manage_call.setChecked(mSettings.getBoolean(APP_PREFERENCES_MANAGE_CALL, false));
         }
         if(mSettings.contains(APP_PREFERENCES_FLAG)) {
             switch_flag.setChecked(mSettings.getBoolean(APP_PREFERENCES_FLAG, false));
         }
-        if(mSettings.contains(APP_PREFERENCES_HEIGHT_BOTTON_BAR)) {
-            height_botton_bar.setProgress(mSettings.getInt(APP_PREFERENCES_HEIGHT_BOTTON_BAR, 10));
+        if(mSettings.contains(APP_PREFERENCES_HEIGHT_BOTTOM_BAR)) {
+            height_bottom_bar.setProgress(mSettings.getInt(APP_PREFERENCES_HEIGHT_BOTTOM_BAR, 10));
         }
         if(mSettings.contains(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD)) {
             switch_show_default_onscreen_keyboard.setChecked(mSettings.getBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, true));
@@ -238,15 +238,15 @@ public class SettingsActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void changeSensitivityBottonBar(int val){
+    private void changeSensitivityBottomBar(int val){
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putInt(APP_PREFERENCES_SENS_BOTTON_BAR, val);
+        editor.putInt(APP_PREFERENCES_SENS_BOTTOM_BAR, val);
         editor.apply();
     }
 
-    private void changeHeightBottonBar(int val){
+    private void changeHeightBottomBar(int val){
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putInt(APP_PREFERENCES_HEIGHT_BOTTON_BAR, val);
+        editor.putInt(APP_PREFERENCES_HEIGHT_BOTTOM_BAR, val);
         editor.apply();
     }
 
@@ -262,13 +262,13 @@ public class SettingsActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void changeLongpressAlt(boolean isChecked){
+    private void changeLongPressAlt(boolean isChecked){
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_LONGPRESS_ALT, isChecked);
+        editor.putBoolean(APP_PREFERENCES_LONG_PRESS_ALT, isChecked);
         editor.apply();
     }
 
-    private void changeSpaceAcceptCall(boolean isChecked){
+    private void changeManageCall(boolean isChecked){
 
         if(isChecked && this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED){
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS)!=PackageManager.PERMISSION_GRANTED) {
@@ -277,7 +277,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_SPACE_ACCEPT_CALL, isChecked);
+        editor.putBoolean(APP_PREFERENCES_MANAGE_CALL, isChecked);
         editor.apply();
     }
 

@@ -21,7 +21,8 @@
     <string name="pref_p_4_name">4. Флаг на нижней панели</string>
     <string name="pref_p_5_name">5. При удержании буквы ввод соответствующих знаков из ALT/SYM раскладки</string>
     <string name="pref_p_5_hint">Если настройка выключена, при зажатии будет вводиться Заглавная буква;\n Больше полезностей для работы Заглавными буквами см. инструкцию п.В</string>
-    <string name="pref_p_6_name">6. Поднимать трубку двойным пробелом</string>
+    <string name="pref_p_6_name">6. Управление телефонными вызовами</string>
+    <string name="pref_p_6_hint"> (Не в тестовом редакторе)\n 2хSpace поднимает трубку;\n 1хSYM кладет трубку.</string>
     <string name="pref_p_7_name">7. Высота нижней панели:</string>
     <string name="pref_p_7_value">Меньше | Больше</string>
     <string name="pref_p_8_name">8. Показывать нижнюю наэкранную свайп-панель</string>
@@ -47,4 +48,5 @@
     <string name="KB_CORE_TIME_SHORT_2ND_LONG_PRESS">600</string>
     <string name="KB_CORE_TIME_LONG_PRESS">300</string>
     <string name="KB_CORE_TIME_SHORT_PRESS">200</string>
+    <string name="WAIT_GESTURE_UPON_KEY_0">1000</string>
 </resources>

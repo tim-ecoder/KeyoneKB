@@ -12,7 +12,6 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -34,32 +33,17 @@ import com.sateda.keyonekb2.input.CallStateCallback;
 import static android.content.ContentValues.TAG;
 import static java.lang.Thread.sleep;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 @Keep
 public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
 
-    public static final int TIME_WAIT_GESTURE_UPON_KEY_0 = 1000;
     private static final boolean DEBUG = false;
-
-    public static final String APP_PREFERENCES = "kbsettings";
-    public static final String APP_PREFERENCES_RU_LANG = "switch_ru_lang";
-    public static final String APP_PREFERENCES_TRANSLIT_RU_LANG = "switch_translit_ru_lang";
-    public static final String APP_PREFERENCES_UA_LANG = "switch_ua_lang";
-    public static final String APP_PREFERENCES_SENS_BOTTON_BAR = "sens_botton_bar";
-    public static final String APP_PREFERENCES_SHOW_TOAST = "show_toast";
-    public static final String APP_PREFERENCES_LONGPRESS_ALT = "longpress_alt";
-    public static final String APP_PREFERENCES_SPACE_ACCEPT_CALL = "space_accept_call";
-    public static final String APP_PREFERENCES_ALT_SPACE = "alt_space";
-    public static final String APP_PREFERENCES_FLAG = "flag";
-    public static final String APP_PREFERENCES_HEIGHT_BOTTON_BAR = "height_botton_bar";
-    public static final String APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_SWIPE_PANEL = "show_default_onscreen_keyboard";
-    public static final String APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
 
     public static final int CHAR_0 = 48;
 
     public int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
+    public int TIME_WAIT_GESTURE_UPON_KEY_0;
     public int ROW_4_BEGIN_Y;
     public String TITLE_NAV_TEXT;
     public String TITLE_NAV_FV_TEXT;
@@ -147,7 +131,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private int pref_gesture_motion_sensitivity = 10;
     private boolean pref_show_toast = false;
     private boolean pref_alt_space = true;
-    private boolean pref_space_accept_call = false;
+    private boolean pref_manage_call = false;
     private boolean pref_flag = false;
     private boolean pref_long_press_key_alt_symbol = false;
     private boolean pref_show_default_onscreen_keyboard = true;
@@ -160,6 +144,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     TelephonyManager telephonyManager;
     TelecomManager telecomManager;
+
+    public KeyoneIME() {
+
+    }
 
     @Override
     public void onDestroy() {
@@ -182,6 +170,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         TITLE_GESTURE_OFF = getString(R.string.kb_state_gesture_off);
         MAGIC_KEYBOARD_GESTURE_MOTION_CONST = Integer.parseInt(getString(R.string.KB_CORE_MOTION_BASE_SENSITIVITY));
         ROW_4_BEGIN_Y = Integer.parseInt(getString(R.string.KB_CORE_ROW_4_BEGIN_Y));
+        TIME_WAIT_GESTURE_UPON_KEY_0 = Integer.parseInt(getString(R.string.WAIT_GESTURE_UPON_KEY_0));
 
         callStateCallback = new CallStateCallback();
         telephonyManager = getTelephonyManager();
@@ -198,7 +187,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         pref_alt_space = true;
         pref_long_press_key_alt_symbol = false;
 
-        mSettings = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        mSettings = getSharedPreferences(SettingsActivity.APP_PREFERENCES, Context.MODE_PRIVATE);
         LoadSettingsAndKeyboards();
         LoadKeyProcessingMechanics();
 
@@ -265,17 +254,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
 
-        /*
-        if(mode_keyboard_gestures
-                && mode_keyboard_gestures_plus_up_down
-                && !IsInputMode()
-                && lastPackageName.equals(editorInfo.packageName)) {
-            keyDownUp4dpadMovements(KeyEvent.KEYCODE_DPAD_DOWN, getCurrentInputConnection());
-            //keyDownUp(KeyEvent.KEYCODE_TAB, getCurrentInputConnection(), KeyEvent.META_SHIFT_ON);
-            //keyDownUp(KeyEvent.KEYCODE_TAB, getCurrentInputConnection());
-            return;
-        }
-*/
         if (editorInfo.packageName.equals("com.blackberry.contacts")) {
             startInputAtBbContactsApp = true;
         } else {
@@ -461,9 +439,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     private boolean IsBbLauncherKeyCode(int keyCode, int scanCode, int meta) {
         if (keyCode == KeyEvent.KEYCODE_0 && (meta & KeyEvent.META_ALT_ON) == 0) return false;
-        if (keyCode == KeyEvent.KEYCODE_SPACE && IsShiftMeta(meta)) return false;
         if (keyCode == KeyEvent.KEYCODE_CTRL_LEFT) return false;
         if (keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) return false;
+        if(pref_manage_call) {
+            if (keyCode == KeyEvent.KEYCODE_SPACE) return false;
+            if (keyCode == KeyEvent.KEYCODE_SYM) return false;
+        } else {
+            if (keyCode == KeyEvent.KEYCODE_SPACE && IsShiftMeta(meta)) return false;
+        }
         return true;
     }
 
@@ -1180,7 +1163,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //endregion
 
-    //region CALL_MANAGE
+    //region CALL_MANAGER
 
     private TelephonyManager getTelephonyManager() {
         return (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
@@ -1237,6 +1220,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         return false;
     }
+
 
     //endregion
 
@@ -1411,51 +1395,51 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         boolean lang_translit_ru_on = false;
         boolean lang_ua_on = false;
 
-        if(mSettings.contains(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_SWIPE_PANEL)) {
-            pref_show_default_onscreen_keyboard = mSettings.getBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_SWIPE_PANEL, true);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD)) {
+            pref_show_default_onscreen_keyboard = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, true);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED)) {
-            pref_keyboard_gestures_at_views_enable = mSettings.getBoolean(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, false);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED)) {
+            pref_keyboard_gestures_at_views_enable = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, false);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_RU_LANG)) {
-            lang_ru_on = mSettings.getBoolean(APP_PREFERENCES_RU_LANG, true);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_RU_LANG)) {
+            lang_ru_on = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_RU_LANG, true);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_TRANSLIT_RU_LANG)) {
-            lang_translit_ru_on = mSettings.getBoolean(APP_PREFERENCES_TRANSLIT_RU_LANG, false);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_TRANSLIT_RU_LANG)) {
+            lang_translit_ru_on = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_TRANSLIT_RU_LANG, false);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_UA_LANG)) {
-            lang_ua_on = mSettings.getBoolean(APP_PREFERENCES_UA_LANG, false);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_UA_LANG)) {
+            lang_ua_on = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_UA_LANG, false);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_SENS_BOTTON_BAR)) {
-            pref_gesture_motion_sensitivity = mSettings.getInt(APP_PREFERENCES_SENS_BOTTON_BAR, 1);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SENS_BOTTOM_BAR)) {
+            pref_gesture_motion_sensitivity = mSettings.getInt(SettingsActivity.APP_PREFERENCES_SENS_BOTTOM_BAR, 1);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_SHOW_TOAST)) {
-            pref_show_toast = mSettings.getBoolean(APP_PREFERENCES_SHOW_TOAST, false);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SHOW_TOAST)) {
+            pref_show_toast = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_SHOW_TOAST, false);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_SPACE_ACCEPT_CALL)) {
-            pref_space_accept_call = mSettings.getBoolean(APP_PREFERENCES_SPACE_ACCEPT_CALL, false);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_MANAGE_CALL)) {
+            pref_manage_call = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_MANAGE_CALL, false);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_ALT_SPACE)) {
-            pref_alt_space = mSettings.getBoolean(APP_PREFERENCES_ALT_SPACE, true);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_ALT_SPACE)) {
+            pref_alt_space = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_ALT_SPACE, true);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_ALT_SPACE)) {
-            pref_long_press_key_alt_symbol = mSettings.getBoolean(APP_PREFERENCES_LONGPRESS_ALT, false);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_LONG_PRESS_ALT)) {
+            pref_long_press_key_alt_symbol = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_LONG_PRESS_ALT, false);
         }
 
-        if(mSettings.contains(APP_PREFERENCES_FLAG)) {
-            pref_flag = mSettings.getBoolean(APP_PREFERENCES_FLAG, false);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_FLAG)) {
+            pref_flag = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_FLAG, false);
         }
-        if(mSettings.contains(APP_PREFERENCES_HEIGHT_BOTTON_BAR)) {
-            pref_height_bottom_bar = mSettings.getInt(APP_PREFERENCES_HEIGHT_BOTTON_BAR, 10);
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR)) {
+            pref_height_bottom_bar = mSettings.getInt(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR, 10);
         }
         keyboardLayoutManager.Initialize(lang_ru_on, lang_translit_ru_on, lang_ua_on, getResources());
     }
@@ -1561,9 +1545,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //region ALT
 
     boolean onAltShortPress(KeyPressData keyPressData) {
-        if(IsCalling() && !IsInputMode()) {
-            if(DeclinePhone()) return true;
-        }
         if(symbolOnScreenKeyboardMode) {
             symPadAltShift = !symPadAltShift;
         } else if(doubleAltPressAllSymbolsAlted){
@@ -1599,6 +1580,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //region SYM
 
     boolean onSymShortPress(KeyPressData keyPressData) {
+        if(pref_manage_call && IsCalling() && !IsInputMode()) {
+            if(DeclinePhone()) return true;
+        }
         if(metaAltPressed) { //вызов меню
             InputConnection inputConnection = getCurrentInputConnection();
             if(inputConnection!=null)
@@ -1737,13 +1721,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //endregion
     //region SPACE
 
+
     boolean onSpaceShortPress(KeyPressData keyPressData) {
+        if(pref_manage_call && IsCalling() && !IsInputMode()) {
+            return true;
+        }
         if(metaShiftPressed || IsShiftMeta (keyPressData.MetaBase))
             ChangeLanguage();
         else {
-            if(pref_space_accept_call && IsCalling() && !IsInputMode()) {
-                return true;
-            }
             ResetGesturesMode();
             if(altPressSingleSymbolAltedMode && pref_alt_space) {
                 altPressSingleSymbolAltedMode = false;
@@ -1757,8 +1742,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     boolean onSpaceDoublePress(KeyPressData keyPressData) {
-        if(pref_space_accept_call && AcceptCallOnCalling())
-            return true;
+        if(pref_manage_call && IsCalling() && !IsInputMode()) {
+            if (AcceptCallOnCalling()) return true;
+        }
         InputConnection inputConnection = getCurrentInputConnection();
         CharSequence back_letter = inputConnection.getTextBeforeCursor(2,0);
         Log.d(TAG2, "KEYCODE_SPACE back_letter "+back_letter);

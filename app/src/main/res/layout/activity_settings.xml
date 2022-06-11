@@ -154,7 +154,7 @@
         android:background="?android:attr/listDivider" />
 
     <Switch
-        android:id="@+id/switch_longpress_alt"
+        android:id="@+id/switch_long_press_alt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider7"
@@ -162,33 +162,39 @@
         android:textSize="24sp"
         tools:checked="true" />
     <TextView
-        android:id="@+id/help_switch_longpress_alt"
+        android:id="@+id/help_switch_long_press_alt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/switch_longpress_alt"
+        android:layout_below="@id/switch_long_press_alt"
         android:text="@string/pref_p_5_hint" />
 
     <View
         android:id="@+id/divider8"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@id/help_switch_longpress_alt"
+        android:layout_below="@id/help_switch_long_press_alt"
         android:background="?android:attr/listDivider" />
 
     <Switch
-        android:id="@+id/switch_space_accept_call"
+        android:id="@+id/switch_manage_call"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/divider8"
         android:text="@string/pref_p_6_name"
         android:textSize="24sp"
         tools:checked="true" />
+    <TextView
+        android:id="@+id/text_manage_call_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/switch_manage_call"
+        android:text="@string/pref_p_6_hint" />
 
     <View
         android:id="@+id/divider9"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@id/switch_space_accept_call"
+        android:layout_below="@id/text_manage_call_hint"
         android:background="?android:attr/listDivider" />
 
     <TextView
@@ -235,7 +241,7 @@
         tools:checked="true" />
 
     <TextView
-        android:id="@+id/text_help_pocket_patch"
+        android:id="@+id/text_help_p8"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_show_default_onscreen_keyboard"
@@ -244,7 +250,7 @@
         android:id="@+id/divider11"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@id/text_help_pocket_patch"
+        android:layout_below="@id/text_help_p8"
         android:background="?android:attr/listDivider" />
     <Switch
         android:id="@+id/switch_keyboard_gestures_at_views_enabled"
