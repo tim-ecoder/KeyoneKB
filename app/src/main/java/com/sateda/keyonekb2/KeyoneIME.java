@@ -1681,17 +1681,35 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //region OTHER
 
+    int findPrevEnter(CharSequence c) {
+        if(c == null || c.length() == 0) {
+            return 0;
+        }
+        int len = c.length();
+        if(c.charAt(len - 1) == '\r' || c.charAt(len-1) == '\n') {
+            len--;
+        }
+        for(int i = len; i > 0; i--) {
+            if(c.charAt(i-1) == '\r' || c.charAt(i-1) == '\n')
+                return i;
+        }
+        return 0;
+    }
+
     boolean onShortPressEnter(KeyPressData keyPressData) {
         if(metaShiftPressed) {
             InputConnection inputConnection = getCurrentInputConnection();
+            CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
+            int pos = findPrevEnter(c);
+            inputConnection.setSelection(pos, pos);
             //Иначе текст будет выделяться
-            inputConnection.clearMetaKeyStates(KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON);
-            CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
+            //inputConnection.clearMetaKeyStates(KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON);
+            /*
             if (c.length() > 0 && c.charAt(0) != '\r' && c.charAt(0) != '\n') {
                 keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_MOVE_HOME, inputConnection);
             } else {
                 MoveCursorUpSafe(inputConnection);
-            }
+            }*/
             return true;
         }
         ResetGesturesMode();
