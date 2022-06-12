@@ -96,6 +96,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private Boolean startInputAtBbContactsApp = false; // костыль для приложения Блекбери контакты
     private Boolean startInputAtBbPhoneApp = false; // аналогичный костыль для приложения Телефон чтобы в нем искалось на русском языке
     private Boolean inputAtBbLauncherApp = false;
+    private Boolean startInputAtTelegram = false;
 
     private SharedPreferences mSettings;
 
@@ -257,32 +258,29 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
 
-        if (editorInfo.packageName.equals("com.blackberry.contacts")) {
-            startInputAtBbContactsApp = true;
-        } else {
-            startInputAtBbContactsApp = false;
-        }
+        //region HACK-s
 
         if (editorInfo.packageName.equals("com.blackberry.blackberrylauncher")) {
             inputAtBbLauncherApp = true;
         } else {
             inputAtBbLauncherApp = false;
         }
-
+        if (editorInfo.packageName.equals("com.blackberry.contacts")) {
+            startInputAtBbContactsApp = true;
+        } else {
+            startInputAtBbContactsApp = false;
+        }
         if (editorInfo.packageName.equals("com.android.dialer")) {
             startInputAtBbPhoneApp = true;
         } else {
             startInputAtBbPhoneApp = false;
         }
-
-        /*
-        // ХАК для телеграма т.к. когда входишь в диалог он создает какой-то еще Input и несколько символов улетает туда
-        if(editorInfo.packageName.equals("org.telegram.messenger") && editorInfo.inputType == 0) {
+        if(editorInfo.packageName.equals("org.telegram.messenger")) {
             startInputAtTelegram = true;
         }else{
             startInputAtTelegram = false;
         }
-         */
+        //endregion
 
         // Обрабатываем переход между приложениями
         if (!editorInfo.packageName.equals(lastPackageName)) {
@@ -370,14 +368,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         keyboardView.hidePopup(false);
         Log.v(TAG, "onKeyDown " + event);
 
-        int scanCode = event.getScanCode();
-
         //region BB Launcher HACK
         //обработка главного экрана Блекбери
         //он хочет получать только родные клавиши, по этому ему отправляем почти все клавиши неизменными
-        if (inputAtBbLauncherApp
+
+        if (
+                inputAtBbLauncherApp
                 && !IsInputMode()
-                && IsBbLauncherKeyCode(keyCode, scanCode, event.getMetaState())) {
+                && IsBbLauncherKeyCode(keyCode, event.getMetaState())) {
             Log.d(TAG, "Oh! this fixBbkLauncher " + inputAtBbLauncherApp);
             return super.onKeyDown(keyCode, event);
         }
@@ -388,12 +386,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         int navigationKeyCode;
         InputConnection inputConnection = getCurrentInputConnection();
-        if (IsNavMode() &&
-                ((scanCode == 11) ||
-                        (scanCode == 5) ||
-                        (scanCode >= 16 && scanCode <= 25) ||
-                        (scanCode >= 30 && scanCode <= 38) ||
-                        (scanCode >= 44 && scanCode <= 50))) {
+        if (IsNavMode() && IsNavKeyCode(keyCode)) {
+            int scanCode = event.getScanCode();
             navigationKeyCode = getNavigationCode(scanCode);
 
             Log.d(TAG, "navigationKeyCode " + navigationKeyCode);
@@ -406,8 +400,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             if (inputConnection != null && navigationKeyCode != 0) {
                 //Удаляем из meta состояния SYM т.к. он мешает некоторым приложениям воспринимать NAV символы с зажатием SYM
                 int meta = event.getMetaState() & ~KeyEvent.META_SYM_ON;
-                keyDownUp(navigationKeyCode, inputConnection, meta);
-
+                keyDownUpKeepTouch(navigationKeyCode, inputConnection, meta);
+                //keyDownUpDefaultFlags(navigationKeyCode, inputConnection);
             }
             return true;
         }
@@ -439,27 +433,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         //region Блок навигационной клавиатуры
 
-        int scanCode = event.getScanCode();
-        //TODO: Разобраться
-        if (IsNavMode() &&
-                ((scanCode == 11) ||
-                        (scanCode == 5) ||
-                        (scanCode >= 16 && scanCode <= 25) ||
-                        (scanCode >= 30 && scanCode <= 38) ||
-                        (scanCode >= 44 && scanCode <= 50))) {
-            /*
-            int navigationKeyCode = getNavigationCode(scanCode);
-
-            if(navigationKeyCode == -7) return true;
-
-            InputConnection inputConnection = getCurrentInputConnection();
-            //TODO: Возможно надо перевести на способ отправки как в keyDownUp4dpadMovements (с флагами)
-            if(inputConnection!=null && navigationKeyCode != 0) {
-                inputConnection.sendKeyEvent(
-                        new KeyEvent(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, navigationKeyCode, 0, event.getMetaState(), -1, 0, 6));
-            }
-
-             */
+        if (IsNavMode() && IsNavKeyCode(keyCode)) {
             return true;
         }
         //endregion
@@ -477,6 +451,30 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return false;
 
         return true;
+    }
+
+    private boolean IsNavKeyCode(int keyCode) {
+        return keyCode == KeyEvent.KEYCODE_Q
+                || keyCode == KeyEvent.KEYCODE_A
+                || keyCode == KeyEvent.KEYCODE_P
+                //LEFT NAV BLOCK
+                || keyCode == KeyEvent.KEYCODE_W
+                || keyCode == KeyEvent.KEYCODE_E
+                || keyCode == KeyEvent.KEYCODE_R
+                || keyCode == KeyEvent.KEYCODE_T
+                || keyCode == KeyEvent.KEYCODE_S
+                || keyCode == KeyEvent.KEYCODE_D
+                || keyCode == KeyEvent.KEYCODE_F
+                || keyCode == KeyEvent.KEYCODE_G
+                //RIGHT BLOCK
+                || keyCode == KeyEvent.KEYCODE_Y
+                || keyCode == KeyEvent.KEYCODE_U
+                || keyCode == KeyEvent.KEYCODE_I
+                || keyCode == KeyEvent.KEYCODE_O
+                || keyCode == KeyEvent.KEYCODE_H
+                || keyCode == KeyEvent.KEYCODE_J
+                || keyCode == KeyEvent.KEYCODE_K
+                || keyCode == KeyEvent.KEYCODE_L;
     }
 
     //TODO: Вынести в XML
@@ -636,20 +634,20 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             switch (primaryCode) {
 
                 case 19: //UP
-                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
                 case 20: //DOWN
-                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
 
                 case 21: //LEFT
-                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
 
@@ -663,7 +661,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 case 123: //END
                 case 92:  //Page UP
                 case 93:  //Page DOWN
-                    keyDownUpNoMeta(primaryCode, inputConnection);
+                    keyDownUpNoMetaKeepTouch(primaryCode, inputConnection);
                     break;
 
                 case -7:  //Switch F1-F12
@@ -678,7 +676,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUpNoMeta(KeyEvent.KEYCODE_ENTER, inputConnection);
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
 
@@ -692,11 +690,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 case 32: //SPACE
                     break;
                 case 21: //LEFT
-                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
 
@@ -706,7 +704,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUpNoMeta(KeyEvent.KEYCODE_ENTER, inputConnection);
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, inputConnection);
                     DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
                     break;
                 default:
@@ -898,7 +896,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean MoveCursorDownSafe(InputConnection inputConnection) {
         CharSequence c = inputConnection.getTextAfterCursor(1, 0);
         if (c.length() > 0) {
-            keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
             DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
             return true;
         }
@@ -908,7 +906,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean MoveCursorUpSafe(InputConnection inputConnection) {
         CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
         if (c.length() > 0) {
-            keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
             DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
             return true;
         }
@@ -918,7 +916,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean MoveCursorLeftSafe(InputConnection inputConnection) {
         CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
         if (c.length() > 0) {
-            keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
             DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
             return true;
         }
@@ -928,7 +926,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean MoveCursorRightSafe(InputConnection inputConnection) {
         CharSequence c = inputConnection.getTextAfterCursor(1, 0);
         if (c.length() > 0) {
-            keyDownUpNoMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
             DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
             return true;
         }
@@ -1216,7 +1214,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         Log.d(TAG, "onGetSentenceSuggestions");
     }
 
-    private boolean IsBbLauncherKeyCode(int keyCode, int scanCode, int meta) {
+    private boolean IsBbLauncherKeyCode(int keyCode, int meta) {
         if (keyCode == KeyEvent.KEYCODE_0 && (meta & KeyEvent.META_ALT_ON) == 0) return false;
         if (keyCode == KeyEvent.KEYCODE_CTRL_LEFT) return false;
         if (keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) return false;
@@ -1246,8 +1244,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
     }
 
+    //region KeyDownUp
 
-    private static void keyDownUp(int keyEventCode, InputConnection ic) {
+    private static void keyDownUpDefaultFlags(int keyEventCode, InputConnection ic) {
         if (ic == null) return;
 
         ic.sendKeyEvent(
@@ -1256,42 +1255,32 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
     }
 
-    private static void keyDownUp(int keyEventCode, InputConnection ic, int meta) {
+    private static void keyDownUp(int keyEventCode, InputConnection ic, int meta, int flag) {
         if (ic == null) return;
         long now = SystemClock.uptimeMillis();
 
         ic.sendKeyEvent(
-                new KeyEvent(now - 10, now - 10, KeyEvent.ACTION_DOWN, keyEventCode, 0, meta, -1, 0,
-                        KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE));
+                new KeyEvent(now - 3, now - 2, KeyEvent.ACTION_DOWN, keyEventCode, 0,
+                        meta, -1, 0,
+                        flag, 0x101));
         ic.sendKeyEvent(
-                new KeyEvent(now, now, KeyEvent.ACTION_UP, keyEventCode, 0, meta, -1, 0,
-                        KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE));
+                new KeyEvent(now - 1, now, KeyEvent.ACTION_UP, keyEventCode, 0,
+                        meta, -1, 0,
+                        flag, 0x101));
     }
 
-    private void keyDownUpNoMeta(int keyEventCode, InputConnection ic) {
-        if (ic == null) return;
-        //this.sendDownUpKeyEvents(keyEventCode);
 
-        long uptimeMillis = SystemClock.uptimeMillis();
-        ic.sendKeyEvent(
-                new KeyEvent(
-                        uptimeMillis,
-                        uptimeMillis,
-                        KeyEvent.ACTION_DOWN,
-                        keyEventCode,
-                        0, 0, -1, 0,
-                        KeyEvent.FLAG_SOFT_KEYBOARD |
-                                KeyEvent.FLAG_KEEP_TOUCH_MODE));
-        ic.sendKeyEvent(
-                new KeyEvent(
-                        SystemClock.uptimeMillis(),
-                        uptimeMillis,
-                        KeyEvent.ACTION_UP,
-                        keyEventCode,
-                        0, 0, -1, 0,
-                        KeyEvent.FLAG_SOFT_KEYBOARD |
-                                KeyEvent.FLAG_KEEP_TOUCH_MODE));
+    private static void keyDownUpKeepTouch(int keyEventCode, InputConnection ic, int meta) {
+        keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
     }
+
+
+    //Если через него отправлять навигационные и прочие команды, не будет активироваться выделение виджета на рабочем столе
+    private void keyDownUpNoMetaKeepTouch(int keyEventCode, InputConnection ic) {
+        keyDownUp(keyEventCode, ic, 0, KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
+    }
+
+    //endregion
 
     private boolean DetermineFirstBigCharStateAndUpdateVisualization(EditorInfo editorInfo)
     {
@@ -1699,14 +1688,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             inputConnection.clearMetaKeyStates(KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON);
             CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
             if (c.length() > 0 && c.charAt(0) != '\r' && c.charAt(0) != '\n') {
-                keyDownUpNoMeta(KeyEvent.KEYCODE_MOVE_HOME, inputConnection);
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_MOVE_HOME, inputConnection);
             } else {
                 MoveCursorUpSafe(inputConnection);
             }
             return true;
         }
         ResetGesturesMode();
-        keyDownUp(keyPressData.KeyCode, getCurrentInputConnection());
+        keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, getCurrentInputConnection());
         return true;
 
     }
@@ -1714,7 +1703,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
 
     boolean onShortPressSendAsIs(KeyPressData keyPressData) {
-        keyDownUp(keyPressData.KeyCode, getCurrentInputConnection());
+        keyDownUpDefaultFlags(keyPressData.KeyCode, getCurrentInputConnection());
         return true;
 
     }
@@ -1723,7 +1712,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         ResetGesturesMode();
         InputConnection inputConnection = getCurrentInputConnection();
         if(!metaShiftPressed) {
-            keyDownUp(KeyEvent.KEYCODE_DEL, inputConnection);
+            keyDownUpDefaultFlags(KeyEvent.KEYCODE_DEL, inputConnection);
         }else{
             if(inputConnection!=null)inputConnection.deleteSurroundingText(0,1);
         }
@@ -1778,7 +1767,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 altPressSingleSymbolAltedMode = false;
             }
             InputConnection inputConnection = getCurrentInputConnection();
-            inputConnection.commitText(" ", 1);
+            //inputConnection.commitText(" ", 1);
+            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_SPACE, inputConnection);
         }
         SetNeedUpdateVisualState();
         return true;
@@ -1796,7 +1786,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             inputConnection.deleteSurroundingText(1, 0);
             inputConnection.commitText(". ", 2);
         } else {
-            inputConnection.commitText(" ", 1);
+            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_SPACE, inputConnection);
         }
 
         SetNeedUpdateVisualState();
@@ -1953,8 +1943,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //region LETTER
     boolean onLetterShortPress(KeyPressData keyPressData) {
         if(metaCtrlPressed) {
+            if(keyPressData.KeyCode == KeyEvent.KEYCODE_S) {
+                //keyDownUp(KeyEvent.KEYCODE_ESCAPE, getCurrentInputConnection(), 0xFFFFFFFF, 0xFFFFFFFF);
+                //Log.d(TAG2, "TEST KEY SENT");
+                //Testing open Search containers
+                return true;
+            }
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-            keyDownUp(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
+            keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
             return true;
         }
         int code2send = 0;
@@ -1970,36 +1966,56 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         Log.v(TAG2, "KEY SEND: "+String.format("%c", code2send));
         InputConnection inputConnection = getCurrentInputConnection();
         //region BB Apps HACK
-        if(startInputAtBbContactsApp && !keyboardLayoutManager.isEnglishKb){
-            if(inputConnection!=null && !IsInputMode()){
-                //Данный хак работает неплохо но если быстро вводить, то теряется первый символ
-                keyDownUpNoMeta(KeyEvent.KEYCODE_SEARCH, inputConnection);
-                try {
-                    Thread.sleep(50); }
-                catch (Throwable t) {}
-            }
-            startInputAtBbContactsApp = false;
-        }
-        if(startInputAtBbPhoneApp && !keyboardLayoutManager.isEnglishKb){
-            if(inputConnection!=null && !IsInputMode()){
-                keyDownUpNoMeta(KeyEvent.KEYCODE_MINUS, inputConnection);
-                //sendKeyChar((char) '.');
-                try {
-                    Thread.sleep(20); }
-                catch (Throwable t) {}
-                keyDownUpNoMeta(KeyEvent.KEYCODE_DEL, inputConnection);
-                try {
-                Thread.sleep(50); }
-                catch (Throwable t) {}
-            }
-            startInputAtBbPhoneApp = false;
-        }
+        BbContactsAppHack(inputConnection);
+        BbPhoneAppHack(inputConnection);
+        TelegramAppHack(inputConnection);
         //endregion
         sendKeyChar((char) code2send);
         ResetSingleAltSingleShiftModeAfterOneLetter();
         ResetGesturesMode();
     }
 
+    private void TelegramAppHack(InputConnection inputConnection) {
+        if(startInputAtTelegram) {
+            startInputAtTelegram = false;
+            if(inputConnection !=null && !IsInputMode()) {
+                keyDownUpDefaultFlags(KeyEvent.KEYCODE_TAB, inputConnection);
+                keyDownUpDefaultFlags(KeyEvent.KEYCODE_TAB, inputConnection);
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, inputConnection);
+                try {
+                    Thread.sleep(50); }
+                catch (Throwable t) {}
+
+            }
+        }
+    }
+
+    private void BbPhoneAppHack(InputConnection inputConnection) {
+        if(startInputAtBbPhoneApp && !keyboardLayoutManager.isEnglishKb){
+            startInputAtBbPhoneApp = false;
+            if(inputConnection !=null && !IsInputMode()){
+                try {
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_MINUS, inputConnection);
+                    Thread.sleep(20);
+                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DEL, inputConnection);
+                    Thread.sleep(50); }
+                catch (Throwable t) {}
+            }
+        }
+    }
+
+    private void BbContactsAppHack(InputConnection inputConnection) {
+        if(startInputAtBbContactsApp && !keyboardLayoutManager.isEnglishKb){
+            if(inputConnection !=null && !IsInputMode()){
+                //Данный хак работает неплохо но если быстро вводить, то теряется первый символ
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_SEARCH, inputConnection);
+                try {
+                    Thread.sleep(50); }
+                catch (Throwable t) {}
+            }
+            startInputAtBbContactsApp = false;
+        }
+    }
 
 
     private void SetNeedUpdateVisualState() {
@@ -2009,7 +2025,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     boolean onLetterDoublePress(KeyPressData keyPressData) {
         if(metaCtrlPressed) {
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-            keyDownUp(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
+            keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
             return true;
         }
         int code2send;
