@@ -143,7 +143,7 @@ public class SatedaKeyboardView extends KeyboardView {
         draw_lang = lang;
     }
 
-    public void setAltLayer(KeybordLayout keybordLayout, boolean isAltShift){
+    public void setAltLayer(KeyboardLayout keybordLayout, boolean isAltShift){
         alt = true;
         showSymbol = true;
         fnSymbol = false;

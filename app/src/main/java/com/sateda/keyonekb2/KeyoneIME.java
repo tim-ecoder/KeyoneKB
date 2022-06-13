@@ -792,7 +792,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 //TODO: Разобраться зачем это
                 if (motionEventAction == MotionEvent.ACTION_MOVE)
                     keyboardView.coordsToIndexKey(motionEventX);
-                if (motionEventAction == MotionEvent.ACTION_UP) keyboardView.hidePopup(true);
+                if (motionEventAction == MotionEvent.ACTION_UP)
+                    keyboardView.hidePopup(true);
             }
             return true;
         }
@@ -1062,7 +1063,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     private void UpdateKeyboardModeVisualization(boolean updateSwipePanelData) {
         Log.d(TAG, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode=" + oneTimeShiftOneTimeBigMode + " doubleShiftCapsMode=" + doubleShiftCapsMode + " doubleAltPressAllSymbolsAlted=" + doubleAltPressAllSymbolsAlted + " altPressSingleSymbolAltedMode=" + altPressSingleSymbolAltedMode);
-        KeybordLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
+        KeyboardLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
 
         String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
         boolean changed = false;
@@ -1647,9 +1648,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     //region SYM
 
     boolean onSymShortPress(KeyPressData keyPressData) {
-        if(pref_manage_call && IsCalling() && !IsInputMode()) {
-            if(DeclinePhone()) return true;
-        }
+
         if(metaAltPressed) { //вызов меню
             InputConnection inputConnection = getCurrentInputConnection();
             if(inputConnection!=null)
@@ -1698,6 +1697,9 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     boolean onSymDoublePress(KeyPressData keyPressData) {
+        if(pref_manage_call && IsCalling() && !IsInputMode()) {
+            if(DeclinePhone()) return true;
+        }
         if (!navigationOnScreenKeyboardMode) {
             //Двойное нажание SYM -> Режим навигации
             //TODO: Вынести OnScreenKeyboardMode-ы в Enum

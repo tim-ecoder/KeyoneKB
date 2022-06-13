@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 public class KeyboardLayoutManager {
 
-    public ArrayList<KeybordLayout> KeybordLayoutList = new ArrayList<>();
+    public ArrayList<KeyboardLayout> KeyboardLayoutList = new ArrayList<>();
     private int CurrentLanguageListIndex = 0;
     private int LangListCount = 0;
     public boolean isEnglishKb = false;
@@ -18,37 +18,37 @@ public class KeyboardLayoutManager {
     public void Initialize(boolean lang_ru_on, boolean lang_translit_ru_on, boolean lang_ua_on, Resources resources) {
         if(LangListCount != 0)
             return;
-        KeybordLayout currentLayout;
+        KeyboardLayout currentLayout;
         LangListCount = 1;
-        currentLayout = LoadLayoutAndCache(R.xml.english_hw, LangListCount - 1, KeybordLayoutList, resources);
+        currentLayout = LoadLayoutAndCache(R.xml.english_hw, LangListCount - 1, KeyboardLayoutList, resources);
         currentLayout.IconCaps = R.mipmap.ic_eng_shift_all;
         currentLayout.IconFirstShift = R.mipmap.ic_eng_shift_first;
         currentLayout.IconLittle = R.mipmap.ic_eng_small;
 
         if(lang_ru_on){
             LangListCount++;
-            currentLayout = LoadLayoutAndCache(R.xml.russian_hw, LangListCount - 1, KeybordLayoutList, resources);
+            currentLayout = LoadLayoutAndCache(R.xml.russian_hw, LangListCount - 1, KeyboardLayoutList, resources);
             currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
             currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
             currentLayout.IconLittle = R.mipmap.ic_rus_small;
         }
         if(lang_translit_ru_on){
             LangListCount++;
-            currentLayout = LoadLayoutAndCache(R.xml.russian_translit_hw, LangListCount - 1, KeybordLayoutList, resources);
+            currentLayout = LoadLayoutAndCache(R.xml.russian_translit_hw, LangListCount - 1, KeyboardLayoutList, resources);
             currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
             currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
             currentLayout.IconLittle = R.mipmap.ic_rus_small;
         }
         if(lang_ua_on){
             LangListCount++;
-            currentLayout = LoadLayoutAndCache(R.xml.ukraine_hw, LangListCount - 1, KeybordLayoutList, resources);
+            currentLayout = LoadLayoutAndCache(R.xml.ukraine_hw, LangListCount - 1, KeyboardLayoutList, resources);
             currentLayout.IconCaps = R.mipmap.ic_ukr_shift_all;
             currentLayout.IconFirstShift = R.mipmap.ic_ukr_shift_first;
             currentLayout.IconLittle = R.mipmap.ic_ukr_small;
         }
     }
 
-    private static KeybordLayout LoadLayoutAndCache(int xmlId, int currentKeyBoardSetId, ArrayList<KeybordLayout> KeybordLayoutList, Resources resources)
+    private static KeyboardLayout LoadLayoutAndCache(int xmlId, int currentKeyBoardSetId, ArrayList<KeyboardLayout> KeybordLayoutList, Resources resources)
     {
 
         int scan_code = 0;
@@ -62,7 +62,7 @@ public class KeyboardLayoutManager {
         String alt_shift_popup = "";
         String languageOnScreenNaming = "";
 
-        KeybordLayout keyboardLayout = new KeybordLayout();
+        KeyboardLayout keyboardLayout = new KeyboardLayout();
         keyboardLayout.Id = xmlId;
         keyboardLayout.KeyVariantsMap = new HashMap<Integer, KeyVariants>();
 
@@ -181,14 +181,14 @@ public class KeyboardLayoutManager {
         }
     }
 
-    public KeybordLayout GetCurrentKeyboardLayout(){
-        return KeybordLayoutList.get(CurrentLanguageListIndex);
+    public KeyboardLayout GetCurrentKeyboardLayout(){
+        return KeyboardLayoutList.get(CurrentLanguageListIndex);
     }
 
     public int KeyToCharCode(int key, boolean alt_press, boolean shift_press, boolean is_double_press)
     {
         int result = 0;
-        KeyVariants keyVariants = KeybordLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
+        KeyVariants keyVariants = KeyboardLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
         if(keyVariants == null)
             return 0;
         if (alt_press && shift_press && keyVariants.alt_shift != 0) {
@@ -210,7 +210,7 @@ public class KeyboardLayoutManager {
 
     public int KeyToAltPopup(int key) {
         int result = 0;
-        KeyVariants keyVariants = KeybordLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
+        KeyVariants keyVariants = KeyboardLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
         if(keyVariants == null)
             return 0;
         if(keyVariants.alt_popup == null || keyVariants.alt_popup.isEmpty())
