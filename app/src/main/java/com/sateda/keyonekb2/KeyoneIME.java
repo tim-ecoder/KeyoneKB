@@ -765,7 +765,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if (!mode_keyboard_gestures && motionEvent.getY() <= ROW_4_BEGIN_Y) {
             if (debug_gestures)
                 Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
-            ProcessGestureHistory(motionEvent);
+            ProcessPrepareAtHoldGesture(motionEvent);
         }
 
         if ((!mode_keyboard_gestures && !mode_keyboard_gestures_plus_up_down)
@@ -775,7 +775,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if (mode_keyboard_gestures) {
 
             //TODO: Подумать отдельно обрабатывать жесты по горизонтали и отдельно по вертикали ориентируясь на событие ACTION_UP
-            //TODO: Для выделения с зажатым нулем - подумать переходить в режим выделения-с-SHIFT-ом через 2xSHIFT
 
             InputConnection inputConnection = getCurrentInputConnection();
             float motionEventX = motionEvent.getX();
@@ -917,7 +916,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
 
-    private void ProcessGestureHistory(MotionEvent motionEvent) {
+    private void ProcessPrepareAtHoldGesture(MotionEvent motionEvent) {
 
 
         if (motionEvent.getAction() == MotionEvent.ACTION_UP
