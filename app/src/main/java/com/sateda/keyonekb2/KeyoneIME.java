@@ -1037,7 +1037,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if (isInput && mode_keyboard_gestures && !IsNavMode()) {
 
             if (mode_keyboard_gestures_plus_up_down) {
-                changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input_up_down);
+                changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input_up_down);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
             } else {
                 changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
@@ -1470,6 +1470,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             pref_keyboard_gestures_at_views_enable = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, false);
         }
 
+        KeyboardLayoutRes[] activeLayouts = keyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
+
         if(mSettings.contains(SettingsActivity.APP_PREFERENCES_RU_LANG)) {
             lang_ru_on = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_RU_LANG, true);
         }
@@ -1508,7 +1510,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(mSettings.contains(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR)) {
             pref_height_bottom_bar = mSettings.getInt(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR, 10);
         }
-        keyboardLayoutManager.Initialize(lang_ru_on, lang_translit_ru_on, lang_ua_on, getResources(), getApplicationContext());
+
+        keyboardLayoutManager.Initialize(activeLayouts, getResources(), getApplicationContext());
     }
 
     void LoadKeyProcessingMechanics() {

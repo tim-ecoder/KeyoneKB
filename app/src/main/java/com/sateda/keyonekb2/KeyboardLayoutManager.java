@@ -16,37 +16,21 @@ public class KeyboardLayoutManager {
     private int LangListCount = 0;
     public boolean isEnglishKb = false;
 
-    public void Initialize(boolean lang_ru_on, boolean lang_translit_ru_on, boolean lang_ua_on, Resources resources, Context context) {
+    public void Initialize(KeyboardLayoutRes[] activeLayouts, Resources resources, Context context) {
         if(LangListCount != 0)
             return;
-        KeyboardLayout currentLayout;
-        LangListCount = 1;
-        currentLayout = LoadLayoutAndCache(R.xml.english_hw, 0, KeyboardLayoutList, resources, context);
-        currentLayout.IconCaps = R.mipmap.ic_eng_shift_all;
-        currentLayout.IconFirstShift = R.mipmap.ic_eng_shift_first;
-        currentLayout.IconLittle = R.mipmap.ic_eng_small;
 
-        if(lang_ru_on){
+        KeyboardLayout currentLayout;
+
+        for (KeyboardLayoutRes layout : activeLayouts) {
             LangListCount++;
-            currentLayout = LoadLayoutAndCache(R.xml.russian_hw, LangListCount - 1, KeyboardLayoutList, resources, context);
-            currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
-            currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
-            currentLayout.IconLittle = R.mipmap.ic_rus_small;
+            currentLayout = LoadLayoutAndCache(layout.XmlResId, LangListCount - 1, KeyboardLayoutList, resources, context);
+            currentLayout.IconCaps = layout.IconCapsResId;
+            currentLayout.IconFirstShift = layout.IconFirstShiftResId;
+            currentLayout.IconLittle = layout.IconLittleResId;
+            KeyboardLayoutList.add(currentLayout);
         }
-        if(lang_translit_ru_on){
-            LangListCount++;
-            currentLayout = LoadLayoutAndCache(R.xml.russian_translit_hw, LangListCount - 1, KeyboardLayoutList, resources, context);
-            currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
-            currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
-            currentLayout.IconLittle = R.mipmap.ic_rus_small;
-        }
-        if(lang_ua_on){
-            LangListCount++;
-            currentLayout = LoadLayoutAndCache(R.xml.ukraine_hw, LangListCount - 1, KeyboardLayoutList, resources, context);
-            currentLayout.IconCaps = R.mipmap.ic_ukr_shift_all;
-            currentLayout.IconFirstShift = R.mipmap.ic_ukr_shift_first;
-            currentLayout.IconLittle = R.mipmap.ic_ukr_small;
-        }
+
     }
 
     private static KeyboardLayout LoadLayoutAndCache(int keyboardLayoutXmlId, int currentKeyBoardSetId, ArrayList<KeyboardLayout> keyboardLayoutArrayList, Resources resources, Context context)  {
@@ -222,5 +206,56 @@ public class KeyboardLayoutManager {
         if(keyVariants.alt_popup == null || keyVariants.alt_popup.isEmpty())
             return 0;
         return keyVariants.alt_popup.charAt(0);
+    }
+
+    public KeyboardLayoutRes[] LoadKeyboardLayoutsRes(Resources resources, Context context) {
+        // Load keyboard layouts
+        //Открывает R.xml.keyboard_layouts и загружает все настройки клавиатуры
+
+        ArrayList<KeyboardLayoutRes> keyboardLayoutResArray = new ArrayList<>();
+        try {
+            XmlPullParser parser = resources.getXml(R.xml.keyboard_layouts);
+            while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
+                if(
+                parser.getEventType() == XmlPullParser.END_TAG
+                || parser.getEventType() == XmlPullParser.START_DOCUMENT) {
+
+                    parser.next();
+                    continue;
+                }
+                if(!parser.getName().equals("KeyboardLayout")){
+
+                    parser.next();
+                    continue;
+                }
+
+                String name = "";
+                String layoutRes = "";
+                String iconCapsRes = "";
+                String iconOneShiftRes = "";
+                String iconLittleRes = "";
+
+                for (int i = 0; i < parser.getAttributeCount(); i++) {
+                    if (parser.getAttributeName(i).equals("menu_name")) name = parser.getAttributeValue(i);
+                    if (parser.getAttributeName(i).equals("res")) layoutRes = parser.getAttributeValue(i);
+                    if (parser.getAttributeName(i).equals("icon_caps")) iconCapsRes = parser.getAttributeValue(i);
+                    if (parser.getAttributeName(i).equals("icon_first_big")) iconOneShiftRes = parser.getAttributeValue(i);
+                    if (parser.getAttributeName(i).equals("icon_little")) iconLittleRes = parser.getAttributeValue(i);
+                }
+                int layoutResId = resources.getIdentifier(layoutRes, "xml", context.getPackageName());
+                int iconCapsResId = resources.getIdentifier(iconCapsRes, "mipmap", context.getPackageName());
+                int iconOneShiftResId = resources.getIdentifier(iconOneShiftRes, "mipmap", context.getPackageName());
+                int iconLittleResId = resources.getIdentifier(iconLittleRes, "mipmap", context.getPackageName());
+
+                keyboardLayoutResArray.add(new KeyboardLayoutRes(name, layoutResId, iconCapsResId, iconLittleResId, iconOneShiftResId));
+                parser.next();
+            }
+
+            return keyboardLayoutResArray.toArray(new KeyboardLayoutRes[keyboardLayoutResArray.size()]);
+
+        } catch (Throwable t) {
+            Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
+        }
+        return keyboardLayoutResArray.toArray(new KeyboardLayoutRes[keyboardLayoutResArray.size()]);
     }
 }

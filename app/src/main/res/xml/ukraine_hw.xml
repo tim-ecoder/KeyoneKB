@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<keys lang="Українська">
+<keys lang="Українська" alt_hw_res="alt_hw" sym_sw_res="symbol">
 	<key scan_code="16" one_press="1081" shift="1049" />
 	<key scan_code="17" one_press="1094" shift="1062" />
 	<key scan_code="18" one_press="1091" shift="1059" />
