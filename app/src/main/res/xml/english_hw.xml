@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<keys lang="English">
+<keys lang="English" alt_hw_res="alt_hw" sym_sw_res="symbol">
 	<key scan_code="16" one_press="113" shift="81" />
 	<key scan_code="17" one_press="119" shift="87" />
 	<key scan_code="18" one_press="101" shift="69" />

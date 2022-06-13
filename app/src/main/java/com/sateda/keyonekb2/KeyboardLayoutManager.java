@@ -1,5 +1,6 @@
 package com.sateda.keyonekb2;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
 
@@ -15,41 +16,41 @@ public class KeyboardLayoutManager {
     private int LangListCount = 0;
     public boolean isEnglishKb = false;
 
-    public void Initialize(boolean lang_ru_on, boolean lang_translit_ru_on, boolean lang_ua_on, Resources resources) {
+    public void Initialize(boolean lang_ru_on, boolean lang_translit_ru_on, boolean lang_ua_on, Resources resources, Context context) {
         if(LangListCount != 0)
             return;
         KeyboardLayout currentLayout;
         LangListCount = 1;
-        currentLayout = LoadLayoutAndCache(R.xml.english_hw, 0, KeyboardLayoutList, resources);
+        currentLayout = LoadLayoutAndCache(R.xml.english_hw, 0, KeyboardLayoutList, resources, context);
         currentLayout.IconCaps = R.mipmap.ic_eng_shift_all;
         currentLayout.IconFirstShift = R.mipmap.ic_eng_shift_first;
         currentLayout.IconLittle = R.mipmap.ic_eng_small;
 
         if(lang_ru_on){
             LangListCount++;
-            currentLayout = LoadLayoutAndCache(R.xml.russian_hw, LangListCount - 1, KeyboardLayoutList, resources);
+            currentLayout = LoadLayoutAndCache(R.xml.russian_hw, LangListCount - 1, KeyboardLayoutList, resources, context);
             currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
             currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
             currentLayout.IconLittle = R.mipmap.ic_rus_small;
         }
         if(lang_translit_ru_on){
             LangListCount++;
-            currentLayout = LoadLayoutAndCache(R.xml.russian_translit_hw, LangListCount - 1, KeyboardLayoutList, resources);
+            currentLayout = LoadLayoutAndCache(R.xml.russian_translit_hw, LangListCount - 1, KeyboardLayoutList, resources, context);
             currentLayout.IconCaps = R.mipmap.ic_rus_shift_all;
             currentLayout.IconFirstShift = R.mipmap.ic_rus_shift_first;
             currentLayout.IconLittle = R.mipmap.ic_rus_small;
         }
         if(lang_ua_on){
             LangListCount++;
-            currentLayout = LoadLayoutAndCache(R.xml.ukraine_hw, LangListCount - 1, KeyboardLayoutList, resources);
+            currentLayout = LoadLayoutAndCache(R.xml.ukraine_hw, LangListCount - 1, KeyboardLayoutList, resources, context);
             currentLayout.IconCaps = R.mipmap.ic_ukr_shift_all;
             currentLayout.IconFirstShift = R.mipmap.ic_ukr_shift_first;
             currentLayout.IconLittle = R.mipmap.ic_ukr_small;
         }
     }
 
-    private static KeyboardLayout LoadLayoutAndCache(int xmlId, int currentKeyBoardSetId, ArrayList<KeyboardLayout> KeybordLayoutList, Resources resources)
-    {
+    private static KeyboardLayout LoadLayoutAndCache(int keyboardLayoutXmlId, int currentKeyBoardSetId, ArrayList<KeyboardLayout> keyboardLayoutArrayList, Resources resources, Context context)  {
+
 
         int scan_code;
         int one_press;
@@ -61,13 +62,15 @@ public class KeyboardLayoutManager {
         String alt_popup;
         String alt_shift_popup;
         String languageOnScreenNaming = "";
+        String alt_hw = "";
+        String sym_sw_res = "";
 
         KeyboardLayout keyboardLayout = new KeyboardLayout();
-        keyboardLayout.Id = xmlId;
+        keyboardLayout.Id = keyboardLayoutXmlId;
         keyboardLayout.KeyVariantsMap = new HashMap<>();
 
         try {
-            XmlPullParser parser = resources.getXml(xmlId);
+            XmlPullParser parser = resources.getXml(keyboardLayoutXmlId);
 
             while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
                 scan_code = 0;
@@ -80,8 +83,11 @@ public class KeyboardLayoutManager {
                 alt_popup = "";
                 alt_shift_popup = "";
 
+
                 for (int i = 0; i < parser.getAttributeCount(); i++) {
                     if (parser.getAttributeName(i).equals("lang")) languageOnScreenNaming = parser.getAttributeValue(i);
+                    if (parser.getAttributeName(i).equals("alt_hw_res")) alt_hw = parser.getAttributeValue(i);
+                    if (parser.getAttributeName(i).equals("sym_sw_res")) sym_sw_res = parser.getAttributeValue(i);
                     if (parser.getAttributeName(i).equals("scan_code")) scan_code = Integer.parseInt(parser.getAttributeValue(i));
                     if (parser.getAttributeName(i).equals("one_press")) one_press = Integer.parseInt(parser.getAttributeValue(i));
                     if (parser.getAttributeName(i).equals("double_press")) double_press = Integer.parseInt(parser.getAttributeValue(i));
@@ -110,18 +116,23 @@ public class KeyboardLayoutManager {
                 parser.next();
             }
             keyboardLayout.LanguageOnScreenNaming = languageOnScreenNaming;
-            keyboardLayout.XmlId = xmlId;
-            KeybordLayoutList.add(currentKeyBoardSetId, keyboardLayout);
+            keyboardLayout.XmlId = keyboardLayoutXmlId;
+            keyboardLayoutArrayList.add(currentKeyBoardSetId, keyboardLayout);
         } catch (Throwable t) {
             Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
         }
 
-        LoadAltLayout2(keyboardLayout.KeyVariantsMap, resources);
+        keyboardLayout.SymXmlId = resources.getIdentifier(sym_sw_res, "xml", context.getPackageName());
+        int altHwResId = resources.getIdentifier(alt_hw, "xml", context.getPackageName());
+        LoadAltLayout2(keyboardLayout.KeyVariantsMap, resources, altHwResId);
         return keyboardLayout;
     }
 
-    private static void LoadAltLayout2(HashMap<Integer, KeyVariants> keyLayoutsHashMap, Resources resources)
+    private static void LoadAltLayout2(HashMap<Integer, KeyVariants> keyLayoutsHashMap, Resources resources, int altHwResId)
     {
+        if(altHwResId == 0)
+            return;
+
         int scan_code;
         int alt;
         int alt_shift;
@@ -130,7 +141,7 @@ public class KeyboardLayoutManager {
 
         try {
             XmlPullParser parser;
-            parser = resources.getXml(R.xml.alt_hw);
+            parser = resources.getXml(altHwResId);
 
             while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
                 scan_code = 0;

@@ -88,8 +88,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     private final NotificationProcessor notificationProcessor = new NotificationProcessor();
     private SatedaKeyboardView keyboardView;
-    private Keyboard onScreenKeyboardDefaultGesturesAndLanguage;
-    private Keyboard onScreenKeyboardSymbols;
+    private Keyboard onScreenSwipePanelAndLanguage;
 
     KeyboardLayoutManager keyboardLayoutManager = new KeyboardLayoutManager();
 
@@ -192,12 +191,12 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         LoadSettingsAndKeyboards();
         LoadKeyProcessingMechanics();
 
-        onScreenKeyboardDefaultGesturesAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
+        onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
 
-        onScreenKeyboardSymbols = new SatedaKeyboard(this, R.xml.symbol);
+        //onScreenKeyboardSymbols = new SatedaKeyboard(this, R.xml.symbol);
 
         keyboardView = (SatedaKeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
-        keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
+        keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
         keyboardView.setOnKeyboardActionListener(this);
         keyboardView.setOnTouchListener(this);
         keyboardView.setPreviewEnabled(false);
@@ -241,8 +240,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         //TODO: Подумать, чтобы не надо было инициализировать свайп-клавиаутуру по настройке pref_show_default_onscreen_keyboard
         keyboardView.showFlag(pref_flag);
-        if (onScreenKeyboardDefaultGesturesAndLanguage.getHeight() != 70 + pref_height_bottom_bar * 5)
-            onScreenKeyboardDefaultGesturesAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
+        if (onScreenSwipePanelAndLanguage.getHeight() != 70 + pref_height_bottom_bar * 5)
+            onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
 
         Log.d(TAG, "onFinishInput ");
 
@@ -1076,8 +1075,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav_fn);
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_NAV_FV_TEXT);
             }
-            onScreenKeyboardSymbols = keyboardNavigation;
-            keyboardView.setKeyboard(onScreenKeyboardSymbols);
+            //onScreenKeyboardSymbols = keyboardNavigation;
+            keyboardView.setKeyboard(keyboardNavigation);
             keyboardView.setNavigationLayer();
             needUsefullKeyboard = true;
         } else if (symbolOnScreenKeyboardMode) {
@@ -1090,7 +1089,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
             }
             //TODO: Тут плодятся объекты зачем-то
-            onScreenKeyboardSymbols = new Keyboard(this, R.xml.symbol);
+            Keyboard onScreenKeyboardSymbols = new Keyboard(this, keyboardLayoutManager.GetCurrentKeyboardLayout().SymXmlId);
             ;
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             //TODO: Сделать предзагрузку этой клавиатуры
@@ -1109,7 +1108,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
             }
-            keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
+            keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
                 if (IsSym2Mode()) {
                     keyboardView.setLang(TITLE_SYM2_TEXT);
@@ -1126,7 +1125,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt_one);
             }
-            keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
+            keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
                 if (IsSym2Mode()) {
                     keyboardView.setLang(TITLE_SYM2_TEXT);
@@ -1138,7 +1137,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         } else if (doubleShiftCapsMode || metaShiftPressed) {
             changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
             changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconCaps);
-            keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
+            keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
                 keyboardView.setShiftAll();
@@ -1147,7 +1146,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         } else if (oneTimeShiftOneTimeBigMode) {
             changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
             changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconFirstShift);
-            keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
+            keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
                 keyboardView.setShiftFirst();
@@ -1158,7 +1157,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             // Случай со строными буквами
             changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
             changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconLittle);
-            keyboardView.setKeyboard(onScreenKeyboardDefaultGesturesAndLanguage);
+            keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
                 keyboardView.notShift();
                 keyboardView.setLang(languageOnScreenNaming);
@@ -1509,7 +1508,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(mSettings.contains(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR)) {
             pref_height_bottom_bar = mSettings.getInt(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR, 10);
         }
-        keyboardLayoutManager.Initialize(lang_ru_on, lang_translit_ru_on, lang_ua_on, getResources());
+        keyboardLayoutManager.Initialize(lang_ru_on, lang_translit_ru_on, lang_ua_on, getResources(), getApplicationContext());
     }
 
     void LoadKeyProcessingMechanics() {
