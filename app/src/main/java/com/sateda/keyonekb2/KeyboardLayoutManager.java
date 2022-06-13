@@ -20,7 +20,7 @@ public class KeyboardLayoutManager {
             return;
         KeyboardLayout currentLayout;
         LangListCount = 1;
-        currentLayout = LoadLayoutAndCache(R.xml.english_hw, LangListCount - 1, KeyboardLayoutList, resources);
+        currentLayout = LoadLayoutAndCache(R.xml.english_hw, 0, KeyboardLayoutList, resources);
         currentLayout.IconCaps = R.mipmap.ic_eng_shift_all;
         currentLayout.IconFirstShift = R.mipmap.ic_eng_shift_first;
         currentLayout.IconLittle = R.mipmap.ic_eng_small;
@@ -51,20 +51,20 @@ public class KeyboardLayoutManager {
     private static KeyboardLayout LoadLayoutAndCache(int xmlId, int currentKeyBoardSetId, ArrayList<KeyboardLayout> KeybordLayoutList, Resources resources)
     {
 
-        int scan_code = 0;
-        int one_press = 0;
-        int double_press = 0;
-        int double_press_shift = 0;
-        int alt = 0;
-        int shift = 0;
-        int alt_shift = 0;
-        String alt_popup = "";
-        String alt_shift_popup = "";
+        int scan_code;
+        int one_press;
+        int double_press;
+        int double_press_shift;
+        int alt;
+        int shift;
+        int alt_shift;
+        String alt_popup;
+        String alt_shift_popup;
         String languageOnScreenNaming = "";
 
         KeyboardLayout keyboardLayout = new KeyboardLayout();
         keyboardLayout.Id = xmlId;
-        keyboardLayout.KeyVariantsMap = new HashMap<Integer, KeyVariants>();
+        keyboardLayout.KeyVariantsMap = new HashMap<>();
 
         try {
             XmlPullParser parser = resources.getXml(xmlId);
@@ -113,7 +113,7 @@ public class KeyboardLayoutManager {
             keyboardLayout.XmlId = xmlId;
             KeybordLayoutList.add(currentKeyBoardSetId, keyboardLayout);
         } catch (Throwable t) {
-            Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+t.toString());
+            Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
         }
 
         LoadAltLayout2(keyboardLayout.KeyVariantsMap, resources);
@@ -122,11 +122,11 @@ public class KeyboardLayoutManager {
 
     private static void LoadAltLayout2(HashMap<Integer, KeyVariants> keyLayoutsHashMap, Resources resources)
     {
-        int scan_code = 0;
-        int alt = 0;
-        int alt_shift = 0;
-        String alt_popup = "";
-        String alt_shift_popup = "";
+        int scan_code;
+        int alt;
+        int alt_shift;
+        String alt_popup;
+        String alt_shift_popup;
 
         try {
             XmlPullParser parser;
@@ -167,18 +167,14 @@ public class KeyboardLayoutManager {
                 parser.next();
             }
         } catch (Throwable t) {
-            Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+t.toString());
+            Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
         }
     }
 
     public void ChangeLayout() {
         CurrentLanguageListIndex++;
         if(CurrentLanguageListIndex > LangListCount - 1) CurrentLanguageListIndex = 0;
-        if(CurrentLanguageListIndex == 0){
-            isEnglishKb = true;
-        }else{
-            isEnglishKb = false;
-        }
+        isEnglishKb = CurrentLanguageListIndex == 0;
     }
 
     public KeyboardLayout GetCurrentKeyboardLayout(){
@@ -187,7 +183,7 @@ public class KeyboardLayoutManager {
 
     public int KeyToCharCode(int key, boolean alt_press, boolean shift_press, boolean is_double_press)
     {
-        int result = 0;
+        int result;
         KeyVariants keyVariants = KeyboardLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
         if(keyVariants == null)
             return 0;
@@ -209,7 +205,6 @@ public class KeyboardLayoutManager {
     }
 
     public int KeyToAltPopup(int key) {
-        int result = 0;
         KeyVariants keyVariants = KeyboardLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
         if(keyVariants == null)
             return 0;
