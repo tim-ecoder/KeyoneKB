@@ -747,29 +747,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     //region GESTURES
 
-    private long lastGestureSwipingBeginTime = 0;
-    private boolean enteredGestureMovement = false;
-    private boolean debug_gestures = false;
 
-
-    private void ResetGesturesMode() {
-        //mode_keyboard_gestures_plus_up_down = false;
-        if (mode_keyboard_gestures) {
-            mode_keyboard_gestures = false;
-            UpdateGestureModeVisualization();
-        }
-    }
-
-    private void ResetSingleAltSingleShiftModeAfterOneLetter() {
-        if (altPressSingleSymbolAltedMode && !pref_alt_space) {
-            altPressSingleSymbolAltedMode = false;
-            SetNeedUpdateVisualState();
-        }
-        if (oneTimeShiftOneTimeBigMode) {
-            oneTimeShiftOneTimeBigMode = false;
-            SetNeedUpdateVisualState();
-        }
-    }
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent motionEvent) {
@@ -790,8 +768,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             ProcessGestureHistory(motionEvent);
         }
 
-        ProcessDoubleGestureClick(motionEvent);
-
+        if ((!mode_keyboard_gestures && !mode_keyboard_gestures_plus_up_down)
+            || modeDoubleClickGesture) {
+            ProcessDoubleGestureClick(motionEvent);
+        }
         if (mode_keyboard_gestures) {
 
             //TODO: Подумать отдельно обрабатывать жесты по горизонтали и отдельно по вертикали ориентируясь на событие ACTION_UP
@@ -819,6 +799,30 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
 
         return true;
+    }
+
+    private long lastGestureSwipingBeginTime = 0;
+    private boolean enteredGestureMovement = false;
+    private boolean debug_gestures = false;
+
+
+    private void ResetGesturesMode() {
+        //mode_keyboard_gestures_plus_up_down = false;
+        if (mode_keyboard_gestures) {
+            mode_keyboard_gestures = false;
+            UpdateGestureModeVisualization();
+        }
+    }
+
+    private void ResetSingleAltSingleShiftModeAfterOneLetter() {
+        if (altPressSingleSymbolAltedMode && !pref_alt_space) {
+            altPressSingleSymbolAltedMode = false;
+            SetNeedUpdateVisualState();
+        }
+        if (oneTimeShiftOneTimeBigMode) {
+            oneTimeShiftOneTimeBigMode = false;
+            SetNeedUpdateVisualState();
+        }
     }
 
     private boolean MakeGestureAction(MotionEvent motionEvent, InputConnection inputConnection, float motionEventX, float motionEventY, int motionEventAction) {
