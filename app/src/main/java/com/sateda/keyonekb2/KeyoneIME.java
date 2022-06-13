@@ -453,30 +453,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return true;
     }
 
-    private boolean IsNavKeyCode(int keyCode) {
-        return keyCode == KeyEvent.KEYCODE_Q
-                || keyCode == KeyEvent.KEYCODE_A
-                || keyCode == KeyEvent.KEYCODE_P
-                //LEFT NAV BLOCK
-                || keyCode == KeyEvent.KEYCODE_W
-                || keyCode == KeyEvent.KEYCODE_E
-                || keyCode == KeyEvent.KEYCODE_R
-                || keyCode == KeyEvent.KEYCODE_T
-                || keyCode == KeyEvent.KEYCODE_S
-                || keyCode == KeyEvent.KEYCODE_D
-                || keyCode == KeyEvent.KEYCODE_F
-                || keyCode == KeyEvent.KEYCODE_G
-                //RIGHT BLOCK
-                || keyCode == KeyEvent.KEYCODE_Y
-                || keyCode == KeyEvent.KEYCODE_U
-                || keyCode == KeyEvent.KEYCODE_I
-                || keyCode == KeyEvent.KEYCODE_O
-                || keyCode == KeyEvent.KEYCODE_H
-                || keyCode == KeyEvent.KEYCODE_J
-                || keyCode == KeyEvent.KEYCODE_K
-                || keyCode == KeyEvent.KEYCODE_L;
-    }
-
     //TODO: Вынести в XML
     public int getNavigationCode(int scanCode) {
         int keyEventCode = 0;
@@ -804,21 +780,19 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 && !IsInputMode()) {
             return false;
         }
+
+        if (IsNavMode())
+            return true;
+
         if (!mode_keyboard_gestures && motionEvent.getY() <= ROW_4_BEGIN_Y) {
             if (debug_gestures)
                 Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
-            StoreGestureHistory(motionEvent);
+            ProcessGestureHistory(motionEvent);
         }
 
-        if (navigationOnScreenKeyboardMode)
-            return true;
+        ProcessDoubleGestureClick(motionEvent);
 
-        if (pref_keyboard_gestures_at_views_enable
-                && !symbolOnScreenKeyboardMode
-                && !IsInputMode()) {
-            //Если мы не в поле ввода передаем жесты дальше
-            return false;
-        } else if (mode_keyboard_gestures) {
+        if (mode_keyboard_gestures) {
 
             //TODO: Подумать отдельно обрабатывать жесты по горизонтали и отдельно по вертикали ориентируясь на событие ACTION_UP
             //TODO: Для выделения с зажатым нулем - подумать переходить в режим выделения-с-SHIFT-ом через 2xSHIFT
@@ -832,54 +806,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
             int motionEventAction = motionEvent.getAction();
             if (!symbolOnScreenKeyboardMode) {
-
-                //Жесть по клавиатуре всегда начинается с ACTION_DOWN
-                if (motionEventAction == MotionEvent.ACTION_DOWN
-                        || motionEventAction == MotionEvent.ACTION_POINTER_DOWN) {
-                    if (debug_gestures)
-                        Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
-                    lastGestureX = motionEventX;
-                    lastGestureY = motionEventY;
+                if (MakeGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, motionEventAction))
                     return true;
-                }
-
-                if (motionEventAction == MotionEvent.ACTION_MOVE
-                        || motionEventAction == MotionEvent.ACTION_UP
-                        || motionEventAction == MotionEvent.ACTION_POINTER_UP) {
-                    float deltaX = motionEventX - lastGestureX;
-                    float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
-                    float deltaY = motionEventY - lastGestureY;
-                    float absDeltaY = deltaY < 0 ? -1 * deltaY : deltaY;
-
-                    int motion_delta_min_x = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
-                    int motion_delta_min_y = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
-
-                    if (absDeltaX >= absDeltaY) {
-                        if (absDeltaX < motion_delta_min_x)
-                            return true;
-                        if (deltaX > 0) {
-                            if(MoveCursorRightSafe(inputConnection))
-                                Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_RIGHT " + motionEvent);
-                        } else {
-                            if(MoveCursorLeftSafe(inputConnection))
-                                Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
-                        }
-                    } else if (mode_keyboard_gestures_plus_up_down) {
-                        if (absDeltaY < motion_delta_min_y)
-                            return true;
-                        //int times = Math.round(absDeltaY / motion_delta_min_y);
-                        if (deltaY < 0) {
-                            if(MoveCursorUpSafe(inputConnection))
-                                Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
-                        } else {
-                            if(MoveCursorDownSafe(inputConnection))
-                                Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
-                        }
-                    }
-
-                    lastGestureX = motionEventX;
-                    lastGestureY = motionEventY;
-                }
             } else {
 
                 //TODO: Разобраться зачем это
@@ -891,6 +819,57 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
 
         return true;
+    }
+
+    private boolean MakeGestureAction(MotionEvent motionEvent, InputConnection inputConnection, float motionEventX, float motionEventY, int motionEventAction) {
+        //Жесть по клавиатуре всегда начинается с ACTION_DOWN
+        if (motionEventAction == MotionEvent.ACTION_DOWN
+                || motionEventAction == MotionEvent.ACTION_POINTER_DOWN) {
+            if (debug_gestures)
+                Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
+            lastGestureX = motionEventX;
+            lastGestureY = motionEventY;
+            return true;
+        }
+
+        if (motionEventAction == MotionEvent.ACTION_MOVE
+                || motionEventAction == MotionEvent.ACTION_UP
+                || motionEventAction == MotionEvent.ACTION_POINTER_UP) {
+            float deltaX = motionEventX - lastGestureX;
+            float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
+            float deltaY = motionEventY - lastGestureY;
+            float absDeltaY = deltaY < 0 ? -1 * deltaY : deltaY;
+
+            int motion_delta_min_x = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
+            int motion_delta_min_y = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
+
+            if (absDeltaX >= absDeltaY) {
+                if (absDeltaX < motion_delta_min_x)
+                    return true;
+                if (deltaX > 0) {
+                    if(MoveCursorRightSafe(inputConnection))
+                        Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_RIGHT " + motionEvent);
+                } else {
+                    if(MoveCursorLeftSafe(inputConnection))
+                        Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
+                }
+            } else if (mode_keyboard_gestures_plus_up_down) {
+                if (absDeltaY < motion_delta_min_y)
+                    return true;
+                //int times = Math.round(absDeltaY / motion_delta_min_y);
+                if (deltaY < 0) {
+                    if(MoveCursorUpSafe(inputConnection))
+                        Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
+                } else {
+                    if(MoveCursorDownSafe(inputConnection))
+                        Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
+                }
+            }
+
+            lastGestureX = motionEventX;
+            lastGestureY = motionEventY;
+        }
+        return false;
     }
 
     private boolean MoveCursorDownSafe(InputConnection inputConnection) {
@@ -933,7 +912,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return false;
     }
 
-    private void StoreGestureHistory(MotionEvent motionEvent) {
+
+    private void ProcessGestureHistory(MotionEvent motionEvent) {
+
+
         if (motionEvent.getAction() == MotionEvent.ACTION_UP
                 || motionEvent.getAction() == MotionEvent.ACTION_CANCEL
                 || motionEvent.getAction() == MotionEvent.ACTION_POINTER_UP
@@ -948,10 +930,63 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
         if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
                 || motionEvent.getAction() == MotionEvent.ACTION_POINTER_DOWN) {
+
             lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
             lastGestureX = motionEvent.getX();
             lastGestureY = motionEvent.getY();
             enteredGestureMovement = true;
+        }
+    }
+
+    long prevDownTime = 0;
+    long prevUpTime = 0;
+
+    long prevPrevDownTime = 0;
+    long prevPrevUpTime = 0;
+
+    boolean modeDoubleClickGesture = false;
+    private void ProcessDoubleGestureClick(MotionEvent motionEvent) {
+
+
+        if (motionEvent.getAction() == MotionEvent.ACTION_UP
+                || motionEvent.getAction() == MotionEvent.ACTION_CANCEL
+                || motionEvent.getAction() == MotionEvent.ACTION_POINTER_UP
+        ) {
+            if(modeDoubleClickGesture) {
+                modeDoubleClickGesture = false;
+                mode_keyboard_gestures = false;
+                mode_keyboard_gestures_plus_up_down = false;
+                UpdateGestureModeVisualization();
+            } else {
+                prevPrevUpTime = prevUpTime;
+                prevUpTime = motionEvent.getEventTime();
+            }
+        }
+        else if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
+                || motionEvent.getAction() == MotionEvent.ACTION_POINTER_DOWN) {
+
+            long curDownTime = motionEvent.getEventTime();
+            if(     prevUpTime - prevDownTime <= TIME_LONG_PRESS
+                    && prevPrevUpTime - prevPrevDownTime <= TIME_LONG_PRESS
+                    && prevUpTime - prevPrevDownTime <= TIME_DOUBLE_PRESS
+                    && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
+                Log.d(TAG2, "GESTURE TRIPLE CLICK");
+                mode_keyboard_gestures = true;
+                mode_keyboard_gestures_plus_up_down = true;
+                modeDoubleClickGesture = true;
+                UpdateGestureModeVisualization();
+            }
+            else if(     prevUpTime - prevDownTime <= TIME_LONG_PRESS
+                    && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
+                Log.d(TAG2, "GESTURE DOUBLE CLICK");
+                mode_keyboard_gestures = true;
+                modeDoubleClickGesture = true;
+                UpdateGestureModeVisualization();
+            }
+
+            prevPrevDownTime = prevDownTime;
+            prevDownTime = curDownTime;
+
         }
     }
 
@@ -1212,6 +1247,31 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     @Override
     public void onGetSentenceSuggestions(SentenceSuggestionsInfo[] results) {
         Log.d(TAG, "onGetSentenceSuggestions");
+    }
+
+
+    private boolean IsNavKeyCode(int keyCode) {
+        return keyCode == KeyEvent.KEYCODE_Q
+                || keyCode == KeyEvent.KEYCODE_A
+                || keyCode == KeyEvent.KEYCODE_P
+                //LEFT NAV BLOCK
+                || keyCode == KeyEvent.KEYCODE_W
+                || keyCode == KeyEvent.KEYCODE_E
+                || keyCode == KeyEvent.KEYCODE_R
+                || keyCode == KeyEvent.KEYCODE_T
+                || keyCode == KeyEvent.KEYCODE_S
+                || keyCode == KeyEvent.KEYCODE_D
+                || keyCode == KeyEvent.KEYCODE_F
+                || keyCode == KeyEvent.KEYCODE_G
+                //RIGHT BLOCK
+                || keyCode == KeyEvent.KEYCODE_Y
+                || keyCode == KeyEvent.KEYCODE_U
+                || keyCode == KeyEvent.KEYCODE_I
+                || keyCode == KeyEvent.KEYCODE_O
+                || keyCode == KeyEvent.KEYCODE_H
+                || keyCode == KeyEvent.KEYCODE_J
+                || keyCode == KeyEvent.KEYCODE_K
+                || keyCode == KeyEvent.KEYCODE_L;
     }
 
     private boolean IsBbLauncherKeyCode(int keyCode, int meta) {

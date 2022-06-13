@@ -5,7 +5,13 @@ plugins {
 android {
     signingConfigs {
         debug {
-            storeFile file('C:\\Users\\User\\keystores\\upload-keystore-ecoder.jks')
+            storeFile file('d:\\Programming\\keystores\\keystore2.jks')
+            storePassword 'qwerty'
+            keyAlias 'key0'
+            keyPassword 'qwerty'
+        }
+        release {
+            storeFile file('d:\\Programming\\keystores\\keystore2.jks')
             storePassword 'qwerty'
             keyAlias 'key0'
             keyPassword 'qwerty'
@@ -17,15 +23,21 @@ android {
         applicationId "com.sateda.keyonekb2"
         minSdkVersion 25
         targetSdkVersion 25
-        versionCode 2250
-        versionName "2.2-beta5"
+        versionCode 2260
+        versionName "2.2-beta6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            debuggable true
+        }
         release {
+            signingConfig signingConfigs.release
+            debuggable false
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -34,7 +46,7 @@ android {
         variant.outputs.all {
             //outputFileName = "ApplicationName-${variant.name}-${variant.versionName}.apk"
             //TODO: сделал такую настройку т.е. не работает штатный механизм наименования файла от Основателя (если он был)
-            outputFileName = "KeyoneKB2-v2.2-beta5.apk"
+            outputFileName = "KeyoneKB2-v2.2-beta6.apk"
         }
     }
     compileOptions {
