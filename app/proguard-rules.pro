@@ -39,3 +39,4 @@
 -dontwarn android.content.res.**
 -dontnote android.content.res.**
 -keep class org.xmlpull.** { *; }
+-keep class com.android.internal.telephony.** { *; }
