@@ -31,7 +31,6 @@ import com.android.internal.telephony.ITelephony;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import static android.content.ContentValues.TAG;
-import static java.lang.Thread.sleep;
 
 import java.lang.reflect.Method;
 
@@ -99,8 +98,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     private SharedPreferences mSettings;
 
-    private Toast toast;
-
     private boolean metaCtrlPressed = false; // только первая буква будет большая
 
     private boolean oneTimeShiftOneTimeBigMode; // только первая буква будет большая
@@ -155,7 +152,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     @Override
     public void onCreate() {
         super.onCreate();
@@ -259,26 +256,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         //region HACK-s
 
-        if (editorInfo.packageName.equals("com.blackberry.blackberrylauncher")) {
-            inputAtBbLauncherApp = true;
-        } else {
-            inputAtBbLauncherApp = false;
-        }
-        if (editorInfo.packageName.equals("com.blackberry.contacts")) {
-            startInputAtBbContactsApp = true;
-        } else {
-            startInputAtBbContactsApp = false;
-        }
-        if (editorInfo.packageName.equals("com.android.dialer")) {
-            startInputAtBbPhoneApp = true;
-        } else {
-            startInputAtBbPhoneApp = false;
-        }
-        if(editorInfo.packageName.equals("org.telegram.messenger")) {
-            startInputAtTelegram = true;
-        }else{
-            startInputAtTelegram = false;
-        }
+        inputAtBbLauncherApp = editorInfo.packageName.equals("com.blackberry.blackberrylauncher");
+        startInputAtBbContactsApp = editorInfo.packageName.equals("com.blackberry.contacts");
+        startInputAtBbPhoneApp = editorInfo.packageName.equals("com.android.dialer");
+        startInputAtTelegram = editorInfo.packageName.equals("org.telegram.messenger");
         //endregion
 
         // Обрабатываем переход между приложениями
@@ -316,23 +297,23 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
                 // We now look for a few special variations of text that will
                 // modify our behavior.
-                int variation = editorInfo.inputType & InputType.TYPE_MASK_VARIATION;
-                if (variation == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
-                        variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) {
+                //int variation = editorInfo.inputType & InputType.TYPE_MASK_VARIATION;
+                //if (variation == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
+                //        variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) {
                     // Do not display predictions / what the user is typing
                     // when they are entering a password.
                     //mPredictionOn = false;
-                }
+                //}
 
-                if (variation == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-                        || variation == InputType.TYPE_TEXT_VARIATION_URI
-                        || variation == InputType.TYPE_TEXT_VARIATION_FILTER) {
+                //if (variation == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+                //        || variation == InputType.TYPE_TEXT_VARIATION_URI
+                //        || variation == InputType.TYPE_TEXT_VARIATION_FILTER) {
                     // Our predictions are not useful for e-mail addresses
                     // or URIs.
                     //mPredictionOn = false;
-                }
+                //}
 
-                if ((editorInfo.inputType & InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE) != 0) {
+                //if ((editorInfo.inputType & InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE) != 0) {
                     // If this is an auto-complete text view, then our predictions
                     // will not be shown and instead we will allow the editor
                     // to supply their own.  We only show the editor's
@@ -340,7 +321,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     // own it displaying its own UI.
                     //mPredictionOn = false;
                     //mCompletionOn = isFullscreenMode();
-                }
+                //}
 
                 // We also want to look at the current state of the editor
                 // to decide whether our alphabetic keyboard should start out
@@ -420,10 +401,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         needUpdateVisualInsideSingleEvent = false;
 
         //Это нужно чтобы работал "чужой"/встроенный механизм выделения с Shift-ом
-        if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
-            return false;
-
-        return true;
+        return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
     }
 
     @Override
@@ -446,10 +424,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         needUpdateVisualInsideSingleEvent = false;
 
         //Это нужно чтобы работал "чужой"/встроенный механизм выделения с Shift-ом
-        if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT)
-            return false;
-
-        return true;
+        return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
     }
 
     //TODO: Вынести в XML
@@ -538,7 +513,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 break;
 
             default:
-                keyEventCode = 0;
         }
 
         return keyEventCode;
@@ -570,7 +544,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             }
         } else if (newConfig.orientation == 1) {
             if (lastVisibility == View.VISIBLE) {
-                lastVisibility = 0;
                 keyboardView.setVisibility(View.VISIBLE);
             } else
                 keyboardView.setVisibility(View.GONE);
@@ -732,7 +705,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 if (this.isInputViewShown()) {
                     MoveCursorLeftSafe(inputConnection);
                     lastGestureX = motionEvent.getX();
-                    Log.d(TAG, "onTouch sens_botton_bar " + pref_gesture_motion_sensitivity + " KEYCODE_DPAD_LEFT " + motionEvent);
+                    Log.d(TAG, "onTouch sens_bottom_bar " + pref_gesture_motion_sensitivity + " KEYCODE_DPAD_LEFT " + motionEvent);
                 }
             }
         } else {
@@ -762,8 +735,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             return true;
 
         if (!mode_keyboard_gestures && motionEvent.getY() <= ROW_4_BEGIN_Y) {
-            if (debug_gestures)
-                Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
+            //if (debug_gestures)
+            //    Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
             ProcessPrepareAtHoldGesture(motionEvent);
         }
 
@@ -802,7 +775,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
     private long lastGestureSwipingBeginTime = 0;
     private boolean enteredGestureMovement = false;
-    private boolean debug_gestures = false;
 
 
     private void TurnOffGesturesMode() {
@@ -817,8 +789,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         //Жесть по клавиатуре всегда начинается с ACTION_DOWN
         if (motionEventAction == MotionEvent.ACTION_DOWN
                 || motionEventAction == MotionEvent.ACTION_POINTER_DOWN) {
-            if (debug_gestures)
-                Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
+            //if (debug_gestures)
+            //    Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
             lastGestureX = motionEventX;
             lastGestureY = motionEventY;
             return true;
@@ -1028,7 +1000,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     private void UpdateGestureModeVisualization(boolean isInput) {
-        boolean changed = false;
+        boolean changed;
 
         if (isInput && mode_keyboard_gestures && !IsNavMode()) {
 
@@ -1036,14 +1008,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input_up_down);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
             } else {
-                changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
+                changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
             }
         } else if (!isInput && pref_keyboard_gestures_at_views_enable && !IsNavMode()) {
-            changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
+            changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
         } else {
-            changed |= notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_off);
+            changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_off);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
         }
         if (changed)
@@ -1061,14 +1033,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         KeyboardLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
 
         String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
-        boolean changed = false;
+        boolean changed;
         boolean needUsefullKeyboard = false;
         if (IsNavMode()) {
             if (!fnSymbolOnScreenKeyboardMode) {
-                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav);
+                changed = notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav);
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_NAV_TEXT);
             } else {
-                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav_fn);
+                changed = notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav_fn);
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_NAV_FV_TEXT);
             }
             //onScreenKeyboardSymbols = keyboardNavigation;
@@ -1078,10 +1050,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         } else if (symbolOnScreenKeyboardMode) {
 
             if (IsSym2Mode()) {
-                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
+                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
             } else {
-                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
             }
             //TODO: Тут плодятся объекты зачем-то
@@ -1089,19 +1061,15 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             ;
             keyboardView.setKeyboard(onScreenKeyboardSymbols);
             //TODO: Сделать предзагрузку этой клавиатуры
-            if (symPadAltShift) {
-                keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), true);
-            } else {
-                keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), false);
-            }
+            keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), symPadAltShift);
             needUsefullKeyboard = true;
 
         } else if (doubleAltPressAllSymbolsAlted || metaAltPressed) {
             if (IsSym2Mode()) {
-                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
+                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
             } else {
-                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
             }
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
@@ -1115,10 +1083,10 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             }
         } else if (altPressSingleSymbolAltedMode) {
             if (IsSym2Mode()) {
-                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
+                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym_one);
             } else {
-                changed |= notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
+                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
                 changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt_one);
             }
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
@@ -1131,7 +1099,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyboardView.setAlt();
             }
         } else if (doubleShiftCapsMode || metaShiftPressed) {
-            changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
+            changed = notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
             changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconCaps);
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
@@ -1140,7 +1108,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyboardView.setLetterKB();
             }
         } else if (oneTimeShiftOneTimeBigMode) {
-            changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
+            changed = notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
             changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconFirstShift);
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
@@ -1151,7 +1119,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
         } else {
             // Случай со строными буквами
-            changed |= notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
+            changed = notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
             changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconLittle);
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
@@ -1211,12 +1179,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if (telecomManager != null && this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED && telecomManager.isInCall()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 if (telecomManager != null) {
-                    boolean success = telecomManager.endCall();
-                    return success;
+                    return telecomManager.endCall();
                 }
             } else {
                 try {
-                    Class classTelephony = Class.forName(telephonyManager.getClass().getName());
+                    Class<?> classTelephony = Class.forName(telephonyManager.getClass().getName());
                     Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
                     methodGetITelephony.setAccessible(true);
                     ITelephony telephonyService = (ITelephony) methodGetITelephony.invoke(telephonyManager);
@@ -1289,7 +1256,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private void ChangeLanguage() {
         keyboardLayoutManager.ChangeLayout();
         if(pref_show_toast) {
-            toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().LanguageOnScreenNaming, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().LanguageOnScreenNaming, Toast.LENGTH_SHORT);
             toast.show();
         }
         UpdateKeyboardModeVisualization();
@@ -1377,7 +1344,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 Log.d(TAG, "updateShiftKeyState (changed to) oneTimeShiftOneTimeBigMode = true");
                 return true;
             }
-        }else if (makeFirstBig == 0) {
+        }else {
+            //makeFirstBig == 0
             if(oneTimeShiftOneTimeBigMode) {
                 oneTimeShiftOneTimeBigMode = false;
                 Log.d(TAG, "updateShiftKeyState (changed to) oneTimeShiftOneTimeBigMode = false");
@@ -2084,7 +2052,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, inputConnection);
                 try {
                     Thread.sleep(50); }
-                catch (Throwable t) {}
+                catch (Throwable ignored) {}
 
             }
         }
@@ -2099,7 +2067,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                     Thread.sleep(20);
                     keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DEL, inputConnection);
                     Thread.sleep(50); }
-                catch (Throwable t) {}
+                catch (Throwable ignored) {}
             }
         }
     }
@@ -2111,7 +2079,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_SEARCH, inputConnection);
                 try {
                     Thread.sleep(50); }
-                catch (Throwable t) {}
+                catch (Throwable ignored) {}
             }
             startInputAtBbContactsApp = false;
         }
