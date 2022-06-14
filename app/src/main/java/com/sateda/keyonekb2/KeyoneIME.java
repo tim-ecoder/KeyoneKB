@@ -784,7 +784,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
 
             int motionEventAction = motionEvent.getAction();
             if (!symbolOnScreenKeyboardMode) {
-                if (MakeGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, motionEventAction))
+                if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, motionEventAction))
                     return true;
             } else {
 
@@ -805,7 +805,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     private boolean debug_gestures = false;
 
 
-    private void ResetGesturesMode() {
+    private void TurnOffGesturesMode() {
         //mode_keyboard_gestures_plus_up_down = false;
         if (mode_keyboard_gestures) {
             mode_keyboard_gestures = false;
@@ -813,18 +813,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         }
     }
 
-    private void ResetSingleAltSingleShiftModeAfterOneLetter() {
-        if (altPressSingleSymbolAltedMode && !pref_alt_space) {
-            altPressSingleSymbolAltedMode = false;
-            SetNeedUpdateVisualState();
-        }
-        if (oneTimeShiftOneTimeBigMode) {
-            oneTimeShiftOneTimeBigMode = false;
-            SetNeedUpdateVisualState();
-        }
-    }
-
-    private boolean MakeGestureAction(MotionEvent motionEvent, InputConnection inputConnection, float motionEventX, float motionEventY, int motionEventAction) {
+    private boolean PerformGestureAction(MotionEvent motionEvent, InputConnection inputConnection, float motionEventX, float motionEventY, int motionEventAction) {
         //Жесть по клавиатуре всегда начинается с ACTION_DOWN
         if (motionEventAction == MotionEvent.ACTION_DOWN
                 || motionEventAction == MotionEvent.ACTION_POINTER_DOWN) {
@@ -990,7 +979,14 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             prevPrevDownTime = prevDownTime;
             prevDownTime = curDownTime;
 
+
         }
+    }
+    private void ResetDoubleClickGestureState() {
+        prevDownTime = 0;
+        prevUpTime = 0;
+        prevPrevDownTime = 0;
+        prevPrevUpTime = 0;
     }
 
     //endregion
@@ -1450,6 +1446,17 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return metaShiftPressed || (symbolOnScreenKeyboardMode && symPadAltShift);
     }
 
+    private void ResetSingleAltSingleShiftModeAfterOneLetter() {
+        if (altPressSingleSymbolAltedMode && !pref_alt_space) {
+            altPressSingleSymbolAltedMode = false;
+            SetNeedUpdateVisualState();
+        }
+        if (oneTimeShiftOneTimeBigMode) {
+            oneTimeShiftOneTimeBigMode = false;
+            SetNeedUpdateVisualState();
+        }
+    }
+
     //endregion
 
     //region LOAD
@@ -1735,6 +1742,11 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         return (bitmask & bits) > 0;
     }
 
+    private void SetNeedUpdateVisualState() {
+        needUpdateVisualInsideSingleEvent = true;
+    }
+
+
     private void ProcessImeOptions() {
         EditorInfo editorInfo = getCurrentInputEditorInfo();
         if(editorInfo != null && editorInfo.inputType != 0 && editorInfo.imeOptions != 0) {
@@ -1779,7 +1791,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             }*/
             return true;
         }
-        ResetGesturesMode();
+        TurnOffGesturesMode();
+        ResetDoubleClickGestureState();
         keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, getCurrentInputConnection());
         return true;
 
@@ -1794,7 +1807,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     }
 
     boolean onDelShortPress(KeyPressData keyPressData) {
-        ResetGesturesMode();
+        TurnOffGesturesMode();
+        ResetDoubleClickGestureState();
         InputConnection inputConnection = getCurrentInputConnection();
         if(!metaShiftPressed) {
             keyDownUpDefaultFlags(KeyEvent.KEYCODE_DEL, inputConnection);
@@ -1847,7 +1861,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         if(metaShiftPressed || IsShiftMeta (keyPressData.MetaBase))
             ChangeLanguage();
         else {
-            ResetGesturesMode();
+            TurnOffGesturesMode();
             if(altPressSingleSymbolAltedMode && pref_alt_space) {
                 altPressSingleSymbolAltedMode = false;
             }
@@ -1982,7 +1996,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             ChangeLanguage();
             SetNeedUpdateVisualState();
         } else {
-            ResetGesturesMode();
+            TurnOffGesturesMode();
             InputConnection inputConnection = getCurrentInputConnection();
             if (inputConnection != null)
                 inputConnection.commitText(String.valueOf((char) CHAR_0), 1);
@@ -2032,7 +2046,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
                 //keyDownUp(KeyEvent.KEYCODE_ESCAPE, getCurrentInputConnection(), 0xFFFFFFFF, 0xFFFFFFFF);
                 //Log.d(TAG2, "TEST KEY SENT");
                 //Testing open Search containers
-                return true;
+                //return true;
             }
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
             keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
@@ -2057,7 +2071,8 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         //endregion
         sendKeyChar((char) code2send);
         ResetSingleAltSingleShiftModeAfterOneLetter();
-        ResetGesturesMode();
+        TurnOffGesturesMode();
+        ResetDoubleClickGestureState();
     }
 
     private void TelegramAppHack(InputConnection inputConnection) {
@@ -2100,11 +2115,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             }
             startInputAtBbContactsApp = false;
         }
-    }
-
-
-    private void SetNeedUpdateVisualState() {
-        needUpdateVisualInsideSingleEvent = true;
     }
 
     boolean onLetterDoublePress(KeyPressData keyPressData) {
