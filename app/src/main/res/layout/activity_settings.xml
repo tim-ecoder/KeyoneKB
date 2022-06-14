@@ -9,61 +9,29 @@
 <RelativeLayout
     android:id="@+id/activity_settings"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".SettingsActivity">
 
     <Switch
-        android:id="@+id/switch_ru_lang"
+        android:id="@+id/default_lang"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/pref_rus_lang_name"
+        android:text="Default language"
         android:textSize="24sp"
-        tools:checked="true" />
-
-    <View
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/switch_ru_lang"
-        android:background="?android:attr/listDivider" />
-
-    <Switch
-        android:id="@+id/switch_translit_ru_lang"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider"
-        android:text="@string/pref_rus_translit_name"
-        android:textSize="24sp"
-        tools:checked="true" />
+        tools:checked="false" />
 
     <View
         android:id="@+id/divider2"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@id/switch_translit_ru_lang"
-        android:background="?android:attr/listDivider" />
-
-    <Switch
-        android:id="@+id/switch_ua_lang"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider2"
-        android:text="@string/pref_ua_lang_name"
-        android:textSize="24sp"
-        tools:checked="false" />
-
-    <View
-        android:id="@+id/divider3"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/switch_ua_lang"
+        android:layout_below="@id/default_lang"
         android:background="?android:attr/listDivider" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/divider3"
+        android:layout_below="@id/divider2"
         android:text="@string/pref_p_1_name"
         android:textColor="@color/black"
         android:textSize="24sp" />

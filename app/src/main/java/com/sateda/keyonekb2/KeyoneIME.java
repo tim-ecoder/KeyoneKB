@@ -33,6 +33,7 @@ import com.sateda.keyonekb2.input.CallStateCallback;
 import static android.content.ContentValues.TAG;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 @Keep
 public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -149,6 +150,7 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
     @Override
     public void onDestroy() {
         notificationProcessor.CancelAll();
+        super.onDestroy();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -1433,10 +1435,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         pref_show_toast = false;
         pref_gesture_motion_sensitivity = 10;
 
-        boolean lang_ru_on = true;
-        boolean lang_translit_ru_on = false;
-        boolean lang_ua_on = false;
-
         if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD)) {
             pref_show_default_onscreen_keyboard = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, true);
         }
@@ -1445,18 +1443,15 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
             pref_keyboard_gestures_at_views_enable = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, false);
         }
 
-        KeyboardLayoutRes[] activeLayouts = keyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_RU_LANG)) {
-            lang_ru_on = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_RU_LANG, true);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_TRANSLIT_RU_LANG)) {
-            lang_translit_ru_on = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_TRANSLIT_RU_LANG, false);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_UA_LANG)) {
-            lang_ua_on = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_UA_LANG, false);
+        ArrayList<KeyboardLayoutRes> allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
+        ArrayList<KeyboardLayoutRes> activeLayouts = new ArrayList<KeyboardLayoutRes>();
+        //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
+        for(KeyboardLayoutRes keyboardLayoutRes : allLayouts) {
+            if(mSettings.contains(keyboardLayoutRes.getPreferenceName())
+                    && mSettings.getBoolean(keyboardLayoutRes.getPreferenceName(), false)) {
+                keyboardLayoutRes.setActive();
+                activeLayouts.add(keyboardLayoutRes);
+            }
         }
 
         if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SENS_BOTTOM_BAR)) {

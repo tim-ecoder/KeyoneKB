@@ -16,7 +16,7 @@ public class KeyboardLayoutManager {
     private int LangListCount = 0;
     public boolean isEnglishKb = false;
 
-    public void Initialize(KeyboardLayoutRes[] activeLayouts, Resources resources, Context context) {
+    public void Initialize(ArrayList<KeyboardLayoutRes> activeLayouts, Resources resources, Context context) {
         if(LangListCount != 0)
             return;
 
@@ -208,7 +208,7 @@ public class KeyboardLayoutManager {
         return keyVariants.alt_popup.charAt(0);
     }
 
-    public KeyboardLayoutRes[] LoadKeyboardLayoutsRes(Resources resources, Context context) {
+    public static ArrayList<KeyboardLayoutRes> LoadKeyboardLayoutsRes(Resources resources, Context context) {
         // Load keyboard layouts
         //Открывает R.xml.keyboard_layouts и загружает все настройки клавиатуры
 
@@ -247,15 +247,15 @@ public class KeyboardLayoutManager {
                 int iconOneShiftResId = resources.getIdentifier(iconOneShiftRes, "mipmap", context.getPackageName());
                 int iconLittleResId = resources.getIdentifier(iconLittleRes, "mipmap", context.getPackageName());
 
-                keyboardLayoutResArray.add(new KeyboardLayoutRes(name, layoutResId, iconCapsResId, iconLittleResId, iconOneShiftResId));
+                keyboardLayoutResArray.add(new KeyboardLayoutRes(name, layoutResId, iconCapsResId, iconLittleResId, iconOneShiftResId, layoutRes));
                 parser.next();
             }
 
-            return keyboardLayoutResArray.toArray(new KeyboardLayoutRes[keyboardLayoutResArray.size()]);
+            return keyboardLayoutResArray;
 
         } catch (Throwable t) {
             Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
         }
-        return keyboardLayoutResArray.toArray(new KeyboardLayoutRes[keyboardLayoutResArray.size()]);
+        return keyboardLayoutResArray;
     }
 }
