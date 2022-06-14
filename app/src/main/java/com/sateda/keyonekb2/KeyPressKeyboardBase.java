@@ -1,7 +1,6 @@
 package com.sateda.keyonekb2;
 
 import android.annotation.SuppressLint;
-import android.content.res.Resources;
 import android.inputmethodservice.InputMethodService;
 import android.os.Build;
 import android.os.SystemClock;
@@ -12,9 +11,37 @@ import android.view.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+public class KeyPressKeyboardBase extends InputMethodService {
 
-public class KeyboardBaseKeyLogic extends InputMethodService {
-
+    protected final int[] KEY2_LATIN_ALPHABET_KEYS_CODES = new int[]{
+            KeyEvent.KEYCODE_4, //DOLLAR
+            KeyEvent.KEYCODE_A,
+            KeyEvent.KEYCODE_B,
+            KeyEvent.KEYCODE_C,
+            KeyEvent.KEYCODE_D,
+            KeyEvent.KEYCODE_E,
+            KeyEvent.KEYCODE_F,
+            KeyEvent.KEYCODE_G,
+            KeyEvent.KEYCODE_H,
+            KeyEvent.KEYCODE_I,
+            KeyEvent.KEYCODE_J,
+            KeyEvent.KEYCODE_K,
+            KeyEvent.KEYCODE_L,
+            KeyEvent.KEYCODE_M,
+            KeyEvent.KEYCODE_N,
+            KeyEvent.KEYCODE_O,
+            KeyEvent.KEYCODE_P,
+            KeyEvent.KEYCODE_Q,
+            KeyEvent.KEYCODE_R,
+            KeyEvent.KEYCODE_S,
+            KeyEvent.KEYCODE_T,
+            KeyEvent.KEYCODE_U,
+            KeyEvent.KEYCODE_V,
+            KeyEvent.KEYCODE_W,
+            KeyEvent.KEYCODE_X,
+            KeyEvent.KEYCODE_Y,
+            KeyEvent.KEYCODE_Z,
+    };
     int TIME_DOUBLE_PRESS;
     int TIME_SHORT_2ND_LONG_PRESS;
     int TIME_LONG_PRESS;

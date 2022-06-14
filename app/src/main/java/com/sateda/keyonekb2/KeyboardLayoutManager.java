@@ -103,7 +103,7 @@ public class KeyboardLayoutManager {
             keyboardLayout.XmlId = keyboardLayoutXmlId;
             keyboardLayoutArrayList.add(currentKeyBoardSetId, keyboardLayout);
         } catch (Throwable t) {
-            Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
+            Log.e(KeyPressKeyboardBase.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
         }
 
         keyboardLayout.SymXmlId = resources.getIdentifier(sym_sw_res, "xml", context.getPackageName());
@@ -162,7 +162,7 @@ public class KeyboardLayoutManager {
                 parser.next();
             }
         } catch (Throwable t) {
-            Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
+            Log.e(KeyPressKeyboardBase.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
         }
     }
 
@@ -254,7 +254,7 @@ public class KeyboardLayoutManager {
             return keyboardLayoutResArray;
 
         } catch (Throwable t) {
-            Log.e(KeyboardBaseKeyLogic.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
+            Log.e(KeyPressKeyboardBase.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
         }
         return keyboardLayoutResArray;
     }
