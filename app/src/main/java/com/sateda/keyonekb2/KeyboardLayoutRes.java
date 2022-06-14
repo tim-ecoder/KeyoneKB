@@ -8,9 +8,6 @@ public class KeyboardLayoutRes {
     int IconCapsResId;
     int IconFirstShiftResId;
     int IconLittleResId;
-
-    boolean IsActive;
-
     public KeyboardLayoutRes(String optionsName, int layoutResId, int iconCapsResId, int iconLittleResId, int iconOneShiftResId, String xmlRes) {
         XmlRes = xmlRes;
         OptionsName = optionsName;
@@ -26,9 +23,5 @@ public class KeyboardLayoutRes {
 
     int getHash() {
         return XmlRes.hashCode();
-    }
-
-    public void setActive() {
-        IsActive = true;
     }
 }

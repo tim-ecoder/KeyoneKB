@@ -1449,7 +1449,6 @@ public class KeyoneIME extends KeyboardBaseKeyLogic implements KeyboardView.OnKe
         for(KeyboardLayoutRes keyboardLayoutRes : allLayouts) {
             if(mSettings.contains(keyboardLayoutRes.getPreferenceName())
                     && mSettings.getBoolean(keyboardLayoutRes.getPreferenceName(), false)) {
-                keyboardLayoutRes.setActive();
                 activeLayouts.add(keyboardLayoutRes);
             }
         }
