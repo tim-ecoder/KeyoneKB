@@ -1184,7 +1184,10 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         keyAction = new KeyProcessingMode();
         keyAction.KeyCodeScanCode = new KeyCodeScanCode();
-        keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_ALT_LEFT;
+        keyAction.KeyCodeArray = new int[] {
+                KeyEvent.KEYCODE_ALT_LEFT,
+                KeyEvent.KEYCODE_ALT_RIGHT,
+        };
         keyAction.KeyHoldPlusKey = true;
         keyAction.OnShortPress = this::onAltShortPress;
         keyAction.OnUndoShortPress = this::DoNothing;
@@ -1207,6 +1210,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         keyAction = new KeyProcessingMode();
         keyAction.KeyCodeArray = new int[] {
                 KeyEvent.KEYCODE_CTRL_LEFT,
+                KeyEvent.KEYCODE_CTRL_RIGHT,
                 KeyEvent.KEYCODE_SHIFT_RIGHT,
         };
         keyAction.KeyHoldPlusKey = true;
