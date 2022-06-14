@@ -49,6 +49,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     public String TITLE_GESTURE_INPUT_UP_DOWN;
     public String TITLE_GESTURE_VIEW;
     public String TITLE_GESTURE_OFF;
+    protected boolean pref_keyboard_gestures_at_views_enable = true;
 
     private CallStateCallback callStateCallback;
 
@@ -321,7 +322,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         int navigationKeyCode;
         InputConnection inputConnection = getCurrentInputConnection();
-        if (IsNavMode() && IsNavKeyCode(keyCode)) {
+        if (IsNoGesturesMode() && IsNavKeyCode(keyCode)) {
             int scanCode = event.getScanCode();
             navigationKeyCode = getNavigationCode(scanCode);
 
@@ -365,7 +366,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         //region Блок навигационной клавиатуры
 
-        if (IsNavMode() && IsNavKeyCode(keyCode)) {
+        if (IsNoGesturesMode() && IsNavKeyCode(keyCode)) {
             return true;
         }
         //endregion
@@ -523,7 +524,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         // view is not displayed we have no means of showing suggestions anyway, and if it is then
         // we want to show suggestions anyway.
 
-        DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+        ProcessOnCursorMovement(getCurrentInputEditorInfo());
 
     }
 
@@ -538,20 +539,20 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
                 case 19: //UP
                     keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
                 case 20: //DOWN
                     keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
                 case 21: //LEFT
                     keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
                     keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
                 case 0: //SPACE
@@ -575,12 +576,12 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
                 case Keyboard.KEYCODE_DELETE:
                     inputConnection.deleteSurroundingText(1, 0);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
                 case Keyboard.KEYCODE_DONE:
                     keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, inputConnection);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
                 default:
@@ -594,21 +595,21 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                     break;
                 case 21: //LEFT
                     keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
                     keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
                 case Keyboard.KEYCODE_DELETE:
                     inputConnection.deleteSurroundingText(1, 0);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
                 case Keyboard.KEYCODE_DONE:
                     keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, inputConnection);
-                    DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
                 default:
                     char code = (char) primaryCode;
@@ -642,6 +643,8 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     public void swipeUp() {
 
     }
+
+    float lastGestureX = 0;
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -729,7 +732,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
         boolean changed;
         boolean needUsefullKeyboard = false;
-        if (IsNavMode()) {
+        if (IsNoGesturesMode()) {
             if (!fnSymbolOnScreenKeyboardMode) {
                 changed = notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav);
                 changed |= notificationProcessor.SetContentTitleLayout(TITLE_NAV_TEXT);
@@ -964,13 +967,14 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         }
     }
 
-    //region KeyDownUp
-
-
-    //endregion
 
     @Override
-    protected boolean DetermineFirstBigCharStateAndUpdateVisualization(EditorInfo editorInfo)
+    protected boolean ProcessOnCursorMovement(EditorInfo editorInfo)
+    {
+        return DetermineFirstBigCharStateAndUpdateVisualization1(editorInfo);
+    }
+
+    protected boolean DetermineFirstBigCharStateAndUpdateVisualization1(EditorInfo editorInfo)
     {
         boolean needUpdateVisual = DetermineFirstBigCharAndReturnChangedState(editorInfo);
         if(needUpdateVisual) {
@@ -1084,8 +1088,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     //region LOAD
 
     private void LoadSettingsAndKeyboards(){
-        pref_show_toast = false;
-        pref_gesture_motion_sensitivity = 10;
 
         if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD)) {
             pref_show_default_onscreen_keyboard = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, true);
@@ -1093,16 +1095,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         if(mSettings.contains(SettingsActivity.APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED)) {
             pref_keyboard_gestures_at_views_enable = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, false);
-        }
-
-        ArrayList<KeyboardLayoutRes> allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
-        ArrayList<KeyboardLayoutRes> activeLayouts = new ArrayList<KeyboardLayoutRes>();
-        //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
-        for(KeyboardLayoutRes keyboardLayoutRes : allLayouts) {
-            if(mSettings.contains(keyboardLayoutRes.getPreferenceName())
-                    && mSettings.getBoolean(keyboardLayoutRes.getPreferenceName(), false)) {
-                activeLayouts.add(keyboardLayoutRes);
-            }
         }
 
         if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SENS_BOTTOM_BAR)) {
@@ -1132,6 +1124,15 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             pref_height_bottom_bar = mSettings.getInt(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR, 10);
         }
 
+        ArrayList<KeyboardLayoutRes> allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
+        ArrayList<KeyboardLayoutRes> activeLayouts = new ArrayList<>();
+        //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
+        for(KeyboardLayoutRes keyboardLayoutRes : allLayouts) {
+            if(mSettings.contains(keyboardLayoutRes.getPreferenceName())
+                    && mSettings.getBoolean(keyboardLayoutRes.getPreferenceName(), false)) {
+                activeLayouts.add(keyboardLayoutRes);
+            }
+        }
         keyboardLayoutManager.Initialize(activeLayouts, getResources(), getApplicationContext());
     }
 
@@ -1816,7 +1817,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     protected void UpdateGestureModeVisualization(boolean isInput) {
         boolean changed;
 
-        if (isInput && mode_keyboard_gestures && !IsNavMode()) {
+        if (isInput && mode_keyboard_gestures && !IsNoGesturesMode()) {
 
             if (mode_keyboard_gestures_plus_up_down) {
                 changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input_up_down);
@@ -1825,7 +1826,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                 changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
             }
-        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !IsNavMode()) {
+        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !IsNoGesturesMode()) {
             changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
         } else {
@@ -1839,8 +1840,13 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     }
 
     @Override
-    protected boolean IsNavMode() {
+    protected boolean IsNoGesturesMode() {
         return navigationOnScreenKeyboardMode || metaSymPressed;
+    }
+
+    @Override
+    protected boolean IsGestureModeEnabled() {
+        return pref_keyboard_gestures_at_views_enable;
     }
     //endregion
 }

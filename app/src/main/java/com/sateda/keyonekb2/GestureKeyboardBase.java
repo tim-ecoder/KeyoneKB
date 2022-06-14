@@ -13,18 +13,23 @@ import static android.content.ContentValues.TAG;
 
 public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
     private int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
+    private int MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST ;
     private int ROW_4_BEGIN_Y;
-    public int TIME_WAIT_GESTURE_UPON_KEY_0;
-    protected float lastGestureX;
+    protected int TIME_WAIT_GESTURE_UPON_KEY_0;
+    private float lastGestureX;
     protected boolean mode_keyboard_gestures = false;
     protected boolean mode_keyboard_gestures_plus_up_down = false;
     protected int pref_gesture_motion_sensitivity = 10;
-    protected boolean pref_keyboard_gestures_at_views_enable = true;
     protected long lastGestureSwipingBeginTime = 0;
     long prevDownTime = 0;
     long prevUpTime = 0;
     long prevPrevDownTime = 0;
     long prevPrevUpTime = 0;
+
+    float prevX = 0;
+    float prevY = 0;
+    float prevPrevX = 0;
+    float prevPrevY = 0;
     boolean modeDoubleClickGesture = false;
     private float lastGestureY;
     private boolean enteredGestureMovement = false;
@@ -33,56 +38,32 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
     @Override
     public void onCreate() {
         super.onCreate();
+        MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST = Integer.parseInt(getString(R.string.KB_CORE_GESTURE_FINGER_XY_RAD));;
         MAGIC_KEYBOARD_GESTURE_MOTION_CONST = Integer.parseInt(getString(R.string.KB_CORE_MOTION_BASE_SENSITIVITY));
         ROW_4_BEGIN_Y = Integer.parseInt(getString(R.string.KB_CORE_ROW_4_BEGIN_Y));
         TIME_WAIT_GESTURE_UPON_KEY_0 = Integer.parseInt(getString(R.string.WAIT_GESTURE_UPON_KEY_0));
     }
 
-    protected static void keyDownUpDefaultFlags(int keyEventCode, InputConnection ic) {
-        if (ic == null) return;
-
-        ic.sendKeyEvent(
-                new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
-        ic.sendKeyEvent(
-                new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
-    }
-
-    private static void keyDownUp(int keyEventCode, InputConnection ic, int meta, int flag) {
-        if (ic == null) return;
-        long now = SystemClock.uptimeMillis();
-
-        ic.sendKeyEvent(
-                new KeyEvent(now - 3, now - 2, KeyEvent.ACTION_DOWN, keyEventCode, 0,
-                        meta, -1, 0,
-                        flag, 0x101));
-        ic.sendKeyEvent(
-                new KeyEvent(now - 1, now, KeyEvent.ACTION_UP, keyEventCode, 0,
-                        meta, -1, 0,
-                        flag, 0x101));
-    }
-
-    protected static void keyDownUpKeepTouch(int keyEventCode, InputConnection ic, int meta) {
-        GestureKeyboardBase.keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
-    }
+    protected abstract boolean IsGestureModeEnabled();
 
     protected boolean ProcessGestureAtMotionEvent(MotionEvent motionEvent) {
-        if (pref_keyboard_gestures_at_views_enable
-                && !IsNavMode()
+        if (IsGestureModeEnabled()
+                && !IsNoGesturesMode()
                 && !IsInputMode()) {
             return false;
         }
 
-        if (IsNavMode())
+        if (IsNoGesturesMode())
             return true;
 
         if (!mode_keyboard_gestures && motionEvent.getY() <= ROW_4_BEGIN_Y) {
-            //if (debug_gestures)
-            //    Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
+
             ProcessPrepareAtHoldGesture(motionEvent);
         }
 
         if ((!mode_keyboard_gestures && !mode_keyboard_gestures_plus_up_down)
             || modeDoubleClickGesture) {
+            //Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
             ProcessDoubleGestureClick(motionEvent);
         }
         if (mode_keyboard_gestures) {
@@ -161,7 +142,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
         CharSequence c = inputConnection.getTextAfterCursor(1, 0);
         if (c.length() > 0) {
             keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
-            DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+            ProcessOnCursorMovement(getCurrentInputEditorInfo());
             return true;
         }
         return false;
@@ -171,7 +152,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
         CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
         if (c.length() > 0) {
             keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
-            DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+            ProcessOnCursorMovement(getCurrentInputEditorInfo());
             return true;
         }
         return false;
@@ -181,7 +162,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
         CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
         if (c.length() > 0) {
             keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
-            DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+            ProcessOnCursorMovement(getCurrentInputEditorInfo());
             return true;
         }
         return false;
@@ -191,13 +172,13 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
         CharSequence c = inputConnection.getTextAfterCursor(1, 0);
         if (c.length() > 0) {
             keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
-            DetermineFirstBigCharStateAndUpdateVisualization(getCurrentInputEditorInfo());
+            ProcessOnCursorMovement(getCurrentInputEditorInfo());
             return true;
         }
         return false;
     }
 
-    protected abstract boolean DetermineFirstBigCharStateAndUpdateVisualization(EditorInfo editorInfo);
+    protected abstract boolean ProcessOnCursorMovement(EditorInfo editorInfo);
 
     private void ProcessPrepareAtHoldGesture(MotionEvent motionEvent) {
 
@@ -239,13 +220,31 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
             } else {
                 prevPrevUpTime = prevUpTime;
                 prevUpTime = motionEvent.getEventTime();
+                prevX = motionEvent.getX();
+                prevY = motionEvent.getY();
+            }
+        } else if(motionEvent.getAction() == MotionEvent.ACTION_MOVE ) {
+            float curX = motionEvent.getX();
+            float curY = motionEvent.getY();
+            //Случай когда два пальца работают вместе (получается мултитач) и для второго пальца нет сигнала DOWN
+            if(Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+            || Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST) {
+                prevY = 0;
+                prevX = 0;
             }
         }
         else if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
                 || motionEvent.getAction() == MotionEvent.ACTION_POINTER_DOWN) {
 
             long curDownTime = motionEvent.getEventTime();
-            if(     prevUpTime - prevDownTime <= TIME_LONG_PRESS
+            float curX = motionEvent.getX();
+            float curY = motionEvent.getY();
+
+            if(     Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && Math.abs(prevPrevX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && Math.abs(prevPrevY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && prevUpTime - prevDownTime <= TIME_LONG_PRESS
                     && prevPrevUpTime - prevPrevDownTime <= TIME_LONG_PRESS
                     && prevUpTime - prevPrevDownTime <= TIME_DOUBLE_PRESS
                     && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
@@ -255,7 +254,9 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
                 modeDoubleClickGesture = true;
                 UpdateGestureModeVisualization();
             }
-            else if(     prevUpTime - prevDownTime <= TIME_LONG_PRESS
+            else if(Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && prevUpTime - prevDownTime <= TIME_LONG_PRESS
                     && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
                 Log.d(TAG2, "GESTURE DOUBLE CLICK");
                 mode_keyboard_gestures = true;
@@ -265,6 +266,12 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
 
             prevPrevDownTime = prevDownTime;
             prevDownTime = curDownTime;
+
+            prevPrevX = prevX;
+            prevPrevY = prevY;
+            prevX = motionEvent.getX();
+            prevY = motionEvent.getY();
+
 
 
         }
@@ -287,12 +294,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
         prevPrevUpTime = 0;
     }
 
-    //Если через него отправлять навигационные и прочие команды, не будет активироваться выделение виджета на рабочем столе
-    protected void keyDownUpNoMetaKeepTouch(int keyEventCode, InputConnection ic) {
-        GestureKeyboardBase.keyDownUp(keyEventCode, ic, 0, KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
-    }
-
-    protected abstract boolean IsNavMode();
+    protected abstract boolean IsNoGesturesMode();
 
     protected boolean IsInputMode() {
         return getCurrentInputEditorInfo().inputType > 0;
