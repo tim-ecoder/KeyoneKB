@@ -21,9 +21,9 @@ public class KeyboardLayoutRes {
     String XmlRes;
     int XmlResId;
 
-    IconRes IconCapsResId;
-    IconRes IconFirstShiftResId;
-    IconRes IconLittleResId;
+    IconRes IconCapsRes;
+    IconRes IconFirstShiftRes;
+    IconRes IconLittleRes;
 
     private KeyboardLayoutRes() {}
 
@@ -31,9 +31,9 @@ public class KeyboardLayoutRes {
         XmlRes = xmlRes;
         OptionsName = optionsName;
         XmlResId = layoutResId;
-        IconCapsResId = new IconRes();
-        IconFirstShiftResId = new IconRes();
-        IconLittleResId = new IconRes();
+        IconCapsRes = new IconRes();
+        IconFirstShiftRes = new IconRes();
+        IconLittleRes = new IconRes();
     }
 
     String getPreferenceName() {
