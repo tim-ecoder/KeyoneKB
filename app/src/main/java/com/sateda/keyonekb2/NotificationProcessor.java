@@ -111,11 +111,14 @@ public class NotificationProcessor {
     }
 
     public void UpdateNotificationLayoutMode() {
+
         if(builderLayout != null)
             notificationManager.notify(NOTIFICATION_ID1, builderLayout.build());
         else if (builder2Layout != null) {
             notificationManager.notify(NOTIFICATION_ID1, builder2Layout.build());
         }
+
+
     }
 
     public void UpdateNotificationGestureMode() {

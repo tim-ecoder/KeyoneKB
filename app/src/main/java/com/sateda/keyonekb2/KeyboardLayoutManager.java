@@ -25,9 +25,7 @@ public class KeyboardLayoutManager {
         for (KeyboardLayoutRes layout : activeLayouts) {
             LangListCount++;
             currentLayout = LoadLayoutAndCache(layout.XmlResId, LangListCount - 1, KeyboardLayoutList, resources, context);
-            currentLayout.IconCaps = layout.IconCapsResId;
-            currentLayout.IconFirstShift = layout.IconFirstShiftResId;
-            currentLayout.IconLittle = layout.IconLittleResId;
+            currentLayout.Resources = layout;
             KeyboardLayoutList.add(currentLayout);
         }
 
@@ -243,11 +241,20 @@ public class KeyboardLayoutManager {
                     if (parser.getAttributeName(i).equals("icon_little")) iconLittleRes = parser.getAttributeValue(i);
                 }
                 int layoutResId = resources.getIdentifier(layoutRes, "xml", context.getPackageName());
-                int iconCapsResId = resources.getIdentifier(iconCapsRes, "mipmap", context.getPackageName());
-                int iconOneShiftResId = resources.getIdentifier(iconOneShiftRes, "mipmap", context.getPackageName());
-                int iconLittleResId = resources.getIdentifier(iconLittleRes, "mipmap", context.getPackageName());
 
-                keyboardLayoutResArray.add(new KeyboardLayoutRes(name, layoutResId, iconCapsResId, iconLittleResId, iconOneShiftResId, layoutRes));
+
+
+                KeyboardLayoutRes keyboardLayoutRes = new KeyboardLayoutRes(name, layoutResId, layoutRes);
+
+                keyboardLayoutRes.IconCapsResId.DrawableResId= resources.getIdentifier(iconCapsRes, "drawable", context.getPackageName());
+                keyboardLayoutRes.IconFirstShiftResId.DrawableResId = resources.getIdentifier(iconOneShiftRes, "drawable", context.getPackageName());
+                keyboardLayoutRes.IconLittleResId.DrawableResId = resources.getIdentifier(iconLittleRes, "drawable", context.getPackageName());
+
+                keyboardLayoutRes.IconCapsResId.MipmapResId = resources.getIdentifier(iconCapsRes, "mipmap", context.getPackageName());
+                keyboardLayoutRes.IconFirstShiftResId.MipmapResId = resources.getIdentifier(iconOneShiftRes, "mipmap", context.getPackageName());
+                keyboardLayoutRes.IconLittleResId.MipmapResId = resources.getIdentifier(iconLittleRes, "mipmap", context.getPackageName());
+
+                keyboardLayoutResArray.add(keyboardLayoutRes);
                 parser.next();
             }
 

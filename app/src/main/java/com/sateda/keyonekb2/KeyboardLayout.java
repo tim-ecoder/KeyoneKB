@@ -7,9 +7,7 @@ public class KeyboardLayout {
     public int XmlId = 0;
     public int SymXmlId = 0;
     public int Id = 0;
-    public int IconCaps;
-    public int IconFirstShift;
-    public int IconLittle;
 
+    public KeyboardLayoutRes Resources;
     public HashMap<Integer, KeyVariants> KeyVariantsMap = new HashMap<>();
 }

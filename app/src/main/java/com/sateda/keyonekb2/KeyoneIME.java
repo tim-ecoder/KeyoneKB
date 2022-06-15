@@ -95,6 +95,8 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     private boolean pref_long_press_key_alt_symbol = false;
     private boolean pref_show_default_onscreen_keyboard = true;
 
+    private boolean pref_system_icon_no_notification_text = false;
+
     //Предзагружаем клавиатуры, чтобы не плодить объекты
     private Keyboard keyboardNavigation;
 
@@ -102,6 +104,15 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     TelephonyManager telephonyManager;
     TelecomManager telecomManager;
+
+    KeyboardLayoutRes.IconRes singleAltIconRes;
+    KeyboardLayoutRes.IconRes allAltIconRes;
+    KeyboardLayoutRes.IconRes singleSymIconRes;
+    KeyboardLayoutRes.IconRes allSymIconRes;
+
+    KeyboardLayoutRes.IconRes navIconRes;
+
+    KeyboardLayoutRes.IconRes navFnIconRes;
 
     @Override
     public void onDestroy() {
@@ -124,6 +135,12 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         TITLE_GESTURE_VIEW = getString(R.string.kb_state_gesture_view);
         TITLE_GESTURE_OFF = getString(R.string.kb_state_gesture_off);
 
+        singleAltIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
+        allAltIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt);
+        singleSymIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_sym_one, R.drawable.ic_kb_sym_one);
+        allSymIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym);
+        navIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_nav, R.drawable.ic_kb_nav);
+        navFnIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_nav_fn, R.drawable.ic_kb_nav_fn);
 
         callStateCallback = new CallStateCallback();
         telephonyManager = getTelephonyManager();
@@ -145,8 +162,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         LoadKeyProcessingMechanics();
 
         onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
-
-        //onScreenKeyboardSymbols = new SatedaKeyboard(this, R.xml.symbol);
 
         keyboardView = (SatedaKeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
         keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
@@ -322,7 +337,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         int navigationKeyCode;
         InputConnection inputConnection = getCurrentInputConnection();
-        if (IsNoGesturesMode() && IsNavKeyCode(keyCode)) {
+        if (IsNavMode() && IsNavKeyCode(keyCode)) {
             int scanCode = event.getScanCode();
             navigationKeyCode = getNavigationCode(scanCode);
 
@@ -366,7 +381,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         //region Блок навигационной клавиатуры
 
-        if (IsNoGesturesMode() && IsNavKeyCode(keyCode)) {
+        if (IsNavMode() && IsNavKeyCode(keyCode)) {
             return true;
         }
         //endregion
@@ -692,6 +707,32 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         UpdateGestureModeVisualization(IsInputMode());
     }
 
+    protected void UpdateGestureModeVisualization(boolean isInput) {
+        boolean changed;
+
+        if (isInput && mode_keyboard_gestures && !IsNoGesturesMode()) {
+
+            if (mode_keyboard_gestures_plus_up_down) {
+                changed = setSmallIcon2(R.mipmap.ic_gesture_icon_input_up_down);
+                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
+            } else {
+                changed = setSmallIcon2(R.mipmap.ic_gesture_icon_input);
+                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
+            }
+        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !IsNoGesturesMode()) {
+            changed = setSmallIcon2(R.mipmap.ic_gesture_icon_view);
+            changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
+        } else {
+            changed = setSmallIcon2(R.mipmap.ic_gesture_icon_off);
+            changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
+        }
+        if (changed)
+            notificationProcessor.UpdateNotificationGestureMode();
+    }
+
+    private boolean setSmallIcon2(int resId) {
+        return notificationProcessor.SetSmallIconGestureMode(resId);
+    }
     void UpdateKeyboardVisibilityOnPrefChange() {
         if (pref_show_default_onscreen_keyboard) {
             UpdateKeyboardModeVisualization(true);
@@ -732,13 +773,11 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
         boolean changed;
         boolean needUsefullKeyboard = false;
-        if (IsNoGesturesMode()) {
+        if (IsNavMode()) {
             if (!fnSymbolOnScreenKeyboardMode) {
-                changed = notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav);
-                changed |= notificationProcessor.SetContentTitleLayout(TITLE_NAV_TEXT);
+                changed = UpdateNotification(navIconRes, TITLE_NAV_TEXT);
             } else {
-                changed = notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_nav_fn);
-                changed |= notificationProcessor.SetContentTitleLayout(TITLE_NAV_FV_TEXT);
+                changed = UpdateNotification(navFnIconRes, TITLE_NAV_FV_TEXT);
             }
             //onScreenKeyboardSymbols = keyboardNavigation;
             keyboardView.setKeyboard(keyboardNavigation);
@@ -747,11 +786,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         } else if (symbolOnScreenKeyboardMode) {
 
             if (IsSym2Mode()) {
-                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
-                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
+                changed = UpdateNotification(allSymIconRes, TITLE_SYM2_TEXT);
             } else {
-                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
-                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
+                changed = UpdateNotification(allAltIconRes, TITLE_SYM_TEXT);
             }
             //TODO: Тут плодятся объекты зачем-то
             Keyboard onScreenKeyboardSymbols = new Keyboard(this, keyboardLayoutManager.GetCurrentKeyboardLayout().SymXmlId);
@@ -763,11 +800,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         } else if (doubleAltPressAllSymbolsAlted || metaAltPressed) {
             if (IsSym2Mode()) {
-                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
-                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym);
+                changed = UpdateNotification(allSymIconRes, TITLE_SYM2_TEXT);
             } else {
-                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
-                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt);
+                changed = UpdateNotification(allAltIconRes, TITLE_SYM_TEXT);
             }
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
@@ -780,11 +815,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             }
         } else if (altPressSingleSymbolAltedMode) {
             if (IsSym2Mode()) {
-                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM2_TEXT);
-                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_sym_one);
+                changed = UpdateNotification(singleSymIconRes, TITLE_SYM2_TEXT);
             } else {
-                changed = notificationProcessor.SetContentTitleLayout(TITLE_SYM_TEXT);
-                changed |= notificationProcessor.SetSmallIconLayout(R.mipmap.ic_kb_alt_one);
+                changed = UpdateNotification(singleAltIconRes, TITLE_SYM_TEXT);
             }
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
@@ -796,8 +829,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                 keyboardView.setAlt();
             }
         } else if (doubleShiftCapsMode || metaShiftPressed) {
-            changed = notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
-            changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconCaps);
+            changed = UpdateNotification(keyboardLayout.Resources.IconCapsResId, languageOnScreenNaming);
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
@@ -805,8 +837,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                 keyboardView.setLetterKB();
             }
         } else if (oneTimeShiftOneTimeBigMode) {
-            changed = notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
-            changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconFirstShift);
+            changed = UpdateNotification(keyboardLayout.Resources.IconFirstShiftResId, languageOnScreenNaming);
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
                 keyboardView.setLang(languageOnScreenNaming);
@@ -816,8 +847,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         } else {
             // Случай со строными буквами
-            changed = notificationProcessor.SetContentTitleLayout(languageOnScreenNaming);
-            changed |= notificationProcessor.SetSmallIconLayout(keyboardLayout.IconLittle);
+            changed = UpdateNotification(keyboardLayout.Resources.IconLittleResId, languageOnScreenNaming);
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             if (updateSwipePanelData) {
                 keyboardView.notShift();
@@ -834,8 +864,18 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         else
             HideSwipePanelOnHidePreferenceAndVisibleState();
 
-        if (changed)
+        if (changed && !pref_system_icon_no_notification_text)
             notificationProcessor.UpdateNotificationLayoutMode();
+    }
+
+    private boolean UpdateNotification(KeyboardLayoutRes.IconRes iconRes, String notificationText) {
+        if(!pref_system_icon_no_notification_text) {
+            boolean changed = notificationProcessor.SetSmallIconLayout(iconRes.MipmapResId);
+            changed |= notificationProcessor.SetContentTitleLayout(notificationText);
+            return changed;
+        }
+        this.showStatusIcon(iconRes.DrawableResId);
+        return true;
     }
 
     //endregion
@@ -851,6 +891,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     }
 
     private boolean IsCalling() {
+        if(callStateCallback == null) {
+            return false;
+        }
         return callStateCallback.isCalling();
     }
 
@@ -858,27 +901,24 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     private boolean AcceptCallOnCalling() {
         Log.d(TAG, "handleShiftOnCalling hello");
         // Accept calls using SHIFT key
-        if (callStateCallback.isCalling()) {
+        if (telecomManager != null && this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED && IsCalling()) {
             Log.d(TAG, "handleShiftOnCalling callStateCallback - Calling");
-            TelecomManager tm = getTelecomManager();
-
-            if (tm != null && this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "handleShiftOnCalling acceptRingingCall");
-                tm.acceptRingingCall();
-                return true;
-            }
-
+            telecomManager.acceptRingingCall();
+            return true;
         }
         return false;
     }
 
     private boolean DeclinePhone() {
-        if (telecomManager != null && this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED && telecomManager.isInCall()) {
+        if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED && IsCalling()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 if (telecomManager != null) {
                     return telecomManager.endCall();
                 }
             } else {
+                if(telephonyManager == null) {
+                    return false;
+                }
                 try {
                     Class<?> classTelephony = Class.forName(telephonyManager.getClass().getName());
                     Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
@@ -1818,34 +1858,15 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         return true;
     }
 
-    protected void UpdateGestureModeVisualization(boolean isInput) {
-        boolean changed;
-
-        if (isInput && mode_keyboard_gestures && !IsNoGesturesMode()) {
-
-            if (mode_keyboard_gestures_plus_up_down) {
-                changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input_up_down);
-                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
-            } else {
-                changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_input);
-                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
-            }
-        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !IsNoGesturesMode()) {
-            changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_view);
-            changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
-        } else {
-            changed = notificationProcessor.SetSmallIconGestureMode(R.mipmap.ic_gesture_icon_off);
-            changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
-        }
-        if (changed)
-            notificationProcessor.UpdateNotificationGestureMode();
 
 
+    private boolean IsNavMode() {
+        return navigationOnScreenKeyboardMode || metaSymPressed;
     }
 
     @Override
     protected boolean IsNoGesturesMode() {
-        return navigationOnScreenKeyboardMode || metaSymPressed;
+        return IsNavMode();
     }
 
     @Override

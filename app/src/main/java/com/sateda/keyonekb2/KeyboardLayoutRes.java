@@ -1,20 +1,39 @@
 package com.sateda.keyonekb2;
 
+
+
 public class KeyboardLayoutRes {
+
+    public static class IconRes {
+        int MipmapResId;
+        int DrawableResId;
+    }
+
+    public static IconRes CreateIconRes(int mipmapResId, int drawableResId) {
+        IconRes res = new IconRes();
+        res.MipmapResId = mipmapResId;
+        res.DrawableResId = drawableResId;
+        return res;
+    }
+
     String OptionsName;
 
     String XmlRes;
     int XmlResId;
-    int IconCapsResId;
-    int IconFirstShiftResId;
-    int IconLittleResId;
-    public KeyboardLayoutRes(String optionsName, int layoutResId, int iconCapsResId, int iconLittleResId, int iconOneShiftResId, String xmlRes) {
+
+    IconRes IconCapsResId;
+    IconRes IconFirstShiftResId;
+    IconRes IconLittleResId;
+
+    private KeyboardLayoutRes() {}
+
+    public KeyboardLayoutRes(String optionsName, int layoutResId, String xmlRes) {
         XmlRes = xmlRes;
         OptionsName = optionsName;
         XmlResId = layoutResId;
-        IconCapsResId = iconCapsResId;
-        IconFirstShiftResId = iconOneShiftResId;
-        IconLittleResId = iconLittleResId;
+        IconCapsResId = new IconRes();
+        IconFirstShiftResId = new IconRes();
+        IconLittleResId = new IconRes();
     }
 
     String getPreferenceName() {
