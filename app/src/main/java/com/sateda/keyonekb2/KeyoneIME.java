@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -31,6 +32,7 @@ import com.android.internal.telephony.ITelephony;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import static android.content.ContentValues.TAG;
+import static com.sateda.keyonekb2.SettingsActivity.REQUEST_PERMISSION_CODE;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -900,25 +902,42 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean AcceptCallOnCalling() {
         Log.d(TAG, "handleShiftOnCalling hello");
+        if(telecomManager == null) {
+            Log.e(TAG2, "telecomManager == null");
+            return false;
+        }
+        if(!IsCalling())
+            return false;
         // Accept calls using SHIFT key
-        if (telecomManager != null && this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED && IsCalling()) {
+        if (this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "handleShiftOnCalling callStateCallback - Calling");
             telecomManager.acceptRingingCall();
             return true;
+        } else {
+            Log.e(TAG2, "AcceptCallOnCalling no permission");
+            return false;
         }
-        return false;
     }
 
     private boolean DeclinePhone() {
-        if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED && IsCalling()) {
+        if(telecomManager == null) {
+            Log.e(TAG2, "telecomManager == null");
+            return false;
+        }
+        if(telephonyManager == null) {
+            Log.e(TAG2, "telephonyManager == null");
+            return false;
+        }
+        if(!IsCalling())
+            return false;
+
+        if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 if (telecomManager != null) {
                     return telecomManager.endCall();
                 }
             } else {
-                if(telephonyManager == null) {
-                    return false;
-                }
+
                 try {
                     Class<?> classTelephony = Class.forName(telephonyManager.getClass().getName());
                     Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
@@ -933,6 +952,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                     return false;
                 }
             }
+        } else {
+            Log.e(TAG2, "DeclinePhone no permission");
+            return false;
         }
         return false;
     }
@@ -1162,6 +1184,10 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         }
         if(mSettings.contains(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR)) {
             pref_height_bottom_bar = mSettings.getInt(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR, 10);
+        }
+
+        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM)) {
+            pref_system_icon_no_notification_text = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM, false);
         }
 
         ArrayList<KeyboardLayoutRes> allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());

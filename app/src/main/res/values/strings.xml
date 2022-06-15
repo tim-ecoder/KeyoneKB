@@ -29,6 +29,7 @@
     <string name="pref_p_8_hint">На которой стрелки и язык (с флажком) и которая появляется в полях ввода.\n Открывание наэкранной SYM, NAV клавиатуры в любом случае будет работать.\n Открыть/закрыть панель при любой настройке можно Shift+Ctrl.</string>
     <string name="pref_p_9_name">9. Режим жестов (по клавиатуре) в режиме просмотра всегда включен</string>
     <string name="pref_p_9_hint">Для выключения режима жестов нажать 2xCTRL (K1: R_SHIFT).\n Для режима жестов по полю ввода нажать 2хCTRL.\n Больше полезностей для работы с жестами и с текстом см. инструкцию п.Ж</string>
+    <string name="pref_p_10_name">10. Иконка раскладки справа (без текста в нотификациях)</string>
     <string name="pref_manual_name">Инструкция</string>
     <string name="pref_manual_link">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
     <string name="pref_rus_lang_name">Русский язык</string>

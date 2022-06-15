@@ -18,32 +18,27 @@ import java.util.ArrayList;
 public class SettingsActivity extends AppCompatActivity {
 
     public static final String APP_PREFERENCES = "kbsettings";
-    public static final String APP_PREFERENCES_RU_LANG = "switch_ru_lang";
-    public static final String APP_PREFERENCES_TRANSLIT_RU_LANG = "switch_translit_ru_lang";
-    public static final String APP_PREFERENCES_UA_LANG = "switch_ua_lang";
     public static final String APP_PREFERENCES_SENS_BOTTOM_BAR = "sens_bottom_bar";
     public static final String APP_PREFERENCES_SHOW_TOAST = "show_toast";
     public static final String APP_PREFERENCES_ALT_SPACE = "alt_space";
     public static final String APP_PREFERENCES_LONG_PRESS_ALT = "long_press_alt";
     public static final String APP_PREFERENCES_MANAGE_CALL = "manage_call";
     public static final String APP_PREFERENCES_FLAG = "flag";
+    public static final String APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM = "notification_icon_system";
     public static final String APP_PREFERENCES_HEIGHT_BOTTOM_BAR = "height_bottom_bar";
     public static final String APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD = "show_default_onscreen_keyboard";
     public static final String APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
 
-    private static final int REQUEST_PERMISSION_CODE = 101;
+    public static final int REQUEST_PERMISSION_CODE = 101;
 
     private SharedPreferences mSettings;
-
-    private Switch switch_ru_lang;
-    private Switch switch_translit_ru_lang;
-    private Switch switch_ua_lang;
     private Switch toast_show_lang;
     private SeekBar sens_bottom_bar;
     private Switch switch_alt_space;
     private Switch switch_long_press_alt;
     private Switch switch_manage_call;
     private Switch switch_flag;
+    private Switch switch_notification_icon_system;
     private RelativeLayout layout;
     private SeekBar height_bottom_bar;
     private Switch switch_show_default_onscreen_keyboard;
@@ -111,7 +106,9 @@ public class SettingsActivity extends AppCompatActivity {
         toast_show_lang.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeToast(isChecked);
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putBoolean(APP_PREFERENCES_SHOW_TOAST, isChecked);
+                editor.apply();
             }
         });
 
@@ -125,7 +122,9 @@ public class SettingsActivity extends AppCompatActivity {
         sens_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                changeSensitivityBottomBar(progress);
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putInt(APP_PREFERENCES_SENS_BOTTOM_BAR, progress);
+                editor.apply();
             }
 
             @Override
@@ -149,7 +148,9 @@ public class SettingsActivity extends AppCompatActivity {
         switch_alt_space.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeAltSpace(isChecked);
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putBoolean(APP_PREFERENCES_ALT_SPACE, isChecked);
+                editor.apply();
             }
         });
 
@@ -163,7 +164,9 @@ public class SettingsActivity extends AppCompatActivity {
         switch_long_press_alt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeLongPressAlt(isChecked);
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putBoolean(APP_PREFERENCES_LONG_PRESS_ALT, isChecked);
+                editor.apply();
             }
         });
 
@@ -177,7 +180,16 @@ public class SettingsActivity extends AppCompatActivity {
         switch_manage_call.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeManageCall(isChecked);
+
+                if(isChecked && SettingsActivity.this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED){
+                    if (ActivityCompat.checkSelfPermission(SettingsActivity.this, Manifest.permission.ANSWER_PHONE_CALLS)!=PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(SettingsActivity.this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
+                    }
+                }
+
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putBoolean(APP_PREFERENCES_MANAGE_CALL, isChecked);
+                editor.apply();
             }
         });
 
@@ -191,7 +203,9 @@ public class SettingsActivity extends AppCompatActivity {
         switch_show_default_onscreen_keyboard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeShowDefaultOnScreenKeyboard(isChecked);
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, isChecked);
+                editor.apply();
             }
         });
 
@@ -206,7 +220,9 @@ public class SettingsActivity extends AppCompatActivity {
         switch_keyboard_gestures_at_views_enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeKeyboardGesturesAtViewsEnabled(isChecked);
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putBoolean(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, isChecked);
+                editor.apply();
             }
         });
 
@@ -220,7 +236,9 @@ public class SettingsActivity extends AppCompatActivity {
         switch_flag.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                changeFlag(isChecked);
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putBoolean(APP_PREFERENCES_FLAG, isChecked);
+                editor.apply();
             }
         });
 
@@ -247,68 +265,29 @@ public class SettingsActivity extends AppCompatActivity {
 
             }
         });
+
+        switch_notification_icon_system = (Switch) findViewById(R.id.switch_notification_icon_system);
+
+        if(mSettings.contains(APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM)) {
+            switch_notification_icon_system.setChecked(mSettings.getBoolean(APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM, false));
+        } else {
+            switch_notification_icon_system.setChecked(false);
+        }
+        switch_notification_icon_system.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putBoolean(APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM, isChecked);
+                editor.apply();
+            }
+        });
+
     }
 
-
-
-    private void changeSensitivityBottomBar(int val){
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putInt(APP_PREFERENCES_SENS_BOTTOM_BAR, val);
-        editor.apply();
-    }
 
     private void changeHeightBottomBar(int val){
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putInt(APP_PREFERENCES_HEIGHT_BOTTOM_BAR, val);
-        editor.apply();
-    }
-
-    private void changeToast(boolean isChecked){
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_SHOW_TOAST, isChecked);
-        editor.apply();
-    }
-
-    private void changeAltSpace(boolean isChecked){
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_ALT_SPACE, isChecked);
-        editor.apply();
-    }
-
-    private void changeLongPressAlt(boolean isChecked){
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_LONG_PRESS_ALT, isChecked);
-        editor.apply();
-    }
-
-    private void changeManageCall(boolean isChecked){
-
-        if(isChecked && this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED){
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS)!=PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
-            }
-        }
-
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_MANAGE_CALL, isChecked);
-        editor.apply();
-    }
-
-    private void changeShowDefaultOnScreenKeyboard(boolean isChecked){
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, isChecked);
-        editor.apply();
-    }
-
-    private void changeKeyboardGesturesAtViewsEnabled(boolean isChecked){
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, isChecked);
-        editor.apply();
-    }
-
-    private void changeFlag(boolean isChecked){
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean(APP_PREFERENCES_FLAG, isChecked);
         editor.apply();
     }
 

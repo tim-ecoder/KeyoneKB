@@ -235,11 +235,19 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_keyboard_gestures_at_views_enabled"
         android:text="@string/pref_p_9_hint"  />
+    <Switch
+            android:id="@+id/switch_notification_icon_system"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/text_help_switch_keyboard_gestures_at_views_enabled"
+            android:text="@string/pref_p_10_name"
+            android:textSize="24sp"
+            tools:checked="true" />
     <View
         android:id="@+id/divider12"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@id/text_help_switch_keyboard_gestures_at_views_enabled"
+        android:layout_below="@id/switch_notification_icon_system"
         android:background="?android:attr/listDivider" />
     <TextView
         android:id="@+id/manual_text"
