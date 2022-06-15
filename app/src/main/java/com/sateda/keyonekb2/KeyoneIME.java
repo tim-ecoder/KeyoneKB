@@ -1460,7 +1460,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     //region OTHER
 
-    int findPrevEnter(CharSequence c) {
+    int findPrevEnterAbsPos(CharSequence c) {
         if(c == null || c.length() == 0) {
             return 0;
         }
@@ -1475,11 +1475,23 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         return 0;
     }
 
+    int findPrevEnterDistance(CharSequence c) {
+        if(c == null || c.length() == 0) {
+            return 0;
+        }
+        int len = c.length();
+        for(int i = len; i > 0; i--) {
+            if(c.charAt(i - 1) == '\r' || c.charAt(i - 1) == '\n')
+                return len - i + 1;
+        }
+        return 0;
+    }
+
     boolean onShortPressEnter(KeyPressData keyPressData) {
         if(metaShiftPressed) {
             InputConnection inputConnection = getCurrentInputConnection();
             CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
-            int pos = findPrevEnter(c);
+            int pos = findPrevEnterAbsPos(c);
             inputConnection.setSelection(pos, pos);
             //Иначе текст будет выделяться
             //inputConnection.clearMetaKeyStates(KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON);
@@ -1510,10 +1522,19 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         TurnOffGesturesMode();
         ResetDoubleClickGestureState();
         InputConnection inputConnection = getCurrentInputConnection();
-        if(!metaShiftPressed) {
+        if(metaAltPressed) {
+            CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
+            int dist = findPrevEnterDistance(c);
+
+            //inputConnection.setSelection(pos, );
+            //не работает
+            inputConnection.deleteSurroundingText(dist, 0);
+            //inputConnection.deleteSurroundingTextInCodePoints(pos, 0);
+        }else if(!metaShiftPressed) {
             keyDownUpDefaultFlags(KeyEvent.KEYCODE_DEL, inputConnection);
         }else{
-            if(inputConnection!=null)inputConnection.deleteSurroundingText(0,1);
+            //if(inputConnection!=null)inputConnection.deleteSurroundingText(0,1);
+            keyDownUpDefaultFlags(KeyEvent.KEYCODE_FORWARD_DEL, inputConnection);
         }
         return true;
 
