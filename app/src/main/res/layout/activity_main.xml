@@ -14,24 +14,30 @@
         android:text="@string/btn_settings" />
 
     <Button
-        android:id="@+id/btn_power_manager"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btn_settings"
-        android:text="@string/btn_power_manager" />
-
-    <Button
         android:id="@+id/btn_sys_kb_setting"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btn_power_manager"
+        android:layout_below="@id/btn_settings"
         android:text="@string/btn_sys_kb_setting" />
+
+    <Button
+            android:id="@+id/btn_sys_phone_permission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btn_sys_kb_setting"
+            android:text="@string/btn_sys_phone_permission_activated" />
+    <Button
+            android:id="@+id/btn_power_manager"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btn_sys_phone_permission"
+            android:text="@string/btn_power_manager_activated" />
 
     <Button
         android:id="@+id/btn_test_key"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btn_sys_kb_setting"
+        android:layout_below="@id/btn_power_manager"
         android:text="@string/btn_test_key" />
     <View
         android:id="@+id/divider12"

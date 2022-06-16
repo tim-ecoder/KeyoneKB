@@ -3,7 +3,6 @@ package com.sateda.keyonekb2;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.inputmethodservice.Keyboard;
@@ -63,8 +62,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     private Boolean startInputAtBbPhoneApp = false; // аналогичный костыль для приложения Телефон чтобы в нем искалось на русском языке
     private Boolean inputAtBbLauncherApp = false;
     private Boolean startInputAtTelegram = false;
-
-    private SharedPreferences mSettings;
 
     private boolean metaCtrlPressed = false; // только первая буква будет большая
 
@@ -162,7 +159,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         pref_alt_space = true;
         pref_long_press_key_alt_symbol = false;
 
-        mSettings = getSharedPreferences(SettingsActivity.APP_PREFERENCES, Context.MODE_PRIVATE);
+        kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
         LoadSettingsAndKeyboards();
         LoadKeyProcessingMechanics();
 
@@ -1164,53 +1161,27 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     //region LOAD
 
+    KbSettings kbSettings;
     private void LoadSettingsAndKeyboards(){
 
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD)) {
-            pref_show_default_onscreen_keyboard = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, true);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED)) {
-            pref_keyboard_gestures_at_views_enable = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, false);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SENS_BOTTOM_BAR)) {
-            pref_gesture_motion_sensitivity = mSettings.getInt(SettingsActivity.APP_PREFERENCES_SENS_BOTTOM_BAR, 1);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_SHOW_TOAST)) {
-            pref_show_toast = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_SHOW_TOAST, false);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_MANAGE_CALL)) {
-            pref_manage_call = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_MANAGE_CALL, false);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_ALT_SPACE)) {
-            pref_alt_space = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_ALT_SPACE, true);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_LONG_PRESS_ALT)) {
-            pref_long_press_key_alt_symbol = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_LONG_PRESS_ALT, false);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_FLAG)) {
-            pref_flag = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_FLAG, false);
-        }
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR)) {
-            pref_height_bottom_bar = mSettings.getInt(SettingsActivity.APP_PREFERENCES_HEIGHT_BOTTOM_BAR, 10);
-        }
-
-        if(mSettings.contains(SettingsActivity.APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM)) {
-            pref_system_icon_no_notification_text = mSettings.getBoolean(SettingsActivity.APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM, false);
-        }
+        pref_show_default_onscreen_keyboard = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
+        pref_keyboard_gestures_at_views_enable = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED);
+        pref_gesture_motion_sensitivity = kbSettings.GetIntValue(kbSettings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
+        pref_show_toast = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_2_SHOW_TOAST);
+        pref_manage_call = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_6_MANAGE_CALL);
+        pref_alt_space = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_3_ALT_SPACE);
+        pref_long_press_key_alt_symbol = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_5_LONG_PRESS_ALT);
+        pref_flag = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_4_FLAG);
+        pref_height_bottom_bar = kbSettings.GetIntValue(kbSettings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
+        pref_system_icon_no_notification_text = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
 
         ArrayList<KeyboardLayoutRes> allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
         ArrayList<KeyboardLayoutRes> activeLayouts = new ArrayList<>();
         //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
         for(KeyboardLayoutRes keyboardLayoutRes : allLayouts) {
-            if(mSettings.contains(keyboardLayoutRes.getPreferenceName())
-                    && mSettings.getBoolean(keyboardLayoutRes.getPreferenceName(), false)) {
+            kbSettings.CheckSettingOrSetDefault(keyboardLayoutRes.getPreferenceName(), kbSettings.KEYBOARD_IS_ENABLED_DEFAULT);
+            boolean enabled = kbSettings.GetBooleanValue(keyboardLayoutRes.getPreferenceName());
+            if(enabled) {
                 activeLayouts.add(keyboardLayoutRes);
             }
         }

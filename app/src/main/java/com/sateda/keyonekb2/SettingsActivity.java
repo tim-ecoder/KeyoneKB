@@ -17,21 +17,10 @@ import java.util.ArrayList;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    public static final String APP_PREFERENCES = "kbsettings";
-    public static final String APP_PREFERENCES_SENS_BOTTOM_BAR = "sens_bottom_bar";
-    public static final String APP_PREFERENCES_SHOW_TOAST = "show_toast";
-    public static final String APP_PREFERENCES_ALT_SPACE = "alt_space";
-    public static final String APP_PREFERENCES_LONG_PRESS_ALT = "long_press_alt";
-    public static final String APP_PREFERENCES_MANAGE_CALL = "manage_call";
-    public static final String APP_PREFERENCES_FLAG = "flag";
-    public static final String APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM = "notification_icon_system";
-    public static final String APP_PREFERENCES_HEIGHT_BOTTOM_BAR = "height_bottom_bar";
-    public static final String APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD = "show_default_onscreen_keyboard";
-    public static final String APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
-
     public static final int REQUEST_PERMISSION_CODE = 101;
 
-    private SharedPreferences mSettings;
+    private KbSettings kbSettings;
+
     private Switch toast_show_lang;
     private SeekBar sens_bottom_bar;
     private Switch switch_alt_space;
@@ -46,48 +35,54 @@ public class SettingsActivity extends AppCompatActivity {
 
     private float touchY;
 
+    private void SetSwitchStateOrDefault(Switch switch1, String settingName) {
+        switch1.setChecked(kbSettings.GetBooleanValue(settingName));
+    }
+
+    private void SetProgressOrDefault(SeekBar seekBar, String settingName) {
+        seekBar.setProgress(kbSettings.GetIntValue(settingName));
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+
         setContentView(R.layout.activity_settings);
-        mSettings = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
 
         layout = (RelativeLayout) findViewById(R.id.activity_settings);
         //layout.setMinimumHeight(5000);
         ArrayList<KeyboardLayoutRes> activeLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
-        Switch defaultLangSwitch = (Switch) findViewById(R.id.default_lang);
+        Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_lang);
         int prevId = 0;
         for (KeyboardLayoutRes keyboardLayoutRes : activeLayouts) {
-            Switch switch_lang;
+            Switch currentKeyboardLayoutSwitch;
+            //Первый язык будет по умолчанию всегда активирован
+            //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки
             if(prevId == 0) {
-                switch_lang = defaultLangSwitch;
-                prevId = switch_lang.getId();
+                currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
+                prevId = currentKeyboardLayoutSwitch.getId();
             } else {
-                switch_lang = new Switch(this);
-                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultLangSwitch.getLayoutParams();
+                currentKeyboardLayoutSwitch = new Switch(this);
+                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultKeyboardLayoutSwitch.getLayoutParams();
                 RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
-                switch_lang.setLayoutParams(llp2);
+                currentKeyboardLayoutSwitch.setLayoutParams(llp2);
 
                 llp2.addRule(RelativeLayout.BELOW, prevId);
                 prevId = keyboardLayoutRes.getHash();
-                switch_lang.setId(prevId);
-                switch_lang.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultLangSwitch.getTextSize());
-                layout.addView(switch_lang);
+                currentKeyboardLayoutSwitch.setId(prevId);
+                currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultKeyboardLayoutSwitch.getTextSize());
+                layout.addView(currentKeyboardLayoutSwitch);
             }
 
-            switch_lang.setText(keyboardLayoutRes.OptionsName);
+            currentKeyboardLayoutSwitch.setText(keyboardLayoutRes.OptionsName);
+            kbSettings.CheckSettingOrSetDefault(keyboardLayoutRes.getPreferenceName(), kbSettings.KEYBOARD_IS_ENABLED_DEFAULT);
+            SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutRes.getPreferenceName());
 
-            if (mSettings.contains(keyboardLayoutRes.getPreferenceName())
-                && mSettings.getBoolean(keyboardLayoutRes.getPreferenceName(), false)) {
-                switch_lang.setChecked(true);
-            } else {
-                switch_lang.setChecked(false);
-            }
-
-            switch_lang.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    mSettings.edit().putBoolean(keyboardLayoutRes.getPreferenceName(), isChecked).apply();
+                    kbSettings.SetBooleanValue(keyboardLayoutRes.getPreferenceName(), isChecked);
                 }
             });
 
@@ -97,34 +92,13 @@ public class SettingsActivity extends AppCompatActivity {
         RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)divider.getLayoutParams();
         llp.addRule(RelativeLayout.BELOW, prevId);
 
-        toast_show_lang = (Switch) findViewById(R.id.toast_show_lang);
-        if(mSettings.contains(APP_PREFERENCES_SHOW_TOAST)) {
-            toast_show_lang.setChecked(mSettings.getBoolean(APP_PREFERENCES_SHOW_TOAST, false));
-        } else {
-            toast_show_lang.setChecked(false);
-        }
-        toast_show_lang.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putBoolean(APP_PREFERENCES_SHOW_TOAST, isChecked);
-                editor.apply();
-            }
-        });
-
         sens_bottom_bar = (SeekBar) findViewById(R.id.seekBar);
+        SetProgressOrDefault(sens_bottom_bar, kbSettings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
 
-        if(mSettings.contains(APP_PREFERENCES_SENS_BOTTOM_BAR)) {
-            sens_bottom_bar.setProgress(mSettings.getInt(APP_PREFERENCES_SENS_BOTTOM_BAR, 1));
-        } else {
-            sens_bottom_bar.setProgress(1);
-        }
         sens_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putInt(APP_PREFERENCES_SENS_BOTTOM_BAR, progress);
-                editor.apply();
+                kbSettings.SetIntValue(kbSettings.APP_PREFERENCES_1_SENS_BOTTOM_BAR, progress);
             }
 
             @Override
@@ -138,45 +112,51 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_alt_space = (Switch) findViewById(R.id.switch_alt_space);
+        toast_show_lang = (Switch) findViewById(R.id.toast_show_lang);
+        SetSwitchStateOrDefault(toast_show_lang, kbSettings.APP_PREFERENCES_2_SHOW_TOAST);
+        toast_show_lang.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                kbSettings.SetBooleanValue(kbSettings.APP_PREFERENCES_2_SHOW_TOAST, isChecked);
+            }
+        });
 
-        if(mSettings.contains(APP_PREFERENCES_ALT_SPACE)) {
-            switch_alt_space.setChecked(mSettings.getBoolean(APP_PREFERENCES_ALT_SPACE, false));
-        } else {
-            switch_alt_space.setChecked(false);
-        }
+
+
+        switch_alt_space = (Switch) findViewById(R.id.switch_alt_space);
+        SetSwitchStateOrDefault(switch_alt_space, kbSettings.APP_PREFERENCES_3_ALT_SPACE);
+
         switch_alt_space.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putBoolean(APP_PREFERENCES_ALT_SPACE, isChecked);
-                editor.apply();
+                kbSettings.SetBooleanValue(kbSettings.APP_PREFERENCES_3_ALT_SPACE, isChecked);
+
+            }
+        });
+
+        switch_flag = (Switch) findViewById(R.id.switch_flag);
+        SetSwitchStateOrDefault(switch_flag, kbSettings.APP_PREFERENCES_4_FLAG);
+
+        switch_flag.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                kbSettings.SetBooleanValue(kbSettings.APP_PREFERENCES_4_FLAG, isChecked);
             }
         });
 
         switch_long_press_alt = (Switch) findViewById(R.id.switch_long_press_alt);
+        SetSwitchStateOrDefault(switch_long_press_alt, kbSettings.APP_PREFERENCES_5_LONG_PRESS_ALT);
 
-        if(mSettings.contains(APP_PREFERENCES_LONG_PRESS_ALT)) {
-            switch_long_press_alt.setChecked(mSettings.getBoolean(APP_PREFERENCES_LONG_PRESS_ALT, true));
-        } else {
-            switch_long_press_alt.setChecked(true);
-        }
         switch_long_press_alt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putBoolean(APP_PREFERENCES_LONG_PRESS_ALT, isChecked);
-                editor.apply();
+                kbSettings.SetBooleanValue(kbSettings.APP_PREFERENCES_5_LONG_PRESS_ALT, isChecked);
             }
         });
 
         switch_manage_call = (Switch) findViewById(R.id.switch_manage_call);
 
-        if(mSettings.contains(APP_PREFERENCES_MANAGE_CALL)) {
-            switch_manage_call.setChecked(mSettings.getBoolean(APP_PREFERENCES_MANAGE_CALL, true));
-        } else {
-            switch_manage_call.setChecked(true);
-        }
+        SetSwitchStateOrDefault(switch_manage_call, kbSettings.APP_PREFERENCES_6_MANAGE_CALL);
         switch_manage_call.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -186,75 +166,17 @@ public class SettingsActivity extends AppCompatActivity {
                         ActivityCompat.requestPermissions(SettingsActivity.this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
                     }
                 }
-
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putBoolean(APP_PREFERENCES_MANAGE_CALL, isChecked);
-                editor.apply();
-            }
-        });
-
-        switch_show_default_onscreen_keyboard = (Switch) findViewById(R.id.switch_show_default_onscreen_keyboard);
-
-        if(mSettings.contains(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD)) {
-            switch_show_default_onscreen_keyboard.setChecked(mSettings.getBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, false));
-        } else {
-            switch_show_default_onscreen_keyboard.setChecked(false);
-        }
-        switch_show_default_onscreen_keyboard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putBoolean(APP_PREFERENCES_SHOW_DEFAULT_ONSCREEN_KEYBOARD, isChecked);
-                editor.apply();
-            }
-        });
-
-        switch_keyboard_gestures_at_views_enabled = (Switch) findViewById(R.id.switch_keyboard_gestures_at_views_enabled);
-
-
-        if(mSettings.contains(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED)) {
-            switch_keyboard_gestures_at_views_enabled.setChecked(mSettings.getBoolean(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, true));
-        } else {
-            switch_keyboard_gestures_at_views_enabled.setChecked(true);
-        }
-        switch_keyboard_gestures_at_views_enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putBoolean(APP_PREFERENCES_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, isChecked);
-                editor.apply();
-            }
-        });
-
-        switch_flag = (Switch) findViewById(R.id.switch_flag);
-
-        if(mSettings.contains(APP_PREFERENCES_FLAG)) {
-            switch_flag.setChecked(mSettings.getBoolean(APP_PREFERENCES_FLAG, true));
-        } else {
-            switch_flag.setChecked(true);
-        }
-        switch_flag.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putBoolean(APP_PREFERENCES_FLAG, isChecked);
-                editor.apply();
+                kbSettings.SetBooleanValue(kbSettings.APP_PREFERENCES_6_MANAGE_CALL, isChecked);
             }
         });
 
         height_bottom_bar = (SeekBar) findViewById(R.id.seekBarBtnPanel);
+        SetProgressOrDefault(height_bottom_bar, kbSettings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
 
-        if(mSettings.contains(APP_PREFERENCES_HEIGHT_BOTTOM_BAR)) {
-            height_bottom_bar.setProgress(mSettings.getInt(APP_PREFERENCES_HEIGHT_BOTTOM_BAR, 10));
-        } else {
-            height_bottom_bar.setProgress(10);
-        }
         height_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putInt(APP_PREFERENCES_HEIGHT_BOTTOM_BAR, progress);
-                editor.apply();
+                kbSettings.SetIntValue(kbSettings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR, progress);
             }
 
             @Override
@@ -268,19 +190,34 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_notification_icon_system = (Switch) findViewById(R.id.switch_notification_icon_system);
+        switch_show_default_onscreen_keyboard = (Switch) findViewById(R.id.switch_show_default_onscreen_keyboard);
+        SetSwitchStateOrDefault(switch_show_default_onscreen_keyboard, kbSettings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
 
-        if(mSettings.contains(APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM)) {
-            switch_notification_icon_system.setChecked(mSettings.getBoolean(APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM, false));
-        } else {
-            switch_notification_icon_system.setChecked(false);
-        }
+        switch_show_default_onscreen_keyboard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                kbSettings.SetBooleanValue(kbSettings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL, isChecked);
+            }
+        });
+
+        switch_keyboard_gestures_at_views_enabled = (Switch) findViewById(R.id.switch_keyboard_gestures_at_views_enabled);
+        SetSwitchStateOrDefault(switch_keyboard_gestures_at_views_enabled, kbSettings.APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED);
+
+        switch_keyboard_gestures_at_views_enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                kbSettings.SetBooleanValue(kbSettings.APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, isChecked);
+            }
+        });
+
+
+        switch_notification_icon_system = (Switch) findViewById(R.id.switch_notification_icon_system);
+        SetSwitchStateOrDefault(switch_notification_icon_system, kbSettings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
+
         switch_notification_icon_system.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putBoolean(APP_PREFERENCES_NOTIFICATION_ICON_SYSTEM, isChecked);
-                editor.apply();
+                kbSettings.SetBooleanValue(kbSettings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM, isChecked);
             }
         });
 

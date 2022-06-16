@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">KeyoneKB2</string>
     <string name="btn_settings">Настройки</string>
-    <string name="btn_power_manager">Энергосбережение</string>
+    <string name="btn_power_manager_activated">Энергосбережение требует настройки</string>
+    <string name="btn_power_manager_deactivated">Энергосбережение настроено</string>
     <string name="btn_sys_kb_setting">Активировать клавиатуру</string>
+    <string name="btn_sys_phone_permission_activated">Внимание! Требуется разрешение</string>
+    <string name="btn_sys_phone_permission_deactivated">Действий с разрешениями не требуется</string>
     <string name="btn_test_key">Проверка работы</string>
 
     <string name="keyboard_test_input_hint">"Press any button to see it's code"</string>
