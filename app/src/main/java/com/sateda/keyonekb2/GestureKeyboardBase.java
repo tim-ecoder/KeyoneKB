@@ -56,7 +56,9 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
         if (IsNoGesturesMode())
             return true;
 
-        if (!mode_keyboard_gestures && motionEvent.getY() <= ROW_4_BEGIN_Y) {
+        if (motionEvent.getY() > ROW_4_BEGIN_Y) return true;
+
+        if (!mode_keyboard_gestures) {
 
             ProcessPrepareAtHoldGesture(motionEvent);
         }
@@ -75,7 +77,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
             float motionEventY = motionEvent.getY();
 
             //Не ловим движение на нижнем ряду где поблел и переключение языка
-            if (motionEventY > ROW_4_BEGIN_Y) return true;
+
 
             int motionEventAction = motionEvent.getAction();
 
