@@ -1,6 +1,7 @@
 package com.sateda.keyonekb2;
 
 
+import android.view.View;
 
 public class KeyboardLayoutRes {
 
@@ -25,6 +26,8 @@ public class KeyboardLayoutRes {
     IconRes IconFirstShiftRes;
     IconRes IconLittleRes;
 
+    int id = 0;
+
     private KeyboardLayoutRes() {}
 
     public KeyboardLayoutRes(String optionsName, int layoutResId, String xmlRes) {
@@ -34,13 +37,17 @@ public class KeyboardLayoutRes {
         IconCapsRes = new IconRes();
         IconFirstShiftRes = new IconRes();
         IconLittleRes = new IconRes();
+
     }
 
     String getPreferenceName() {
         return "GENERATED_PREF_KEYBOARD_LAYOUT_" + XmlRes;
     }
 
-    int getHash() {
-        return XmlRes.hashCode();
+    int getId() {
+        if(id == 0) {
+            id = View.generateViewId();
+        }
+        return id;
     }
 }

@@ -3,7 +3,6 @@ package com.sateda.keyonekb2;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.support.v4.app.ActivityCompat;
@@ -52,15 +51,18 @@ public class SettingsActivity extends AppCompatActivity {
 
         layout = (RelativeLayout) findViewById(R.id.activity_settings);
         //layout.setMinimumHeight(5000);
-        ArrayList<KeyboardLayoutRes> activeLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
-        Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_lang);
+        ArrayList<KeyboardLayoutRes> keyboardLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
+        Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_keyboard_layout);
         int prevId = 0;
-        for (KeyboardLayoutRes keyboardLayoutRes : activeLayouts) {
+        for (KeyboardLayoutRes keyboardLayoutRes : keyboardLayouts) {
             Switch currentKeyboardLayoutSwitch;
             //Первый язык будет по умолчанию всегда активирован
             //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки
             if(prevId == 0) {
                 currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
+                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultKeyboardLayoutSwitch.getLayoutParams();
+                RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
+                currentKeyboardLayoutSwitch.setLayoutParams(llp2);
                 prevId = currentKeyboardLayoutSwitch.getId();
             } else {
                 currentKeyboardLayoutSwitch = new Switch(this);
@@ -69,10 +71,11 @@ public class SettingsActivity extends AppCompatActivity {
                 currentKeyboardLayoutSwitch.setLayoutParams(llp2);
 
                 llp2.addRule(RelativeLayout.BELOW, prevId);
-                prevId = keyboardLayoutRes.getHash();
+                prevId = keyboardLayoutRes.getId();
                 currentKeyboardLayoutSwitch.setId(prevId);
                 currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultKeyboardLayoutSwitch.getTextSize());
                 layout.addView(currentKeyboardLayoutSwitch);
+
             }
 
             currentKeyboardLayoutSwitch.setText(keyboardLayoutRes.OptionsName);

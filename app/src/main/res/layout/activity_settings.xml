@@ -13,18 +13,17 @@
     tools:context=".SettingsActivity">
 
     <Switch
-        android:id="@+id/default_lang"
+        android:id="@+id/default_keyboard_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Default language"
+        android:text=""
         android:textSize="24sp"
         tools:checked="false" />
 
     <View
         android:id="@+id/divider2"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/default_lang"
+        android:layout_height="5dp"
         android:background="?android:attr/listDivider" />
 
     <TextView
