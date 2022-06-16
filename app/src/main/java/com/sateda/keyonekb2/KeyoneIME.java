@@ -1770,7 +1770,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                 //return true;
             }
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-            keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
+            //Для K1 надо очищать мета статус от всего лишено, оставляем только shift для Ctrl+Shift+Z;
+            int metaBase =  (keyPressData.MetaBase & KeyEvent.META_SHIFT_LEFT_ON) > 0 ? KeyEvent.META_SHIFT_LEFT_ON : 0;
+            keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | metaBase);
             return true;
         }
         int code2send = 0;
