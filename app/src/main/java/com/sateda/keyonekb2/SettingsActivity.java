@@ -252,7 +252,9 @@ public class SettingsActivity extends AppCompatActivity {
         height_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                changeHeightBottomBar(progress);
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putInt(APP_PREFERENCES_HEIGHT_BOTTOM_BAR, progress);
+                editor.apply();
             }
 
             @Override
@@ -284,12 +286,6 @@ public class SettingsActivity extends AppCompatActivity {
 
     }
 
-
-    private void changeHeightBottomBar(int val){
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putInt(APP_PREFERENCES_HEIGHT_BOTTOM_BAR, val);
-        editor.apply();
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event){
