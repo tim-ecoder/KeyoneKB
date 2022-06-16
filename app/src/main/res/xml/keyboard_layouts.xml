@@ -6,7 +6,9 @@
     <KeyboardLayout menu_name="Key1/2 Русский (Транслит)" res="russian_translit_hw" icon_little="ic_rus_small" icon_first_big="ic_rus_shift_first" icon_caps="ic_rus_shift_all"/>
     <KeyboardLayout menu_name="Key1/2 Украинский" res="ukraine_hw" icon_little="ic_ukr_small" icon_first_big="ic_ukr_shift_first" icon_caps="ic_ukr_shift_all"/>
 
-    <!--
+
+    <KeyboardLayout menu_name="Pocket English" res="pocket_english_hw" icon_little="ic_eng_small" icon_first_big="ic_eng_shift_first" icon_caps="ic_eng_shift_all"/>
     <KeyboardLayout menu_name="Pocket Русский" res="pocket_russian_hw" icon_little="ic_rus_small" icon_first_big="ic_rus_shift_first" icon_caps="ic_rus_shift_all"/>
--->
+
+
 </KeyboardLayoutList>
