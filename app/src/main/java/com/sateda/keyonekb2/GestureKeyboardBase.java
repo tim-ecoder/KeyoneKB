@@ -47,6 +47,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
     protected abstract boolean IsGestureModeEnabled();
 
     protected boolean ProcessGestureAtMotionEvent(MotionEvent motionEvent) {
+        LogKeyboardTest("GESTURE ACTION: "+motionEvent.getAction());
         if (IsGestureModeEnabled()
                 && !IsNoGesturesMode()
                 && !IsInputMode()) {

@@ -33,6 +33,7 @@ import static android.content.ContentValues.TAG;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 @Keep
 public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -96,6 +97,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     //Предзагружаем клавиатуры, чтобы не плодить объекты
     private Keyboard keyboardNavigation;
+
 
     boolean needUpdateVisualInsideSingleEvent = false;
 
@@ -655,28 +657,54 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     @Override
     public void swipeLeft() {
-
+        LogKeyboardTest("swipeLeft");
     }
 
     @Override
     public void swipeRight() {
-
+        LogKeyboardTest("swipeRight");
     }
 
     @Override
     public void swipeDown() {
+        LogKeyboardTest("swipeDown");
 
     }
 
     @Override
     public void swipeUp() {
-
+        LogKeyboardTest("swipeUp");
     }
 
     float lastGestureX = 0;
 
+    void printSamples(MotionEvent ev) {
+        final int historySize = ev.getHistorySize();
+        final int pointerCount = ev.getPointerCount();
+        for (int h = 0; h < historySize; h++) {
+            LogKeyboardTest(String.format("At time %d:", ev.getHistoricalEventTime(h)));
+            for (int p = 0; p < pointerCount; p++) {
+                LogKeyboardTest(String.format("  pointer %d: (%f,%f)",
+                        ev.getPointerId(p), ev.getHistoricalX(p, h), ev.getHistoricalY(p, h)));
+            }
+        }
+        LogKeyboardTest(String.format("At time %d:", ev.getEventTime()));
+        for (int p = 0; p < pointerCount; p++) {
+            LogKeyboardTest(String.format("  pointer %d: RAW (%f,%f)",
+                    ev.getPointerId(p), ev.getRawX(), ev.getRawY()));
+            MotionEvent.PointerCoords pc =  new MotionEvent.PointerCoords();
+            ev.getPointerCoords(p, pc);
+            LogKeyboardTest(String.format("  pointer %d: PC (%f,%f)",
+                    ev.getPointerId(p), pc.x, pc.y));
+        }
+    }
+
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
+        LogKeyboardTest("onTouch: "+motionEvent.getAction());
+        printSamples(motionEvent);
+
+
         //Log.d(TAG, "onTouch "+motionEvent);
         InputConnection inputConnection = getCurrentInputConnection();
         int motionEventAction = motionEvent.getAction();
@@ -686,17 +714,17 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                 if (this.isInputViewShown()) {
                     MoveCursorRightSafe(inputConnection);
                     lastGestureX = motionEvent.getX();
-                    Log.d(TAG, "onTouch KEYCODE_DPAD_RIGHT " + motionEvent);
+                    LogKeyboardTest(TAG, "onTouch KEYCODE_DPAD_RIGHT " + motionEvent);
                 }
             } else if (motionEventAction == MotionEvent.ACTION_MOVE && lastGestureX - (36 - pref_gesture_motion_sensitivity) > motionEvent.getX()) {
                 if (this.isInputViewShown()) {
                     MoveCursorLeftSafe(inputConnection);
                     lastGestureX = motionEvent.getX();
-                    Log.d(TAG, "onTouch sens_bottom_bar " + pref_gesture_motion_sensitivity + " KEYCODE_DPAD_LEFT " + motionEvent);
+                    LogKeyboardTest(TAG, "onTouch KEYCODE_DPAD_LEFT " + motionEvent);
                 }
             }
         } else {
-            //TODO: Разобраться что это
+            //alt-popup-keyboard
             if (motionEventAction == MotionEvent.ACTION_MOVE)
                 keyboardView.coordsToIndexKey(motionEvent.getX());
             if (motionEventAction == MotionEvent.ACTION_UP) keyboardView.hidePopup(true);
@@ -804,12 +832,10 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             } else {
                 changed = UpdateNotification(AltAllIconRes, TITLE_SYM_TEXT);
             }
-            //TODO: Тут плодятся объекты зачем-то
-            Keyboard onScreenKeyboardSymbols = new Keyboard(this, keyboardLayoutManager.GetCurrentKeyboardLayout().SymXmlId);
-            ;
-            keyboardView.setKeyboard(onScreenKeyboardSymbols);
-            //TODO: Сделать предзагрузку этой клавиатуры
+
+            keyboardView.setKeyboard(keyboardLayoutManager.GetSymKeyboard(symPadAltShift));
             keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), symPadAltShift);
+
             needUsefullKeyboard = true;
 
         } else if (doubleAltPressAllSymbolsAlted || metaAltPressed) {

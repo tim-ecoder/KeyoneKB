@@ -2,6 +2,7 @@ package com.sateda.keyonekb2;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.inputmethodservice.Keyboard;
 import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -16,6 +17,10 @@ public class KeyboardLayoutManager {
     private int LangListCount = 0;
     public boolean isEnglishKb = false;
 
+
+    HashMap<String, Keyboard> symKeyboardsHashMap = new HashMap<>();
+
+
     public void Initialize(ArrayList<KeyboardLayoutRes> activeLayouts, Resources resources, Context context) {
         if(LangListCount != 0)
             return;
@@ -27,8 +32,14 @@ public class KeyboardLayoutManager {
             currentLayout = LoadLayoutAndCache(layout.XmlResId, LangListCount - 1, KeyboardLayoutList, resources, context);
             currentLayout.Resources = layout;
             KeyboardLayoutList.add(currentLayout);
+            AddSymKeyboard(currentLayout.SymXmlId, context);
         }
+    }
 
+    public Keyboard GetSymKeyboard(boolean isAlt) {
+        if(isAlt)
+            return symKeyboardsHashMap.get(getSymKbdKey1(GetCurrentKeyboardLayout().SymXmlId));
+        return symKeyboardsHashMap.get(getSymKbdKey2(GetCurrentKeyboardLayout().SymXmlId));
     }
 
     private static KeyboardLayout LoadLayoutAndCache(int keyboardLayoutXmlId, int currentKeyBoardSetId, ArrayList<KeyboardLayout> keyboardLayoutArrayList, Resources resources, Context context)  {
@@ -108,6 +119,23 @@ public class KeyboardLayoutManager {
         int altHwResId = resources.getIdentifier(alt_hw, "xml", context.getPackageName());
         LoadAltLayout2(keyboardLayout.KeyVariantsMap, resources, altHwResId);
         return keyboardLayout;
+    }
+
+    private void AddSymKeyboard(int symXmlId, Context context) {
+        if(!symKeyboardsHashMap.containsKey(getSymKbdKey1(symXmlId))) {
+            symKeyboardsHashMap.put(getSymKbdKey1(symXmlId), new Keyboard(context, symXmlId));
+        }
+        if(!symKeyboardsHashMap.containsKey(getSymKbdKey2(symXmlId))) {
+            symKeyboardsHashMap.put(getSymKbdKey2(symXmlId), new Keyboard(context, symXmlId));
+        }
+    }
+
+    private String getSymKbdKey2(int symXmlId) {
+        return String.format("%s_2", symXmlId);
+    }
+
+    private String getSymKbdKey1(int symXmlId) {
+        return String.format("%s_1", symXmlId);
     }
 
     private static void LoadAltLayout2(HashMap<Integer, KeyVariants> keyLayoutsHashMap, Resources resources, int altHwResId)

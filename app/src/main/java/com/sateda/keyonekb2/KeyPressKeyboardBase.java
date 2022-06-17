@@ -358,8 +358,15 @@ public class KeyPressKeyboardBase extends InputMethodService {
         return null;
     }
 
-    private void LogD(String tag, String msg) {
+    protected void LogKeyboardTest(String tag, String msg) {
         Log.d(tag, msg);
+        if(IS_KEYBOARD_TEST) {
+            DEBUG_TEXT += String.format("%s\r\n", msg);
+        }
+    }
+
+    protected void LogKeyboardTest(String msg) {
+        Log.d(TAG2, msg);
         if(IS_KEYBOARD_TEST) {
             DEBUG_TEXT += String.format("%s\r\n", msg);
         }
@@ -369,7 +376,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
     void ProcessHoldBegin(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnHoldOn != null) {
-            LogD(TAG2, String.format("%d HOLD_ON %d", keyPressData.HoldBeginTime, keyPressData.KeyCode));
+            LogKeyboardTest(TAG2, String.format("%d HOLD_ON %d", keyPressData.HoldBeginTime, keyPressData.KeyCode));
             keyProcessingMode.OnHoldOn.Process(keyPressData);
         }
     }
@@ -378,16 +385,16 @@ public class KeyPressKeyboardBase extends InputMethodService {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnLongPress != null) {
             if(keyPressData.Short2ndLongPress)
-                LogD(TAG2, String.format("%d SHORT_2ND_LONG_PRESS %d", keyPressData.LongPressBeginTime, keyPressData.KeyCode));
+                LogKeyboardTest(TAG2, String.format("%d SHORT_2ND_LONG_PRESS %d", keyPressData.LongPressBeginTime, keyPressData.KeyCode));
             else
-                LogD(TAG2, String.format("%d LONG_PRESS %d", keyPressData.LongPressBeginTime, keyPressData.KeyCode));
+                LogKeyboardTest(TAG2, String.format("%d LONG_PRESS %d", keyPressData.LongPressBeginTime, keyPressData.KeyCode));
             keyProcessingMode.OnLongPress.Process(keyPressData);
         }
     }
     void ProcessKeyUnhold(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnHoldOff != null) {
-            LogD(TAG2, String.format("%d HOLD_OFF %d", keyPressData.KeyUpTime, keyPressData.KeyCode));
+            LogKeyboardTest(TAG2, String.format("%d HOLD_OFF %d", keyPressData.KeyUpTime, keyPressData.KeyCode));
             keyProcessingMode.OnHoldOff.Process(keyPressData);
         }
     }
@@ -395,7 +402,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
     void ProcessShortPress(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnShortPress != null) {
-            LogD(TAG2, String.format("%d SHORT_PRESS %d", keyPressData.KeyDownTime, keyPressData.KeyCode));
+            LogKeyboardTest(TAG2, String.format("%d SHORT_PRESS %d", keyPressData.KeyDownTime, keyPressData.KeyCode));
             keyProcessingMode.OnShortPress.Process(keyPressData);
         }
     }
@@ -403,7 +410,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
     void ProcessDoublePress(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnDoublePress != null) {
-            LogD(TAG2, String.format("%d DOUBLE_PRESS %d", keyPressData.DoublePressTime, keyPressData.KeyCode));
+            LogKeyboardTest(TAG2, String.format("%d DOUBLE_PRESS %d", keyPressData.DoublePressTime, keyPressData.KeyCode));
             keyProcessingMode.OnDoublePress.Process(keyPressData);
         }
     }
@@ -411,7 +418,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
     void ProcessTriplePress(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnTriplePress != null) {
-            LogD(TAG2, String.format("%d TRIPLE_PRESS %d", keyPressData.DoublePressTime, keyPressData.KeyCode));
+            LogKeyboardTest(TAG2, String.format("%d TRIPLE_PRESS %d", keyPressData.DoublePressTime, keyPressData.KeyCode));
             keyProcessingMode.OnTriplePress.Process(keyPressData);
         }
     }
