@@ -321,6 +321,11 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         keyboardView.hidePopup(false);
         Log.v(TAG, "onKeyDown " + event);
 
+        //TODO: Hack 4 pocket
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            return false;
+        }
+
         //region BB Launcher HACK
         //обработка главного экрана Блекбери
         //он хочет получать только родные клавиши, по этому ему отправляем почти все клавиши неизменными
@@ -365,6 +370,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         if (!processed)
             return false;
 
+        //TODO: Перенести это в onStartInput
         //Это нужно чтобы показать клаву (перейти в режим редактирования)
         if (pref_show_default_onscreen_keyboard && !isInputViewShown() && inputConnection != null && IsInputMode()) {
             this.showWindow(true);
@@ -380,6 +386,12 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.v(TAG, "onKeyUp " + event);
+
+        //TODO: Hack 4 pocket
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            return false;
+        }
+
 
         //region Блок навигационной клавиатуры
 
@@ -1159,7 +1171,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     //endregion
 
-    //region LOAD
+    //region LOAD SETTINGS & KEYBOARDS
 
     KbSettings kbSettings;
     private void LoadSettingsAndKeyboards(){

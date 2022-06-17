@@ -89,10 +89,18 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
         return true;
     }
 
+    boolean CheckMotionAction(MotionEvent motionEvent, int checkAction) {
+        int motionEventAction = motionEvent.getAction();
+        int motionEventActionMasked = motionEvent.getActionMasked();
+        if(motionEventAction == checkAction) return true;
+        if(motionEventActionMasked == checkAction) return true;
+        return false;
+    }
+
     private boolean PerformGestureAction(MotionEvent motionEvent, InputConnection inputConnection, float motionEventX, float motionEventY, int motionEventAction) {
         //Жесть по клавиатуре всегда начинается с ACTION_DOWN
-        if (motionEventAction == MotionEvent.ACTION_DOWN
-                || motionEventAction == MotionEvent.ACTION_POINTER_DOWN) {
+        if (CheckMotionAction(motionEvent,  MotionEvent.ACTION_DOWN)
+            || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)) {
             //if (debug_gestures)
             //    Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
             lastGestureX = motionEventX;
@@ -100,9 +108,9 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
             return true;
         }
 
-        if (motionEventAction == MotionEvent.ACTION_MOVE
-                || motionEventAction == MotionEvent.ACTION_UP
-                || motionEventAction == MotionEvent.ACTION_POINTER_UP) {
+        if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)) {
             float deltaX = motionEventX - lastGestureX;
             float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
             float deltaY = motionEventY - lastGestureY;
@@ -185,20 +193,20 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
     private void ProcessPrepareAtHoldGesture(MotionEvent motionEvent) {
 
 
-        if (motionEvent.getAction() == MotionEvent.ACTION_UP
-                || motionEvent.getAction() == MotionEvent.ACTION_CANCEL
-                || motionEvent.getAction() == MotionEvent.ACTION_POINTER_UP
-        ) {
+        if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)) {
+
             lastGestureSwipingBeginTime = 0;
             enteredGestureMovement = false;
         }
-        if (motionEvent.getAction() == MotionEvent.ACTION_MOVE && enteredGestureMovement) {
+        if (CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE) && enteredGestureMovement) {
             lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
             lastGestureX = motionEvent.getX();
             lastGestureY = motionEvent.getY();
         }
-        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
-                || motionEvent.getAction() == MotionEvent.ACTION_POINTER_DOWN) {
+        if (CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN))  {
 
             lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
             lastGestureX = motionEvent.getX();
@@ -210,10 +218,9 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
     private void ProcessDoubleGestureClick(MotionEvent motionEvent) {
 
 
-        if (motionEvent.getAction() == MotionEvent.ACTION_UP
-                || motionEvent.getAction() == MotionEvent.ACTION_CANCEL
-                || motionEvent.getAction() == MotionEvent.ACTION_POINTER_UP
-        ) {
+        if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)) {
             if(modeDoubleClickGesture) {
                 modeDoubleClickGesture = false;
                 mode_keyboard_gestures = false;
@@ -225,7 +232,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
                 prevX = motionEvent.getX();
                 prevY = motionEvent.getY();
             }
-        } else if(motionEvent.getAction() == MotionEvent.ACTION_MOVE ) {
+        } else if( CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE)) {
             float curX = motionEvent.getX();
             float curY = motionEvent.getY();
             //Случай когда два пальца работают вместе (получается мултитач) и для второго пальца нет сигнала DOWN
@@ -235,8 +242,8 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
                 prevX = 0;
             }
         }
-        else if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
-                || motionEvent.getAction() == MotionEvent.ACTION_POINTER_DOWN) {
+        else if (   CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)) {
 
             long curDownTime = motionEvent.getEventTime();
             float curX = motionEvent.getX();
