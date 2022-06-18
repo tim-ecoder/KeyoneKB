@@ -39,10 +39,19 @@
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
             </intent-filter>
-
             <meta-data
                 android:name="android.view.im"
-                android:resource="@xml/method" />
+                android:resource="@xml/keyonekb_input_method" />
+        </service>
+        <service android:name=".KeyoneAccessibilityService"
+                 android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+                 android:label="@string/keyonekb_accessibility_service_label">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                    android:name="android.accessibilityservice"
+                    android:resource="@xml/keyonekb_accessibility_service_config" />
         </service>
     </application>
 

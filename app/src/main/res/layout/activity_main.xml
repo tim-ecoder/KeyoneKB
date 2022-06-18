@@ -21,10 +21,17 @@
         android:text="@string/btn_sys_kb_setting" />
 
     <Button
-            android:id="@+id/btn_sys_phone_permission"
+            android:id="@+id/btn_sys_kb_accessibility_setting"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/btn_sys_kb_setting"
+            android:text="@string/btn_sys_kb_accessibility_setting" />
+
+    <Button
+            android:id="@+id/btn_sys_phone_permission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btn_sys_kb_accessibility_setting"
             android:text="@string/btn_sys_phone_permission_activated" />
     <Button
             android:id="@+id/btn_power_manager"

@@ -20,6 +20,8 @@ public class MainActivity extends Activity {
     private Button btn_test_key;
     private Button btn_power_manager;
     private Button btn_sys_kb_setting;
+
+    private Button btn_sys_kb_accessibility_setting;
     private Button btn_settings;
     private Button btn_sys_phone_permission;
 
@@ -34,6 +36,7 @@ public class MainActivity extends Activity {
         btn_test_key = (Button) findViewById(R.id.btn_test_key);
         btn_power_manager = (Button) findViewById(R.id.btn_power_manager);
         btn_sys_kb_setting = (Button) findViewById(R.id.btn_sys_kb_setting);
+        btn_sys_kb_accessibility_setting = (Button) findViewById(R.id.btn_sys_kb_accessibility_setting);
         btn_sys_phone_permission = (Button) findViewById(R.id.btn_sys_phone_permission);
 
         btn_settings.setOnClickListener(new View.OnClickListener() {
@@ -57,6 +60,15 @@ public class MainActivity extends Activity {
             public void onClick(View view) {
                 Intent intent = new Intent();
                 intent.setAction(Settings.ACTION_INPUT_METHOD_SETTINGS);
+                getApplicationContext().startActivity(intent);
+            }
+        });
+
+        btn_sys_kb_accessibility_setting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_ACCESSIBILITY_SETTINGS);
                 getApplicationContext().startActivity(intent);
             }
         });

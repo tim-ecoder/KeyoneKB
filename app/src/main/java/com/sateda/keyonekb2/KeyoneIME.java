@@ -33,12 +33,19 @@ import static android.content.ContentValues.TAG;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 @Keep
 public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
 
+    interface Processable {
+        void Process();
+    }
+
     private static final boolean DEBUG = false;
+
+    public static KeyoneIME Instance;
+
+    public Processable SearchHack;
 
     public static final int CHAR_0 = 48;
     public String TITLE_NAV_TEXT;
@@ -126,6 +133,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     @Override
     public void onCreate() {
         super.onCreate();
+        Instance = this;
 
         TITLE_NAV_TEXT = getString(R.string.kb_state_nav_mode);
         TITLE_NAV_FV_TEXT = getString(R.string.kb_state_nav_fn_mode);
@@ -1801,9 +1809,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         Log.v(TAG2, "KEY SEND: "+String.format("%c", code2send));
         InputConnection inputConnection = getCurrentInputConnection();
         //region BB Apps HACK
-        BbContactsAppHack(inputConnection);
-        BbPhoneAppHack(inputConnection);
-        TelegramAppHack(inputConnection);
+        //BbContactsAppHack(inputConnection);
+        //BbPhoneAppHack(inputConnection);
+        SearchInputActivateOnLetterHack(inputConnection);
         //endregion
         sendKeyChar((char) code2send);
         ResetSingleAltSingleShiftModeAfterOneLetter();
@@ -1811,7 +1819,13 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         ResetDoubleClickGestureState();
     }
 
-    private void TelegramAppHack(InputConnection inputConnection) {
+    private void SearchInputActivateOnLetterHack(InputConnection inputConnection) {
+        if(SearchHack != null) {
+            SearchHack.Process();
+            SearchHack = null;
+        }
+    }
+    private void TelegramAppHack2(InputConnection inputConnection) {
         if(startInputAtTelegram) {
             startInputAtTelegram = false;
             if(inputConnection !=null && !IsInputMode()) {
