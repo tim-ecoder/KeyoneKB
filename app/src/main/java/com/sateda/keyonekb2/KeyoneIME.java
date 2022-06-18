@@ -170,7 +170,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         keyboardView = (SatedaKeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
         keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
         keyboardView.setOnKeyboardActionListener(this);
-        keyboardView.setOnTouchListener(this);
         keyboardView.setPreviewEnabled(false);
         keyboardView.setService(this);
         keyboardView.clearAnimation();
@@ -790,14 +789,19 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void HideKeyboard() {
+        keyboardView.setOnTouchListener(null);
         if (keyboardView.getVisibility() == View.VISIBLE) {
             keyboardView.setVisibility(View.GONE);
         }
         this.hideWindow();
+
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void ShowKeyboard() {
+        keyboardView.setOnTouchListener(this);
         if (keyboardView.getVisibility() != View.VISIBLE)
             keyboardView.setVisibility(View.VISIBLE);
         if (!keyboardView.isShown())

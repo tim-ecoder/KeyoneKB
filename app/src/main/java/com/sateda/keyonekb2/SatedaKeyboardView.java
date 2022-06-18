@@ -20,8 +20,6 @@ import static android.content.ContentValues.TAG;
 
 public class SatedaKeyboardView extends KeyboardView {
 
-    public static final String APP_PREFERENCES_FLAG = "flag";
-
     private static final int MAX_KEY_COUNT = 50;
 
     private static final int KEY_Q = 16;
@@ -150,7 +148,7 @@ public class SatedaKeyboardView extends KeyboardView {
         List<Keyboard.Key> keys = getKeyboard().getKeys();
         int arr_inc = 0;
         int i = 0;
-
+        // TODO: Это все требуется рефакторинга чтобы не перерисовывать каждый раз клавиатуру
         for(KeyVariants keyVariants : keybordLayout.KeyVariantsMap.values()){
             KeyLabel[i] = "";
             KeyLabel_x[i] = 0;
