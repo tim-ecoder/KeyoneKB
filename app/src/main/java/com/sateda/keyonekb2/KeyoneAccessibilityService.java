@@ -16,14 +16,16 @@ public class KeyoneAccessibilityService extends AccessibilityService {
             && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
             || event.getPackageName() == null)
             return;
-
+        AccessibilityNodeInfo root = getRootInActiveWindow();
+        if(root == null)
+            return;
 
         if (event.getPackageName().equals("org.telegram.messenger")) {
-            List<AccessibilityNodeInfo> info = getRootInActiveWindow().findAccessibilityNodeInfosByText("Search");
+            List<AccessibilityNodeInfo> info = root.findAccessibilityNodeInfosByText("Search");
             if (info.size() > 0) {
                 Log.d(TAG, "SetSearchHack Telegram");
+                AccessibilityNodeInfo node = info.get(0);
                 SetSearchHack(() -> {
-                    AccessibilityNodeInfo node = info.get(0);
                     node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 });
             } else {
@@ -31,12 +33,11 @@ public class KeyoneAccessibilityService extends AccessibilityService {
                 SetSearchHack(null);
             }
         } else if(event.getPackageName().equals("com.android.dialer")) {
-            AccessibilityNodeInfo info = FindFirstByTextRecursive(getRootInActiveWindow(),"Поиск");
+            AccessibilityNodeInfo info = FindFirstByTextRecursive(root,"Поиск");
             if (info != null) {
                 AccessibilityNodeInfo info2 = info.getParent();
                 Log.d(TAG, "SetSearchHack Dialer");
                 SetSearchHack(() -> {
-                    //info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
                     info2.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 });
             } else {
@@ -44,11 +45,11 @@ public class KeyoneAccessibilityService extends AccessibilityService {
                 SetSearchHack(null);
             }
         } else if(event.getPackageName().equals("com.blackberry.contacts")) {
-            List<AccessibilityNodeInfo> info = getRootInActiveWindow().findAccessibilityNodeInfosByText("Поиск");
+            List<AccessibilityNodeInfo> info = root.findAccessibilityNodeInfosByText("Поиск");
             if (info.size() > 0) {
+                AccessibilityNodeInfo node = info.get(0);
                 Log.d(TAG, "SetSearchHack Contacts");
                 SetSearchHack(() -> {
-                    AccessibilityNodeInfo node = info.get(0);
                     node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 });
             } else {

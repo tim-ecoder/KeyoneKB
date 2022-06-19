@@ -3,7 +3,7 @@
 
     <subtype
             android:label="English (US)"
-            android:imeSubtypeLocale="English"
+            android:imeSubtypeLocale="EN"
             android:imeSubtypeMode="keyboard" />
 
 </input-method>
