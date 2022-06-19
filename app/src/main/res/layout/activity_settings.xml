@@ -234,16 +234,22 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/switch_keyboard_gestures_at_views_enabled"
         android:text="@string/pref_p_9_hint"  />
+    <View
+            android:id="@+id/divider12"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/text_help_switch_keyboard_gestures_at_views_enabled"
+            android:background="?android:attr/listDivider" />
     <Switch
             android:id="@+id/switch_notification_icon_system"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/text_help_switch_keyboard_gestures_at_views_enabled"
+            android:layout_below="@id/divider12"
             android:text="@string/pref_p_10_name"
             android:textSize="24sp"
             tools:checked="true" />
     <View
-        android:id="@+id/divider12"
+        android:id="@+id/divider13"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_below="@id/switch_notification_icon_system"
@@ -252,7 +258,7 @@
         android:id="@+id/manual_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/divider12"
+        android:layout_below="@id/divider13"
         android:text="@string/pref_manual_name"
         android:textSize="24sp"
         tools:checked="true" />
@@ -264,23 +270,12 @@
         android:autoLink="web"
         android:text="@string/pref_manual_link"  />
     <View
-        android:id="@+id/divider13"
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:layout_below="@id/text_manual_link"
-        android:background="?android:attr/listDivider" />
-    <View
         android:id="@+id/divider14"
         android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:layout_below="@id/divider13"
+        android:layout_height="6dp"
+        android:layout_below="@id/text_manual_link"
         android:background="?android:attr/listDivider" />
-    <View
-        android:id="@+id/divider15"
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:layout_below="@id/divider14"
-        android:background="?android:attr/listDivider" />
+
 
 </RelativeLayout>
 </ScrollView>

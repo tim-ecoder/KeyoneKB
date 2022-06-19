@@ -12,17 +12,14 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import static com.sateda.keyonekb2.SettingsActivity.*;
 
 public class MainActivity extends Activity {
 
-    private Button btn_test_key;
     private Button btn_power_manager;
-    private Button btn_sys_kb_setting;
 
-    private Button btn_sys_kb_accessibility_setting;
-    private Button btn_settings;
     private Button btn_sys_phone_permission;
 
     private KbSettings kbSettings;
@@ -32,12 +29,16 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        btn_settings = (Button) findViewById(R.id.btn_settings);
-        btn_test_key = (Button) findViewById(R.id.btn_test_key);
+        Button btn_settings = (Button) findViewById(R.id.btn_settings);
+        Button btn_test_key = (Button) findViewById(R.id.btn_test_key);
         btn_power_manager = (Button) findViewById(R.id.btn_power_manager);
-        btn_sys_kb_setting = (Button) findViewById(R.id.btn_sys_kb_setting);
-        btn_sys_kb_accessibility_setting = (Button) findViewById(R.id.btn_sys_kb_accessibility_setting);
+        Button btn_sys_kb_setting = (Button) findViewById(R.id.btn_sys_kb_setting);
+        Button btn_sys_kb_accessibility_setting = (Button) findViewById(R.id.btn_sys_kb_accessibility_setting);
         btn_sys_phone_permission = (Button) findViewById(R.id.btn_sys_phone_permission);
+        TextView tv_version = (TextView) findViewById(R.id.tv_version);
+
+        String text = String.format("\n\nApp: %s\nVersion: %s\nBuild type: %s", BuildConfig.APPLICATION_ID, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
+        tv_version.setText(text);
 
         btn_settings.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,7 +77,7 @@ public class MainActivity extends Activity {
         btn_power_manager.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                CheckPowerState(true);
+                CheckPowerState(MainActivity.this, true);
             }
         });
 
@@ -88,28 +89,28 @@ public class MainActivity extends Activity {
         });
 
         CheckPermissionState(false);
-        CheckPowerState(false);
+        CheckPowerState(this, false);
     }
 
-    private void CheckPowerState(boolean andRequest) {
+    private static void CheckPowerState(MainActivity mainActivity, boolean andRequest) {
         Intent intent = new Intent();
-        String packageName = getApplicationContext().getPackageName();
-        PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        String packageName = mainActivity.getApplicationContext().getPackageName();
+        PowerManager pm = (PowerManager) mainActivity.getApplicationContext().getSystemService(Context.POWER_SERVICE);
 
         if (!pm.isIgnoringBatteryOptimizations(packageName)) {
             if(andRequest) {
                 intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                 intent.setData(Uri.parse("package:" + packageName));
-                getApplicationContext().startActivity(intent);
-                btn_power_manager.setText(R.string.btn_power_manager_deactivated);
-                btn_power_manager.setEnabled(false);
+                mainActivity.getApplicationContext().startActivity(intent);
+                mainActivity.btn_power_manager.setText(R.string.btn_power_manager_deactivated);
+                mainActivity.btn_power_manager.setEnabled(false);
             } else {
-                btn_power_manager.setText(R.string.btn_power_manager_activated);
-                btn_power_manager.setEnabled(true);
+                mainActivity.btn_power_manager.setText(R.string.btn_power_manager_activated);
+                mainActivity.btn_power_manager.setEnabled(true);
             }
         } else {
-            btn_power_manager.setText(R.string.btn_power_manager_deactivated);
-            btn_power_manager.setEnabled(false);
+            mainActivity.btn_power_manager.setText(R.string.btn_power_manager_deactivated);
+            mainActivity.btn_power_manager.setEnabled(false);
         }
     }
 
@@ -118,41 +119,41 @@ public class MainActivity extends Activity {
 
                 if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) {
                     if(!andRequest) {
-                        ButtonPermissionActivate();
+                        ButtonPermissionActivate(this);
                     }
                     else {
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
-                        ButtonPermissionDeactivate();
+                        ButtonPermissionDeactivate(this);
                     }
                 } else {
-                    ButtonPermissionDeactivate();
+                    ButtonPermissionDeactivate(this);
                 }
                 if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                     if(!andRequest) {
-                        ButtonPermissionActivate();
+                        ButtonPermissionActivate(this);
                     }
                     else {
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_PERMISSION_CODE);
-                        ButtonPermissionDeactivate();
+                        ButtonPermissionDeactivate(this);
                     }
                 } else {
-                    ButtonPermissionDeactivate();
+                    ButtonPermissionDeactivate(this);
                 }
 
             } else {
-            ButtonPermissionDeactivate();
+            ButtonPermissionDeactivate(this);
         }
 
         }
 
-    private void ButtonPermissionActivate() {
-        btn_sys_phone_permission.setText(R.string.btn_sys_phone_permission_activated);
-        btn_sys_phone_permission.setEnabled(true);
+    private static void ButtonPermissionActivate(MainActivity mainActivity) {
+        mainActivity.btn_sys_phone_permission.setText(R.string.btn_sys_phone_permission_activated);
+        mainActivity.btn_sys_phone_permission.setEnabled(true);
     }
 
-    private void ButtonPermissionDeactivate() {
-        btn_sys_phone_permission.setEnabled(false);
-        btn_sys_phone_permission.setText(R.string.btn_sys_phone_permission_deactivated);
+    private static void ButtonPermissionDeactivate(MainActivity mainActivity) {
+        mainActivity.btn_sys_phone_permission.setEnabled(false);
+        mainActivity.btn_sys_phone_permission.setText(R.string.btn_sys_phone_permission_deactivated);
     }
 
 
