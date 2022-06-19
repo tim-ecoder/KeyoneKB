@@ -1,17 +1,72 @@
 package com.sateda.keyonekb2;
 
 import android.accessibilityservice.AccessibilityService;
-import android.os.Build;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.List;
 
-public class KeyoneAccessibilityService extends AccessibilityService {
-    private String TAG = "KeyoneAccessibilityService";
+public class KeyoneKb2AccessibilityService extends AccessibilityService {
+    private static String TAG = "KeyoneKb2As";
+
+    interface SearchHackPlugin {
+        AccessibilityNodeInfo findId(AccessibilityNodeInfo root);
+        void setId(String id);
+        String getId();
+        String getPackageName();
+        boolean checkEventType(int eventType);
+        AccessibilityNodeInfo getNode(AccessibilityNodeInfo info);
+    }
+
+    private SearchHackPlugin bbLauncherAppSearch;
+    String bbLauncherAppsSearchFieldId = "";
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        bbLauncherAppSearch = new SearchHackPlugin() {
+            @Override
+            public AccessibilityNodeInfo findId(AccessibilityNodeInfo root) {
+                return FindFirstByTextRecursive(root, "Найти");
+            }
+
+            @Override
+            public void setId(String id) {
+                bbLauncherAppsSearchFieldId = id;
+            }
+
+            @Override
+            public String getId() {
+                return bbLauncherAppsSearchFieldId;
+            }
+
+            @Override
+            public String getPackageName() {
+                return "com.blackberry.blackberrylauncher";
+            }
+
+            @Override
+            public boolean checkEventType(int eventType) {
+                if(eventType != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                        && eventType != AccessibilityEvent.TYPE_VIEW_FOCUSED)
+                    return false;
+                return true;
+            }
+
+            @Override
+            public AccessibilityNodeInfo getNode(AccessibilityNodeInfo info) {
+                return info;
+            }
+
+        };
+    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+
+        //https://stackoverflow.com/questions/36067686/how-to-interrupt-an-action-from-being-performed-in-accessibilityservice
 
         if(event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
             && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
@@ -28,7 +83,7 @@ public class KeyoneAccessibilityService extends AccessibilityService {
         if (ProcessDialerSearchField(event.getEventType(), packageName, root)) return;
         if (ProcessContactsSearchField(event.getEventType(), packageName, root)) return;
         if (ProcessTelegramSearchField(event.getEventType(), packageName, root)) return;
-        if (ProcessBbLauncherAppsSearchField(event.getEventType(), packageName, root, event)) return;
+        if (ProcessBbLauncherAppsSearchField(event.getEventType(), packageName, root, event, bbLauncherAppSearch)) return;
 
         if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
             && IsSearchHackSet()) {
@@ -43,20 +98,21 @@ public class KeyoneAccessibilityService extends AccessibilityService {
         }
     }
 
-    private boolean ProcessBbLauncherAppsSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event) {
-        if(eventType != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
-                && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED)
+
+
+    private boolean ProcessBbLauncherAppsSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchHackPlugin searchHackPlugin) {
+        if(!searchHackPlugin.checkEventType(eventType))
             return false;
-        if (packageName.equals("com.blackberry.blackberrylauncher")) {
-            AccessibilityNodeInfo info = FindFirstByTextRecursive(root, "Найти");
+        if (packageName.equals(searchHackPlugin.getPackageName())) {
+
+            AccessibilityNodeInfo info = searchHackPlugin.getNode(FindOrGetFromCache(root, searchHackPlugin));
+
             if (info != null) {
                 if (IsSearchHackSet())
                     return true;
                 if(info.isFocused() )
                     return true;
-
-                //AccessibilityNodeInfo info2 = info.getParent();
-                Log.d(TAG, "SetSearchHack BbLauncher");
+                Log.d(TAG, "SetSearchHack "+searchHackPlugin.getPackageName());
                 SetSearchHack(() -> {
                     info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 });
@@ -75,6 +131,29 @@ public class KeyoneAccessibilityService extends AccessibilityService {
             return true;
         }
         return false;
+    }
+
+
+
+
+    private static AccessibilityNodeInfo FindOrGetFromCache(AccessibilityNodeInfo root, SearchHackPlugin specific) {
+        AccessibilityNodeInfo info = null;
+        String fieldId = specific.getId();
+        if(fieldId != "") {
+            List<AccessibilityNodeInfo> infoList  = root.findAccessibilityNodeInfosByViewId(fieldId);
+            if (infoList.size() > 0) {
+                //Log.d(TAG, "SetSearchHack: production mode: take from cache");
+                info = infoList.get(0);
+            }
+        } else {
+            //info = FindFirstByTextRecursive(root, "Найти");
+            info = specific.findId(root);
+            if (info != null) {
+                Log.d(TAG, "SetSearchHack: research mode: field found "+info.getViewIdResourceName());
+                specific.setId(info.getViewIdResourceName());
+            }
+        }
+        return info;
     }
 
     private boolean ProcessTelegramSearchField(int eventType, String packageName, AccessibilityNodeInfo root) {

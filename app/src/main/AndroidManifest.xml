@@ -43,7 +43,7 @@
                 android:name="android.view.im"
                 android:resource="@xml/keyonekb_input_method" />
         </service>
-        <service android:name=".KeyoneAccessibilityService"
+        <service android:name=".KeyoneKb2AccessibilityService"
                  android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
                  android:label="@string/keyonekb_accessibility_service_label">
             <intent-filter>
