@@ -103,12 +103,22 @@ public class KeyboardTestActivity extends Activity {
             }
         });
 
+        this.inputView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            public void onFocusChange(View param1View, boolean param1Boolean) {
+                if (!param1Boolean) {
+                    //KeyboardTestActivity.this.inputView.requestFocus();
+                }
+            }
+        });
+
 
         this.inputView.setOnGenericMotionListener(new View.OnGenericMotionListener() {
                 @Override
                 public boolean onGenericMotion(View v, MotionEvent event) {
-                    //Log.v(TAG, "onGenericMotionEvent(): event " + event);
-                    KeyboardTestActivity.this.touchInfoView.setText("touch X = "+event.getX()+", Y ="+event.getY());
+
+                    String text = "View.onGenericMotionEvent() X = "+event.getX()+", Y ="+event.getY() +" ACT: "+event.getAction();
+                    Log.d(TAG, text);
+                    KeyboardTestActivity.this.touchInfoView.setText(text);
                     return true;
                 }
         });

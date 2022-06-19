@@ -41,6 +41,15 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         void Process();
     }
 
+    public void SetSearchHack(KeyoneIME.Processable processable) {
+        SearchHack = processable;
+        if(processable == null) {
+            Log.d(TAG, "SetSearchHack NULL");
+        }
+    }
+
+    private static String TAG = "KeyoneKB";
+
     private static final boolean DEBUG = false;
 
     public static KeyoneIME Instance;
@@ -66,10 +75,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     KeyboardLayoutManager keyboardLayoutManager = new KeyboardLayoutManager();
 
-    private Boolean startInputAtBbContactsApp = false; // костыль для приложения Блекбери контакты
-    private Boolean startInputAtBbPhoneApp = false; // аналогичный костыль для приложения Телефон чтобы в нем искалось на русском языке
     private Boolean inputAtBbLauncherApp = false;
-    private Boolean startInputAtTelegram = false;
 
     private boolean metaCtrlPressed = false; // только первая буква будет большая
 
@@ -131,7 +137,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     @Override
-    public void onCreate() {
+    public synchronized void onCreate() {
         super.onCreate();
         Instance = this;
 
@@ -227,7 +233,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     }
 
     @Override
-    public void onStartInput(EditorInfo editorInfo, boolean restarting) {
+    public synchronized void onStartInput(EditorInfo editorInfo, boolean restarting) {
         super.onStartInput(editorInfo, restarting);
         Log.d(TAG, "onStartInput package: " + editorInfo.packageName + " fieldName: "+editorInfo.fieldName+" label: " + editorInfo.label);
         //TODO: Минорно. Если надо знать какие флаги их надо расшифровывать
@@ -239,9 +245,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         //region HACK-s
 
         inputAtBbLauncherApp = editorInfo.packageName.equals("com.blackberry.blackberrylauncher");
-        startInputAtBbContactsApp = editorInfo.packageName.equals("com.blackberry.contacts");
-        startInputAtBbPhoneApp = editorInfo.packageName.equals("com.android.dialer");
-        startInputAtTelegram = editorInfo.packageName.equals("org.telegram.messenger");
         //endregion
 
         // Обрабатываем переход между приложениями
@@ -326,7 +329,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public synchronized boolean onKeyDown(int keyCode, KeyEvent event) {
         keyboardView.hidePopup(false);
         Log.v(TAG, "onKeyDown " + event);
 
@@ -342,8 +345,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         if (
                 inputAtBbLauncherApp
                 && !IsInputMode()
-                && IsBbLauncherKeyCode(keyCode, event.getMetaState())) {
-            Log.d(TAG, "Oh! this fixBbkLauncher " + inputAtBbLauncherApp);
+                && IsBbLauncherKeyCode(keyCode, event.getMetaState())
+                && SearchHack == null) {
+            Log.d(TAG, "BbkLauncher transparency mode");
             return super.onKeyDown(keyCode, event);
         }
 
@@ -393,7 +397,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     }
 
     @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
+    public synchronized boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.v(TAG, "onKeyUp " + event);
 
         //TODO: Hack 4 pocket
@@ -691,7 +695,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         for (int h = 0; h < historySize; h++) {
             LogKeyboardTest(String.format("At time %d:", ev.getHistoricalEventTime(h)));
             for (int p = 0; p < pointerCount; p++) {
-                LogKeyboardTest(String.format("  pointer %d: (%f,%f)",
+                LogKeyboardTest(String.format("  pointer HISTORY %d: (%f,%f)",
                         ev.getPointerId(p), ev.getHistoricalX(p, h), ev.getHistoricalY(p, h)));
             }
         }
@@ -703,6 +707,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             ev.getPointerCoords(p, pc);
             LogKeyboardTest(String.format("  pointer %d: PC (%f,%f)",
                     ev.getPointerId(p), pc.x, pc.y));
+
+            LogKeyboardTest(String.format("  pointer %d: AXIS (%f,%f)",
+                    ev.getPointerId(p), ev.getAxisValue(MotionEvent.AXIS_VSCROLL), ev.getAxisValue(MotionEvent.AXIS_HSCROLL)));
         }
     }
 
@@ -1809,8 +1816,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         Log.v(TAG2, "KEY SEND: "+String.format("%c", code2send));
         InputConnection inputConnection = getCurrentInputConnection();
         //region BB Apps HACK
-        //BbContactsAppHack(inputConnection);
-        //BbPhoneAppHack(inputConnection);
+
         SearchInputActivateOnLetterHack(inputConnection);
         //endregion
         sendKeyChar((char) code2send);
@@ -1820,50 +1826,13 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     }
 
     private void SearchInputActivateOnLetterHack(InputConnection inputConnection) {
+        if(IsInputMode() && SearchHack != null) {
+            SetSearchHack(null);
+        }
         if(SearchHack != null) {
+            Log.d(TAG, "FIRE SearchHack!");
             SearchHack.Process();
-            SearchHack = null;
-        }
-    }
-    private void TelegramAppHack2(InputConnection inputConnection) {
-        if(startInputAtTelegram) {
-            startInputAtTelegram = false;
-            if(inputConnection !=null && !IsInputMode()) {
-                keyDownUpDefaultFlags(KeyEvent.KEYCODE_TAB, inputConnection);
-                keyDownUpDefaultFlags(KeyEvent.KEYCODE_TAB, inputConnection);
-                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, inputConnection);
-                try {
-                    Thread.sleep(50); }
-                catch (Throwable ignored) {}
-
-            }
-        }
-    }
-
-    private void BbPhoneAppHack(InputConnection inputConnection) {
-        if(startInputAtBbPhoneApp && !keyboardLayoutManager.isEnglishKb){
-            startInputAtBbPhoneApp = false;
-            if(inputConnection !=null && !IsInputMode()){
-                try {
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_MINUS, inputConnection);
-                    Thread.sleep(20);
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DEL, inputConnection);
-                    Thread.sleep(50); }
-                catch (Throwable ignored) {}
-            }
-        }
-    }
-
-    private void BbContactsAppHack(InputConnection inputConnection) {
-        if(startInputAtBbContactsApp && !keyboardLayoutManager.isEnglishKb){
-            if(inputConnection !=null && !IsInputMode()){
-                //Данный хак работает неплохо но если быстро вводить, то теряется первый символ
-                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_SEARCH, inputConnection);
-                try {
-                    Thread.sleep(50); }
-                catch (Throwable ignored) {}
-            }
-            startInputAtBbContactsApp = false;
+            SetSearchHack(null);
         }
     }
 
