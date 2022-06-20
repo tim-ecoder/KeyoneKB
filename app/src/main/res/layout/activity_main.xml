@@ -18,14 +18,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_settings"
-        android:text="@string/btn_sys_kb_setting" />
+        android:text="@string/btn_sys_kb_setting_enabled" />
 
     <Button
             android:id="@+id/btn_sys_kb_accessibility_setting"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/btn_sys_kb_setting"
-            android:text="@string/btn_sys_kb_accessibility_setting" />
+            android:text="@string/btn_sys_kb_accessibility_setting_enabled" />
 
     <Button
             android:id="@+id/btn_sys_phone_permission"

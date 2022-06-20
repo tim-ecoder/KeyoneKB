@@ -3,7 +3,8 @@
     <string name="btn_settings">Настройки</string>
     <string name="btn_power_manager_activated">Энергосбережение требует настройки</string>
     <string name="btn_power_manager_deactivated">Энергосбережение настроено</string>
-    <string name="btn_sys_kb_setting">Активировать клавиатуру</string>
+    <string name="btn_sys_kb_setting_enabled">Активировать клавиатуру</string>
+    <string name="btn_sys_kb_setting_disabled">Клавиатура активирована</string>
     <string name="btn_sys_phone_permission_activated">Внимание! Требуется разрешение</string>
     <string name="btn_sys_phone_permission_deactivated">Действий с разрешениями не требуется</string>
     <string name="btn_test_key">Проверка работы</string>
@@ -56,7 +57,8 @@
     <string name="WAIT_GESTURE_UPON_KEY_0">1000</string>
     <string name="keyonekb_accessibility_service_label">KeyoneKB2</string>
     <string name="keyonekb_accessibility_service_description">Помогает KeyoneKB понять в каком поле находится курсор для вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.)</string>
-    <string name="btn_sys_kb_accessibility_setting">Активировать спец. возможности</string>
+    <string name="btn_sys_kb_accessibility_setting_enabled">Активировать спец. возможности</string>
+    <string name="btn_sys_kb_accessibility_setting_disabled">Cпец. возможности активированы</string>
     <string name="btn_more_settings">Расширенные настройки</string>
     <string name="tv_search_plugins_title">Данные поисковых плагинов</string>
     <string name="tv_search_plugins_data">Идентификаторы ресурса Поискового поля, чтобы в него само кликнулось, когда начинаешь набор

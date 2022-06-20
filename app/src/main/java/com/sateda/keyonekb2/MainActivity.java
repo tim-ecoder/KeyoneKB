@@ -2,17 +2,25 @@ package com.sateda.keyonekb2;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.PowerManager;
+import android.os.*;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.InputMethodInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.view.inputmethod.InputMethodSubtype;
 import android.widget.Button;
 import android.widget.TextView;
+
+import java.util.List;
 
 import static com.sateda.keyonekb2.SettingsActivity.*;
 
@@ -24,6 +32,11 @@ public class MainActivity extends Activity {
 
     private KbSettings kbSettings;
 
+    Button btn_sys_kb_accessibility_setting;
+
+    Button btn_sys_kb_setting;
+    TextView tv_version;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,10 +45,10 @@ public class MainActivity extends Activity {
         Button btn_settings = (Button) findViewById(R.id.btn_settings);
         Button btn_test_key = (Button) findViewById(R.id.btn_test_key);
         btn_power_manager = (Button) findViewById(R.id.btn_power_manager);
-        Button btn_sys_kb_setting = (Button) findViewById(R.id.btn_sys_kb_setting);
-        Button btn_sys_kb_accessibility_setting = (Button) findViewById(R.id.btn_sys_kb_accessibility_setting);
+        btn_sys_kb_setting = (Button) findViewById(R.id.btn_sys_kb_setting);
+        btn_sys_kb_accessibility_setting = (Button) findViewById(R.id.btn_sys_kb_accessibility_setting);
         btn_sys_phone_permission = (Button) findViewById(R.id.btn_sys_phone_permission);
-        TextView tv_version = (TextView) findViewById(R.id.tv_version);
+        tv_version = (TextView) findViewById(R.id.tv_version);
         Button btn_more_settings = (Button) findViewById(R.id.btn_more_settings);
 
         String text = String.format("\n\nApp: %s\nVersion: %s\nBuild type: %s", BuildConfig.APPLICATION_ID, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
@@ -101,6 +114,69 @@ public class MainActivity extends Activity {
 
         CheckPermissionState(false);
         CheckPowerState(this, false);
+        UpdateKeyboardButton();
+        UpdateAccessibilityButton();
+        ChangeKeyboard();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        CheckPermissionState(false);
+        CheckPowerState(this, false);
+        UpdateKeyboardButton();
+        UpdateAccessibilityButton();
+        ChangeKeyboard();
+    }
+
+    void ChangeKeyboard() {
+        if(!isKbEnabled())
+            return;
+        if (!Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD).contains(".KeyoneIME")) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if(imm != null) {
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(imm::showInputMethodPicker, 100);
+            }
+        }
+    }
+
+
+    private boolean UpdateAccessibilityButton() {
+        boolean accEnabledFlag = isAccessibilityEnabled();
+        if(accEnabledFlag) {
+            btn_sys_kb_accessibility_setting.setEnabled(false);
+            btn_sys_kb_accessibility_setting.setText(R.string.btn_sys_kb_accessibility_setting_disabled);
+            ChangeKeyboard();
+        } else {
+            btn_sys_kb_accessibility_setting.setEnabled(true);
+            btn_sys_kb_accessibility_setting.setText(R.string.btn_sys_kb_accessibility_setting_enabled);
+        }
+        return accEnabledFlag;
+    }
+
+    private boolean UpdateKeyboardButton() {
+        boolean accEnabledFlag = isKbEnabled();
+        if(accEnabledFlag) {
+            btn_sys_kb_setting.setEnabled(false);
+            btn_sys_kb_setting.setText(R.string.btn_sys_kb_setting_disabled);
+        } else {
+            btn_sys_kb_setting.setEnabled(true);
+            btn_sys_kb_setting.setText(R.string.btn_sys_kb_setting_enabled);
+        }
+        return accEnabledFlag;
+    }
+
+    private boolean isAccessibilityEnabled() {
+        String accEnabled = Settings.Secure.getString(getContentResolver(),
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        return accEnabled != null && accEnabled.contains(getPackageName());
+    }
+
+    private boolean isKbEnabled() {
+        String accEnabled = Settings.Secure.getString(getContentResolver(),
+                Settings.Secure.ENABLED_INPUT_METHODS);
+        return accEnabled != null && accEnabled.contains(getPackageName());
     }
 
     private static void CheckPowerState(MainActivity mainActivity, boolean andRequest) {
@@ -134,7 +210,7 @@ public class MainActivity extends Activity {
                     }
                     else {
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
-                        ButtonPermissionDeactivate(this);
+                        //ButtonPermissionDeactivate(this);
                     }
                 } else {
                     ButtonPermissionDeactivate(this);
@@ -145,7 +221,7 @@ public class MainActivity extends Activity {
                     }
                     else {
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_PERMISSION_CODE);
-                        ButtonPermissionDeactivate(this);
+                        //ButtonPermissionDeactivate(this);
                     }
                 } else {
                     ButtonPermissionDeactivate(this);
