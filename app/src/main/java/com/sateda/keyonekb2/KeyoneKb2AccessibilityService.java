@@ -115,7 +115,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 "ru.yandex.yandexmaps",
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
                 AccessibilityNodeInfo::getParent));
-
+        searchHackPlugins.add(new SearchHackPlugin(
+                "com.blackberry.notes",
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                null));
         for (SearchHackPlugin plugin : searchHackPlugins) {
             String value = GetFromSetting(plugin);
             if (value != null && value.length() > 0) {

@@ -112,6 +112,10 @@ public class KeyPressKeyboardBase extends InputMethodService {
         keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
     }
 
+    protected static void keyDownUpMeta(int keyEventCode, InputConnection ic, int meta) {
+        keyDownUp(keyEventCode, ic, meta,0);
+    }
+
     //endregion
 
     boolean IsSameKeyDownPress(KeyPressData keyPressData1, KeyPressData keyPressData2) {

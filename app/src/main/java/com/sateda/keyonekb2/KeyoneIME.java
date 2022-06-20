@@ -29,8 +29,6 @@ import android.widget.Toast;
 import com.android.internal.telephony.ITelephony;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
-import static android.content.ContentValues.TAG;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
@@ -338,20 +336,14 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             return false;
         }
 
-        //region BB Launcher HACK
-        //обработка главного экрана Блекбери
-        //он хочет получать только родные клавиши, по этому ему отправляем почти все клавиши неизменными
-
-        if (
-                inputAtBbLauncherApp
-                && !IsInputMode()
-                && IsBbLauncherKeyCode(keyCode, event.getMetaState())
-                && SearchHack == null) {
-            Log.d(TAG, "BbkLauncher transparency mode");
+        if(
+            !IsInputMode()
+            && IsViewModeKeyCode(keyCode, event.getMetaState())
+            && SearchHack == null
+            && !IsNavMode())  {
+            Log.d(TAG, "App transparency mode");
             return super.onKeyDown(keyCode, event);
         }
-
-        //endregion
 
         //region Режим "Навигационные клавиши"
 
@@ -371,7 +363,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             if (inputConnection != null && navigationKeyCode != 0) {
                 //Удаляем из meta состояния SYM т.к. он мешает некоторым приложениям воспринимать NAV символы с зажатием SYM
                 int meta = event.getMetaState() & ~KeyEvent.META_SYM_ON;
-                keyDownUpKeepTouch(navigationKeyCode, inputConnection, meta);
+                keyDownUpMeta(navigationKeyCode, inputConnection, meta);
                 //keyDownUpDefaultFlags(navigationKeyCode, inputConnection);
             }
             return true;
@@ -405,13 +397,23 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             return false;
         }
 
-
         //region Блок навигационной клавиатуры
 
         if (IsNavMode() && IsNavKeyCode(keyCode)) {
             return true;
         }
         //endregion
+
+        if(
+            !IsInputMode()
+            && IsViewModeKeyCode(keyCode, event.getMetaState())
+            && SearchHack == null)  {
+
+            Log.d(TAG, "App transparency mode");
+            return super.onKeyUp(keyCode, event);
+        }
+
+
 
         needUpdateVisualInsideSingleEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyUp(keyCode, event);
@@ -1068,7 +1070,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                 || keyCode == KeyEvent.KEYCODE_L;
     }
 
-    private boolean IsBbLauncherKeyCode(int keyCode, int meta) {
+    private boolean IsViewModeKeyCode(int keyCode, int meta) {
         if (keyCode == KeyEvent.KEYCODE_0 && (meta & KeyEvent.META_ALT_ON) == 0) return false;
         if (keyCode == KeyEvent.KEYCODE_CTRL_LEFT) return false;
         if (keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) return false;
@@ -1400,18 +1402,21 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             doubleAltPressAllSymbolsAlted = false;
             DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
             UpdateGestureModeVisualization();
-        }else if(!symbolOnScreenKeyboardMode){
-            symbolOnScreenKeyboardMode = true;
-            doubleAltPressAllSymbolsAlted = true;
-            symPadAltShift = true;
-            altPressSingleSymbolAltedMode = false;
-        } else {
-            symPadAltShift = false;
-            symbolOnScreenKeyboardMode = false;
-            altPressSingleSymbolAltedMode = false;
-            doubleAltPressAllSymbolsAlted = false;
-            //TODO: Поубирать
-            DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
+        }else if(IsInputMode()) {
+
+            if(!symbolOnScreenKeyboardMode){
+                symbolOnScreenKeyboardMode = true;
+                doubleAltPressAllSymbolsAlted = true;
+                symPadAltShift = true;
+                altPressSingleSymbolAltedMode = false;
+            } else {
+                symPadAltShift = false;
+                symbolOnScreenKeyboardMode = false;
+                altPressSingleSymbolAltedMode = false;
+                doubleAltPressAllSymbolsAlted = false;
+                //TODO: Поубирать
+                DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
+            }
         }
         //TODO: Много лишних вызовов апдейта нотификаций
         SetNeedUpdateVisualState();
