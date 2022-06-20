@@ -1,66 +1,137 @@
 package com.sateda.keyonekb2;
 
 import android.accessibilityservice.AccessibilityService;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
+
+    public static KeyoneKb2AccessibilityService Instance;
     private static String TAG = "KeyoneKb2As";
 
-    interface SearchHackPlugin {
-        AccessibilityNodeInfo findId(AccessibilityNodeInfo root);
-        void setId(String id);
-        String getId();
-        String getPackageName();
-        boolean checkEventType(int eventType);
+    interface NodeClickableConverter {
         AccessibilityNodeInfo getNode(AccessibilityNodeInfo info);
     }
 
-    private SearchHackPlugin bbLauncherAppSearch;
-    String bbLauncherAppsSearchFieldId = "";
+    class SearchHackPlugin {
+
+        String _packageName;
+        String _id = "";
+
+        int _events = 0;
+
+        NodeClickableConverter _converter;
+
+        public SearchHackPlugin(String packageName, int events, NodeClickableConverter converter) {
+            _events = events;
+            _converter = converter;
+            _packageName = packageName;
+        }
+        public void setId(String id) {
+            _id = id;
+        }
+        public String getId() {
+            return _id;
+        }
+
+        public String getPreferenceKey() {
+            return ""+_packageName;
+        }
+
+        private AccessibilityNodeInfo findId(AccessibilityNodeInfo root) {
+            AccessibilityNodeInfo info = FindFirstByTextRecursive(root, "Найти");
+            if(info != null) {
+                return info;
+            }
+            List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText("Поиск");
+            if (infoList.size() > 0) {
+                return infoList.get(0);
+            }
+            info = FindFirstByTextRecursive(root, "Поиск");
+            if (info != null) {
+                return info;
+            }
+            infoList = root.findAccessibilityNodeInfosByText("Search");
+            if (infoList.size() > 0) {
+                return infoList.get(0);
+            }
+            return null;
+        }
+
+        public String getPackageName() {
+            return _packageName;
+        }
+        public boolean checkEventType(int eventType) {
+            if((eventType & _events) == 0)
+                return false;
+            return true;
+        }
+
+        public AccessibilityNodeInfo Convert(AccessibilityNodeInfo info) {
+            if (_converter != null && info != null)
+                return _converter.getNode(info);
+            return info;
+        }
+    }
+
+    public final ArrayList<SearchHackPlugin> searchHackPlugins = new ArrayList<>();
+
+    KbSettings kbSettings;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        Instance = this;
 
-        bbLauncherAppSearch = new SearchHackPlugin() {
-            @Override
-            public AccessibilityNodeInfo findId(AccessibilityNodeInfo root) {
-                return FindFirstByTextRecursive(root, "Найти");
+        kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+
+        searchHackPlugins.add(new SearchHackPlugin(
+                "com.blackberry.blackberrylauncher",
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                null));
+        searchHackPlugins.add(new SearchHackPlugin(
+                "org.telegram.messenger",
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
+                null));
+        searchHackPlugins.add(new SearchHackPlugin(
+                "com.android.dialer",
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                AccessibilityNodeInfo::getParent));
+        searchHackPlugins.add(new SearchHackPlugin(
+                "com.blackberry.contacts",
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                null));
+        searchHackPlugins.add(new SearchHackPlugin(
+                "com.oasisfeng.island",
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                null));
+        searchHackPlugins.add(new SearchHackPlugin(
+                "ru.yandex.yandexmaps",
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                AccessibilityNodeInfo::getParent));
+
+        for (SearchHackPlugin plugin : searchHackPlugins) {
+            String value = GetFromSetting(plugin);
+            if (value != null && value.length() > 0) {
+                plugin.setId(value);
             }
+        }
 
-            @Override
-            public void setId(String id) {
-                bbLauncherAppsSearchFieldId = id;
-            }
+    }
 
-            @Override
-            public String getId() {
-                return bbLauncherAppsSearchFieldId;
-            }
+    private String GetFromSetting(SearchHackPlugin plugin) {
+        kbSettings.CheckSettingOrSetDefault(plugin.getPreferenceKey(), "");
+        return kbSettings.GetStringValue(plugin.getPreferenceKey());
+    }
 
-            @Override
-            public String getPackageName() {
-                return "com.blackberry.blackberrylauncher";
-            }
-
-            @Override
-            public boolean checkEventType(int eventType) {
-                if(eventType != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
-                        && eventType != AccessibilityEvent.TYPE_VIEW_FOCUSED)
-                    return false;
-                return true;
-            }
-
-            @Override
-            public AccessibilityNodeInfo getNode(AccessibilityNodeInfo info) {
-                return info;
-            }
-
-        };
+    private void SetToSetting(SearchHackPlugin plugin, String value) {
+        kbSettings.SetStringValue(plugin.getPreferenceKey(), value);
     }
 
     @Override
@@ -80,10 +151,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if(root == null)
             return;
 
-        if (ProcessDialerSearchField(event.getEventType(), packageName, root)) return;
-        if (ProcessContactsSearchField(event.getEventType(), packageName, root)) return;
-        if (ProcessTelegramSearchField(event.getEventType(), packageName, root)) return;
-        if (ProcessBbLauncherAppsSearchField(event.getEventType(), packageName, root, event, bbLauncherAppSearch)) return;
+        for(SearchHackPlugin plugin : searchHackPlugins) {
+            if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin))
+                return;
+        }
 
         if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
             && IsSearchHackSet()) {
@@ -100,12 +171,12 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
 
-    private boolean ProcessBbLauncherAppsSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchHackPlugin searchHackPlugin) {
+    private boolean ProcessSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchHackPlugin searchHackPlugin) {
         if(!searchHackPlugin.checkEventType(eventType))
             return false;
         if (packageName.equals(searchHackPlugin.getPackageName())) {
 
-            AccessibilityNodeInfo info = searchHackPlugin.getNode(FindOrGetFromCache(root, searchHackPlugin));
+            AccessibilityNodeInfo info = searchHackPlugin.Convert(FindOrGetFromCache(root, searchHackPlugin));
 
             if (info != null) {
                 if (IsSearchHackSet())
@@ -118,27 +189,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 });
             } else {
                 SetSearchHack(null);
-                Log.d(TAG, "event.getPackageName() " + event.getPackageName());
-                Log.d(TAG, "event.getEventType() " + event.getEventType());
-                Log.d(TAG, "event.getWindowId() " + event.getWindowId());
-                Log.d(TAG, "event.getSource() " + event.getSource());
-                Log.d(TAG, "event.getClassName() " + event.getClassName());
-                Log.d(TAG, "event.getText() " + event.getText());
-                Log.d(TAG, "event.getContentDescription() " + event.getContentDescription());
-
-
             }
             return true;
         }
         return false;
     }
 
-
-
-
-    private static AccessibilityNodeInfo FindOrGetFromCache(AccessibilityNodeInfo root, SearchHackPlugin specific) {
+    private AccessibilityNodeInfo FindOrGetFromCache(AccessibilityNodeInfo root, SearchHackPlugin searchHackPlugin) {
         AccessibilityNodeInfo info = null;
-        String fieldId = specific.getId();
+        String fieldId = searchHackPlugin.getId();
         if(fieldId != "") {
             List<AccessibilityNodeInfo> infoList  = root.findAccessibilityNodeInfosByViewId(fieldId);
             if (infoList.size() > 0) {
@@ -146,83 +205,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 info = infoList.get(0);
             }
         } else {
-            //info = FindFirstByTextRecursive(root, "Найти");
-            info = specific.findId(root);
-            if (info != null) {
+            info = searchHackPlugin.findId(root);
+            if (info != null && info.getViewIdResourceName() != null) {
                 Log.d(TAG, "SetSearchHack: research mode: field found "+info.getViewIdResourceName());
-                specific.setId(info.getViewIdResourceName());
+                searchHackPlugin.setId(info.getViewIdResourceName());
+                SetToSetting(searchHackPlugin, info.getViewIdResourceName());
             }
         }
         return info;
     }
-
-    private boolean ProcessTelegramSearchField(int eventType, String packageName, AccessibilityNodeInfo root) {
-        if(eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-        && eventType != AccessibilityEvent.TYPE_VIEW_FOCUSED
-        && eventType != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
-            return false;
-        if (packageName.equals("org.telegram.messenger")) {
-            List<AccessibilityNodeInfo> info = root.findAccessibilityNodeInfosByText("Search");
-            if (info.size() > 0) {
-                if(IsSearchHackSet())
-                    return true;
-                Log.d(TAG, "SetSearchHack Telegram");
-                AccessibilityNodeInfo node = info.get(0);
-                SetSearchHack(() -> {
-                    node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                });
-            } else {
-                SetSearchHack(null);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private boolean ProcessContactsSearchField(int eventType, String packageName, AccessibilityNodeInfo root) {
-        if(eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                && eventType != AccessibilityEvent.TYPE_VIEW_FOCUSED)
-            return false;
-        if (packageName.equals("com.blackberry.contacts")) {
-            List<AccessibilityNodeInfo> info = root.findAccessibilityNodeInfosByText("Поиск");
-            if (info.size() > 0) {
-                if(IsSearchHackSet())
-                    return true;
-                AccessibilityNodeInfo node = info.get(0);
-                Log.d(TAG, "SetSearchHack Contacts");
-                SetSearchHack(() -> {
-                    node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                });
-            } else {
-                SetSearchHack(null);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private boolean ProcessDialerSearchField(int eventType, String packageName, AccessibilityNodeInfo root) {
-        if(eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                && eventType != AccessibilityEvent.TYPE_VIEW_FOCUSED)
-            return false;
-        if (packageName.equals("com.android.dialer")) {
-            AccessibilityNodeInfo info = FindFirstByTextRecursive(root, "Поиск");
-            if (info != null) {
-                if(IsSearchHackSet())
-                    return true;
-                AccessibilityNodeInfo info2 = info.getParent();
-                Log.d(TAG, "SetSearchHack Dialer");
-                SetSearchHack(() -> {
-                    info2.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                });
-            } else {
-                SetSearchHack(null);
-            }
-            return true;
-        }
-        return false;
-    }
-
 
     private AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text) {
         if (node == null)

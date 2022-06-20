@@ -18,13 +18,8 @@ import android.widget.TextView;
 import static android.content.ContentValues.TAG;
 
 public class KeyboardTestActivity extends Activity {
-    private View codeTitleView;
 
     private TextView codeView;
-
-    private TextView deviceInfoView;
-
-    private EditText inputView;
 
     private TextView metaInfoView;
 
@@ -33,8 +28,6 @@ public class KeyboardTestActivity extends Activity {
     private View scanCodeTitleView;
 
     private TextView scanCodeView;
-
-    private CheckBox showScanCodeView;
 
     private TextView debugView;
 
@@ -71,11 +64,11 @@ public class KeyboardTestActivity extends Activity {
         this.debugScrollView = (ScrollView) findViewById(R.id.debug_scroll);
         this.touchInfoView = (TextView)findViewById(R.id.touch_info);
         this.codeView = (TextView)findViewById(R.id.code);
-        this.codeTitleView = findViewById(R.id.codeTitle);
+        View codeTitleView = findViewById(R.id.codeTitle);
         this.scanCodeView = (TextView)findViewById(R.id.scanCode);
         this.scanCodeTitleView = findViewById(R.id.scanCodeTitle);
-        this.showScanCodeView = (CheckBox)findViewById(R.id.showScanCode);
-        this.showScanCodeView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        CheckBox showScanCodeView = (CheckBox) findViewById(R.id.showScanCode);
+        showScanCodeView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton param1CompoundButton, boolean param1Boolean) {
                 byte b;
                 byte bool = 0;
@@ -95,15 +88,15 @@ public class KeyboardTestActivity extends Activity {
                 view.setVisibility(b);
             }
         });
-        this.inputView = (EditText)findViewById(R.id.input);
-        this.inputView.setOnKeyListener(new View.OnKeyListener() {
+        EditText inputView = (EditText) findViewById(R.id.input);
+        inputView.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View param1View, int param1Int, KeyEvent param1KeyEvent) {
                 KeyboardTestActivity.this.updateViews(param1KeyEvent);
                 return false;
             }
         });
 
-        this.inputView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        inputView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View param1View, boolean param1Boolean) {
                 if (!param1Boolean) {
                     //KeyboardTestActivity.this.inputView.requestFocus();
@@ -112,7 +105,7 @@ public class KeyboardTestActivity extends Activity {
         });
 
 
-        this.inputView.setOnGenericMotionListener(new View.OnGenericMotionListener() {
+        inputView.setOnGenericMotionListener(new View.OnGenericMotionListener() {
                 @Override
                 public boolean onGenericMotion(View v, MotionEvent event) {
 
@@ -128,17 +121,17 @@ public class KeyboardTestActivity extends Activity {
 
         //this.inputView
 
-        this.inputView.requestFocus();
+        inputView.requestFocus();
         this.metaInfoView = (TextView)findViewById(R.id.meta_info);
-        this.deviceInfoView = (TextView)findViewById(R.id.device_info);
-        this.deviceInfoView.append("board: " + Build.BOARD);
-        this.deviceInfoView.append("\n");
-        this.deviceInfoView.append("product: " + Build.PRODUCT);
-        this.deviceInfoView.append("\n");
-        this.deviceInfoView.append("device: " + Build.DEVICE);
-        this.deviceInfoView.append("\n");
-        this.deviceInfoView.append("display: " + Build.DISPLAY);
-        this.deviceInfoView.append("\n");
-        this.deviceInfoView.append("brand: " + Build.BRAND);
+        TextView deviceInfoView = (TextView) findViewById(R.id.device_info);
+        deviceInfoView.append("board: " + Build.BOARD);
+        deviceInfoView.append("\n");
+        deviceInfoView.append("product: " + Build.PRODUCT);
+        deviceInfoView.append("\n");
+        deviceInfoView.append("device: " + Build.DEVICE);
+        deviceInfoView.append("\n");
+        deviceInfoView.append("display: " + Build.DISPLAY);
+        deviceInfoView.append("\n");
+        deviceInfoView.append("brand: " + Build.BRAND);
     }
 }

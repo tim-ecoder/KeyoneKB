@@ -55,8 +55,10 @@
     <string name="KB_CORE_TIME_SHORT_PRESS">200</string>
     <string name="WAIT_GESTURE_UPON_KEY_0">1000</string>
     <string name="keyonekb_accessibility_service_label">KeyoneKB2</string>
-    <string name="keyonekb_accessibility_service_description">Помогает KeyoneKB понять в каком поле находится курсор для
-        вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.)
-    </string>
+    <string name="keyonekb_accessibility_service_description">Помогает KeyoneKB понять в каком поле находится курсор для вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.)</string>
     <string name="btn_sys_kb_accessibility_setting">Активировать спец. возможности</string>
+    <string name="btn_more_settings">Расширенные настройки</string>
+    <string name="tv_search_plugins_title">Данные поисковых плагинов</string>
+    <string name="tv_search_plugins_data">Идентификаторы ресурса Поискового поля, чтобы в него само кликнулось, когда начинаешь набор
+    </string>
 </resources>

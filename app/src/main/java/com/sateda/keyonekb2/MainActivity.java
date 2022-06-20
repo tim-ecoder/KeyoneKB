@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
         Button btn_sys_kb_accessibility_setting = (Button) findViewById(R.id.btn_sys_kb_accessibility_setting);
         btn_sys_phone_permission = (Button) findViewById(R.id.btn_sys_phone_permission);
         TextView tv_version = (TextView) findViewById(R.id.tv_version);
+        Button btn_more_settings = (Button) findViewById(R.id.btn_more_settings);
 
         String text = String.format("\n\nApp: %s\nVersion: %s\nBuild type: %s", BuildConfig.APPLICATION_ID, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
         tv_version.setText(text);
@@ -44,6 +45,14 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 Intent switchActivityIntent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(switchActivityIntent);
+            }
+        });
+
+        btn_more_settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent switchActivityIntent = new Intent(MainActivity.this, SettingsMoreActivity.class);
                 startActivity(switchActivityIntent);
             }
         });
@@ -64,6 +73,8 @@ public class MainActivity extends Activity {
                 getApplicationContext().startActivity(intent);
             }
         });
+
+
 
         btn_sys_kb_accessibility_setting.setOnClickListener(new View.OnClickListener() {
             @Override

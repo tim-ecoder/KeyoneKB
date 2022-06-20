@@ -1,5 +1,6 @@
 package com.sateda.keyonekb2;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 
 public class KbSettings {
@@ -32,6 +33,12 @@ public class KbSettings {
         }
     }
 
+    public void CheckSettingOrSetDefault(String pref_name, String default_value) {
+        if(!_mSettings.contains(pref_name)) {
+            _mSettings.edit().putString(pref_name, default_value).apply();
+        }
+    }
+
     public void CheckSettingOrSetDefault(String pref_name, int default_value) {
         if(!_mSettings.contains(pref_name)) {
             _mSettings.edit().putInt(pref_name, default_value).apply();
@@ -56,6 +63,10 @@ public class KbSettings {
         return _mSettings.getBoolean(name, false);
     }
 
+    public String GetStringValue(String name) {
+        return _mSettings.getString(name, "");
+    }
+
     public int GetIntValue(String name) {
         return _mSettings.getInt(name, 0);
     }
@@ -67,5 +78,7 @@ public class KbSettings {
     public void SetIntValue(String name, int value) {
         _mSettings.edit().putInt(name, value).apply();
     }
-
+    public void SetStringValue(String name, String value) {
+        _mSettings.edit().putString(name, value).apply();
+    }
 }

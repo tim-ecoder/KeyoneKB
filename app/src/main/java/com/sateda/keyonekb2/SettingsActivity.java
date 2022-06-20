@@ -20,17 +20,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private KbSettings kbSettings;
 
-    private Switch toast_show_lang;
-    private SeekBar sens_bottom_bar;
-    private Switch switch_alt_space;
-    private Switch switch_long_press_alt;
-    private Switch switch_manage_call;
-    private Switch switch_flag;
-    private Switch switch_notification_icon_system;
     private RelativeLayout layout;
-    private SeekBar height_bottom_bar;
-    private Switch switch_show_default_onscreen_keyboard;
-    private Switch switch_keyboard_gestures_at_views_enabled;
 
     private float touchY;
 
@@ -95,7 +85,7 @@ public class SettingsActivity extends AppCompatActivity {
         RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)divider.getLayoutParams();
         llp.addRule(RelativeLayout.BELOW, prevId);
 
-        sens_bottom_bar = (SeekBar) findViewById(R.id.seekBar);
+        SeekBar sens_bottom_bar = (SeekBar) findViewById(R.id.seekBar);
         SetProgressOrDefault(sens_bottom_bar, kbSettings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
 
         sens_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -115,7 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        toast_show_lang = (Switch) findViewById(R.id.toast_show_lang);
+        Switch toast_show_lang = (Switch) findViewById(R.id.toast_show_lang);
         SetSwitchStateOrDefault(toast_show_lang, kbSettings.APP_PREFERENCES_2_SHOW_TOAST);
         toast_show_lang.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -125,8 +115,7 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
 
-
-        switch_alt_space = (Switch) findViewById(R.id.switch_alt_space);
+        Switch switch_alt_space = (Switch) findViewById(R.id.switch_alt_space);
         SetSwitchStateOrDefault(switch_alt_space, kbSettings.APP_PREFERENCES_3_ALT_SPACE);
 
         switch_alt_space.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -137,7 +126,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_flag = (Switch) findViewById(R.id.switch_flag);
+        Switch switch_flag = (Switch) findViewById(R.id.switch_flag);
         SetSwitchStateOrDefault(switch_flag, kbSettings.APP_PREFERENCES_4_FLAG);
 
         switch_flag.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -147,7 +136,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_long_press_alt = (Switch) findViewById(R.id.switch_long_press_alt);
+        Switch switch_long_press_alt = (Switch) findViewById(R.id.switch_long_press_alt);
         SetSwitchStateOrDefault(switch_long_press_alt, kbSettings.APP_PREFERENCES_5_LONG_PRESS_ALT);
 
         switch_long_press_alt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -157,7 +146,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_manage_call = (Switch) findViewById(R.id.switch_manage_call);
+        Switch switch_manage_call = (Switch) findViewById(R.id.switch_manage_call);
 
         SetSwitchStateOrDefault(switch_manage_call, kbSettings.APP_PREFERENCES_6_MANAGE_CALL);
         switch_manage_call.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -173,7 +162,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        height_bottom_bar = (SeekBar) findViewById(R.id.seekBarBtnPanel);
+        SeekBar height_bottom_bar = (SeekBar) findViewById(R.id.seekBarBtnPanel);
         SetProgressOrDefault(height_bottom_bar, kbSettings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
 
         height_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -193,7 +182,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_show_default_onscreen_keyboard = (Switch) findViewById(R.id.switch_show_default_onscreen_keyboard);
+        Switch switch_show_default_onscreen_keyboard = (Switch) findViewById(R.id.switch_show_default_onscreen_keyboard);
         SetSwitchStateOrDefault(switch_show_default_onscreen_keyboard, kbSettings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
 
         switch_show_default_onscreen_keyboard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -203,7 +192,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        switch_keyboard_gestures_at_views_enabled = (Switch) findViewById(R.id.switch_keyboard_gestures_at_views_enabled);
+        Switch switch_keyboard_gestures_at_views_enabled = (Switch) findViewById(R.id.switch_keyboard_gestures_at_views_enabled);
         SetSwitchStateOrDefault(switch_keyboard_gestures_at_views_enabled, kbSettings.APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED);
 
         switch_keyboard_gestures_at_views_enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -214,7 +203,7 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
 
-        switch_notification_icon_system = (Switch) findViewById(R.id.switch_notification_icon_system);
+        Switch switch_notification_icon_system = (Switch) findViewById(R.id.switch_notification_icon_system);
         SetSwitchStateOrDefault(switch_notification_icon_system, kbSettings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
 
         switch_notification_icon_system.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
