@@ -3,28 +3,42 @@ package com.sateda.keyonekb2;
 import android.content.Context;
 import android.content.res.Resources;
 import android.inputmethodservice.Keyboard;
+import android.os.Environment;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.xmlpull.v1.XmlPullParser;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class KeyboardLayoutManager {
 
+    public static KeyboardLayoutManager Instance = null;
     public ArrayList<KeyboardLayout> KeyboardLayoutList = new ArrayList<>();
+
+    public HashMap<String, Double> ScanCodeKeyCodeMapping = new HashMap<String, Double>();
     private int CurrentLanguageListIndex = 0;
     private int LangListCount = 0;
-    public boolean isEnglishKb = false;
 
 
     HashMap<String, Keyboard> symKeyboardsHashMap = new HashMap<>();
 
 
-    public void Initialize(ArrayList<KeyboardLayoutRes> activeLayouts, Resources resources, Context context) {
-        if(LangListCount != 0)
-            return;
+    public synchronized void Initialize(ArrayList<KeyboardLayoutRes> activeLayouts, Resources resources, Context context) {
 
+        if(Instance != null) {
+            return;
+        }
+
+        Instance = this;
+
+        LoadMappingFile(context);
         KeyboardLayout currentLayout;
 
         for (KeyboardLayoutRes layout : activeLayouts) {
@@ -36,7 +50,53 @@ public class KeyboardLayoutManager {
         }
     }
 
-    public Keyboard GetSymKeyboard(boolean isAlt) {
+
+    private void LoadMappingFile(Context context) {
+
+        Gson gson;
+        gson = new GsonBuilder()
+                .enableComplexMapKeySerialization()
+                .serializeNulls()
+                //.setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
+                //.setPrettyPrinting()
+                //.setVersion(1.0)
+                //.excludeFieldsWithoutExposeAnnotation()
+                .create();
+
+        //ObjectMapper mapper = new ObjectMapper();
+
+
+
+
+        String fileName = "scan_code_key_code.json";
+        //mapper.writeValue(stream, Instance.KeyboardLayoutList);
+        String packageName = context.getPackageName();
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/Android/data/" + packageName + "/files/";
+
+        try {
+            boolean exists = (new File(path)).exists();
+            if (!exists) {
+                new File(path).mkdirs();
+            }
+            // Open output stream
+            FileInputStream fOut = new FileInputStream(path + fileName);
+            // write integers as separated ascii's
+
+            //mapper.writeValue(stream, Instance.KeyboardLayoutList);
+            java.io.Reader w = new InputStreamReader(fOut);
+            //gson.toJson(Instance.ScanCodeKeyCodeMapping, w);
+            Instance.ScanCodeKeyCodeMapping = gson.fromJson(w, Instance.ScanCodeKeyCodeMapping.getClass());
+            fOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();
+        //btSave.setText(baseFolder);
+
+    }
+
+    public synchronized Keyboard GetSymKeyboard(boolean isAlt) {
         if(isAlt)
             return symKeyboardsHashMap.get(getSymKbdKey1(GetCurrentKeyboardLayout().SymXmlId));
         return symKeyboardsHashMap.get(getSymKbdKey2(GetCurrentKeyboardLayout().SymXmlId));
@@ -95,12 +155,20 @@ public class KeyboardLayoutManager {
                 if(scan_code != 0){
                     KeyVariants keyLayout = new KeyVariants();
                     keyLayout.scan_code = scan_code;
+                    Integer d = Instance.ScanCodeKeyCodeMapping.get(String.format("%d",scan_code)).intValue();
+                    keyLayout.KeyCode = d;
                     keyLayout.one_press = one_press;
+                    keyLayout.SinglePress = GetCharValueOrNull((char) one_press);
                     keyLayout.one_press_shift = shift;
+                    keyLayout.SinglePressShiftMode = Character.valueOf((char)shift);
                     keyLayout.double_press = double_press;
+                    keyLayout.DoublePress = Character.valueOf((char)double_press);
                     keyLayout.double_press_shift = double_press_shift;
+                    keyLayout.DoublePressShiftMode = Character.valueOf((char)double_press_shift);
                     keyLayout.alt = alt;
+                    keyLayout.SinglePressAltMode = Character.valueOf((char)alt);
                     keyLayout.alt_shift = alt_shift;
+                    keyLayout.SinglePressAltShiftMode = Character.valueOf((char)alt_shift);
                     keyLayout.alt_popup = alt_popup;
                     keyLayout.alt_shift_popup = alt_shift_popup;
 
@@ -108,7 +176,9 @@ public class KeyboardLayoutManager {
                 }
                 parser.next();
             }
-            keyboardLayout.LanguageOnScreenNaming = languageOnScreenNaming;
+            keyboardLayout.KeyboardName = languageOnScreenNaming;
+            keyboardLayout.AltModeLayout = alt_hw;
+            keyboardLayout.SymModeLayout = sym_sw_res;
             keyboardLayout.XmlId = keyboardLayoutXmlId;
             keyboardLayoutArrayList.add(currentKeyBoardSetId, keyboardLayout);
         } catch (Throwable t) {
@@ -118,7 +188,14 @@ public class KeyboardLayoutManager {
         keyboardLayout.SymXmlId = resources.getIdentifier(sym_sw_res, "xml", context.getPackageName());
         int altHwResId = resources.getIdentifier(alt_hw, "xml", context.getPackageName());
         LoadAltLayout2(keyboardLayout.KeyVariantsMap, resources, altHwResId);
+        keyboardLayout.KeyMapping = keyboardLayout.KeyVariantsMap.values();
         return keyboardLayout;
+    }
+
+    private static Character GetCharValueOrNull(char one_press) {
+        if(one_press == 0)
+            return null;
+        return Character.valueOf(one_press);
     }
 
     private void AddSymKeyboard(int symXmlId, Context context) {
@@ -192,17 +269,16 @@ public class KeyboardLayoutManager {
         }
     }
 
-    public void ChangeLayout() {
+    public synchronized void ChangeLayout() {
         CurrentLanguageListIndex++;
         if(CurrentLanguageListIndex > LangListCount - 1) CurrentLanguageListIndex = 0;
-        isEnglishKb = CurrentLanguageListIndex == 0;
     }
 
-    public KeyboardLayout GetCurrentKeyboardLayout(){
+    public synchronized KeyboardLayout GetCurrentKeyboardLayout(){
         return KeyboardLayoutList.get(CurrentLanguageListIndex);
     }
 
-    public int KeyToCharCode(int key, boolean alt_press, boolean shift_press, boolean is_double_press)
+    public synchronized int KeyToCharCode(int key, boolean alt_press, boolean shift_press, boolean is_double_press)
     {
         int result;
         KeyVariants keyVariants = KeyboardLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
@@ -225,7 +301,7 @@ public class KeyboardLayoutManager {
         return result;
     }
 
-    public int KeyToAltPopup(int key) {
+    public synchronized int KeyToAltPopup(int key) {
         KeyVariants keyVariants = KeyboardLayoutList.get(CurrentLanguageListIndex).KeyVariantsMap.get(key);
         if(keyVariants == null)
             return 0;

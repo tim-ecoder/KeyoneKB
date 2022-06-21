@@ -128,7 +128,7 @@ public class MainActivity extends Activity {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             if(imm != null) {
                 Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(imm::showInputMethodPicker, 100);
+                handler.postDelayed(imm::showInputMethodPicker, 200);
             }
         }
     }

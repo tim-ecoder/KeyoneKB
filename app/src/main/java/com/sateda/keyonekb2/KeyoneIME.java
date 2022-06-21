@@ -833,7 +833,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         Log.d(TAG, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode=" + oneTimeShiftOneTimeBigMode + " doubleShiftCapsMode=" + doubleShiftCapsMode + " doubleAltPressAllSymbolsAlted=" + doubleAltPressAllSymbolsAlted + " altPressSingleSymbolAltedMode=" + altPressSingleSymbolAltedMode);
         KeyboardLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
 
-        String languageOnScreenNaming = keyboardLayout.LanguageOnScreenNaming;
+        String languageOnScreenNaming = keyboardLayout.KeyboardName;
         boolean changed;
         boolean needUsefullKeyboard = false;
         if (IsNavMode()) {
@@ -1086,7 +1086,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     private void ChangeLanguage() {
         keyboardLayoutManager.ChangeLayout();
         if(pref_show_toast) {
-            Toast toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().LanguageOnScreenNaming, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
             toast.show();
         }
         UpdateKeyboardModeVisualization();
@@ -1323,7 +1323,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                 KeyEvent.KEYCODE_CTRL_LEFT,
                 KeyEvent.KEYCODE_CTRL_RIGHT,
                 KeyEvent.KEYCODE_SHIFT_RIGHT,
-                KeyEvent.KEYCODE_FUNCTION,
+                //KeyEvent.KEYCODE_FUNCTION,
 
         };
         keyAction.KeyHoldPlusKey = true;
@@ -1816,6 +1816,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         else
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, IsShiftMode(), false);
         SendLetterOrSymbol(code2send);
+        //keyboardLayoutManager.ScanCodeKeyCodeMapping.put(keyPressData.ScanCode, keyPressData.KeyCode);
         return true;
     }
 
