@@ -41,7 +41,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
         MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST = Integer.parseInt(getString(R.string.KB_CORE_GESTURE_FINGER_XY_RAD));;
         MAGIC_KEYBOARD_GESTURE_MOTION_CONST = Integer.parseInt(getString(R.string.KB_CORE_MOTION_BASE_SENSITIVITY));
         ROW_4_BEGIN_Y = Integer.parseInt(getString(R.string.KB_CORE_ROW_4_BEGIN_Y));
-        TIME_WAIT_GESTURE_UPON_KEY_0 = Integer.parseInt(getString(R.string.WAIT_GESTURE_UPON_KEY_0));
+        TIME_WAIT_GESTURE_UPON_KEY_0 = Integer.parseInt(getString(R.string.KB_CORE_WAIT_GESTURE_UPON_KEY_0));
     }
 
     protected abstract boolean IsGestureModeEnabled();

@@ -139,14 +139,14 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         super.onCreate();
         Instance = this;
 
-        TITLE_NAV_TEXT = getString(R.string.kb_state_nav_mode);
-        TITLE_NAV_FV_TEXT = getString(R.string.kb_state_nav_fn_mode);
-        TITLE_SYM_TEXT = getString(R.string.kb_state_alt_mode);
-        TITLE_SYM2_TEXT = getString(R.string.kb_state_sym_mode);
-        TITLE_GESTURE_INPUT = getString(R.string.kb_state_gesture_input);
-        TITLE_GESTURE_INPUT_UP_DOWN = getString(R.string.kb_state_gesture_input_up_down);
-        TITLE_GESTURE_VIEW = getString(R.string.kb_state_gesture_view);
-        TITLE_GESTURE_OFF = getString(R.string.kb_state_gesture_off);
+        TITLE_NAV_TEXT = getString(R.string.notification_kb_state_nav_mode);
+        TITLE_NAV_FV_TEXT = getString(R.string.notification_kb_state_nav_fn_mode);
+        TITLE_SYM_TEXT = getString(R.string.notification_kb_state_alt_mode);
+        TITLE_SYM2_TEXT = getString(R.string.notification_kb_state_sym_mode);
+        TITLE_GESTURE_INPUT = getString(R.string.notification_kb_state_gesture_input);
+        TITLE_GESTURE_INPUT_UP_DOWN = getString(R.string.notification_kb_state_gesture_input_up_down);
+        TITLE_GESTURE_VIEW = getString(R.string.notification_kb_state_gesture_view);
+        TITLE_GESTURE_OFF = getString(R.string.notification_kb_state_gesture_off);
 
         AltOneIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
         AltAllIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt_all);
@@ -1323,6 +1323,8 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                 KeyEvent.KEYCODE_CTRL_LEFT,
                 KeyEvent.KEYCODE_CTRL_RIGHT,
                 KeyEvent.KEYCODE_SHIFT_RIGHT,
+                KeyEvent.KEYCODE_FUNCTION,
+
         };
         keyAction.KeyHoldPlusKey = true;
         keyAction.OnShortPress = this::onCtrlShortPress;

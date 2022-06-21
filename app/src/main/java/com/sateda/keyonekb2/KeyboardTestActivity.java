@@ -20,34 +20,12 @@ import static android.content.ContentValues.TAG;
 public class KeyboardTestActivity extends Activity {
 
     private TextView codeView;
-
-    private TextView metaInfoView;
-
+    private TextView codeMetaView;
     private TextView touchInfoView;
-
-    private View scanCodeTitleView;
-
-    private TextView scanCodeView;
-
     private TextView debugView;
-
     private ScrollView debugScrollView;
 
-    private void updateViews(KeyEvent paramKeyEvent) {
-        this.codeView.setText(String.valueOf(paramKeyEvent.getKeyCode()));
-        this.scanCodeView.setText(String.valueOf(paramKeyEvent.getScanCode()));
-        this.metaInfoView.setText("alt:" + paramKeyEvent.isAltPressed() + ", shift:" + paramKeyEvent.isShiftPressed());
-        if(!KeyoneIME.DEBUG_TEXT.isEmpty()) {
-            this.debugView.setText(KeyoneIME.DEBUG_TEXT);
-            debugScrollView.post(new Runnable() {
 
-                @Override
-                public void run() {
-                    debugScrollView.fullScroll(ScrollView.FOCUS_DOWN);
-                }
-            });
-        }
-    }
 
     public void onStop() {
         KeyoneIME.IS_KEYBOARD_TEST = false;
@@ -63,31 +41,30 @@ public class KeyboardTestActivity extends Activity {
         this.debugView.setMovementMethod(new ScrollingMovementMethod());
         this.debugScrollView = (ScrollView) findViewById(R.id.debug_scroll);
         this.touchInfoView = (TextView)findViewById(R.id.touch_info);
-        this.codeView = (TextView)findViewById(R.id.code);
-        View codeTitleView = findViewById(R.id.codeTitle);
-        this.scanCodeView = (TextView)findViewById(R.id.scanCode);
-        this.scanCodeTitleView = findViewById(R.id.scanCodeTitle);
-        CheckBox showScanCodeView = (CheckBox) findViewById(R.id.showScanCode);
-        showScanCodeView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        this.codeView = (TextView)findViewById(R.id.tv_code_value);
+        this.codeMetaView = (TextView)findViewById(R.id.tv_key_meta_value);
+
+        CheckBox sbTestKeyboardViewMode = (CheckBox) findViewById(R.id.cb_test_keyboard_view_mode);
+        sbTestKeyboardViewMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton param1CompoundButton, boolean param1Boolean) {
-                byte b;
-                byte bool = 0;
-                TextView textView = KeyboardTestActivity.this.scanCodeView;
-                if (param1Boolean) {
-                    b = 0;
-                } else {
-                    b = 8;
-                }
-                textView.setVisibility(b);
-                View view = KeyboardTestActivity.this.scanCodeTitleView;
-                if (param1Boolean) {
-                    b = bool;
-                } else {
-                    b = 8;
-                }
-                view.setVisibility(b);
+                UpdateCheckBoxAtFocus(sbTestKeyboardViewMode);
             }
         });
+
+        sbTestKeyboardViewMode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            public void onFocusChange(View param1View, boolean param1Boolean) {
+                UpdateCheckBoxAtFocus(sbTestKeyboardViewMode);
+            }
+        });
+
+        sbTestKeyboardViewMode.setOnKeyListener(new View.OnKeyListener() {
+            public boolean onKey(View param1View, int param1Int, KeyEvent param1KeyEvent) {
+                KeyboardTestActivity.this.updateViews(param1KeyEvent);
+                return false;
+            }
+        });
+
+
         EditText inputView = (EditText) findViewById(R.id.input);
         inputView.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View param1View, int param1Int, KeyEvent param1KeyEvent) {
@@ -95,15 +72,6 @@ public class KeyboardTestActivity extends Activity {
                 return false;
             }
         });
-
-        inputView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            public void onFocusChange(View param1View, boolean param1Boolean) {
-                if (!param1Boolean) {
-                    //KeyboardTestActivity.this.inputView.requestFocus();
-                }
-            }
-        });
-
 
         inputView.setOnGenericMotionListener(new View.OnGenericMotionListener() {
                 @Override
@@ -121,8 +89,8 @@ public class KeyboardTestActivity extends Activity {
 
         //this.inputView
 
-        inputView.requestFocus();
-        this.metaInfoView = (TextView)findViewById(R.id.meta_info);
+        sbTestKeyboardViewMode.requestFocus();
+
         TextView deviceInfoView = (TextView) findViewById(R.id.device_info);
         deviceInfoView.append("board: " + Build.BOARD);
         deviceInfoView.append("\n");
@@ -133,5 +101,30 @@ public class KeyboardTestActivity extends Activity {
         deviceInfoView.append("display: " + Build.DISPLAY);
         deviceInfoView.append("\n");
         deviceInfoView.append("brand: " + Build.BRAND);
+    }
+
+    private void updateViews(KeyEvent paramKeyEvent) {
+        this.codeView.setText(String.valueOf(paramKeyEvent.getKeyCode()));
+        this.codeMetaView.setText(Integer.toBinaryString(paramKeyEvent.getMetaState()));
+
+        if(!KeyoneIME.DEBUG_TEXT.isEmpty()) {
+            this.debugView.setText(KeyoneIME.DEBUG_TEXT);
+            debugScrollView.post(new Runnable() {
+                @Override
+                public void run() {
+                    debugScrollView.fullScroll(ScrollView.FOCUS_DOWN);
+                }
+            });
+        }
+    }
+
+    private void UpdateCheckBoxAtFocus(CheckBox sbTestKeyboardViewMode) {
+        if(sbTestKeyboardViewMode.isFocused()) {
+            sbTestKeyboardViewMode.setChecked(true);
+            sbTestKeyboardViewMode.setText(R.string.keyboard_test_view_test_active);
+        } else {
+            sbTestKeyboardViewMode.setChecked(false);
+            sbTestKeyboardViewMode.setText(R.string.keyboard_test_view_test);
+        }
     }
 }

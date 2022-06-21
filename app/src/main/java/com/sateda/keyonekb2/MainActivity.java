@@ -2,7 +2,6 @@ package com.sateda.keyonekb2;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,17 +9,10 @@ import android.net.Uri;
 import android.os.*;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.BaseInputConnection;
-import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.view.inputmethod.InputMethodSubtype;
 import android.widget.Button;
 import android.widget.TextView;
-
-import java.util.List;
 
 import static com.sateda.keyonekb2.SettingsActivity.*;
 
@@ -146,11 +138,11 @@ public class MainActivity extends Activity {
         boolean accEnabledFlag = isAccessibilityEnabled();
         if(accEnabledFlag) {
             btn_sys_kb_accessibility_setting.setEnabled(false);
-            btn_sys_kb_accessibility_setting.setText(R.string.btn_sys_kb_accessibility_setting_disabled);
+            btn_sys_kb_accessibility_setting.setText(R.string.main_btn_sys_kb_accessibility_setting_disabled);
             ChangeKeyboard();
         } else {
             btn_sys_kb_accessibility_setting.setEnabled(true);
-            btn_sys_kb_accessibility_setting.setText(R.string.btn_sys_kb_accessibility_setting_enabled);
+            btn_sys_kb_accessibility_setting.setText(R.string.main_btn_sys_kb_accessibility_setting_enabled);
         }
         return accEnabledFlag;
     }
@@ -159,10 +151,10 @@ public class MainActivity extends Activity {
         boolean accEnabledFlag = isKbEnabled();
         if(accEnabledFlag) {
             btn_sys_kb_setting.setEnabled(false);
-            btn_sys_kb_setting.setText(R.string.btn_sys_kb_setting_disabled);
+            btn_sys_kb_setting.setText(R.string.main_btn_sys_kb_setting_disabled);
         } else {
             btn_sys_kb_setting.setEnabled(true);
-            btn_sys_kb_setting.setText(R.string.btn_sys_kb_setting_enabled);
+            btn_sys_kb_setting.setText(R.string.main_btn_sys_kb_setting_enabled);
         }
         return accEnabledFlag;
     }
@@ -189,14 +181,14 @@ public class MainActivity extends Activity {
                 intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                 intent.setData(Uri.parse("package:" + packageName));
                 mainActivity.getApplicationContext().startActivity(intent);
-                mainActivity.btn_power_manager.setText(R.string.btn_power_manager_deactivated);
+                mainActivity.btn_power_manager.setText(R.string.main_btn_power_manager_deactivated);
                 mainActivity.btn_power_manager.setEnabled(false);
             } else {
-                mainActivity.btn_power_manager.setText(R.string.btn_power_manager_activated);
+                mainActivity.btn_power_manager.setText(R.string.main_btn_power_manager_activated);
                 mainActivity.btn_power_manager.setEnabled(true);
             }
         } else {
-            mainActivity.btn_power_manager.setText(R.string.btn_power_manager_deactivated);
+            mainActivity.btn_power_manager.setText(R.string.main_btn_power_manager_deactivated);
             mainActivity.btn_power_manager.setEnabled(false);
         }
     }
@@ -234,13 +226,13 @@ public class MainActivity extends Activity {
         }
 
     private static void ButtonPermissionActivate(MainActivity mainActivity) {
-        mainActivity.btn_sys_phone_permission.setText(R.string.btn_sys_phone_permission_activated);
+        mainActivity.btn_sys_phone_permission.setText(R.string.main_btn_sys_phone_permission_activated);
         mainActivity.btn_sys_phone_permission.setEnabled(true);
     }
 
     private static void ButtonPermissionDeactivate(MainActivity mainActivity) {
         mainActivity.btn_sys_phone_permission.setEnabled(false);
-        mainActivity.btn_sys_phone_permission.setText(R.string.btn_sys_phone_permission_deactivated);
+        mainActivity.btn_sys_phone_permission.setText(R.string.main_btn_sys_phone_permission_deactivated);
     }
 
 

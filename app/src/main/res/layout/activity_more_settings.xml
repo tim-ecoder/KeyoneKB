@@ -16,7 +16,7 @@
                 android:id="@+id/tv_search_plugins_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/tv_search_plugins_title"
+                android:text="@string/pref_more_tv_search_plugins_title"
                 android:textColor="@color/black"
                 android:textAlignment="center"
                 android:textSize="18sp" />
@@ -25,7 +25,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_below="@id/tv_search_plugins_title"
-                android:hint="@string/tv_search_plugins_title"
+                android:hint="@string/pref_more_tv_search_plugins_title"
                 android:scrollbarAlwaysDrawVerticalTrack="true"
                 android:scrollbars="vertical" />
         <View
