@@ -42,5 +42,9 @@ public class KeyVariants {
     @JsonProperty(index=70)
     public Character SinglePressAltShiftMode = null;
     public String alt_popup = "";
+    @JsonProperty(index=80)
+    public String AltMoreVariants = null;
     public String alt_shift_popup = "";
+    @JsonProperty(index=90)
+    public String AltShiftMoreVariants = null;
 }

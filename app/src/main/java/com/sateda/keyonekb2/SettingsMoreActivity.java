@@ -8,10 +8,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.gson.*;
 
 import java.io.*;
@@ -75,14 +73,13 @@ public class SettingsMoreActivity extends Activity {
 
                 .create();
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.disable(MapperFeature.AUTO_DETECT_CREATORS,
+        JsonMapper mapper = JsonMapper.builder().disable(MapperFeature.AUTO_DETECT_CREATORS,
                 MapperFeature.AUTO_DETECT_FIELDS,
                 MapperFeature.AUTO_DETECT_GETTERS,
-                MapperFeature.AUTO_DETECT_IS_GETTERS);
+                MapperFeature.AUTO_DETECT_IS_GETTERS).build();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
 
 
 
@@ -93,6 +90,10 @@ public class SettingsMoreActivity extends Activity {
             SerializeToFile(mapper, keyboardLayout, fileName);
         }
 
+        for (String key: Instance.KeyboardAltLayouts.keySet()) {
+            String fileName = key+".json";
+            SerializeToFile(mapper, Instance.KeyboardAltLayouts.get(key), fileName);
+        }
 
 
         //String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();

@@ -16,11 +16,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class KeyboardLayoutManager {
 
     public static KeyboardLayoutManager Instance = null;
     public ArrayList<KeyboardLayout> KeyboardLayoutList = new ArrayList<>();
+
+    public HashMap<String, ArrayList<KeyVariants>> KeyboardAltLayouts = new HashMap<>();
 
     public HashMap<String, Double> ScanCodeKeyCodeMapping = new HashMap<String, Double>();
     private int CurrentLanguageListIndex = 0;
@@ -155,10 +158,14 @@ public class KeyboardLayoutManager {
                 if(scan_code != 0){
                     KeyVariants keyLayout = new KeyVariants();
                     keyLayout.scan_code = scan_code;
-                    Integer d = Instance.ScanCodeKeyCodeMapping.get(String.format("%d",scan_code)).intValue();
-                    keyLayout.KeyCode = d;
+                    Double intValue = Instance.ScanCodeKeyCodeMapping.get(String.format("%d",scan_code));
+                    if(intValue != null) {
+                        keyLayout.KeyCode = intValue.intValue();
+                    } else {
+                        Log.e(KeyPressKeyboardBase.TAG2, "NO KEYCODE FOR SCAN_CODE: "+ scan_code);
+                    }
                     keyLayout.one_press = one_press;
-                    keyLayout.SinglePress = GetCharValueOrNull((char) one_press);
+                    keyLayout.SinglePress = Character.valueOf((char) one_press);
                     keyLayout.one_press_shift = shift;
                     keyLayout.SinglePressShiftMode = Character.valueOf((char)shift);
                     keyLayout.double_press = double_press;
@@ -187,15 +194,10 @@ public class KeyboardLayoutManager {
 
         keyboardLayout.SymXmlId = resources.getIdentifier(sym_sw_res, "xml", context.getPackageName());
         int altHwResId = resources.getIdentifier(alt_hw, "xml", context.getPackageName());
-        LoadAltLayout2(keyboardLayout.KeyVariantsMap, resources, altHwResId);
+        ArrayList<KeyVariants> list = LoadAltLayout2(keyboardLayout.KeyVariantsMap, resources, altHwResId);
+        Instance.KeyboardAltLayouts.put(alt_hw, list);
         keyboardLayout.KeyMapping = keyboardLayout.KeyVariantsMap.values();
         return keyboardLayout;
-    }
-
-    private static Character GetCharValueOrNull(char one_press) {
-        if(one_press == 0)
-            return null;
-        return Character.valueOf(one_press);
     }
 
     private void AddSymKeyboard(int symXmlId, Context context) {
@@ -215,12 +217,13 @@ public class KeyboardLayoutManager {
         return String.format("%s_1", symXmlId);
     }
 
-    private static void LoadAltLayout2(HashMap<Integer, KeyVariants> keyLayoutsHashMap, Resources resources, int altHwResId)
+    private static ArrayList<KeyVariants> LoadAltLayout2(HashMap<Integer, KeyVariants> keyLayoutsHashMap, Resources resources, int altHwResId)
     {
         if(altHwResId == 0)
-            return;
-
+            return null;
+        ArrayList<KeyVariants> array = new ArrayList<>();
         int scan_code;
+        int key_code = 0;
         int alt;
         int alt_shift;
         String alt_popup;
@@ -239,6 +242,7 @@ public class KeyboardLayoutManager {
 
                 for (int i = 0; i < parser.getAttributeCount(); i++) {
                     if (parser.getAttributeName(i).equals("scan_code")) scan_code = Integer.parseInt(parser.getAttributeValue(i));
+
                     if (parser.getAttributeName(i).equals("alt")) alt = Integer.parseInt(parser.getAttributeValue(i));
                     if (parser.getAttributeName(i).equals("alt_shift")) alt_shift = Integer.parseInt(parser.getAttributeValue(i));
                     if (parser.getAttributeName(i).equals("alt_popup")) alt_popup = parser.getAttributeValue(i);
@@ -246,6 +250,25 @@ public class KeyboardLayoutManager {
                 }
 
                 if(scan_code != 0){
+                    Double intValue = Instance.ScanCodeKeyCodeMapping.get(String.format("%d",scan_code));
+                    if(intValue != null) {
+                        key_code = intValue.intValue();
+                        KeyVariants altKeyVariants = new KeyVariants();
+                        altKeyVariants.KeyCode = key_code;
+                        if(alt != 0 )
+                            altKeyVariants.SinglePressAltMode = Character.valueOf((char)alt);
+                        if(alt_shift != 0)
+                            altKeyVariants.SinglePressShiftMode = Character.valueOf((char)alt_shift);
+                        if(!alt_popup.isEmpty())
+                            altKeyVariants.AltMoreVariants = alt_popup;
+                        if(!alt_shift_popup.isEmpty())
+                            altKeyVariants.AltShiftMoreVariants = alt_shift_popup;
+                        array.add(altKeyVariants);
+                    } else {
+                        Log.e(KeyPressKeyboardBase.TAG2, "NO KEYCODE FOR SCAN_CODE: "+ scan_code);
+                    }
+
+
                     KeyVariants keyVariants = keyLayoutsHashMap.get(scan_code);
                     if(keyVariants == null)
                     {
@@ -267,6 +290,7 @@ public class KeyboardLayoutManager {
         } catch (Throwable t) {
             Log.e(KeyPressKeyboardBase.TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
         }
+        return array;
     }
 
     public synchronized void ChangeLayout() {
