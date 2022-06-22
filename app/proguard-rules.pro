@@ -40,3 +40,5 @@
 -dontnote android.content.res.**
 -keep class org.xmlpull.** { *; }
 -keep class com.android.internal.telephony.** { *; }
+-keep class com.sateda.keyonekb2.KeyVariants { *; }
+-keep class com.sateda.keyonekb2.KeyboardLayout { *; }
