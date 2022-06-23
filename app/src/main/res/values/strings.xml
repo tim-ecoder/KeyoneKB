@@ -55,7 +55,8 @@
     <string name="KB_CORE_TIME_SHORT_PRESS">200</string>
     <string name="KB_CORE_WAIT_GESTURE_UPON_KEY_0">1000</string>
     <string name="keyonekb_accessibility_service_label">KeyoneKB2</string>
-    <string name="keyonekb_accessibility_service_description">Помогает KeyoneKB понять в каком поле находится курсор для вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.)</string>
+    <string name="keyonekb_accessibility_service_description">Помогает KeyoneKB понять в каком поле находится курсор для вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.).\n
+    Кроме того, _обязательно_ включить, чтобы на Blackberry Key2 _НЕ_ РСТ SpeedKey работал как CTRL.</string>
     <string name="pref_more_tv_search_plugins_title">Данные поисковых плагинов</string>
     <string name="pref_more_tv_search_plugins_data">Идентификаторы ресурса Поискового поля, чтобы в него само кликнулось, когда начинаешь набор</string>
     <string name="pref_more_tv_settings_more_title">Дополнительные настройки</string>

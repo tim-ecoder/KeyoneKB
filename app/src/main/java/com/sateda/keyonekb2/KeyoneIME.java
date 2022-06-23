@@ -1308,7 +1308,8 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         keyAction.KeyCodeArray = new int[] {
                 KeyEvent.KEYCODE_CTRL_LEFT,
                 KeyEvent.KEYCODE_CTRL_RIGHT,
-                KeyEvent.KEYCODE_SHIFT_RIGHT
+                KeyEvent.KEYCODE_SHIFT_RIGHT,
+                KeyEvent.KEYCODE_FUNCTION
         };
         keyAction.KeyHoldPlusKey = true;
         keyAction.OnShortPress = this::onCtrlShortPress;
@@ -1831,7 +1832,8 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     boolean onLetterDoublePress(KeyPressData keyPressData) {
         if(metaCtrlPressed) {
             int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-            keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | keyPressData.MetaBase);
+            int metaBase =  (keyPressData.MetaBase & KeyEvent.META_SHIFT_LEFT_ON) > 0 ? KeyEvent.META_SHIFT_LEFT_ON : 0;
+            keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | metaBase);
             return true;
         }
         int code2send;

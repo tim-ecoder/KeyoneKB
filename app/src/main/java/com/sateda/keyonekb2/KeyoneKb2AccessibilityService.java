@@ -3,12 +3,18 @@ package com.sateda.keyonekb2;
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.os.SystemClock;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
@@ -90,7 +96,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Instance = this;
 
         kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-//com.modoohut.dialer
+
         searchHackPlugins.add(new SearchHackPlugin(
                 "com.modoohut.dialer",
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
@@ -140,6 +146,30 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     private void SetToSetting(SearchHackPlugin plugin, String value) {
         kbSettings.SetStringValue(plugin.getPreferenceKey(), value);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    public boolean onKeyEvent(KeyEvent event) {
+        if((event.getMetaState() & KeyEvent.META_FUNCTION_ON) == 0)
+            return false;
+        if(KeyoneIME.Instance == null)
+            return false;
+        if(event.getAction() == KeyEvent.ACTION_DOWN) {
+            KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
+            //executorService.execute(() -> KeyoneIME.Instance.onKeyDown(event.getKeyCode(), GetCopyNewTime(event)));
+            return true;
+        } else if(event.getAction() == KeyEvent.ACTION_UP) {
+            //executorService.execute(() -> KeyoneIME.Instance.onKeyUp(event.getKeyCode(), GetCopyNewTime(event)));
+            KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);
+            return true;
+        }
+        return false;
+    }
+
+    private KeyEvent GetCopyNewTime(KeyEvent keyEvent) {
+        long now = SystemClock.uptimeMillis();
+        return new KeyEvent(now, now, keyEvent.getAction(), keyEvent.getKeyCode(), keyEvent.getRepeatCount(),keyEvent.getMetaState(),keyEvent.getDeviceId(),keyEvent.getScanCode(),keyEvent.getFlags(),keyEvent.getFlags());
     }
 
     @Override
