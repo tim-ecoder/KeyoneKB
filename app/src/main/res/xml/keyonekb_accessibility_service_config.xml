@@ -6,8 +6,12 @@
                        android:accessibilityFeedbackType="feedbackSpoken"
                        android:notificationTimeout="100"
                        android:canRetrieveWindowContent="true"
+
                        >
 <!--
+                       android:canRequestTouchExplorationMode="true"
+|flagIncludeNotImportantViews|flagRequestTouchExplorationMode
+
 android:packageNames="com.example.android.apis"
 android:settingsActivity="com.example.android.accessibility.ServiceSettingsActivity"
 -->

@@ -49,7 +49,7 @@ public class KbSettings {
         _mSettings = mSettings;
         CheckSettingOrSetDefault(APP_PREFERENCES_1_SENS_BOTTOM_BAR, 1);
         CheckSettingOrSetDefault(APP_PREFERENCES_2_SHOW_TOAST, false);
-        CheckSettingOrSetDefault(APP_PREFERENCES_3_ALT_SPACE, true);
+        CheckSettingOrSetDefault(APP_PREFERENCES_3_ALT_SPACE, false);
         CheckSettingOrSetDefault(APP_PREFERENCES_4_FLAG, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_5_LONG_PRESS_ALT, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_6_MANAGE_CALL, true);

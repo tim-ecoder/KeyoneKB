@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -76,15 +77,12 @@ public class KeyboardTestActivity extends Activity {
         inputView.setOnGenericMotionListener(new View.OnGenericMotionListener() {
                 @Override
                 public boolean onGenericMotion(View v, MotionEvent event) {
-
                     String text = "View.onGenericMotionEvent() X = "+event.getX()+", Y ="+event.getY() +" ACT: "+event.getAction();
                     Log.d(TAG, text);
                     KeyboardTestActivity.this.touchInfoView.setText(text);
                     return true;
                 }
         });
-
-
 
 
         //this.inputView

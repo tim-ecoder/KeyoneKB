@@ -1812,9 +1812,9 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         }
         int code2send = 0;
         if(IsAltMode())
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftSym2State(), false);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, IsShiftSym2State(), false);
         else
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, IsShiftMode(), false);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, IsShiftMode(), false);
         SendLetterOrSymbol(code2send);
         //keyboardLayoutManager.ScanCodeKeyCodeMapping.put(keyPressData.ScanCode, keyPressData.KeyCode);
         return true;
@@ -1853,20 +1853,20 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         int code2send;
 
         if(IsAltMode()) {
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, IsShiftMode(), false);
             SendLetterOrSymbol(code2send);
             return true;
         }
 
         if(IsNotPairedLetter(keyPressData)) {
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), IsShiftMode(), true);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, IsAltMode(), IsShiftMode(), true);
             SendLetterOrSymbol(code2send);
             return true;
         }
 
         boolean needShift = false;
         //Определяем была ли первая из сдвоенных букв Заглавной
-        int letterShifted = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, true, false);
+        int letterShifted = keyboardLayoutManager.KeyToCharCode(keyPressData, false, true, false);
         int letterBeforeCursor = GetLetterBeforeCursor();
         if(letterBeforeCursor == letterShifted)
             needShift = true;
@@ -1874,15 +1874,15 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         DeleteLastSymbol();
         //DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
-        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), needShift, true);
+        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, IsAltMode(), needShift, true);
         SendLetterOrSymbol(code2send);
         return true;
     }
 
     private boolean IsNotPairedLetter(KeyPressData keyPressData) {
         //TODO: По сути - это определение сдвоенная буква или нет, наверное можно как-то оптимальнее сделать потом
-        int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, false, true);
-        int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, false, false, false);
+        int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, true);
+        int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, false);
         return code2send == code2sendNoDoublePress;
     }
 
@@ -1896,30 +1896,30 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             if(keyPressData.Short2ndLongPress) {
                 if(IsAltMode()) {
                     DeleteLastSymbol();
-                    code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData.ScanCode);
+                    code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
                     if(code2send == 0) {
-                        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, false);
+                        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
                     }
                 } else {
                     if (IsNotPairedLetter(keyPressData))
                         DeleteLastSymbol();
-                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, false);
+                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
                 }
 
             } else {
                 //!keyPressData.Short2ndLongPress
                 if(IsAltMode()) {
-                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, true, false);
+                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
                 } else {
-                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, true, IsShiftMode(), false);
+                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, IsShiftMode(), false);
                 }
             }
             SendLetterOrSymbol(code2send);
         } else {
             if(keyPressData.Short2ndLongPress) {
-                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, true);
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, IsAltMode(), true, true);
             } else {
-                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData.ScanCode, IsAltMode(), true, false);
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, IsAltMode(), true, false);
             }
             SendLetterOrSymbol(code2send);
         }

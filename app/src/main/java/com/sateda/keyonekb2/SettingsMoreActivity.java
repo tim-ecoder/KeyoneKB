@@ -3,17 +3,10 @@ package com.sateda.keyonekb2;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.google.gson.*;
-
-import java.io.*;
-import java.lang.reflect.Type;
 
 import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
 
@@ -26,6 +19,7 @@ public class SettingsMoreActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        FileJsonUtils.Initialize(this.getPackageName(), getApplicationContext());
 
         setContentView(R.layout.activity_more_settings);
 
@@ -33,95 +27,74 @@ public class SettingsMoreActivity extends Activity {
         btSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SaveFile();
+                SaveFiles();
+            }
+        });
+
+        Button btClear = (Button)findViewById(R.id.pref_more_bt_clear);
+        btClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                for (KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
+                    plugin.setId("");
+                }
+                SetTextPluginData();
             }
         });
 
 
+        SetTextPluginData();
+
+
+    }
+
+    private void SetTextPluginData() {
         TextView textView = (TextView)findViewById(R.id.tv_search_plugins_data);
-        textView.setText("Когда захлодишь в приложение, можно не кликать в \"Поиск\", а сразу начать набирать. Плагин сам кликнет в \"Поиск\", когда начинаешь набирать.\n\n");
+        textView.setText(R.string.pref_more_tv_search_plugins_comment);
         if(KeyoneKb2AccessibilityService.Instance == null) {
-            textView.append("\n Для работы поисковых плагинов необходимо активировать спец. возможности в главном меню.\n");
+            textView.append(getString(R.string.pref_more_tv_search_plugins_comment_not_active));
             return;
         }
         String text_data = "";
         for(KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
             String value = plugin.getId();
             if(value.isEmpty())
-                value = "Зайдите в приложение для автоматического определения.\nЕсли зашли, но тут ничего не изменилось, то либо приложение не добавлено в список плагинов, либо идентификатор поискового поля определяется только динамически и все работает. ";
-            text_data += String.format("Приложение:\n%s\nResourceId:\n%s\n\n", plugin.getPackageName(), value);
+                value = getString(R.string.pref_more_tv_single_plugin_data);
+            text_data += String.format("Application:\n%s\nResourceId:\n%s\n\n", plugin.getPackageName(), value);
         }
 
         textView.append(text_data);
-        
-
     }
 
 
+    private void SaveFiles() {
 
-    private void SaveFile() {
+        //if (ActivityCompat.checkSelfPermission(SettingsMoreActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
+        //    ActivityCompat.requestPermissions(SettingsMoreActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE);
+        //}
 
-        Gson gson;// = new Gson();
-        gson = new GsonBuilder()
-                //.enableComplexMapKeySerialization()
-                //.serializeNulls()
-                //.registerTypeAdapter(Character.class, new CharacterSerializer())
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .setPrettyPrinting()
-                //.setVersion(1.0)
-                .excludeFieldsWithoutExposeAnnotation()
-
-                .create();
-
-        JsonMapper mapper = JsonMapper.builder().disable(MapperFeature.AUTO_DETECT_CREATORS,
-                MapperFeature.AUTO_DETECT_FIELDS,
-                MapperFeature.AUTO_DETECT_GETTERS,
-                MapperFeature.AUTO_DETECT_IS_GETTERS).build();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
-
+        JsonMapper mapper = FileJsonUtils.PrepareMapper();
 
 
         for (KeyboardLayout keyboardLayout:
         Instance.KeyboardLayoutList) {
             //mapper.writeValue(stream, Instance.KeyboardLayoutList);
             String fileName = keyboardLayout.Resources.XmlRes+".json";
-            SerializeToFile(mapper, keyboardLayout, fileName);
+            FileJsonUtils.SerializeToFile(mapper, keyboardLayout, fileName);
+            String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();
+            btSave.setText(baseFolder);
         }
 
         for (String key: Instance.KeyboardAltLayouts.keySet()) {
             String fileName = key+".json";
-            SerializeToFile(mapper, Instance.KeyboardAltLayouts.get(key), fileName);
+            FileJsonUtils.SerializeToFile(mapper, Instance.KeyboardAltLayouts.get(key), fileName);
+            String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();
+            btSave.setText(baseFolder);
         }
 
 
-        //String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();
-        btSave.setText("OK");
 
-    }
 
-    private void SerializeToFile(ObjectMapper mapper, Object obj, String fileName) {
-        String packageName = this.getPackageName();
-        String path = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/Android/data/" + packageName + "/files/";
-
-        try {
-            boolean exists = (new File(path)).exists();
-            if (!exists) {
-                new File(path).mkdirs();
-            }
-            // Open output stream
-            FileOutputStream fOut = new FileOutputStream(path + fileName,false);
-            // write integers as separated ascii's
-
-            mapper.writeValue(fOut, obj);
-            //fOut.write(content.getBytes());
-            // Close output stream
-            fOut.flush();
-            fOut.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

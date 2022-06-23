@@ -14,7 +14,7 @@ import java.util.List;
 
 public class KeyPressKeyboardBase extends InputMethodService {
 
-    protected final int[] KEY2_LATIN_ALPHABET_KEYS_CODES = new int[]{
+    public static final int[] KEY2_LATIN_ALPHABET_KEYS_CODES = new int[]{
             KeyEvent.KEYCODE_4, //DOLLAR
             KeyEvent.KEYCODE_A,
             KeyEvent.KEYCODE_B,

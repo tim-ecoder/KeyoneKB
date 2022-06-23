@@ -90,7 +90,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Instance = this;
 
         kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-
+//com.modoohut.dialer
+        searchHackPlugins.add(new SearchHackPlugin(
+                "com.modoohut.dialer",
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                null));
         searchHackPlugins.add(new SearchHackPlugin(
                 "com.blackberry.blackberrylauncher",
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
@@ -119,6 +123,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 "com.blackberry.notes",
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
                 null));
+
         for (SearchHackPlugin plugin : searchHackPlugins) {
             String value = GetFromSetting(plugin);
             if (value != null && value.length() > 0) {
@@ -171,8 +176,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             Log.d(TAG, "event.getContentDescription() " + event.getContentDescription());
         }
     }
-
-
 
     private boolean ProcessSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchHackPlugin searchHackPlugin) {
         if(!searchHackPlugin.checkEventType(eventType))

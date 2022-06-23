@@ -1,0 +1,114 @@
+{
+  "keyboard-name" : "English",
+  "alt-mode-layout" : "alt_hw",
+  "sym-mode-layout" : "symbol",
+  "key-mapping" : [ {
+    "key-code" : 11,
+    "single-press" : "$",
+    "single-press-shift-mode" : "€"
+  }, {
+    "key-code" : 45,
+    "single-press" : "q",
+    "single-press-shift-mode" : "Q"
+  }, {
+    "key-code" : 51,
+    "single-press" : "w",
+    "single-press-shift-mode" : "W"
+  }, {
+    "key-code" : 33,
+    "single-press" : "e",
+    "single-press-shift-mode" : "E"
+  }, {
+    "key-code" : 46,
+    "single-press" : "r",
+    "single-press-shift-mode" : "R"
+  }, {
+    "key-code" : 48,
+    "single-press" : "t",
+    "single-press-shift-mode" : "T"
+  }, {
+    "key-code" : 53,
+    "single-press" : "y",
+    "single-press-shift-mode" : "Y"
+  }, {
+    "key-code" : 49,
+    "single-press" : "u",
+    "single-press-shift-mode" : "U"
+  }, {
+    "key-code" : 37,
+    "single-press" : "i",
+    "single-press-shift-mode" : "I"
+  }, {
+    "key-code" : 43,
+    "single-press" : "o",
+    "single-press-shift-mode" : "O"
+  }, {
+    "key-code" : 44,
+    "single-press" : "p",
+    "single-press-shift-mode" : "P"
+  }, {
+    "key-code" : 29,
+    "single-press" : "a",
+    "single-press-shift-mode" : "A"
+  }, {
+    "key-code" : 47,
+    "single-press" : "s",
+    "single-press-shift-mode" : "S"
+  }, {
+    "key-code" : 32,
+    "single-press" : "d",
+    "single-press-shift-mode" : "D"
+  }, {
+    "key-code" : 34,
+    "single-press" : "f",
+    "single-press-shift-mode" : "F"
+  }, {
+    "key-code" : 35,
+    "single-press" : "g",
+    "single-press-shift-mode" : "G"
+  }, {
+    "key-code" : 36,
+    "single-press" : "h",
+    "single-press-shift-mode" : "H"
+  }, {
+    "key-code" : 38,
+    "single-press" : "j",
+    "single-press-shift-mode" : "J"
+  }, {
+    "key-code" : 39,
+    "single-press" : "k",
+    "single-press-shift-mode" : "K"
+  }, {
+    "key-code" : 40,
+    "single-press" : "l",
+    "single-press-shift-mode" : "L"
+  }, {
+    "key-code" : 54,
+    "single-press" : "z",
+    "single-press-shift-mode" : "Z"
+  }, {
+    "key-code" : 52,
+    "single-press" : "x",
+    "single-press-shift-mode" : "X"
+  }, {
+    "key-code" : 31,
+    "single-press" : "c",
+    "single-press-shift-mode" : "C"
+  }, {
+    "key-code" : 50,
+    "single-press" : "v",
+    "single-press-shift-mode" : "V"
+  }, {
+    "key-code" : 30,
+    "single-press" : "b",
+    "single-press-shift-mode" : "B"
+  }, {
+    "key-code" : 42,
+    "single-press" : "n",
+    "single-press-shift-mode" : "N"
+  }, {
+    "key-code" : 41,
+    "single-press" : "m",
+    "single-press-shift-mode" : "M"
+  } ]
+}

@@ -57,6 +57,12 @@
     <string name="keyonekb_accessibility_service_label">KeyoneKB2</string>
     <string name="keyonekb_accessibility_service_description">Помогает KeyoneKB понять в каком поле находится курсор для вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.)</string>
     <string name="pref_more_tv_search_plugins_title">Данные поисковых плагинов</string>
-    <string name="pref_more_tv_search_plugins_data">Идентификаторы ресурса Поискового поля, чтобы в него само кликнулось, когда начинаешь набор
-    </string>
+    <string name="pref_more_tv_search_plugins_data">Идентификаторы ресурса Поискового поля, чтобы в него само кликнулось, когда начинаешь набор</string>
+    <string name="pref_more_tv_settings_more_title">Дополнительные настройки</string>
+    <string name="pref_more_tv_single_plugin_data">Зайдите в приложение для автоматического определения.\nЕсли зашли,
+        но тут ничего не изменилось, то либо приложение поменялось и алгоритм поиска ничего не находит, либо идентификатор поискового
+        поля определяется только динамически и все работает.</string>
+    <string name="pref_more_tv_search_plugins_comment">Когда заходишь в приложение, можно не кликать в "Поиск", а сразу начать набирать. Плагин сам кликнет в "Поиск", когда начинаешь набирать.\n
+    Бывало (рекдо), что обучается неправильно, тогда надо нажать кнопку "Clear" внизу и заново переобучить.\n\n</string>
+    <string name="pref_more_tv_search_plugins_comment_not_active">\nДля работы поисковых плагинов необходимо активировать спец. возможности в главном меню.</string>
 </resources>

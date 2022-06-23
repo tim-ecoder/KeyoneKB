@@ -11,13 +11,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             tools:context=".SettingsMoreActivity">
+        <TextView
+                android:id="@+id/settings_more_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/pref_more_tv_settings_more_title"
+                android:textColor="@color/black"
+                android:textAlignment="center"
+                android:padding="8dp"
+                android:textSize="18sp" />
+        <View
+                android:id="@+id/divider2"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/settings_more_title"
+                android:background="?android:attr/listDivider" />
 
         <Button android:id="@+id/pref_more_bt_save"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/divider2"
                 android:text="Save keyboards"
         />
-
+        <View
+                android:id="@+id/divider1"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/pref_more_bt_save"
+                android:background="?android:attr/listDivider" />
         <TextView
                 android:id="@+id/tv_search_plugins_title"
                 android:layout_width="match_parent"
@@ -25,21 +46,35 @@
                 android:text="@string/pref_more_tv_search_plugins_title"
                 android:textColor="@color/black"
                 android:textAlignment="center"
-                android:layout_below="@id/pref_more_bt_save"
-                android:textSize="18sp" />
+                android:layout_below="@id/divider1"
+                android:padding="8dp"
+                android:textSize="16sp" />
+        <View
+                android:id="@+id/divider3"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/tv_search_plugins_title"
+                android:background="?android:attr/listDivider" />
         <TextView
                 android:id="@+id/tv_search_plugins_data"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:layout_below="@id/tv_search_plugins_title"
-                android:hint="@string/pref_more_tv_search_plugins_title"
+                android:layout_below="@id/divider3"
                 android:scrollbarAlwaysDrawVerticalTrack="true"
                 android:scrollbars="vertical" />
+
+        <Button android:id="@+id/pref_more_bt_clear"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tv_search_plugins_data"
+                android:text="Clear plugin data"
+        />
         <View
-                android:id="@+id/divider4"
+                android:id="@+id/divider5"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_below="@id/tv_search_plugins_data"
+                android:padding="5dp"
+                android:layout_below="@id/pref_more_bt_clear"
                 android:background="?android:attr/listDivider" />
 
     </RelativeLayout>

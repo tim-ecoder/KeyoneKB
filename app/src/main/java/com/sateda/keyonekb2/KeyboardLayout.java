@@ -16,13 +16,9 @@ public class KeyboardLayout {
 
     @JsonProperty(index=30)
     public String SymModeLayout = "";
-    public int XmlId = 0;
     public int SymXmlId = 0;
-    public int Id = 0;
 
     public KeyboardLayoutRes Resources;
-
-    public HashMap<Integer, KeyVariants> KeyVariantsMap = new HashMap<>();
 
     @JsonProperty(index=40)
     public Collection<KeyVariants> KeyMapping;

@@ -17,6 +17,7 @@ import android.view.View;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
+import static com.sateda.keyonekb2.KeyPressKeyboardBase.TAG2;
 
 public class SatedaKeyboardView extends KeyboardView {
 
@@ -141,6 +142,14 @@ public class SatedaKeyboardView extends KeyboardView {
         draw_lang = lang;
     }
 
+    private boolean isKeyboard(int keyCode1) {
+        for(int keyCode2 : KeyPressKeyboardBase.KEY2_LATIN_ALPHABET_KEYS_CODES) {
+            if(keyCode1 == keyCode2)
+                return true;
+        }
+        return false;
+    }
+
     public void setAltLayer(KeyboardLayout keybordLayout, boolean isAltShift){
         alt = true;
         showSymbol = true;
@@ -149,17 +158,17 @@ public class SatedaKeyboardView extends KeyboardView {
         int arr_inc = 0;
         int i = 0;
         // TODO: Это все требуется рефакторинга чтобы не перерисовывать каждый раз клавиатуру
-        for(KeyVariants keyVariants : keybordLayout.KeyVariantsMap.values()){
+        for(KeyVariants keyVariants : keybordLayout.KeyMapping){
             KeyLabel[i] = "";
             KeyLabel_x[i] = 0;
             KeyLabel_y[i] = 0;
             if(!isAltShift) {
-                altPopup[i] = keyVariants.alt_popup;
-                altPopupLabel[i] = String.valueOf((char) keyVariants.alt);
+                altPopup[i] = keyVariants.AltMoreVariants;
+                altPopupLabel[i] = String.valueOf((char) keyVariants.SinglePressAltMode);
             }
             else {
-                altPopup[i] = keyVariants.alt_shift_popup;
-                altPopupLabel[i] = String.valueOf((char) keyVariants.alt_shift);
+                altPopup[i] = keyVariants.AltShiftMoreVariants;
+                altPopupLabel[i] = String.valueOf((char) keyVariants.SinglePressAltShiftMode);
             }
             i++;
         }
@@ -167,14 +176,17 @@ public class SatedaKeyboardView extends KeyboardView {
         for(Keyboard.Key key: keys) {
             if(key == null)
                 continue;
-            KeyVariants keyVariants = keybordLayout.KeyVariantsMap.get(key.codes[0]);
-            if(keyVariants == null)
+            KeyVariants keyVariants = null;
+            Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d",key.codes[0]));
+            if(keyCode == null) {
+                Log.e(TAG2, "SCAN_CODE NOT MAPPED "+key.codes[0]);
                 continue;
+            } else {
+                keyVariants = KeyboardLayoutManager.getCurKeyVariants(keybordLayout, keyCode.intValue());
+            }
+
             if(key.label.equals(" ")
-                    && (keyVariants.scan_code == 5
-                        || (keyVariants.scan_code >= 16 && keyVariants.scan_code <= 25)
-                        || (keyVariants.scan_code >= 30 && keyVariants.scan_code <= 38)
-                        || (keyVariants.scan_code >= 44 && keyVariants.scan_code <= 50))){
+                    && isKeyboard(keyVariants.KeyCode)){
 
                 KeyLabel_x[arr_inc] = key.x + (key.width - 25);
                 KeyLabel_y[arr_inc] = key.y + 40;
@@ -208,12 +220,12 @@ public class SatedaKeyboardView extends KeyboardView {
                 else if (key.codes[0] == KEY_DOLLAR) { KeyLabel[arr_inc] = "$"; }
 
                 if(!isAltShift) {
-                    key.codes[0] = keyVariants.alt;
-                    key.label = String.valueOf((char) keyVariants.alt);
+                    key.codes[0] = keyVariants.SinglePressAltMode;
+                    key.label = String.valueOf((char) keyVariants.SinglePressAltMode);
                 }
                 else {
-                    key.codes[0] = keyVariants.alt_shift;
-                    key.label = String.valueOf((char) keyVariants.alt_shift);
+                    key.codes[0] = keyVariants.SinglePressAltShiftMode;
+                    key.label = String.valueOf((char) keyVariants.SinglePressAltShiftMode);
                 }
 
                 arr_inc++;
