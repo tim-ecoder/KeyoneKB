@@ -6,13 +6,12 @@ import android.inputmethodservice.Keyboard;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.xmlpull.v1.XmlPullParser;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
+import static com.sateda.keyonekb2.FileJsonUtils.DeserializeFromJson;
 import static com.sateda.keyonekb2.KeyPressKeyboardBase.TAG2;
 
 public class KeyboardLayoutManager {
@@ -30,7 +29,7 @@ public class KeyboardLayoutManager {
     HashMap<String, Keyboard> symKeyboardsHashMap = new HashMap<>();
 
 
-    public synchronized void Initialize(ArrayList<KeyboardLayoutRes> activeLayouts, Resources resources, Context context) {
+    public synchronized void Initialize(ArrayList<KeyboardLayoutOptions> activeLayouts, Resources resources, Context context) {
 
         if(Instance != null) {
             return;
@@ -38,27 +37,17 @@ public class KeyboardLayoutManager {
 
         Instance = this;
         FileJsonUtils.Initialize(context.getPackageName(), context);
-
-
         KeyboardLayout currentLayout = null;
 
-        for (KeyboardLayoutRes layout : activeLayouts) {
+        for (KeyboardLayoutOptions layout : activeLayouts) {
             LangListCount++;
-            String fileName = layout.XmlRes+".json";
-            if(FileJsonUtils.FileExists(fileName)) {
-                currentLayout = FileJsonUtils.DeserializeFromFile(fileName, new TypeReference<KeyboardLayout>() {});
-                currentLayout.SymXmlId = resources.getIdentifier(currentLayout.SymModeLayout, "xml", context.getPackageName());
-                LoadAltLayout(resources, context, currentLayout);
-            } else if(resources.getIdentifier(layout.XmlRes, "raw", context.getPackageName()) != 0) {
-                InputStream is = resources.openRawResource(resources.getIdentifier(layout.XmlRes, "raw", context.getPackageName()));
-                currentLayout = FileJsonUtils.DeserializeFromFile(is, new TypeReference<KeyboardLayout>() {});
-                currentLayout.SymXmlId = resources.getIdentifier(currentLayout.SymModeLayout, "xml", context.getPackageName());
-                LoadAltLayout(resources, context, currentLayout);
-            } else {
-                Log.e(TAG2, "Can not find Keyboard_layout neither in file, nor in resource "+layout.XmlRes);
+            currentLayout = DeserializeFromJson(layout.KeyboardMapping, new TypeReference<KeyboardLayout>() {}, context);
+            if(currentLayout == null) {
+                Log.e(TAG2, "Can not find Keyboard_layout neither in file, nor in resource "+layout.KeyboardMapping);
+                continue;
             }
-
-
+            currentLayout.SymXmlId = resources.getIdentifier(currentLayout.SymModeLayout, "xml", context.getPackageName());
+            LoadAltLayout(resources, context, currentLayout);
 
             currentLayout.Resources = layout;
             KeyboardLayoutList.add(currentLayout);
@@ -67,22 +56,11 @@ public class KeyboardLayoutManager {
     }
 
     private void LoadAltLayout(Resources resources, Context context, KeyboardLayout currentLayout) {
-        String altFileName = currentLayout.AltModeLayout + ".json";
-        if (FileJsonUtils.FileExists(altFileName)) {
-            Collection<KeyVariants> list = FileJsonUtils.DeserializeFromFile(altFileName, new TypeReference<Collection<KeyVariants>>() {
-            });
-            if (list != null) {
-                FillAltVariantsToCurrentLayout(currentLayout, list);
-            }
-        } else if (resources.getIdentifier(currentLayout.AltModeLayout, "raw", context.getPackageName()) != 0) {
-            InputStream is = resources.openRawResource(resources.getIdentifier(currentLayout.AltModeLayout, "raw", context.getPackageName()));
-            Collection<KeyVariants> list = FileJsonUtils.DeserializeFromFile(is, new TypeReference<Collection<KeyVariants>>() {
-            });
-            if (list != null) {
-                FillAltVariantsToCurrentLayout(currentLayout, list);
-            }
-        } else {
+        Collection<KeyVariants> list = DeserializeFromJson(currentLayout.AltModeLayout, new TypeReference<Collection<KeyVariants>>() {}, context);
+        if(list == null) {
             Log.e(TAG2, "Can not find ALT_Keyboard_layout neither in file, nor in resource "+currentLayout.AltModeLayout);
+        } else {
+            FillAltVariantsToCurrentLayout(currentLayout, list);
         }
     }
 
@@ -183,63 +161,30 @@ public class KeyboardLayoutManager {
         return keyVariants.AltMoreVariants.charAt(0);
     }
 
-    public static ArrayList<KeyboardLayoutRes> LoadKeyboardLayoutsRes(Resources resources, Context context) {
+    public static ArrayList<KeyboardLayoutOptions> LoadKeyboardLayoutsRes(Resources resources, Context context) {
         // Load keyboard layouts
         //Открывает R.xml.keyboard_layouts и загружает все настройки клавиатуры
+        FileJsonUtils.Initialize(context.getPackageName(), context);
 
-        ArrayList<KeyboardLayoutRes> keyboardLayoutResArray = new ArrayList<>();
-        try {
-            XmlPullParser parser = resources.getXml(R.xml.keyboard_layouts);
-            while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-                if(
-                parser.getEventType() == XmlPullParser.END_TAG
-                || parser.getEventType() == XmlPullParser.START_DOCUMENT) {
-
-                    parser.next();
-                    continue;
-                }
-                if(!parser.getName().equals("KeyboardLayout")){
-
-                    parser.next();
-                    continue;
-                }
-
-                String name = "";
-                String layoutRes = "";
-                String iconCapsRes = "";
-                String iconOneShiftRes = "";
-                String iconLittleRes = "";
-
-                for (int i = 0; i < parser.getAttributeCount(); i++) {
-                    if (parser.getAttributeName(i).equals("menu_name")) name = parser.getAttributeValue(i);
-                    if (parser.getAttributeName(i).equals("res")) layoutRes = parser.getAttributeValue(i);
-                    if (parser.getAttributeName(i).equals("icon_caps")) iconCapsRes = parser.getAttributeValue(i);
-                    if (parser.getAttributeName(i).equals("icon_first_big")) iconOneShiftRes = parser.getAttributeValue(i);
-                    if (parser.getAttributeName(i).equals("icon_little")) iconLittleRes = parser.getAttributeValue(i);
-                }
-                int layoutResId = resources.getIdentifier(layoutRes, "xml", context.getPackageName());
-
-
-
-                KeyboardLayoutRes keyboardLayoutRes = new KeyboardLayoutRes(name, layoutResId, layoutRes);
-
-                keyboardLayoutRes.IconCapsRes.DrawableResId= resources.getIdentifier(iconCapsRes, "drawable", context.getPackageName());
-                keyboardLayoutRes.IconFirstShiftRes.DrawableResId = resources.getIdentifier(iconOneShiftRes, "drawable", context.getPackageName());
-                keyboardLayoutRes.IconLittleRes.DrawableResId = resources.getIdentifier(iconLittleRes, "drawable", context.getPackageName());
-
-                keyboardLayoutRes.IconCapsRes.MipmapResId = resources.getIdentifier(iconCapsRes, "mipmap", context.getPackageName());
-                keyboardLayoutRes.IconFirstShiftRes.MipmapResId = resources.getIdentifier(iconOneShiftRes, "mipmap", context.getPackageName());
-                keyboardLayoutRes.IconLittleRes.MipmapResId = resources.getIdentifier(iconLittleRes, "mipmap", context.getPackageName());
-
-                keyboardLayoutResArray.add(keyboardLayoutRes);
-                parser.next();
-            }
-
-            return keyboardLayoutResArray;
-
-        } catch (Throwable t) {
-            Log.e(TAG2, "ERROR LOADING XML KEYBOARD LAYOUT "+ t);
+        String resName = context.getResources().getResourceEntryName(R.raw.keyboard_layouts);
+        ArrayList<KeyboardLayoutOptions> keyboardLayoutOptionsArray =  FileJsonUtils.DeserializeFromJson(resName, new TypeReference<ArrayList<KeyboardLayoutOptions>>() {}, context);
+        if(keyboardLayoutOptionsArray == null) {
+            Log.e(TAG2, "keyboardLayoutResArray == null");
+            return null;
         }
-        return keyboardLayoutResArray;
+        for ( KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayoutOptionsArray) {
+
+            keyboardLayoutOptions.IconCapsRes.DrawableResId= resources.getIdentifier(keyboardLayoutOptions.IconCapslock, "drawable", context.getPackageName());
+            keyboardLayoutOptions.IconFirstShiftRes.DrawableResId = resources.getIdentifier(keyboardLayoutOptions.IconFirstShift, "drawable", context.getPackageName());
+            keyboardLayoutOptions.IconLittleRes.DrawableResId = resources.getIdentifier(keyboardLayoutOptions.IconLowercase, "drawable", context.getPackageName());
+
+            keyboardLayoutOptions.IconCapsRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconCapslock, "mipmap", context.getPackageName());
+            keyboardLayoutOptions.IconFirstShiftRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconFirstShift, "mipmap", context.getPackageName());
+            keyboardLayoutOptions.IconLittleRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconLowercase, "mipmap", context.getPackageName());
+        }
+
+        return keyboardLayoutOptionsArray;
+
+
     }
 }

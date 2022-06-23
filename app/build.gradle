@@ -23,11 +23,18 @@ android {
         applicationId "com.sateda.keyonekb2"
         minSdkVersion 25
         targetSdkVersion 25
-        versionCode 2330
-        versionName "2.3-build3.0"
+        versionCode 2331
+        versionName "2.3-build3.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
+    }
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            //outputFileName = "ApplicationName-${variant.name}-${variant.versionName}.apk"
+            //TODO: сделал такую настройку т.е. не работает штатный механизм наименования файла от Основателя (если он был)
+            outputFileName = "KeyoneKB2-v2.3-build3.1.apk"
+        }
     }
 
     buildTypes {
@@ -42,13 +49,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    applicationVariants.all { variant ->
-        variant.outputs.all {
-            //outputFileName = "ApplicationName-${variant.name}-${variant.versionName}.apk"
-            //TODO: сделал такую настройку т.е. не работает штатный механизм наименования файла от Основателя (если он был)
-            outputFileName = "KeyoneKB2-v2.3-build3.0.apk"
-        }
-    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8

@@ -3,7 +3,6 @@ package com.sateda.keyonekb2;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collection;
-import java.util.HashMap;
 
 
 public class KeyboardLayout {
@@ -18,7 +17,7 @@ public class KeyboardLayout {
     public String SymModeLayout = "";
     public int SymXmlId = 0;
 
-    public KeyboardLayoutRes Resources;
+    public KeyboardLayoutOptions Resources;
 
     @JsonProperty(index=40)
     public Collection<KeyVariants> KeyMapping;

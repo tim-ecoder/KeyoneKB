@@ -42,3 +42,4 @@
 -keep class com.android.internal.telephony.** { *; }
 -keep class com.sateda.keyonekb2.KeyVariants { *; }
 -keep class com.sateda.keyonekb2.KeyboardLayout { *; }
+-keep class com.sateda.keyonekb2.KeyboardLayoutOptions { *; }

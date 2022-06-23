@@ -115,16 +115,16 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     TelephonyManager telephonyManager;
     TelecomManager telecomManager;
 
-    KeyboardLayoutRes.IconRes AltOneIconRes;
-    KeyboardLayoutRes.IconRes AltAllIconRes;
-    KeyboardLayoutRes.IconRes AltHoldIconRes;
-    KeyboardLayoutRes.IconRes SymOneIconRes;
-    KeyboardLayoutRes.IconRes SymAllIconRes;
-    KeyboardLayoutRes.IconRes SymHoldIconRes;
+    KeyboardLayoutOptions.IconRes AltOneIconRes;
+    KeyboardLayoutOptions.IconRes AltAllIconRes;
+    KeyboardLayoutOptions.IconRes AltHoldIconRes;
+    KeyboardLayoutOptions.IconRes SymOneIconRes;
+    KeyboardLayoutOptions.IconRes SymAllIconRes;
+    KeyboardLayoutOptions.IconRes SymHoldIconRes;
 
-    KeyboardLayoutRes.IconRes navIconRes;
+    KeyboardLayoutOptions.IconRes navIconRes;
 
-    KeyboardLayoutRes.IconRes navFnIconRes;
+    KeyboardLayoutOptions.IconRes navFnIconRes;
 
     @Override
     public void onDestroy() {
@@ -148,15 +148,15 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         TITLE_GESTURE_VIEW = getString(R.string.notification_kb_state_gesture_view);
         TITLE_GESTURE_OFF = getString(R.string.notification_kb_state_gesture_off);
 
-        AltOneIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
-        AltAllIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt_all);
-        AltHoldIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt);
-        SymOneIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_sym_one, R.drawable.ic_kb_sym_one);
-        SymAllIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym_all);
-        SymHoldIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym);
+        AltOneIconRes = KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
+        AltAllIconRes = KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt_all);
+        AltHoldIconRes = KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt);
+        SymOneIconRes = KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym_one, R.drawable.ic_kb_sym_one);
+        SymAllIconRes = KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym_all);
+        SymHoldIconRes = KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym);
 
-        navIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_nav, R.drawable.ic_kb_nav);
-        navFnIconRes = KeyboardLayoutRes.CreateIconRes(R.mipmap.ic_kb_nav_fn, R.drawable.ic_kb_nav_fn);
+        navIconRes = KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav, R.drawable.ic_kb_nav);
+        navFnIconRes = KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav_fn, R.drawable.ic_kb_nav_fn);
 
         callStateCallback = new CallStateCallback();
         telephonyManager = getTelephonyManager();
@@ -941,7 +941,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         }
     }
 
-    private boolean UpdateNotification(KeyboardLayoutRes.IconRes iconRes, String notificationText) {
+    private boolean UpdateNotification(KeyboardLayoutOptions.IconRes iconRes, String notificationText) {
         if(!pref_system_icon_no_notification_text) {
             boolean changed = notificationProcessor.SetSmallIconLayout(iconRes.MipmapResId);
             changed |= notificationProcessor.SetContentTitleLayout(notificationText);
@@ -1219,7 +1219,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     //endregion
 
     //region LOAD SETTINGS & KEYBOARDS
-
+    public static ArrayList<KeyboardLayoutOptions> allLayouts;
     KbSettings kbSettings;
     private void LoadSettingsAndKeyboards(){
 
@@ -1234,14 +1234,14 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         pref_height_bottom_bar = kbSettings.GetIntValue(kbSettings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
         pref_system_icon_no_notification_text = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
 
-        ArrayList<KeyboardLayoutRes> allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
-        ArrayList<KeyboardLayoutRes> activeLayouts = new ArrayList<>();
+        allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
+        ArrayList<KeyboardLayoutOptions> activeLayouts = new ArrayList<>();
         //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
-        for(KeyboardLayoutRes keyboardLayoutRes : allLayouts) {
-            kbSettings.CheckSettingOrSetDefault(keyboardLayoutRes.getPreferenceName(), kbSettings.KEYBOARD_IS_ENABLED_DEFAULT);
-            boolean enabled = kbSettings.GetBooleanValue(keyboardLayoutRes.getPreferenceName());
+        for(KeyboardLayoutOptions keyboardLayoutOptions : allLayouts) {
+            kbSettings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), kbSettings.KEYBOARD_IS_ENABLED_DEFAULT);
+            boolean enabled = kbSettings.GetBooleanValue(keyboardLayoutOptions.getPreferenceName());
             if(enabled) {
-                activeLayouts.add(keyboardLayoutRes);
+                activeLayouts.add(keyboardLayoutOptions);
             }
         }
         keyboardLayoutManager.Initialize(activeLayouts, getResources(), getApplicationContext());

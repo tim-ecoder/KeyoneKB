@@ -2,8 +2,9 @@ package com.sateda.keyonekb2;
 
 
 import android.view.View;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class KeyboardLayoutRes {
+public class KeyboardLayoutOptions {
 
     public static class IconRes {
         int MipmapResId;
@@ -17,10 +18,16 @@ public class KeyboardLayoutRes {
         return res;
     }
 
+    @JsonProperty(index=10)
     String OptionsName;
-
-    String XmlRes;
-    int XmlResId;
+    @JsonProperty(index=20)
+    String KeyboardMapping;
+    @JsonProperty(index=30)
+    String IconLowercase;
+    @JsonProperty(index=40)
+    String IconFirstShift;
+    @JsonProperty(index=50)
+    String IconCapslock;
 
     IconRes IconCapsRes;
     IconRes IconFirstShiftRes;
@@ -28,20 +35,14 @@ public class KeyboardLayoutRes {
 
     int id = 0;
 
-    private KeyboardLayoutRes() {}
-
-    public KeyboardLayoutRes(String optionsName, int layoutResId, String xmlRes) {
-        XmlRes = xmlRes;
-        OptionsName = optionsName;
-        XmlResId = layoutResId;
+    public KeyboardLayoutOptions() {
         IconCapsRes = new IconRes();
         IconFirstShiftRes = new IconRes();
         IconLittleRes = new IconRes();
-
     }
 
     String getPreferenceName() {
-        return "GENERATED_PREF_KEYBOARD_LAYOUT_" + XmlRes;
+        return "GENERATED_PREF_KEYBOARD_LAYOUT_" + KeyboardMapping;
     }
 
     int getId() {

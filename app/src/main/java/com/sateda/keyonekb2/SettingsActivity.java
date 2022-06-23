@@ -41,10 +41,10 @@ public class SettingsActivity extends AppCompatActivity {
 
         layout = (RelativeLayout) findViewById(R.id.activity_settings);
         //layout.setMinimumHeight(5000);
-        ArrayList<KeyboardLayoutRes> keyboardLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
+        ArrayList<KeyboardLayoutOptions> keyboardLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
         Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_keyboard_layout);
         int prevId = 0;
-        for (KeyboardLayoutRes keyboardLayoutRes : keyboardLayouts) {
+        for (KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayouts) {
             Switch currentKeyboardLayoutSwitch;
             //Первый язык будет по умолчанию всегда активирован
             //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки
@@ -61,21 +61,21 @@ public class SettingsActivity extends AppCompatActivity {
                 currentKeyboardLayoutSwitch.setLayoutParams(llp2);
 
                 llp2.addRule(RelativeLayout.BELOW, prevId);
-                prevId = keyboardLayoutRes.getId();
+                prevId = keyboardLayoutOptions.getId();
                 currentKeyboardLayoutSwitch.setId(prevId);
                 currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultKeyboardLayoutSwitch.getTextSize());
                 layout.addView(currentKeyboardLayoutSwitch);
 
             }
 
-            currentKeyboardLayoutSwitch.setText(keyboardLayoutRes.OptionsName);
-            kbSettings.CheckSettingOrSetDefault(keyboardLayoutRes.getPreferenceName(), kbSettings.KEYBOARD_IS_ENABLED_DEFAULT);
-            SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutRes.getPreferenceName());
+            currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
+            kbSettings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), kbSettings.KEYBOARD_IS_ENABLED_DEFAULT);
+            SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
 
             currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    kbSettings.SetBooleanValue(keyboardLayoutRes.getPreferenceName(), isChecked);
+                    kbSettings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
                 }
             });
 

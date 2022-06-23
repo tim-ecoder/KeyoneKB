@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
 
@@ -27,7 +26,7 @@ public class SettingsMoreActivity extends Activity {
         btSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SaveFiles();
+                SaveResFiles();
             }
         });
 
@@ -67,33 +66,16 @@ public class SettingsMoreActivity extends Activity {
     }
 
 
-    private void SaveFiles() {
-
-        //if (ActivityCompat.checkSelfPermission(SettingsMoreActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
-        //    ActivityCompat.requestPermissions(SettingsMoreActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE);
-        //}
-
-        JsonMapper mapper = FileJsonUtils.PrepareMapper();
-
-
-        for (KeyboardLayout keyboardLayout:
-        Instance.KeyboardLayoutList) {
-            //mapper.writeValue(stream, Instance.KeyboardLayoutList);
-            String fileName = keyboardLayout.Resources.XmlRes+".json";
-            FileJsonUtils.SerializeToFile(mapper, keyboardLayout, fileName);
-            String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();
-            btSave.setText(baseFolder);
+    private void SaveResFiles() {
+        String path = "NOT SAVED";
+        path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_layouts), getApplicationContext());
+        //FileJsonUtils.SerializeToFile(KeyoneIME.allLayouts, "keyboard_layouts.json");
+        for (KeyboardLayout keyboardLayout: Instance.KeyboardLayoutList) {
+            path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.Resources.KeyboardMapping, getApplicationContext());
+            path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.AltModeLayout, getApplicationContext());
         }
 
-        for (String key: Instance.KeyboardAltLayouts.keySet()) {
-            String fileName = key+".json";
-            FileJsonUtils.SerializeToFile(mapper, Instance.KeyboardAltLayouts.get(key), fileName);
-            String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();
-            btSave.setText(baseFolder);
-        }
-
-
-
+        btSave.setText(path);
 
     }
 
