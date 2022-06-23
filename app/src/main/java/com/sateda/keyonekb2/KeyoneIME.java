@@ -73,8 +73,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     KeyboardLayoutManager keyboardLayoutManager = new KeyboardLayoutManager();
 
-    private Boolean inputAtBbLauncherApp = false;
-
     private boolean metaCtrlPressed = false; // только первая буква будет большая
 
     private boolean oneTimeShiftOneTimeBigMode; // только первая буква будет большая
@@ -239,11 +237,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         Log.d(TAG, "editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions));
         // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
-
-        //region HACK-s
-
-        inputAtBbLauncherApp = editorInfo.packageName.equals("com.blackberry.blackberrylauncher");
-        //endregion
 
         // Обрабатываем переход между приложениями
         if (!editorInfo.packageName.equals(lastPackageName)) {
@@ -413,12 +406,11 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
             return super.onKeyUp(keyCode, event);
         }
 
-
-
         needUpdateVisualInsideSingleEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyUp(keyCode, event);
         if (!processed)
             return false;
+
         if (needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
@@ -1685,6 +1677,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         long now = SystemClock.uptimeMillis();
         metaCtrlPressed = true;
+
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(
                 now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
         return true;

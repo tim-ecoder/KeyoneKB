@@ -56,6 +56,7 @@ public class KeyboardLayoutManager {
     }
 
     private void LoadAltLayout(Resources resources, Context context, KeyboardLayout currentLayout) {
+        //TODO: Можно подкешировать, чтобы быстрее грузилась клава
         Collection<KeyVariants> list = DeserializeFromJson(currentLayout.AltModeLayout, new TypeReference<Collection<KeyVariants>>() {}, context);
         if(list == null) {
             Log.e(TAG2, "Can not find ALT_Keyboard_layout neither in file, nor in resource "+currentLayout.AltModeLayout);
