@@ -443,6 +443,10 @@ public class KeyPressKeyboardBase extends InputMethodService {
     }
 
     class KeyProcessingMode {
+
+        public KeyProcessingMode() {
+            KeyCodeScanCode = new KeyCodeScanCode();
+        }
         public KeyCodeScanCode KeyCodeScanCode;
         public int[] KeyCodeArray;
         public Processable OnShortPress;

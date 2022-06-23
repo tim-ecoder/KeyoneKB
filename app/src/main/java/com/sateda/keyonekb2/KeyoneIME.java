@@ -1260,19 +1260,16 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         keyProcessingModeList.add(keyAction);
 
         keyAction = new KeyProcessingMode();
-        keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_ENTER;
         keyAction.OnShortPress = this::onShortPressEnter;
         keyProcessingModeList.add(keyAction);
 
         keyAction = new KeyProcessingMode();
-        keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_DEL;
         keyAction.OnShortPress = this::onDelShortPress;
         keyProcessingModeList.add(keyAction);
 
         keyAction = new KeyProcessingMode();
-        keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_SPACE;
         keyAction.OnShortPress = this::onSpaceShortPress;
         keyAction.OnUndoShortPress = this::DoNothing;
@@ -1280,7 +1277,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         keyProcessingModeList.add(keyAction);
 
         keyAction = new KeyProcessingMode();
-        keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_SYM;
         keyAction.OnShortPress = this::onSymShortPress;
         keyAction.OnUndoShortPress = this::DoNothing;
@@ -1294,7 +1290,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         //region KeyHoldPlusKey (ALT, SHIFT, CTRL, KEY_0)
 
         keyAction = new KeyProcessingMode();
-        keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeArray = new int[] {
                 KeyEvent.KEYCODE_ALT_LEFT,
                 KeyEvent.KEYCODE_ALT_RIGHT,
@@ -1308,7 +1303,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         keyProcessingModeList.add(keyAction);
 
         keyAction = new KeyProcessingMode();
-        keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_SHIFT_LEFT;
         keyAction.KeyHoldPlusKey = true;
         keyAction.OnShortPress = this::onShiftShortPress;
@@ -1322,9 +1316,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         keyAction.KeyCodeArray = new int[] {
                 KeyEvent.KEYCODE_CTRL_LEFT,
                 KeyEvent.KEYCODE_CTRL_RIGHT,
-                KeyEvent.KEYCODE_SHIFT_RIGHT,
-                //KeyEvent.KEYCODE_FUNCTION,
-
+                KeyEvent.KEYCODE_SHIFT_RIGHT
         };
         keyAction.KeyHoldPlusKey = true;
         keyAction.OnShortPress = this::onCtrlShortPress;
@@ -1336,7 +1328,6 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         keyProcessingModeList.add(keyAction);
 
         keyAction = new KeyProcessingMode();
-        keyAction.KeyCodeScanCode = new KeyCodeScanCode();
         keyAction.KeyCodeScanCode.KeyCode = KeyEvent.KEYCODE_0;
         keyAction.KeyHoldPlusKey = true;
         keyAction.OnShortPress = this::onKey0ShortPress;
