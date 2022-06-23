@@ -47,7 +47,7 @@
     <string name="notification_kb_state_gesture_view">Жесты по режиму просмотра</string>
     <string name="notification_kb_state_gesture_off">Жесты по клавиатуре выключены</string>
     <string name="KB_CORE_MOTION_BASE_SENSITIVITY">48</string>
-    <string name="KB_CORE_GESTURE_FINGER_XY_RAD">75</string>
+    <string name="KB_CORE_GESTURE_FINGER_XY_RAD">45</string>
     <string name="KB_CORE_ROW_4_BEGIN_Y">400</string>
     <string name="KB_CORE_TIME_DOUBLE_PRESS">400</string>
     <string name="KB_CORE_TIME_SHORT_2ND_LONG_PRESS">600</string>
