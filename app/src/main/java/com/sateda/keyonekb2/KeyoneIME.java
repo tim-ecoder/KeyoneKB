@@ -1544,15 +1544,16 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         if(metaAltPressed) {
             CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
             int dist = findPrevEnterDistance(c);
-
-            //inputConnection.setSelection(pos, );
-            //не работает
-            inputConnection.deleteSurroundingText(dist, 0);
-            //inputConnection.deleteSurroundingTextInCodePoints(pos, 0);
+            if(dist == 0 && c.length() > 0) {
+                //Это первый абзац в тексте
+                dist = c.length();
+            }
+            if(dist > 0) {
+                inputConnection.deleteSurroundingText(dist, 0);
+            }
         }else if(!metaShiftPressed) {
             keyDownUpDefaultFlags(KeyEvent.KEYCODE_DEL, inputConnection);
         }else{
-            //if(inputConnection!=null)inputConnection.deleteSurroundingText(0,1);
             keyDownUpDefaultFlags(KeyEvent.KEYCODE_FORWARD_DEL, inputConnection);
         }
         return true;
