@@ -1676,20 +1676,23 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
     boolean onCtrlHoldOn(KeyPressData keyPressData) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-        long now = SystemClock.uptimeMillis();
         metaCtrlPressed = true;
 
-        getCurrentInputConnection().sendKeyEvent(new KeyEvent(
-                now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
+        getCurrentInputConnection().sendKeyEvent(
+                new KeyEvent(
+                        keyPressData.BaseKeyEvent.getDownTime(),
+                        keyPressData.BaseKeyEvent.getEventTime(),
+                        KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
         return true;
     }
 
     boolean onCtrlHoldOff(KeyPressData keyPressData) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-        long now = SystemClock.uptimeMillis();
         metaCtrlPressed = false;
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(
-                now, now, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
+                keyPressData.BaseKeyEvent.getDownTime(),
+                keyPressData.BaseKeyEvent.getEventTime(),
+                KeyEvent.ACTION_UP, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
         return true;
     }
 

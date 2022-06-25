@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
@@ -90,12 +91,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     KbSettings kbSettings;
 
+    ExecutorService executorService;
+
     @Override
     public void onCreate() {
         super.onCreate();
         Instance = this;
 
         kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        executorService = Executors.newFixedThreadPool(4);
 
         searchHackPlugins.add(new SearchHackPlugin(
                 "com.modoohut.dialer",
@@ -151,17 +155,38 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public boolean onKeyEvent(KeyEvent event) {
+
+        //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
+        //Зажатие speed_key+Буква не передается в сервис клавиатуры
+        //Но зато передается сюда, поэтмоу приходится отсюда туда переправлять
         if((event.getMetaState() & KeyEvent.META_FUNCTION_ON) == 0)
             return false;
         if(KeyoneIME.Instance == null)
             return false;
+        if(
+                event.getKeyCode() != KeyEvent.KEYCODE_A
+                && event.getKeyCode() != KeyEvent.KEYCODE_C
+                && event.getKeyCode() != KeyEvent.KEYCODE_X
+                && event.getKeyCode() != KeyEvent.KEYCODE_V
+                && event.getKeyCode() != KeyEvent.KEYCODE_Z
+                && event.getKeyCode() != KeyEvent.KEYCODE_0) {
+            return false;
+        }
         if(event.getAction() == KeyEvent.ACTION_DOWN) {
-            KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
-            //executorService.execute(() -> KeyoneIME.Instance.onKeyDown(event.getKeyCode(), GetCopyNewTime(event)));
+            //KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
+            executorService.execute(
+                    () -> {
+                        try {
+                            KeyEvent event1 = GetCopy(event);
+                            Thread.sleep(75);
+                            KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                        }catch(Throwable ex) {}
+                    });
             return true;
         } else if(event.getAction() == KeyEvent.ACTION_UP) {
-            //executorService.execute(() -> KeyoneIME.Instance.onKeyUp(event.getKeyCode(), GetCopyNewTime(event)));
-            KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);
+            //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
+            KeyEvent event1 = GetCopy(event);
+            KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
             return true;
         }
         return false;
@@ -170,6 +195,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     private KeyEvent GetCopyNewTime(KeyEvent keyEvent) {
         long now = SystemClock.uptimeMillis();
         return new KeyEvent(now, now, keyEvent.getAction(), keyEvent.getKeyCode(), keyEvent.getRepeatCount(),keyEvent.getMetaState(),keyEvent.getDeviceId(),keyEvent.getScanCode(),keyEvent.getFlags(),keyEvent.getFlags());
+    }
+
+    private KeyEvent GetCopy(KeyEvent keyEvent) {
+        long now = SystemClock.uptimeMillis();
+        return new KeyEvent(keyEvent.getDownTime(), keyEvent.getEventTime(), keyEvent.getAction(), keyEvent.getKeyCode(), keyEvent.getRepeatCount(),keyEvent.getMetaState(),keyEvent.getDeviceId(),keyEvent.getScanCode(),keyEvent.getFlags(),keyEvent.getFlags());
     }
 
     @Override

@@ -137,7 +137,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
         if (keyProcessingMode.IsShortPressOnly()) {
             AnyHoldPlusButtonSignalTime = eventTime;
 
-            KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState());
+            KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
             ProcessShortPress(keyPressData1);
 
 
@@ -147,7 +147,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
         if(keyProcessingMode.IsShortDoublePressMode()) {
             AnyHoldPlusButtonSignalTime = eventTime;
 
-            KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState());
+            KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
             if(repeatCount1 == 0)
                 KeyDownList1.add(keyPressData1);
 
@@ -168,7 +168,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
             if(repeatCount1 == 0) {
                 AnyHoldPlusButtonSignalTime = eventTime;
 
-                KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState());
+                KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
                 KeyDownList1.add(keyPressData1);
 
                 if (LastShortPressKey1 == null || !IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
@@ -199,7 +199,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
         }
         if(keyProcessingMode.IsMetaShortDoubleHoldPlusButtonPressMode()) {
             if(repeatCount1 == 0) {
-                KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState());
+                KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
                 KeyDownList1.add(keyPressData1);
 
                 if (LastShortPressKey1 != null
@@ -230,8 +230,9 @@ public class KeyPressKeyboardBase extends InputMethodService {
         return true;
     }
 
-    private KeyPressData CreateKeyPressData(int keyCode, int scanCode, long keyDownTime, KeyProcessingMode keyProcessingMode, int meta) {
+    private KeyPressData CreateKeyPressData(int keyCode, int scanCode, long keyDownTime, KeyProcessingMode keyProcessingMode, int meta, KeyEvent event) {
         KeyPressData keyPressData1 = new KeyPressData();
+        keyPressData1.BaseKeyEvent = event;
         keyPressData1.KeyDownTime = keyDownTime;
         keyPressData1.KeyCode = keyCode;
         keyPressData1.ScanCode = scanCode;
@@ -509,7 +510,10 @@ public class KeyPressKeyboardBase extends InputMethodService {
     }
 
     class KeyPressData extends KeyCodeScanCode {
+        private KeyPressData() {}
         public long KeyDownTime = 0;
+
+        public KeyEvent BaseKeyEvent;
         public long LongPressBeginTime = 0;
         public long HoldBeginTime = 0;
         public long KeyUpTime = 0;
