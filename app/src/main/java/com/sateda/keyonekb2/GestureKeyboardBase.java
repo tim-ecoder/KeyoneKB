@@ -64,7 +64,8 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
             ProcessPrepareAtHoldGesture(motionEvent);
         }
 
-        if ((!mode_keyboard_gestures && !mode_keyboard_gestures_plus_up_down)
+        //&& !mode_keyboard_gestures_plus_up_down
+        if ((!mode_keyboard_gestures )
             || modeDoubleClickGesture) {
             //Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
             ProcessDoubleGestureClick(motionEvent);
@@ -225,7 +226,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
             if(modeDoubleClickGesture) {
                 modeDoubleClickGesture = false;
                 mode_keyboard_gestures = false;
-                mode_keyboard_gestures_plus_up_down = false;
+                //mode_keyboard_gestures_plus_up_down = false;
                 UpdateGestureModeVisualization();
             } else {
                 prevPrevUpTime = prevUpTime;
@@ -260,7 +261,7 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
                     && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
                 Log.d(TAG2, "GESTURE TRIPLE CLICK");
                 mode_keyboard_gestures = true;
-                mode_keyboard_gestures_plus_up_down = true;
+                mode_keyboard_gestures_plus_up_down = !mode_keyboard_gestures_plus_up_down;
                 modeDoubleClickGesture = true;
                 UpdateGestureModeVisualization();
             }
