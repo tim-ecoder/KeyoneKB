@@ -188,7 +188,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                             KeyEvent event1 = GetCopy(event);
                             Thread.sleep(100);
                             KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
-                        }catch(Throwable ex) {}
+                        }catch(Throwable ignored) {}
                     });
             return true;
         } else if(event.getAction() == KeyEvent.ACTION_UP) {

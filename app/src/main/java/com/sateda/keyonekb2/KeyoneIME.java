@@ -312,6 +312,15 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
                 DetermineFirstBigCharAndReturnChangedState(editorInfo);
         }
 
+        //Это нужно чтобы показать клаву (перейти в режим редактирования)
+        if (pref_show_default_onscreen_keyboard
+                && !isInputViewShown()
+                && getCurrentInputConnection() != null
+                && IsInputMode()
+                && Orientation == 1) {
+            this.showWindow(true);
+        }
+
         UpdateGestureModeVisualization(IsInputMode());
         UpdateKeyboardModeVisualization();
         // Update the label on the enter key, depending on what the application
@@ -368,11 +377,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         if (!processed)
             return false;
 
-        //TODO: Перенести это в onStartInput
-        //Это нужно чтобы показать клаву (перейти в режим редактирования)
-        if (pref_show_default_onscreen_keyboard && !isInputViewShown() && inputConnection != null && IsInputMode()) {
-            this.showWindow(true);
-        }
+
         if (needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
@@ -527,14 +532,18 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
     //private int lastOrientation = 0;
     private int lastVisibility = -1;
 
+    private int Orientation = 1;
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         if (newConfig.orientation == 2) {
+            Orientation = 2;
             if (keyboardView.getVisibility() == View.VISIBLE) {
                 lastVisibility = View.VISIBLE;
                 keyboardView.setVisibility(View.GONE);
             }
         } else if (newConfig.orientation == 1) {
+            Orientation = 1;
             if (lastVisibility == View.VISIBLE) {
                 keyboardView.setVisibility(View.VISIBLE);
             } else
