@@ -258,7 +258,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
                 Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
                 return false;
             }
-            RemoveFromKeyDownLost(keyPressData);
+            RemoveFromKeyDownList(keyPressData);
             if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS) {
                 keyPressData.KeyUpTime = eventTime;
                 LastShortPressKey1 = keyPressData;
@@ -272,7 +272,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
                 Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
                 return false;
             }
-            RemoveFromKeyDownLost(keyPressData);
+            RemoveFromKeyDownList(keyPressData);
             if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS) {
                 keyPressData.KeyUpTime = eventTime;
                 LastShortPressKey1 = keyPressData;
@@ -286,7 +286,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
                 return false;
             }
 
-            RemoveFromKeyDownLost(keyPressData);
+            RemoveFromKeyDownList(keyPressData);
             keyPressData.KeyUpTime = eventTime;
             if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS
                 && !(AnyHoldPlusButtonSignalTime > keyPressData.KeyDownTime)
@@ -303,10 +303,15 @@ public class KeyPressKeyboardBase extends InputMethodService {
         return true;
     }
 
-    private void RemoveFromKeyDownLost(KeyPressData keyPressData) {
+    private void RemoveFromKeyDownList(KeyPressData keyPressData) {
         KeyDownList1.remove(keyPressData);
-        KeyPressData kpd = FindAtKeyDownList(keyPressData.KeyCode, keyPressData.ScanCode);
-        if(kpd != null) RemoveFromKeyDownLost(keyPressData);
+        while(true) {
+            KeyPressData kpd = FindAtKeyDownList(keyPressData.KeyCode, keyPressData.ScanCode);
+            if (kpd != null)
+                KeyDownList1.remove(kpd);
+            else
+                break;
+        }
     }
 
     //Для нажатий, где нельзя себе позволить FAST_TRACK (OnKeyDown) реакцию (например откатывать OnShorPress нельзя)

@@ -159,17 +159,20 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
         //Зажатие speed_key+Буква не передается в сервис клавиатуры
         //Но зато передается сюда, поэтмоу приходится отсюда туда переправлять
-        if((event.getMetaState() & KeyEvent.META_FUNCTION_ON) == 0)
+        if(!IsMetaFunctionOrFunction(event))
             return false;
         if(KeyoneIME.Instance == null)
             return false;
         // Этот блок ХАК-а нужен на К2_не_РСТ иначе при нажатиии speed_key вызывается меню биндинга букв
         if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION) {
             KeyEvent event1 = GetCopy(event);
-            if(event.getAction() == KeyEvent.ACTION_UP)
-                KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
-            if(event.getAction() == KeyEvent.ACTION_DOWN)
+            if(event.getAction() == KeyEvent.ACTION_DOWN) {
                 KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+            }
+            if(event.getAction() == KeyEvent.ACTION_UP) {
+                KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+            }
+
             return true;
         }
         if(     event.getKeyCode() != KeyEvent.KEYCODE_A
@@ -197,6 +200,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
             return true;
         }
+        return false;
+    }
+
+    private boolean IsMetaFunctionOrFunction(KeyEvent event) {
+        if(event.getKeyCode() == KeyEvent.META_FUNCTION_ON)
+            return true;
+        if((event.getMetaState() & KeyEvent.META_FUNCTION_ON) == KeyEvent.META_FUNCTION_ON)
+            return true;
         return false;
     }
 
