@@ -17,6 +17,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import static com.sateda.keyonekb2.BuildConfig.DEBUG;
+
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     public static KeyoneKb2AccessibilityService Instance;
@@ -204,7 +206,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     private boolean IsMetaFunctionOrFunction(KeyEvent event) {
-        if(event.getKeyCode() == KeyEvent.META_FUNCTION_ON)
+        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION)
             return true;
         if((event.getMetaState() & KeyEvent.META_FUNCTION_ON) == KeyEvent.META_FUNCTION_ON)
             return true;
@@ -224,12 +226,23 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
 
+        if(DEBUG && event.getPackageName() != null && event.getPackageName().toString().equals("com.android.systemui"))
+            return;
         //https://stackoverflow.com/questions/36067686/how-to-interrupt-an-action-from-being-performed-in-accessibilityservice
 
         if(event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
             && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
-            && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
+            && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+
+            Log.d(TAG, "event.getPackageName() " + event.getPackageName());
+            Log.d(TAG, "event.getEventType() " + event.getEventType());
+            Log.d(TAG, "event.getWindowId() " + event.getWindowId());
+            Log.d(TAG, "event.getSource() " + event.getSource());
+            Log.d(TAG, "event.getClassName() " + event.getClassName());
+            Log.d(TAG, "event.getText() " + event.getText());
+            Log.d(TAG, "event.getContentDescription() " + event.getContentDescription());
             return;
+        }
         CharSequence packageNameCs = event.getPackageName();
         if(packageNameCs == null || packageNameCs.length() == 0)
             return;
@@ -264,8 +277,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             AccessibilityNodeInfo info = searchHackPlugin.Convert(FindOrGetFromCache(root, searchHackPlugin));
 
             if (info != null) {
-                if (IsSearchHackSet())
-                    return true;
+                //if (IsSearchHackSet())
+                //    return true;
                 if(info.isFocused() )
                     return true;
                 Log.d(TAG, "SetSearchHack "+searchHackPlugin.getPackageName());

@@ -404,6 +404,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
 
         if(
             !IsInputMode()
+            && FindAtKeyDownList(keyCode, event.getScanCode()) == null
             && IsViewModeKeyCode(keyCode, event.getMetaState())
             && SearchHack == null)  {
 
