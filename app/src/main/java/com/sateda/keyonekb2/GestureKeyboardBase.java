@@ -57,10 +57,12 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
         if (IsNoGesturesMode())
             return true;
 
-        if (motionEvent.getY() > ROW_4_BEGIN_Y) return true;
+        //Не ловим движение на нижнем ряду где поблел и переключение языка (иначе при зажатии KEY_0 курсор будет прыгать и придется фильтровать эти события
+        if (motionEvent.getY() > ROW_4_BEGIN_Y) {
+            return true;
+        }
 
         if (!mode_keyboard_gestures) {
-
             ProcessPrepareAtHoldGesture(motionEvent);
         }
 
@@ -77,9 +79,6 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
             InputConnection inputConnection = getCurrentInputConnection();
             float motionEventX = motionEvent.getX();
             float motionEventY = motionEvent.getY();
-
-            //Не ловим движение на нижнем ряду где поблел и переключение языка
-
 
             int motionEventAction = motionEvent.getAction();
 
@@ -110,42 +109,46 @@ public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
             return true;
         }
 
-        if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)) {
-            float deltaX = motionEventX - lastGestureX;
-            float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
-            float deltaY = motionEventY - lastGestureY;
-            float absDeltaY = deltaY < 0 ? -1 * deltaY : deltaY;
+        if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE)) {
 
-            int motion_delta_min_x = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
-            int motion_delta_min_y = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
+            if(lastGestureX > 0 && lastGestureY > 0) {
+                float deltaX = motionEventX - lastGestureX;
+                float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
+                float deltaY = motionEventY - lastGestureY;
+                float absDeltaY = deltaY < 0 ? -1 * deltaY : deltaY;
 
-            if (absDeltaX >= absDeltaY) {
-                if (absDeltaX < motion_delta_min_x)
-                    return true;
-                if (deltaX > 0) {
-                    if(MoveCursorRightSafe(inputConnection))
-                        Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_RIGHT " + motionEvent);
-                } else {
-                    if(MoveCursorLeftSafe(inputConnection))
-                        Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
-                }
-            } else if (mode_keyboard_gestures_plus_up_down) {
-                if (absDeltaY < motion_delta_min_y)
-                    return true;
-                //int times = Math.round(absDeltaY / motion_delta_min_y);
-                if (deltaY < 0) {
-                    if(MoveCursorUpSafe(inputConnection))
-                        Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
-                } else {
-                    if(MoveCursorDownSafe(inputConnection))
-                        Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
+                int motion_delta_min_x = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
+                int motion_delta_min_y = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
+
+                if (absDeltaX >= absDeltaY) {
+                    if (absDeltaX < motion_delta_min_x)
+                        return true;
+                    if (deltaX > 0) {
+                        if (MoveCursorRightSafe(inputConnection))
+                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_RIGHT " + motionEvent);
+                    } else {
+                        if (MoveCursorLeftSafe(inputConnection))
+                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
+                    }
+                } else if (mode_keyboard_gestures_plus_up_down) {
+                    if (absDeltaY < motion_delta_min_y)
+                        return true;
+                    //int times = Math.round(absDeltaY / motion_delta_min_y);
+                    if (deltaY < 0) {
+                        if (MoveCursorUpSafe(inputConnection))
+                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
+                    } else {
+                        if (MoveCursorDownSafe(inputConnection))
+                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
+                    }
                 }
             }
-
             lastGestureX = motionEventX;
             lastGestureY = motionEventY;
+        } else if(CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)) {
+            lastGestureX = 0;
+            lastGestureY = 0;
         }
         return false;
     }
