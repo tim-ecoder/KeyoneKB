@@ -1066,6 +1066,7 @@ public class KeyoneIME extends GestureKeyboardBase implements KeyboardView.OnKey
         if (keyCode == KeyEvent.KEYCODE_0 && (meta & KeyEvent.META_ALT_ON) == 0) return false;
         if (keyCode == KeyEvent.KEYCODE_CTRL_LEFT) return false;
         if (keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) return false;
+        if (keyCode == KeyEvent.KEYCODE_FUNCTION) return false;
         if(pref_manage_call) {
             if (keyCode == KeyEvent.KEYCODE_SPACE) return false;
             if (keyCode == KeyEvent.KEYCODE_SYM) return false;

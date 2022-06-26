@@ -163,8 +163,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             return false;
         if(KeyoneIME.Instance == null)
             return false;
-        if(
-                event.getKeyCode() != KeyEvent.KEYCODE_A
+        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION)
+            return false;
+        if(     event.getKeyCode() != KeyEvent.KEYCODE_A
                 && event.getKeyCode() != KeyEvent.KEYCODE_C
                 && event.getKeyCode() != KeyEvent.KEYCODE_X
                 && event.getKeyCode() != KeyEvent.KEYCODE_V
@@ -178,7 +179,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     () -> {
                         try {
                             KeyEvent event1 = GetCopy(event);
-                            Thread.sleep(75);
+                            Thread.sleep(100);
                             KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
                         }catch(Throwable ex) {}
                     });
