@@ -10,6 +10,7 @@ import android.view.KeyEvent;
 import android.view.inputmethod.InputConnection;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class KeyPressKeyboardBase extends InputMethodService {
@@ -257,7 +258,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
                 Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
                 return false;
             }
-            KeyDownList1.remove(keyPressData);
+            RemoveFromKeyDownLost(keyPressData);
             if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS) {
                 keyPressData.KeyUpTime = eventTime;
                 LastShortPressKey1 = keyPressData;
@@ -271,7 +272,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
                 Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
                 return false;
             }
-            KeyDownList1.remove(keyPressData);
+            RemoveFromKeyDownLost(keyPressData);
             if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS) {
                 keyPressData.KeyUpTime = eventTime;
                 LastShortPressKey1 = keyPressData;
@@ -285,7 +286,7 @@ public class KeyPressKeyboardBase extends InputMethodService {
                 return false;
             }
 
-            KeyDownList1.remove(keyPressData);
+            RemoveFromKeyDownLost(keyPressData);
             keyPressData.KeyUpTime = eventTime;
             if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS
                 && !(AnyHoldPlusButtonSignalTime > keyPressData.KeyDownTime)
@@ -300,6 +301,12 @@ public class KeyPressKeyboardBase extends InputMethodService {
         }
 
         return true;
+    }
+
+    private void RemoveFromKeyDownLost(KeyPressData keyPressData) {
+        KeyDownList1.remove(keyPressData);
+        KeyPressData kpd = FindAtKeyDownList(keyPressData.KeyCode, keyPressData.ScanCode);
+        if(kpd != null) RemoveFromKeyDownLost(keyPressData);
     }
 
     //Для нажатий, где нельзя себе позволить FAST_TRACK (OnKeyDown) реакцию (например откатывать OnShorPress нельзя)
@@ -326,8 +333,9 @@ public class KeyPressKeyboardBase extends InputMethodService {
     }
 
     KeyPressData FindAtKeyDownList(int keyCode, int scanCode) {
+        Collections.reverse(KeyDownList1);
         for (KeyPressData keyCodeScanCode : KeyDownList1) {
-            if (keyCodeScanCode.ScanCode == scanCode || keyCodeScanCode.KeyCode == keyCode)
+            if (keyCodeScanCode.KeyCode == keyCode || keyCodeScanCode.ScanCode == scanCode)
                 return keyCodeScanCode;
         }
         return null;

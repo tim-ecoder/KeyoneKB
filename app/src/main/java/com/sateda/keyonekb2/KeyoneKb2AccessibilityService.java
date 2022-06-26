@@ -163,8 +163,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             return false;
         if(KeyoneIME.Instance == null)
             return false;
-        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION)
-            return false;
+        // Этот блок ХАК-а нужен на К2_не_РСТ иначе при нажатиии speed_key вызывается меню биндинга букв
+        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION) {
+            KeyEvent event1 = GetCopy(event);
+            if(event.getAction() == KeyEvent.ACTION_UP)
+                KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+            if(event.getAction() == KeyEvent.ACTION_DOWN)
+                KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+            return true;
+        }
         if(     event.getKeyCode() != KeyEvent.KEYCODE_A
                 && event.getKeyCode() != KeyEvent.KEYCODE_C
                 && event.getKeyCode() != KeyEvent.KEYCODE_X
