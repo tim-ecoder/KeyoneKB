@@ -4,8 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.Button;
 import android.widget.TextView;
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import java.util.ArrayList;
 
 import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
 
@@ -13,6 +17,8 @@ public class SettingsMoreActivity extends Activity {
     private KbSettings kbSettings;
 
     Button btSave;
+
+    Button btSavePluginData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +36,15 @@ public class SettingsMoreActivity extends Activity {
             }
         });
 
+        btSavePluginData = (Button)findViewById(R.id.pref_more_bt_save_search_plugins);
+        btSavePluginData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                SavePluginData();
+            }
+        });
+
         Button btClear = (Button)findViewById(R.id.pref_more_bt_clear);
         btClear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,6 +59,61 @@ public class SettingsMoreActivity extends Activity {
 
         SetTextPluginData();
 
+
+    }
+
+    private void SavePluginData() {
+
+        if(!btSavePluginData.getText().toString().equals("SAVED")) {
+
+
+            KeyoneKb2PluginData data = new KeyoneKb2PluginData();
+
+            for (KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
+                KeyoneKb2PluginData.SearchPluginData pluginData = new KeyoneKb2PluginData.SearchPluginData();
+                pluginData.PackageName = plugin.getPackageName();
+                pluginData.SearchFieldId = plugin.getId();
+                pluginData.DynamicSearchMethod = plugin.DynamicSearchMethod;
+
+                if ((pluginData.SearchFieldId == null || pluginData.SearchFieldId.isEmpty())
+                    && (pluginData.DynamicSearchMethod == null || pluginData.DynamicSearchMethod.isEmpty())) {
+                    pluginData.DynamicSearchMethod = new ArrayList<>();
+                    KeyoneKb2PluginData.DynamicSearchMethod d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
+                    d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
+                    d1.ContainsString = "Найти";
+                    pluginData.DynamicSearchMethod.add(d1);
+
+                    d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
+                    d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
+                    d1.ContainsString = "Поиск";
+                    pluginData.DynamicSearchMethod.add(d1);
+
+                    d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
+                    d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
+                    d1.ContainsString = "Поиск";
+                    pluginData.DynamicSearchMethod.add(d1);
+
+                    d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
+                    d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
+                    d1.ContainsString = "Search";
+                    pluginData.DynamicSearchMethod.add(d1);
+                }
+
+                if (plugin._converter != null) {
+                    pluginData.CustomClickAdapterClickParent = true;
+                }
+
+                if ((plugin._events & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                    pluginData.AdditionalEventTypeTypeWindowContentChanged = true;
+                }
+
+                data.SearchPlugins.add(pluginData);
+            }
+
+                FileJsonUtils.SerializeToFile(data, "plugin_data.json");
+                btSavePluginData.setText(FileJsonUtils.PATH_DEF);
+
+        }
 
     }
 

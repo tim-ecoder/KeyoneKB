@@ -41,10 +41,10 @@ public class SettingsActivity extends AppCompatActivity {
 
         layout = (RelativeLayout) findViewById(R.id.activity_settings);
         //layout.setMinimumHeight(5000);
-        ArrayList<KeyboardLayoutOptions> keyboardLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
+        ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
         Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_keyboard_layout);
         int prevId = 0;
-        for (KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayouts) {
+        for (KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayouts) {
             Switch currentKeyboardLayoutSwitch;
             //Первый язык будет по умолчанию всегда активирован
             //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки

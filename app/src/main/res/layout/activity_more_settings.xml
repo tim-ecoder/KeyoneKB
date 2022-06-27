@@ -33,11 +33,17 @@
                 android:layout_below="@id/divider2"
                 android:text="SAVE KEYBOARD DATA"
         />
+        <Button android:id="@+id/pref_more_bt_save_search_plugins"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/pref_more_bt_save"
+                android:text="SAVE PLUGIN DATA"
+        />
         <View
                 android:id="@+id/divider1"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_below="@id/pref_more_bt_save"
+                android:layout_below="@id/pref_more_bt_save_search_plugins"
                 android:background="?android:attr/listDivider" />
         <TextView
                 android:id="@+id/tv_search_plugins_title"

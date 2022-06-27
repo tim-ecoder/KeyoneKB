@@ -2,7 +2,6 @@ package com.sateda.keyonekb2;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
@@ -10,23 +9,28 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import static com.sateda.keyonekb2.BuildConfig.DEBUG;
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
+    public static String SEARCH_CONST_FIND1 = "Найти";
+    public static String SEARCH_CONST_FIND2 = "Поиск";
+    public static String SEARCH_CONST_FIND3 = "Search";
     public static KeyoneKb2AccessibilityService Instance;
-    private static String TAG = "KeyoneKb2As";
+    private static String TAG = "KeyoneKb2-AS";
 
     interface NodeClickableConverter {
         AccessibilityNodeInfo getNode(AccessibilityNodeInfo info);
     }
+
+    public int STD_EVENTS = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED;
 
     class SearchHackPlugin {
 
@@ -37,9 +41,17 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         NodeClickableConverter _converter;
 
-        public SearchHackPlugin(String packageName, int events, NodeClickableConverter converter) {
-            _events = events;
+        public ArrayList<KeyoneKb2PluginData.DynamicSearchMethod> DynamicSearchMethod;
+
+        public void setConverter(NodeClickableConverter converter) {
             _converter = converter;
+        }
+
+        public void setEvents(int events) {
+            _events = events;
+        }
+
+        public SearchHackPlugin(String packageName) {
             _packageName = packageName;
         }
         public void setId(String id) {
@@ -54,19 +66,44 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
 
         private AccessibilityNodeInfo findId(AccessibilityNodeInfo root) {
-            AccessibilityNodeInfo info = FindFirstByTextRecursive(root, "Найти");
+
+            if(DynamicSearchMethod == null || DynamicSearchMethod.isEmpty()) {
+                return findIdAll(root);
+            }
+
+            for(KeyoneKb2PluginData.DynamicSearchMethod method : DynamicSearchMethod) {
+                if(method.DynamicSearchMethodFunction == KeyoneKb2PluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive) {
+                    AccessibilityNodeInfo info = FindFirstByTextRecursive(root, method.ContainsString);
+                    if(info != null) {
+                        return info;
+                    }
+                }
+                if(method.DynamicSearchMethodFunction == KeyoneKb2PluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText) {
+                    List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(method.ContainsString);
+                    if (infoList.size() > 0) {
+                        return infoList.get(0);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private AccessibilityNodeInfo findIdAll(AccessibilityNodeInfo root) {
+
+            AccessibilityNodeInfo info = FindFirstByTextRecursive(root, SEARCH_CONST_FIND1);
             if(info != null) {
                 return info;
             }
-            List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText("Поиск");
+            List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND2);
             if (infoList.size() > 0) {
                 return infoList.get(0);
             }
-            info = FindFirstByTextRecursive(root, "Поиск");
+            info = FindFirstByTextRecursive(root, SEARCH_CONST_FIND2);
             if (info != null) {
                 return info;
             }
-            infoList = root.findAccessibilityNodeInfosByText("Search");
+            infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND3);
             if (infoList.size() > 0) {
                 return infoList.get(0);
             }
@@ -101,40 +138,28 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Instance = this;
 
         kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        executorService = Executors.newFixedThreadPool(4);
+        executorService = Executors.newFixedThreadPool(2);
 
-        searchHackPlugins.add(new SearchHackPlugin(
-                "com.modoohut.dialer",
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                null));
-        searchHackPlugins.add(new SearchHackPlugin(
-                "com.blackberry.blackberrylauncher",
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                null));
-        searchHackPlugins.add(new SearchHackPlugin(
-                "org.telegram.messenger",
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
-                null));
-        searchHackPlugins.add(new SearchHackPlugin(
-                "com.android.dialer",
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                AccessibilityNodeInfo::getParent));
-        searchHackPlugins.add(new SearchHackPlugin(
-                "com.blackberry.contacts",
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                null));
-        searchHackPlugins.add(new SearchHackPlugin(
-                "com.oasisfeng.island",
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                null));
-        searchHackPlugins.add(new SearchHackPlugin(
-                "ru.yandex.yandexmaps",
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                AccessibilityNodeInfo::getParent));
-        searchHackPlugins.add(new SearchHackPlugin(
-                "com.blackberry.notes",
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                null));
+        KeyoneKb2PluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<KeyoneKb2PluginData>() {}, getApplicationContext());
+        if(data2 == null)
+            return;
+        for (KeyoneKb2PluginData.SearchPluginData data : data2.SearchPlugins) {
+            SearchHackPlugin shp = new SearchHackPlugin(data.PackageName);
+            if(data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
+                shp.setId(data.SearchFieldId);
+            else if(data.DynamicSearchMethod != null) {
+                shp.DynamicSearchMethod = data.DynamicSearchMethod;
+            }
+            if(data.AdditionalEventTypeTypeWindowContentChanged)
+                shp.setEvents(STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+            else
+                shp.setEvents(STD_EVENTS);
+            if(data.CustomClickAdapterClickParent)
+                shp.setConverter(AccessibilityNodeInfo::getParent);
+
+            searchHackPlugins.add(shp);
+        }
+
 
         for (SearchHackPlugin plugin : searchHackPlugins) {
             String value = GetFromSetting(plugin);
@@ -257,8 +282,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
 
         if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-            && IsSearchHackSet()) {
-            SetSearchHack(null);
+            && IsSearchHackSet(packageName)) {
+            SetSearchHack(null, null);
             Log.d(TAG, "event.getPackageName() " + event.getPackageName());
             Log.d(TAG, "event.getEventType() " + event.getEventType());
             Log.d(TAG, "event.getWindowId() " + event.getWindowId());
@@ -273,20 +298,20 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if(!searchHackPlugin.checkEventType(eventType))
             return false;
         if (packageName.equals(searchHackPlugin.getPackageName())) {
+            if (IsSearchHackSet(searchHackPlugin.getPackageName()))
+                return true;
 
             AccessibilityNodeInfo info = searchHackPlugin.Convert(FindOrGetFromCache(root, searchHackPlugin));
 
             if (info != null) {
-                //if (IsSearchHackSet())
-                //    return true;
                 if(info.isFocused() )
                     return true;
                 Log.d(TAG, "SetSearchHack "+searchHackPlugin.getPackageName());
                 SetSearchHack(() -> {
                     info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                });
+                }, searchHackPlugin.getPackageName());
             } else {
-                SetSearchHack(null);
+                SetSearchHack(null, null);
             }
             return true;
         }
@@ -333,16 +358,17 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
 
-    private void SetSearchHack(KeyoneIME.Processable processable) {
+    private void SetSearchHack(KeyoneIME.Processable processable, String packageName) {
         if (KeyoneIME.Instance != null) {
-            KeyoneIME.Instance.SetSearchHack(processable);
+            KeyoneIME.Instance.SetSearchHack(processable, packageName);
         }
 
     }
 
-    private boolean IsSearchHackSet() {
+    private boolean IsSearchHackSet(String packageName) {
         if (KeyoneIME.Instance != null) {
-            return KeyoneIME.Instance.SearchHack != null;
+            if(KeyoneIME.Instance.SearchHackPackage != null && KeyoneIME.Instance.SearchHackPackage.equals(packageName))
+                return KeyoneIME.Instance.SearchHack != null;
         }
         return false;
     }

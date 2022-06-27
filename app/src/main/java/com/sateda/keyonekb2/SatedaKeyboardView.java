@@ -17,7 +17,7 @@ import android.view.View;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
-import static com.sateda.keyonekb2.KeyPressKeyboardBase.TAG2;
+import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
 
 public class SatedaKeyboardView extends KeyboardView {
 
@@ -143,7 +143,7 @@ public class SatedaKeyboardView extends KeyboardView {
     }
 
     private boolean isKeyboard(int keyCode1) {
-        for(int keyCode2 : KeyPressKeyboardBase.KEY2_LATIN_ALPHABET_KEYS_CODES) {
+        for(int keyCode2 : KeyboardCoreKeyPress.KEY2_LATIN_ALPHABET_KEYS_CODES) {
             if(keyCode1 == keyCode2)
                 return true;
         }
@@ -158,7 +158,7 @@ public class SatedaKeyboardView extends KeyboardView {
         int arr_inc = 0;
         int i = 0;
         // TODO: Это все требуется рефакторинга чтобы не перерисовывать каждый раз клавиатуру
-        for(KeyVariants keyVariants : keybordLayout.KeyMapping){
+        for(KeyboardLayout.KeyVariants keyVariants : keybordLayout.KeyMapping){
             KeyLabel[i] = "";
             KeyLabel_x[i] = 0;
             KeyLabel_y[i] = 0;
@@ -176,7 +176,7 @@ public class SatedaKeyboardView extends KeyboardView {
         for(Keyboard.Key key: keys) {
             if(key == null)
                 continue;
-            KeyVariants keyVariants = null;
+            KeyboardLayout.KeyVariants keyVariants = null;
             Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d",key.codes[0]));
             if(keyCode == null) {
                 Log.e(TAG2, "SCAN_CODE NOT MAPPED "+key.codes[0]);

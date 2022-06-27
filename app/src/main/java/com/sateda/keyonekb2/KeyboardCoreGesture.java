@@ -11,7 +11,7 @@ import android.view.inputmethod.InputConnection;
 
 import static android.content.ContentValues.TAG;
 
-public abstract class GestureKeyboardBase extends KeyPressKeyboardBase {
+public abstract class KeyboardCoreGesture extends KeyboardCoreKeyPress {
     private int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
     private int MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST ;
     private int ROW_4_BEGIN_Y;

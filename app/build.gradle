@@ -24,8 +24,8 @@ android {
         minSdkVersion 25
         targetSdkVersion 25
         //TODO: ---- Меняем каждый раз! ----
-        versionCode 2337
-        versionName "v2.3-build3.7"
+        versionCode 2340
+        versionName "v2.3-build4.0"
         //TODO: ----------------------------
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

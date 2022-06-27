@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class KeyPressKeyboardBase extends InputMethodService {
+public class KeyboardCoreKeyPress extends InputMethodService {
 
     public static final int[] KEY2_LATIN_ALPHABET_KEYS_CODES = new int[]{
             KeyEvent.KEYCODE_4, //DOLLAR

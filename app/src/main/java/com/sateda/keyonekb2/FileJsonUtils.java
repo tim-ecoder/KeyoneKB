@@ -2,7 +2,6 @@ package com.sateda.keyonekb2;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.content.res.XmlResourceParser;
 import android.os.Environment;
 import android.util.Log;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,18 +12,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.*;
-import java.net.URI;
-import java.nio.file.*;
 import java.util.HashMap;
 
-import static com.sateda.keyonekb2.KeyPressKeyboardBase.TAG2;
+import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
 
 public class FileJsonUtils {
 
     public static String PATH;
-
+    public static String PATH_DEF;
     public static void Initialize(String packageName, Context context) {
         PATH = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/Android/data/" + packageName + "/files/";
+        PATH_DEF = PATH +"default/";
         LoadMappingFile(context);
     }
 
@@ -58,9 +56,9 @@ public class FileJsonUtils {
 
     public static void SerializeToFile(Object obj, String fileName) {
         JsonMapper mapper = PrepareMapper();
-        String pathDef = PATH +"default/";
-        CheckFoldersAndCreate(pathDef);
-        String fullFileName = pathDef + fileName;
+
+        CheckFoldersAndCreate(PATH_DEF);
+        String fullFileName = PATH_DEF + fileName;
         try {
             FileOutputStream fOut = new FileOutputStream(fullFileName,false);
             mapper.writeValue(fOut, obj);
