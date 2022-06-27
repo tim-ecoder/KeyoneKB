@@ -288,7 +288,7 @@ public class SatedaKeyboardView extends KeyboardView {
             }
         }
 
-        if(altPopup[indexAltPopup].equals("")) return false;
+        if(altPopup[indexAltPopup] == null || altPopup[indexAltPopup].equals("")) return false;
 
         Keyboard keyboard;
         keyboard = new Keyboard(getContext(), R.layout.keyboard,
