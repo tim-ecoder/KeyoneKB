@@ -1,5 +1,8 @@
 # KeyoneKB2
 
+#### 4 INTERNATIONAL USE 
+### KeyoneKB2 hardware keyboard is translation and customization READY and can be easily adopted by community to other languages and keyboard layouts
+
 KeyoneKb2 кастомная хардварная клавиатура для Blackberry KEY1 и KEY2 (в том числе НЕ_РСТ) (Android 7/8.1+), а также Unihertz Titan Pocket (кроме жестов по клавиатуре в режиме ввода текста).
 Наиболее современных устройств (относительно конечно) с одновременно самой удобной «железной» клавиатурой (относительно конечно). И то, и другое компримис, но за неимением большего как говорится.. 
  
