@@ -2,20 +2,17 @@ package com.sateda.keyonekb2;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
-import android.support.annotation.NonNull;
-import android.text.Spanned;
+
+
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
 
 import java.util.List;
 
-import static android.content.ContentValues.TAG;
+import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
+
 
 public class MoreKeysKeyboardView extends KeyboardView {
 
@@ -56,7 +53,7 @@ public class MoreKeysKeyboardView extends KeyboardView {
         }else{
             indexPopupPressed = ((int)touchX-(int)leftX)/keyWidht;
         }
-        Log.d(TAG, "startXindex keys "+countKeys);
+        Log.d(TAG2, "startXindex keys "+countKeys);
     }
 
     public int getCurrentIndex() {
@@ -73,7 +70,7 @@ public class MoreKeysKeyboardView extends KeyboardView {
             if(indexPopupPressed > countKeys-1) indexPopupPressed = countKeys-1;
             if(indexPopupPressed < 0) indexPopupPressed = 0;
             invalidateAllKeys();
-            Log.d(TAG, "coordsToIndexKey indexPopupPressed "+indexPopupPressed);
+            Log.d(TAG2, "coordsToIndexKey indexPopupPressed "+indexPopupPressed);
         }
     }
 

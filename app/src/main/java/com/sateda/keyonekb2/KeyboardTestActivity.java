@@ -16,7 +16,7 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import static android.content.ContentValues.TAG;
+import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
 
 public class KeyboardTestActivity extends Activity {
 
@@ -78,7 +78,7 @@ public class KeyboardTestActivity extends Activity {
                 @Override
                 public boolean onGenericMotion(View v, MotionEvent event) {
                     String text = "View.onGenericMotionEvent() X = "+event.getX()+", Y ="+event.getY() +" ACT: "+event.getAction();
-                    Log.d(TAG, text);
+                    Log.d(TAG2, text);
                     KeyboardTestActivity.this.touchInfoView.setText(text);
                     return true;
                 }

@@ -9,8 +9,6 @@ import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
-import static android.content.ContentValues.TAG;
-
 public abstract class KeyboardCoreGesture extends KeyboardCoreKeyPress {
     private int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
     private int MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST ;
@@ -125,10 +123,10 @@ public abstract class KeyboardCoreGesture extends KeyboardCoreKeyPress {
                         return true;
                     if (deltaX > 0) {
                         if (MoveCursorRightSafe(inputConnection))
-                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_RIGHT " + motionEvent);
+                            Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_RIGHT " + motionEvent);
                     } else {
                         if (MoveCursorLeftSafe(inputConnection))
-                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
+                            Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
                     }
                 } else if (mode_keyboard_gestures_plus_up_down) {
                     if (absDeltaY < motion_delta_min_y)
@@ -136,10 +134,10 @@ public abstract class KeyboardCoreGesture extends KeyboardCoreKeyPress {
                     //int times = Math.round(absDeltaY / motion_delta_min_y);
                     if (deltaY < 0) {
                         if (MoveCursorUpSafe(inputConnection))
-                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
+                            Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_UP " + motionEvent);
                     } else {
                         if (MoveCursorDownSafe(inputConnection))
-                            Log.d(TAG, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
+                            Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
                     }
                 }
             }

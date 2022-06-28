@@ -16,12 +16,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.sateda.keyonekb2.BuildConfig.DEBUG;
-
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     public static KeyoneKb2AccessibilityService Instance;
-    private static String TAG = "KeyoneKb2-AS";
+    private static String TAG3 = "KeyoneKb2-AS";
 
     interface NodeClickableConverter {
         AccessibilityNodeInfo getNode(AccessibilityNodeInfo info);
@@ -152,7 +150,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             } else {
                 DefaultSearchWords = new ArrayList<>();
                 DefaultSearchWords.add("Search");
-                Log.e(TAG, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
+                Log.e(TAG3, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
             }
             for (KeyoneKb2PluginData.SearchPluginData data : data2.SearchPlugins) {
                 SearchHackPlugin shp = new SearchHackPlugin(data.PackageName);
@@ -183,7 +181,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 }
             }
         } catch(Throwable ex) {
-            Log.e(TAG, "onCreate Exception: "+ex);
+            Log.e(TAG3, "onCreate Exception: "+ex);
             throw ex;
         }
 
@@ -216,13 +214,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
                     && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
 
-                Log.d(TAG, "event.getPackageName() " + event.getPackageName());
-                Log.d(TAG, "event.getEventType() " + event.getEventType());
-                Log.d(TAG, "event.getWindowId() " + event.getWindowId());
-                Log.d(TAG, "event.getSource() " + event.getSource());
-                Log.d(TAG, "event.getClassName() " + event.getClassName());
-                Log.d(TAG, "event.getText() " + event.getText());
-                Log.d(TAG, "event.getContentDescription() " + event.getContentDescription());
+                Log.d(TAG3, "event.getPackageName() " + event.getPackageName());
+                Log.d(TAG3, "event.getEventType() " + event.getEventType());
+                Log.d(TAG3, "event.getWindowId() " + event.getWindowId());
+                Log.d(TAG3, "event.getSource() " + event.getSource());
+                Log.d(TAG3, "event.getClassName() " + event.getClassName());
+                Log.d(TAG3, "event.getText() " + event.getText());
+                Log.d(TAG3, "event.getContentDescription() " + event.getContentDescription());
                 return;
             }
             CharSequence packageNameCs = event.getPackageName();
@@ -241,16 +239,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                     && IsSearchHackSet(packageName)) {
                 SetSearchHack(null, null);
-                Log.d(TAG, "event.getPackageName() " + event.getPackageName());
-                Log.d(TAG, "event.getEventType() " + event.getEventType());
-                Log.d(TAG, "event.getWindowId() " + event.getWindowId());
-                Log.d(TAG, "event.getSource() " + event.getSource());
-                Log.d(TAG, "event.getClassName() " + event.getClassName());
-                Log.d(TAG, "event.getText() " + event.getText());
-                Log.d(TAG, "event.getContentDescription() " + event.getContentDescription());
+                Log.d(TAG3, "event.getPackageName() " + event.getPackageName());
+                Log.d(TAG3, "event.getEventType() " + event.getEventType());
+                Log.d(TAG3, "event.getWindowId() " + event.getWindowId());
+                Log.d(TAG3, "event.getSource() " + event.getSource());
+                Log.d(TAG3, "event.getClassName() " + event.getClassName());
+                Log.d(TAG3, "event.getText() " + event.getText());
+                Log.d(TAG3, "event.getContentDescription() " + event.getContentDescription());
             }
         } catch (Throwable ex) {
-            Log.e(TAG, "onAccessibilityEvent Exception: "+ex);
+            Log.e(TAG3, "onAccessibilityEvent Exception: "+ex);
         }
     }
 
@@ -267,14 +265,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     return true;
                 if(info.isFocused() )
                     return true;
-                Log.d(TAG, "SetSearchHack "+searchHackPlugin.getPackageName());
+                Log.d(TAG3, "SetSearchHack "+searchHackPlugin.getPackageName());
                 int wait = searchHackPlugin.WaitBeforeSendChar;
                 SetSearchHack(() -> {
                     boolean answer = info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
 
                     //Для случая уезжающего окна поиска как в Яндекс.Навигаторе плагин хватает поле, которое уже не существует
                     if(!answer) {
-                        Log.e(TAG, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
+                        Log.e(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
                     }
 
                     if(wait > 0) {
@@ -303,12 +301,12 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
             if (info != null) {
                 if (info.getViewIdResourceName() != null) {
-                    Log.d(TAG, "SetSearchHack: research mode: field found " + info.getViewIdResourceName());
+                    Log.d(TAG3, "SetSearchHack: research mode: field found " + info.getViewIdResourceName());
                     searchHackPlugin.setId(info.getViewIdResourceName());
                     SetToSetting(searchHackPlugin, info.getViewIdResourceName());
                 } else {
                     //AccessibilityNodeInfo info2 = info.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
-                    Log.d(TAG, "SetSearchHack: getViewIdResourceName() == null " + info.getContentDescription());
+                    Log.d(TAG3, "SetSearchHack: getViewIdResourceName() == null " + info.getContentDescription());
                 }
             }
         }
@@ -319,7 +317,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if (node == null)
             return null;
         if(node.getViewIdResourceName() != null)
-            Log.d(TAG, node.getViewIdResourceName());
+            Log.d(TAG3, node.getViewIdResourceName());
         if (node.getText() != null) {
             if (node.getText().toString().contains(text))
                 return node;
@@ -408,7 +406,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
 
         } catch(Throwable ex) {
-            Log.e(TAG, "onKeyEvent Exception: "+ex);
+            Log.e(TAG3, "onKeyEvent Exception: "+ex);
         }
         return false;
     }

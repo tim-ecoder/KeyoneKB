@@ -48,11 +48,9 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
         SearchHack = processable;
         SearchHackPackage = packageName;
         if(processable == null) {
-            Log.d(TAG, "SetSearchHack NULL");
+            Log.d(TAG2, "SetSearchHack NULL");
         }
     }
-
-    private static String TAG = "KeyoneKB";
 
     private static final boolean DEBUG = false;
 
@@ -246,7 +244,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
 
     @Override
     public void onPress(int primaryCode) {
-        Log.d(TAG, "onPress");
+        Log.d(TAG2, "onPress");
     }
 
     @Override
@@ -275,17 +273,17 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
         if (onScreenSwipePanelAndLanguage.getHeight() != 70 + pref_height_bottom_bar * 5)
             onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
 
-        Log.d(TAG, "onFinishInput ");
+        Log.d(TAG2, "onFinishInput ");
 
     }
 
     @Override
     public synchronized void onStartInput(EditorInfo editorInfo, boolean restarting) {
         super.onStartInput(editorInfo, restarting);
-        Log.d(TAG, "onStartInput package: " + editorInfo.packageName + " fieldName: "+editorInfo.fieldName+" label: " + editorInfo.label);
+        Log.d(TAG2, "onStartInput package: " + editorInfo.packageName + " fieldName: "+editorInfo.fieldName+" label: " + editorInfo.label);
         //TODO: Минорно. Если надо знать какие флаги их надо расшифровывать
-        Log.d(TAG, "editorInfo.inputType: "+Integer.toBinaryString(editorInfo.inputType));
-        Log.d(TAG, "editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions));
+        Log.d(TAG2, "editorInfo.inputType: "+Integer.toBinaryString(editorInfo.inputType));
+        Log.d(TAG2, "editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions));
         // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
 
@@ -395,7 +393,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
     @Override
     public synchronized boolean onKeyDown(int keyCode, KeyEvent event) {
         keyboardView.hidePopup(false);
-        Log.v(TAG, "onKeyDown " + event);
+        Log.v(TAG2, "onKeyDown " + event);
 
         //TODO: Hack 4 pocket
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -407,7 +405,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
             && IsViewModeKeyCode(keyCode, event.getMetaState())
             && SearchHack == null
             && !IsNavMode())  {
-            Log.d(TAG, "App transparency mode");
+            Log.d(TAG2, "App transparency mode");
             return super.onKeyDown(keyCode, event);
         }
 
@@ -421,7 +419,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
             int scanCode = event.getScanCode();
             navigationKeyCode = getNavigationCode(scanCode);
 
-            Log.d(TAG, "navigationKeyCode " + navigationKeyCode);
+            Log.d(TAG2, "navigationKeyCode " + navigationKeyCode);
             if (navigationKeyCode == -7) {
                 fnSymbolOnScreenKeyboardMode = !fnSymbolOnScreenKeyboardMode;
                 UpdateKeyboardModeVisualization();
@@ -454,7 +452,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
 
     @Override
     public synchronized boolean onKeyUp(int keyCode, KeyEvent event) {
-        Log.v(TAG, "onKeyUp " + event);
+        Log.v(TAG2, "onKeyUp " + event);
 
         //TODO: Hack 4 pocket
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -474,7 +472,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
             && IsViewModeKeyCode(keyCode, event.getMetaState())
             && SearchHack == null)  {
 
-            Log.d(TAG, "App transparency mode");
+            Log.d(TAG2, "App transparency mode");
             return super.onKeyUp(keyCode, event);
         }
 
@@ -584,14 +582,14 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
 
     @Override
     public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-        Log.d(TAG, "onKeyLongPress " + event);
+        Log.d(TAG2, "onKeyLongPress " + event);
         return false;
     }
 
     @SuppressLint("InflateParams")
     @Override
     public View onCreateInputView() {
-        Log.d(TAG, "onCreateInputView");
+        Log.d(TAG2, "onCreateInputView");
         keyboardView.setOnKeyboardActionListener(this);
         return keyboardView;
     }
@@ -626,7 +624,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd,
                 composingSpanStart, composingSpanEnd);
         if (DEBUG) {
-            Log.i(TAG, "onUpdateSelection: oss=" + oldSelStart + ", ose=" + oldSelEnd
+            Log.i(TAG2, "onUpdateSelection: oss=" + oldSelStart + ", ose=" + oldSelEnd
                     + ", nss=" + newSelStart + ", nse=" + newSelEnd
                     + ", cs=" + composingSpanStart + ", ce=" + composingSpanEnd);
         }
@@ -643,7 +641,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
     @Override
     public void onKey(int primaryCode, int[] keyCodes) {
 
-        Log.d(TAG, "onKey " + primaryCode);
+        Log.d(TAG2, "onKey " + primaryCode);
         InputConnection inputConnection = getCurrentInputConnection();
         playClick(primaryCode);
         if (navigationOnScreenKeyboardMode) {
@@ -733,7 +731,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
 
     @Override
     public void onText(CharSequence text) {
-        Log.d(TAG, "onText: " + text);
+        Log.d(TAG2, "onText: " + text);
     }
 
     @Override
@@ -798,13 +796,13 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
                 if (this.isInputViewShown()) {
                     MoveCursorRightSafe(inputConnection);
                     lastGestureX = motionEvent.getX();
-                    LogKeyboardTest(TAG, "onTouch KEYCODE_DPAD_RIGHT " + motionEvent);
+                    LogKeyboardTest(TAG2, "onTouch KEYCODE_DPAD_RIGHT " + motionEvent);
                 }
             } else if (motionEventAction == MotionEvent.ACTION_MOVE && lastGestureX - (36 - pref_gesture_motion_sensitivity) > motionEvent.getX()) {
                 if (this.isInputViewShown()) {
                     MoveCursorLeftSafe(inputConnection);
                     lastGestureX = motionEvent.getX();
-                    LogKeyboardTest(TAG, "onTouch KEYCODE_DPAD_LEFT " + motionEvent);
+                    LogKeyboardTest(TAG2, "onTouch KEYCODE_DPAD_LEFT " + motionEvent);
                 }
             }
         } else {
@@ -898,7 +896,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
     }
 
     private void UpdateKeyboardModeVisualization(boolean updateSwipePanelData) {
-        Log.d(TAG, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode=" + oneTimeShiftOneTimeBigMode + " doubleShiftCapsMode=" + doubleShiftCapsMode + " doubleAltPressAllSymbolsAlted=" + doubleAltPressAllSymbolsAlted + " altPressSingleSymbolAltedMode=" + altPressSingleSymbolAltedMode);
+        Log.d(TAG2, "UpdateKeyboardModeVisualization oneTimeShiftOneTimeBigMode=" + oneTimeShiftOneTimeBigMode + " doubleShiftCapsMode=" + doubleShiftCapsMode + " doubleAltPressAllSymbolsAlted=" + doubleAltPressAllSymbolsAlted + " altPressSingleSymbolAltedMode=" + altPressSingleSymbolAltedMode);
         KeyboardLayout keyboardLayout = keyboardLayoutManager.GetCurrentKeyboardLayout();
 
         String languageOnScreenNaming = keyboardLayout.KeyboardName;
@@ -1040,7 +1038,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean AcceptCallOnCalling() {
-        Log.d(TAG, "handleShiftOnCalling hello");
+        Log.d(TAG2, "handleShiftOnCalling hello");
         if(telecomManager == null) {
             Log.e(TAG2, "telecomManager == null");
             return false;
@@ -1049,7 +1047,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
             return false;
         // Accept calls using SHIFT key
         if (this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG, "handleShiftOnCalling callStateCallback - Calling");
+            Log.d(TAG2, "handleShiftOnCalling callStateCallback - Calling");
             telecomManager.acceptRingingCall();
             return true;
         } else {
@@ -1105,12 +1103,12 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
 
     @Override
     public void onGetSuggestions(SuggestionsInfo[] results) {
-        Log.d(TAG, "onGetSuggestions");
+        Log.d(TAG2, "onGetSuggestions");
     }
 
     @Override
     public void onGetSentenceSuggestions(SentenceSuggestionsInfo[] results) {
-        Log.d(TAG, "onGetSentenceSuggestions");
+        Log.d(TAG2, "onGetSentenceSuggestions");
     }
 
 
@@ -1209,14 +1207,14 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
         if(makeFirstBig != 0){
             if(!oneTimeShiftOneTimeBigMode) {
                 oneTimeShiftOneTimeBigMode = true;
-                Log.d(TAG, "updateShiftKeyState (changed to) oneTimeShiftOneTimeBigMode = true");
+                Log.d(TAG2, "updateShiftKeyState (changed to) oneTimeShiftOneTimeBigMode = true");
                 return true;
             }
         }else {
             //makeFirstBig == 0
             if(oneTimeShiftOneTimeBigMode) {
                 oneTimeShiftOneTimeBigMode = false;
-                Log.d(TAG, "updateShiftKeyState (changed to) oneTimeShiftOneTimeBigMode = false");
+                Log.d(TAG2, "updateShiftKeyState (changed to) oneTimeShiftOneTimeBigMode = false");
                 return true;
             }
         }
@@ -1846,7 +1844,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
         if (IsAltMode()) return true;
 
         if (SystemClock.uptimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
-            Log.d(TAG, "GestureMode at key_0_down first time");
+            Log.d(TAG2, "GestureMode at key_0_down first time");
             mode_keyboard_gestures = true;
             UpdateGestureModeVisualization();
         }
@@ -1904,7 +1902,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
             SetSearchHack(null, null);
         }
         if(SearchHack != null) {
-            Log.d(TAG, "FIRE SearchHack!");
+            Log.d(TAG2, "FIRE SearchHack!");
             SearchHack.Process();
             SetSearchHack(null, null);
         }

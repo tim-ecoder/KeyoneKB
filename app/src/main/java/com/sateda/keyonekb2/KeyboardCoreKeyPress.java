@@ -55,7 +55,7 @@ public class KeyboardCoreKeyPress extends InputMethodService {
 
     long AnyHoldPlusButtonSignalTime = 0;
 
-    public static final String TAG2 = "KeyoneKb2";
+    public static final String TAG2 = "KeyoneKb2-IME";
 
     protected List<KeyProcessingMode> keyProcessingModeList = new ArrayList<>();
     KeyPressData LastShortPressKeyUpForDoublePress = null;

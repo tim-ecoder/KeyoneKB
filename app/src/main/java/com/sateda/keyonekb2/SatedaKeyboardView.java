@@ -16,7 +16,6 @@ import android.view.View;
 
 import java.util.List;
 
-import static android.content.ContentValues.TAG;
 import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
 
 public class SatedaKeyboardView extends KeyboardView {
@@ -275,7 +274,7 @@ public class SatedaKeyboardView extends KeyboardView {
     @Override
     public boolean onLongPress(Keyboard.Key popupKey) {
         //super.onLongPress(popupKey);
-        Log.d(TAG, "onLongPress "+popupKey.label);
+        Log.d(TAG2, "onLongPress "+popupKey.label);
 
         if(!showSymbol) return false;
 
@@ -304,7 +303,7 @@ public class SatedaKeyboardView extends KeyboardView {
             public void swipeUp() { }
             public void swipeDown() { }
             public void onPress(int primaryCode) {
-                Log.d(TAG, "onPress primaryCode "+primaryCode);
+                Log.d(TAG2, "onPress primaryCode "+primaryCode);
             }
             public void onRelease(int primaryCode) {
             }
