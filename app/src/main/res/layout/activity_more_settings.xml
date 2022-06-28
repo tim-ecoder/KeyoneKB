@@ -10,7 +10,7 @@
             android:id="@+id/activity_settings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:context=".SettingsMoreActivity">
+            tools:context=".ActivitySettingsMore">
         <TextView
                 android:id="@+id/settings_more_title"
                 android:layout_width="match_parent"

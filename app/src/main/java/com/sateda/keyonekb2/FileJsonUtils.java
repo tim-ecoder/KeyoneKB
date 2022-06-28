@@ -14,7 +14,7 @@ import com.google.gson.GsonBuilder;
 import java.io.*;
 import java.util.HashMap;
 
-import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
+import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 public class FileJsonUtils {
 

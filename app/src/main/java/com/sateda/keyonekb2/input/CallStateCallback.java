@@ -4,7 +4,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
+import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 public class CallStateCallback extends PhoneStateListener {
 

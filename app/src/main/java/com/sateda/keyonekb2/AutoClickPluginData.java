@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 
-public class KeyoneKb2PluginData {
+public class AutoClickPluginData {
 
     @JsonProperty(index=5)
     public ArrayList<String>  DefaultSearchWords = new ArrayList<>();

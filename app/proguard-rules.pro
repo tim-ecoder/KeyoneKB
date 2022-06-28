@@ -42,6 +42,6 @@
 -keep class com.android.internal.telephony.** { *; }
 -keep class com.sateda.keyonekb2.KeyboardLayout { *; }
 -keep class com.sateda.keyonekb2.KeyboardLayout$* { *; }
--keep class com.sateda.keyonekb2.KeyoneKb2PluginData { *; }
--keep class com.sateda.keyonekb2.KeyoneKb2PluginData$* { *; }
+-keep class com.sateda.keyonekb2.AutoClickPluginData { *; }
+-keep class com.sateda.keyonekb2.AutoClickPluginData$* { *; }
 

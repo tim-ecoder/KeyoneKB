@@ -6,7 +6,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,9 +15,9 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
+import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
-public class KeyboardTestActivity extends Activity {
+public class ActivityKeyboardTest extends Activity {
 
     private TextView codeView;
     private TextView codeMetaView;
@@ -60,7 +59,7 @@ public class KeyboardTestActivity extends Activity {
 
         sbTestKeyboardViewMode.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View param1View, int param1Int, KeyEvent param1KeyEvent) {
-                KeyboardTestActivity.this.updateViews(param1KeyEvent);
+                ActivityKeyboardTest.this.updateViews(param1KeyEvent);
                 return false;
             }
         });
@@ -69,7 +68,7 @@ public class KeyboardTestActivity extends Activity {
         EditText inputView = (EditText) findViewById(R.id.input);
         inputView.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View param1View, int param1Int, KeyEvent param1KeyEvent) {
-                KeyboardTestActivity.this.updateViews(param1KeyEvent);
+                ActivityKeyboardTest.this.updateViews(param1KeyEvent);
                 return false;
             }
         });
@@ -79,7 +78,7 @@ public class KeyboardTestActivity extends Activity {
                 public boolean onGenericMotion(View v, MotionEvent event) {
                     String text = "View.onGenericMotionEvent() X = "+event.getX()+", Y ="+event.getY() +" ACT: "+event.getAction();
                     Log.d(TAG2, text);
-                    KeyboardTestActivity.this.touchInfoView.setText(text);
+                    ActivityKeyboardTest.this.touchInfoView.setText(text);
                     return true;
                 }
         });

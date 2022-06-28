@@ -10,7 +10,7 @@
     android:id="@+id/activity_settings"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context=".SettingsActivity">
+    tools:context=".ActivitySettings">
 
     <Switch
         android:id="@+id/default_keyboard_layout"

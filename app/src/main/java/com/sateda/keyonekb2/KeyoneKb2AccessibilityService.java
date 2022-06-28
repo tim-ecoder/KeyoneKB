@@ -36,7 +36,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         NodeClickableConverter _converter;
 
-        public ArrayList<KeyoneKb2PluginData.DynamicSearchMethod> DynamicSearchMethod;
+        public ArrayList<AutoClickPluginData.DynamicSearchMethod> DynamicSearchMethod;
 
         public int WaitBeforeSendChar;
 
@@ -68,14 +68,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 return findIdAll(root);
             }
 
-            for(KeyoneKb2PluginData.DynamicSearchMethod method : DynamicSearchMethod) {
-                if(method.DynamicSearchMethodFunction == KeyoneKb2PluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive) {
+            for(AutoClickPluginData.DynamicSearchMethod method : DynamicSearchMethod) {
+                if(method.DynamicSearchMethodFunction == AutoClickPluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive) {
                     AccessibilityNodeInfo info = FindFirstByTextRecursive(root, method.ContainsString);
                     if(info != null) {
                         return info;
                     }
                 }
-                if(method.DynamicSearchMethodFunction == KeyoneKb2PluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText) {
+                if(method.DynamicSearchMethodFunction == AutoClickPluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText) {
                     List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(method.ContainsString);
                     if (infoList.size() > 0) {
                         return infoList.get(0);
@@ -120,7 +120,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     public final ArrayList<SearchHackPlugin> searchHackPlugins = new ArrayList<>();
 
-    KbSettings kbSettings;
+    KeyoneKb2Settings keyoneKb2Settings;
 
     ExecutorService executorService;
 
@@ -138,10 +138,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             super.onCreate();
             Instance = this;
 
-            kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+            keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
             executorService = Executors.newFixedThreadPool(2);
 
-            KeyoneKb2PluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<KeyoneKb2PluginData>() {
+            AutoClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<AutoClickPluginData>() {
             }, getApplicationContext());
             if (data2 == null)
                 return;
@@ -152,7 +152,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 DefaultSearchWords.add("Search");
                 Log.e(TAG3, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
             }
-            for (KeyoneKb2PluginData.SearchPluginData data : data2.SearchPlugins) {
+            for (AutoClickPluginData.SearchPluginData data : data2.SearchPlugins) {
                 SearchHackPlugin shp = new SearchHackPlugin(data.PackageName);
                 if (data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
                     shp.setId(data.SearchFieldId);
@@ -188,16 +188,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     private String GetFromSetting(SearchHackPlugin plugin) {
-        kbSettings.CheckSettingOrSetDefault(plugin.getPreferenceKey(), "");
-        return kbSettings.GetStringValue(plugin.getPreferenceKey());
+        keyoneKb2Settings.CheckSettingOrSetDefault(plugin.getPreferenceKey(), "");
+        return keyoneKb2Settings.GetStringValue(plugin.getPreferenceKey());
     }
 
     private void SetToSetting(SearchHackPlugin plugin, String value) {
-        kbSettings.SetStringValue(plugin.getPreferenceKey(), value);
+        keyoneKb2Settings.SetStringValue(plugin.getPreferenceKey(), value);
     }
 
     public void ClearFromSettings(SearchHackPlugin plugin) {
-        kbSettings.ClearFromSettings(plugin.getPreferenceKey());
+        keyoneKb2Settings.ClearFromSettings(plugin.getPreferenceKey());
     }
 
 

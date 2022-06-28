@@ -22,7 +22,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,7 +29,7 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CandidateView extends View {
+public class ViewCandidate extends View {
 
     private static final int OUT_OF_BOUNDS = -1;
 
@@ -69,7 +68,7 @@ public class CandidateView extends View {
      * Construct a CandidateView for showing suggested words for completion.
      * @param context
      */
-    public CandidateView(Context context) {
+    public ViewCandidate(Context context) {
         super(context);
         mSelectionHighlight = context.getResources().getDrawable(
                 android.R.drawable.list_selector_background);

@@ -38,7 +38,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 @Keep
-public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
+public class KeyoneIME extends InputMethodServiceCoreGesture implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
 
     interface Processable {
         void Process();
@@ -72,7 +72,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
     private CallStateCallback callStateCallback;
 
     private final NotificationProcessor notificationProcessor = new NotificationProcessor();
-    private SatedaKeyboardView keyboardView;
+    private ViewSatedaKeyboard keyboardView;
     private Keyboard onScreenSwipePanelAndLanguage;
 
     KeyboardLayoutManager keyboardLayoutManager = new KeyboardLayoutManager();
@@ -216,13 +216,13 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
             pref_alt_space = true;
             pref_long_press_key_alt_symbol = false;
 
-            kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+            keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
             LoadSettingsAndKeyboards();
             LoadKeyProcessingMechanics();
 
             onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
 
-            keyboardView = (SatedaKeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
+            keyboardView = (ViewSatedaKeyboard) getLayoutInflater().inflate(R.layout.keyboard, null);
             keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
             keyboardView.setOnKeyboardActionListener(this);
             keyboardView.setPreviewEnabled(false);
@@ -1287,26 +1287,26 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
 
     //region LOAD SETTINGS & KEYBOARDS
     public static ArrayList<KeyboardLayout.KeyboardLayoutOptions> allLayouts;
-    KbSettings kbSettings;
+    KeyoneKb2Settings keyoneKb2Settings;
     private void LoadSettingsAndKeyboards(){
 
-        pref_show_default_onscreen_keyboard = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
-        pref_keyboard_gestures_at_views_enable = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED);
-        pref_gesture_motion_sensitivity = kbSettings.GetIntValue(kbSettings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
-        pref_show_toast = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_2_SHOW_TOAST);
-        pref_manage_call = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_6_MANAGE_CALL);
-        pref_alt_space = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_3_ALT_SPACE);
-        pref_long_press_key_alt_symbol = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_5_LONG_PRESS_ALT);
-        pref_flag = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_4_FLAG);
-        pref_height_bottom_bar = kbSettings.GetIntValue(kbSettings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
-        pref_system_icon_no_notification_text = kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
+        pref_show_default_onscreen_keyboard = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
+        pref_keyboard_gestures_at_views_enable = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED);
+        pref_gesture_motion_sensitivity = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
+        pref_show_toast = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_2_SHOW_TOAST);
+        pref_manage_call = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_6_MANAGE_CALL);
+        pref_alt_space = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_3_ALT_SPACE);
+        pref_long_press_key_alt_symbol = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_5_LONG_PRESS_ALT);
+        pref_flag = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_4_FLAG);
+        pref_height_bottom_bar = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
+        pref_system_icon_no_notification_text = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
 
         allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts = new ArrayList<>();
         //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
         for(KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : allLayouts) {
-            kbSettings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), kbSettings.KEYBOARD_IS_ENABLED_DEFAULT);
-            boolean enabled = kbSettings.GetBooleanValue(keyboardLayoutOptions.getPreferenceName());
+            keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_IS_ENABLED_DEFAULT);
+            boolean enabled = keyoneKb2Settings.GetBooleanValue(keyboardLayoutOptions.getPreferenceName());
             if(enabled) {
                 activeLayouts.add(keyboardLayoutOptions);
             }

@@ -1,24 +1,23 @@
 package com.sateda.keyonekb2;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
+import android.content.res.Resources;
+import android.graphics.*;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
+import android.view.*;
+import android.widget.PopupWindow;
 
 import java.util.List;
 
-import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
+import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
-public class SatedaKeyboardView extends KeyboardView {
+public class ViewSatedaKeyboard extends KeyboardView {
 
     private static final int MAX_KEY_COUNT = 50;
 
@@ -75,12 +74,12 @@ public class SatedaKeyboardView extends KeyboardView {
 
     private OverKeyboardPopupWindow mPopupKeyboard;
     private int mPopupLayout;
-    private MoreKeysKeyboardView mMiniKeyboard;
+    private ViewMoreKeysKeyboard mMiniKeyboard;
 
     private Context context;
     private AttributeSet attrs;
 
-    public SatedaKeyboardView(Context context, AttributeSet attrs) {
+    public ViewSatedaKeyboard(Context context, AttributeSet attrs) {
         super(context, attrs);
         KeyLabel = new String[MAX_KEY_COUNT];
         KeyLabel_x = new int[MAX_KEY_COUNT];
@@ -110,7 +109,7 @@ public class SatedaKeyboardView extends KeyboardView {
 
     public void setService(KeyoneIME listener) {
         mService = listener;
-        mMiniKeyboard = new MoreKeysKeyboardView(context,attrs);
+        mMiniKeyboard = new ViewMoreKeysKeyboard(context,attrs);
     }
 
     public void showFlag(boolean isShow){
@@ -142,7 +141,7 @@ public class SatedaKeyboardView extends KeyboardView {
     }
 
     private boolean isKeyboard(int keyCode1) {
-        for(int keyCode2 : KeyboardCoreKeyPress.KEY2_LATIN_ALPHABET_KEYS_CODES) {
+        for(int keyCode2 : InputMethodServiceCoreKeyPress.KEY2_LATIN_ALPHABET_KEYS_CODES) {
             if(keyCode1 == keyCode2)
                 return true;
         }
@@ -422,5 +421,189 @@ public class SatedaKeyboardView extends KeyboardView {
             paint.setColor((int) ( 0.5* 0xFF) << 24);
             canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
         }
+    }
+
+    public static class IconsHelper {
+
+        public static Bitmap drawableToBitmap (Drawable drawable) {
+            Bitmap bitmap = null;
+
+            if (drawable instanceof BitmapDrawable) {
+                BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+                if(bitmapDrawable.getBitmap() != null) {
+                    return bitmapDrawable.getBitmap();
+                }
+            }
+
+            if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+                bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+            } else {
+                bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            }
+
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+            return bitmap;
+        }
+    }
+
+    /**
+     * Base class to create popup window that appears over software keyboard.
+     */
+    public abstract static class OverKeyboardPopupWindow extends PopupWindow
+            implements ViewTreeObserver.OnGlobalLayoutListener {
+
+        public interface OnKeyboardHideListener {
+
+            void onKeyboardHide();
+
+        }
+
+
+        @SuppressWarnings("unchecked")
+        public static <S> S getSystemService(final Context context, final String serviceName) {
+            return (S) context.getSystemService(serviceName);
+        }
+
+        private int mKeyboardHeight = 0;
+        private boolean mPendingOpen = false;
+        private boolean mKeyboardOpen = false;
+
+        private Context mContext;
+        private View mRootView;
+
+        private OnKeyboardHideListener mKeyboardHideListener;
+
+        public OverKeyboardPopupWindow(final Context context, @NonNull final View rootView) {
+            super(context);
+            mContext = context;
+            mRootView = rootView;
+
+            setBackgroundDrawable(null);
+
+
+            final View view = onCreateView(LayoutInflater.from(context));
+            onViewCreated(view);
+            setContentView(view);
+            setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+            // Default size
+            setSize(mContext.getResources().getDimensionPixelSize(R.dimen.candidate_vertical_padding),
+                    WindowManager.LayoutParams.MATCH_PARENT);
+            setSizeForSoftKeyboard();
+        }
+
+        public void setKeyboardHideListener(final OnKeyboardHideListener keyboardHideListener) {
+            mKeyboardHideListener = keyboardHideListener;
+        }
+
+        @NonNull
+        public Context getContext() {
+            return mContext;
+        }
+
+        /**
+         * Manually set the popup window size
+         *
+         * @param width  Width of the popup
+         * @param height Height of the popup
+         */
+        public void setSize(final int width, final int height) {
+            setWidth(width);
+            setHeight(height);
+        }
+
+        /**
+         * Call this function to resize the emoji popup according to your soft keyboard size
+         */
+        public void setSizeForSoftKeyboard() {
+            final ViewTreeObserver viewTreeObserver = mRootView.getViewTreeObserver();
+            viewTreeObserver.addOnGlobalLayoutListener(this);
+        }
+
+        @Override
+        public void onGlobalLayout() {
+            final Rect r = new Rect();
+            mRootView.getWindowVisibleDisplayFrame(r);
+
+            final int screenHeight = calculateScreenHeight();
+            int heightDifference = screenHeight - (r.bottom - r.top);
+
+            final Resources resources = mContext.getResources();
+            final int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
+            if (resourceId > 0) {
+                heightDifference -= resources.getDimensionPixelSize(resourceId);
+            }
+
+            if (heightDifference > 100) {
+                mKeyboardHeight = heightDifference;
+                setSize(WindowManager.LayoutParams.MATCH_PARENT, mKeyboardHeight);
+
+                mKeyboardOpen = true;
+                if (mPendingOpen) {
+                    showAtBottom();
+                    mPendingOpen = false;
+                }
+            } else {
+                if (mKeyboardOpen && mKeyboardHideListener != null) {
+                    mKeyboardHideListener.onKeyboardHide();
+                }
+                mKeyboardOpen = false;
+            }
+        }
+
+        private int calculateScreenHeight() {
+            final WindowManager wm = getSystemService(mContext, Context.WINDOW_SERVICE);
+            final Display display = wm.getDefaultDisplay();
+            final Point size = new Point();
+            display.getSize(size);
+            return size.y;
+        }
+
+        /**
+         * Use this function to show the popup.
+         * NOTE: Since, the soft keyboard sizes are variable on different android devices, the
+         * library needs you to open the soft keyboard at least once before calling this function.
+         * If that is not possible see showAtBottomPending() function.
+         */
+        public void showAtBottom() {
+            showAtLocation(mRootView, Gravity.BOTTOM, 0, 0);
+        }
+
+        /**
+         * Use this function when the soft keyboard has not been opened yet. This
+         * will show the popup after the keyboard is up next time.
+         * Generally, you will be calling InputMethodManager.showSoftInput function after
+         * calling this function.
+         */
+        public void showAtBottomPending() {
+            if (isKeyboardOpen()) {
+                showAtBottom();
+            } else {
+                mPendingOpen = true;
+            }
+        }
+
+        /**
+         * @return Returns true if the soft keyboard is open, false otherwise.
+         */
+        public boolean isKeyboardOpen() {
+            return mKeyboardOpen;
+        }
+
+        /**
+         * @return keyboard height in pixels
+         */
+        public int getKeyboardHeight() {
+            return mKeyboardHeight;
+        }
+
+        @NonNull
+        public abstract View onCreateView(final LayoutInflater inflater);
+
+        public abstract void onViewCreated(final View view);
+
+
     }
 }

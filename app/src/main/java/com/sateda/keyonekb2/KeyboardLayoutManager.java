@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import static com.sateda.keyonekb2.FileJsonUtils.DeserializeFromJson;
-import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
+import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 public class KeyboardLayoutManager {
 
@@ -126,7 +126,7 @@ public class KeyboardLayoutManager {
         return KeyboardLayoutList.get(CurrentLanguageListIndex);
     }
 
-    public synchronized int KeyToCharCode(KeyboardCoreKeyPress.KeyPressData keyPressData, boolean alt_press, boolean shift_press, boolean is_double_press)
+    public synchronized int KeyToCharCode(InputMethodServiceCoreKeyPress.KeyPressData keyPressData, boolean alt_press, boolean shift_press, boolean is_double_press)
     {
         int result;
         KeyboardLayout.KeyVariants keyVariants = getCurKeyVariants(KeyboardLayoutList.get(CurrentLanguageListIndex), keyPressData.KeyCode);
@@ -149,7 +149,7 @@ public class KeyboardLayoutManager {
         return result;
     }
 
-    public synchronized int KeyToAltPopup(KeyboardCoreKeyPress.KeyPressData keyPressData) {
+    public synchronized int KeyToAltPopup(InputMethodServiceCoreKeyPress.KeyPressData keyPressData) {
         KeyboardLayout.KeyVariants keyVariants = getCurKeyVariants(KeyboardLayoutList.get(CurrentLanguageListIndex), keyPressData.KeyCode);
         if(keyVariants == null)
             return 0;

@@ -12,8 +12,8 @@ import java.util.ArrayList;
 
 import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
 
-public class SettingsMoreActivity extends Activity {
-    private KbSettings kbSettings;
+public class ActivitySettingsMore extends Activity {
+    private KeyoneKb2Settings keyoneKb2Settings;
 
     Button btSave;
     Button btSavePluginData;
@@ -22,7 +22,7 @@ public class SettingsMoreActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
         FileJsonUtils.Initialize(this.getPackageName(), getApplicationContext());
 
         setContentView(R.layout.activity_more_settings);
@@ -105,12 +105,12 @@ public class SettingsMoreActivity extends Activity {
         if(!btSavePluginData.getText().toString().equals("SAVED")) {
 
 
-            KeyoneKb2PluginData data = new KeyoneKb2PluginData();
+            AutoClickPluginData data = new AutoClickPluginData();
 
             data.DefaultSearchWords = KeyoneKb2AccessibilityService.Instance.DefaultSearchWords;
 
             for (KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
-                KeyoneKb2PluginData.SearchPluginData pluginData = new KeyoneKb2PluginData.SearchPluginData();
+                AutoClickPluginData.SearchPluginData pluginData = new AutoClickPluginData.SearchPluginData();
                 pluginData.PackageName = plugin.getPackageName();
                 pluginData.SearchFieldId = plugin.getId();
 
@@ -124,13 +124,13 @@ public class SettingsMoreActivity extends Activity {
                         pluginData.DynamicSearchMethod = new ArrayList<>();
                         for (String searchWord : data.DefaultSearchWords) {
 
-                            KeyoneKb2PluginData.DynamicSearchMethod d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
-                            d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
+                            AutoClickPluginData.DynamicSearchMethod d1 = new AutoClickPluginData.DynamicSearchMethod();
+                            d1.DynamicSearchMethodFunction = AutoClickPluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
                             d1.ContainsString = searchWord;
                             pluginData.DynamicSearchMethod.add(d1);
 
-                            d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
-                            d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
+                            d1 = new AutoClickPluginData.DynamicSearchMethod();
+                            d1.DynamicSearchMethodFunction = AutoClickPluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
                             d1.ContainsString = searchWord;
                             pluginData.DynamicSearchMethod.add(d1);
                         }

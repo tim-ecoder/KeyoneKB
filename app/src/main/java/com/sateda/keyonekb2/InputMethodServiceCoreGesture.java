@@ -9,7 +9,7 @@ import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
-public abstract class KeyboardCoreGesture extends KeyboardCoreKeyPress {
+public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCoreKeyPress {
     private int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
     private int MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST ;
     private int ROW_4_BEGIN_Y;

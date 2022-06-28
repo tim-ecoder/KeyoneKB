@@ -11,10 +11,10 @@ import android.util.Log;
 
 import java.util.List;
 
-import static com.sateda.keyonekb2.KeyboardCoreKeyPress.TAG2;
+import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 
-public class MoreKeysKeyboardView extends KeyboardView {
+public class ViewMoreKeysKeyboard extends KeyboardView {
 
 
     private int countKeys;
@@ -26,14 +26,14 @@ public class MoreKeysKeyboardView extends KeyboardView {
 
 
 
-    public MoreKeysKeyboardView(Context context, AttributeSet attrs) {
+    public ViewMoreKeysKeyboard(Context context, AttributeSet attrs) {
         super(context, attrs);
         keyWidht = 0;
         totalWidht = 0;
 
     }
 
-    public MoreKeysKeyboardView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ViewMoreKeysKeyboard(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

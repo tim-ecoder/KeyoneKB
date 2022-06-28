@@ -14,15 +14,15 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-import static com.sateda.keyonekb2.SettingsActivity.*;
+import static com.sateda.keyonekb2.ActivitySettings.*;
 
-public class MainActivity extends Activity {
+public class ActivityMain extends Activity {
 
     private Button btn_power_manager;
 
     private Button btn_sys_phone_permission;
 
-    private KbSettings kbSettings;
+    private KeyoneKb2Settings keyoneKb2Settings;
 
     Button btn_sys_kb_accessibility_setting;
 
@@ -33,7 +33,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
         Button btn_settings = (Button) findViewById(R.id.btn_settings);
         Button btn_test_key = (Button) findViewById(R.id.btn_test_key);
         btn_power_manager = (Button) findViewById(R.id.btn_power_manager);
@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
         btn_settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent switchActivityIntent = new Intent(MainActivity.this, SettingsActivity.class);
+                Intent switchActivityIntent = new Intent(ActivityMain.this, ActivitySettings.class);
                 startActivity(switchActivityIntent);
             }
         });
@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
         btn_more_settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent switchActivityIntent = new Intent(MainActivity.this, SettingsMoreActivity.class);
+                Intent switchActivityIntent = new Intent(ActivityMain.this, ActivitySettingsMore.class);
                 startActivity(switchActivityIntent);
             }
         });
@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
         btn_test_key.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent switchActivityIntent = new Intent(MainActivity.this, KeyboardTestActivity.class);
+                Intent switchActivityIntent = new Intent(ActivityMain.this, ActivityKeyboardTest.class);
                 startActivity(switchActivityIntent);
             }
         });
@@ -93,7 +93,7 @@ public class MainActivity extends Activity {
         btn_power_manager.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                CheckPowerState(MainActivity.this, true);
+                CheckPowerState(ActivityMain.this, true);
             }
         });
 
@@ -171,48 +171,48 @@ public class MainActivity extends Activity {
         return accEnabled != null && accEnabled.contains(getPackageName());
     }
 
-    private static void CheckPowerState(MainActivity mainActivity, boolean andRequest) {
+    private static void CheckPowerState(ActivityMain activityMain, boolean andRequest) {
         Intent intent = new Intent();
-        String packageName = mainActivity.getApplicationContext().getPackageName();
-        PowerManager pm = (PowerManager) mainActivity.getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        String packageName = activityMain.getApplicationContext().getPackageName();
+        PowerManager pm = (PowerManager) activityMain.getApplicationContext().getSystemService(Context.POWER_SERVICE);
 
         if (!pm.isIgnoringBatteryOptimizations(packageName)) {
             if(andRequest) {
                 intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                 intent.setData(Uri.parse("package:" + packageName));
-                mainActivity.getApplicationContext().startActivity(intent);
-                mainActivity.btn_power_manager.setText(R.string.main_btn_power_manager_deactivated);
-                mainActivity.btn_power_manager.setEnabled(false);
+                activityMain.getApplicationContext().startActivity(intent);
+                activityMain.btn_power_manager.setText(R.string.main_btn_power_manager_deactivated);
+                activityMain.btn_power_manager.setEnabled(false);
             } else {
-                mainActivity.btn_power_manager.setText(R.string.main_btn_power_manager_activated);
-                mainActivity.btn_power_manager.setEnabled(true);
+                activityMain.btn_power_manager.setText(R.string.main_btn_power_manager_activated);
+                activityMain.btn_power_manager.setEnabled(true);
             }
         } else {
-            mainActivity.btn_power_manager.setText(R.string.main_btn_power_manager_deactivated);
-            mainActivity.btn_power_manager.setEnabled(false);
+            activityMain.btn_power_manager.setText(R.string.main_btn_power_manager_deactivated);
+            activityMain.btn_power_manager.setEnabled(false);
         }
     }
 
     private void CheckPermissionState(boolean andRequest) {
-        if(kbSettings.GetBooleanValue(kbSettings.APP_PREFERENCES_6_MANAGE_CALL)) {
+        if(keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_6_MANAGE_CALL)) {
 
-                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) {
                     if(!andRequest) {
                         ButtonPermissionActivate(this);
                     }
                     else {
-                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
+                        ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
                         //ButtonPermissionDeactivate(this);
                     }
                 } else {
                     ButtonPermissionDeactivate(this);
                 }
-                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                     if(!andRequest) {
                         ButtonPermissionActivate(this);
                     }
                     else {
-                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_PERMISSION_CODE);
+                        ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_PERMISSION_CODE);
                         //ButtonPermissionDeactivate(this);
                     }
                 } else {
@@ -225,14 +225,14 @@ public class MainActivity extends Activity {
 
         }
 
-    private static void ButtonPermissionActivate(MainActivity mainActivity) {
-        mainActivity.btn_sys_phone_permission.setText(R.string.main_btn_sys_phone_permission_activated);
-        mainActivity.btn_sys_phone_permission.setEnabled(true);
+    private static void ButtonPermissionActivate(ActivityMain activityMain) {
+        activityMain.btn_sys_phone_permission.setText(R.string.main_btn_sys_phone_permission_activated);
+        activityMain.btn_sys_phone_permission.setEnabled(true);
     }
 
-    private static void ButtonPermissionDeactivate(MainActivity mainActivity) {
-        mainActivity.btn_sys_phone_permission.setEnabled(false);
-        mainActivity.btn_sys_phone_permission.setText(R.string.main_btn_sys_phone_permission_deactivated);
+    private static void ButtonPermissionDeactivate(ActivityMain activityMain) {
+        activityMain.btn_sys_phone_permission.setEnabled(false);
+        activityMain.btn_sys_phone_permission.setText(R.string.main_btn_sys_phone_permission_deactivated);
     }
 
 

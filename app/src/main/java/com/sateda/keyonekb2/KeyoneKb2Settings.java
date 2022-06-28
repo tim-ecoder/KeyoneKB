@@ -1,9 +1,8 @@
 package com.sateda.keyonekb2;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 
-public class KbSettings {
+public class KeyoneKb2Settings {
     public static final String APP_PREFERENCES = "kbsettings";
     public final String APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM = "notification_icon_system";
     public final String APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
@@ -17,12 +16,12 @@ public class KbSettings {
     public final String APP_PREFERENCES_1_SENS_BOTTOM_BAR = "sens_bottom_bar";
 
     public final boolean KEYBOARD_IS_ENABLED_DEFAULT = true;
-    private static KbSettings _instance;
+    private static KeyoneKb2Settings _instance;
     SharedPreferences _mSettings;
 
-    public static KbSettings Get(SharedPreferences mSettings) {
+    public static KeyoneKb2Settings Get(SharedPreferences mSettings) {
         if (_instance == null) {
-            _instance = new KbSettings(mSettings);
+            _instance = new KeyoneKb2Settings(mSettings);
         }
         return _instance;
     }
@@ -51,7 +50,7 @@ public class KbSettings {
         }
     }
 
-    private KbSettings(SharedPreferences mSettings) {
+    private KeyoneKb2Settings(SharedPreferences mSettings) {
         _mSettings = mSettings;
         CheckSettingOrSetDefault(APP_PREFERENCES_1_SENS_BOTTOM_BAR, 1);
         CheckSettingOrSetDefault(APP_PREFERENCES_2_SHOW_TOAST, false);
