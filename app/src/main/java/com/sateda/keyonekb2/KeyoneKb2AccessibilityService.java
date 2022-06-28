@@ -43,6 +43,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         public ArrayList<KeyoneKb2PluginData.DynamicSearchMethod> DynamicSearchMethod;
 
+        public int WaitBeforeSendChar;
+
         public void setConverter(NodeClickableConverter converter) {
             _converter = converter;
         }
@@ -156,6 +158,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 shp.setEvents(STD_EVENTS);
             if(data.CustomClickAdapterClickParent)
                 shp.setConverter(AccessibilityNodeInfo::getParent);
+
+            shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
 
             searchHackPlugins.add(shp);
         }
@@ -307,8 +311,12 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 if(info.isFocused() )
                     return true;
                 Log.d(TAG, "SetSearchHack "+searchHackPlugin.getPackageName());
+                int wait = searchHackPlugin.WaitBeforeSendChar;
                 SetSearchHack(() -> {
                     info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    if(wait > 0) {
+                        try { Thread.sleep(wait); } catch(Throwable ignore) {}
+                    }
                 }, searchHackPlugin.getPackageName());
             } else {
                 SetSearchHack(null, null);

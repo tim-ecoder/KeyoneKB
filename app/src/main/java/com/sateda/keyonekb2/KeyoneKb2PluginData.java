@@ -26,6 +26,9 @@ public class KeyoneKb2PluginData {
         @JsonProperty(index=50)
         public ArrayList<DynamicSearchMethod> DynamicSearchMethod;
 
+        @JsonProperty(index=60)
+        public int WaitBeforeSendCharMs;
+
     }
 
     public enum DynamicSearchMethodFunction {

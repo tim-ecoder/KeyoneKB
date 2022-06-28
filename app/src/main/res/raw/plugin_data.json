@@ -1,9 +1,5 @@
 {
   "search-plugins" : [ {
-    "package-name" : "com.modoohut.dialer",
-    "additional-event-type-type-window-content-changed" : true,
-    "search-field-id" : "com.modoohut.dialer:id/display_name"
-  }, {
     "package-name" : "com.blackberry.blackberrylauncher",
     "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "com.blackberry.blackberrylauncher:id/search_box_collapsed"
@@ -27,11 +23,17 @@
   }, {
     "package-name" : "ru.yandex.yandexmaps",
     "custom-click-adapter-click-parent" : true,
-    "search-field-id" : "ru.yandex.yandexmaps:id/search_line_search_text"
+    "search-field-id" : "ru.yandex.yandexmaps:id/search_line_search_text",
+    "wait-before-send-char-ms": 300
   }, {
     "package-name" : "com.blackberry.notes",
     "search-field-id" : "com.blackberry.notes:id/menu_search"
-  }, {
+  },{
+    "package-name" : "com.modoohut.dialer",
+    "additional-event-type-type-window-content-changed" : true,
+    "search-field-id" : "com.modoohut.dialer:id/display_name"
+  },
+    {
     "package-name" : "org.example.dummy",
     "additional-event-type-type-window-content-changed" : true,
     "custom-click-adapter-click-parent" : true,
