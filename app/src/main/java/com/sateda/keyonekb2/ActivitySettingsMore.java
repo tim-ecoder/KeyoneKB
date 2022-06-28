@@ -169,8 +169,14 @@ public class ActivitySettingsMore extends Activity {
         String text_data = "";
         for(KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
             String value = plugin.getId();
-            if(value.isEmpty())
-                value = getString(R.string.pref_more_tv_single_plugin_data);
+            if(value.isEmpty()) {
+                if(plugin.DynamicSearchMethod != null && plugin.DynamicSearchMethod.size() == 1)
+                    value = getString(R.string.pref_more_tv_single_plugin_data2)+
+                            " SearchFunction: "+plugin.DynamicSearchMethod.get(0).DynamicSearchMethodFunction+
+                            " SearchWord: "+plugin.DynamicSearchMethod.get(0).ContainsString;
+                else
+                    value = getString(R.string.pref_more_tv_single_plugin_data);
+            }
             text_data += String.format("Application:\n%s\nResourceId:\n%s\n\n", plugin.getPackageName(), value);
         }
 
