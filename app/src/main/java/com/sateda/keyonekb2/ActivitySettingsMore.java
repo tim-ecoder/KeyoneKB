@@ -17,7 +17,6 @@ public class ActivitySettingsMore extends Activity {
 
     Button btSave;
     Button btSavePluginData;
-    //Button btAddPlugin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +35,32 @@ public class ActivitySettingsMore extends Activity {
         });
 
         btSavePluginData = (Button)findViewById(R.id.pref_more_bt_save_search_plugins);
+
+
+        Button btClear = (Button)findViewById(R.id.pref_more_bt_clear);
+        btClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                for (KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
+                    plugin.setId("");
+                    KeyoneKb2AccessibilityService.Instance.ClearFromSettings(plugin);
+                }
+                SetTextPluginData();
+            }
+        });
+
+        RedrawViewData();
+
+
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        RedrawViewData();
+    }
+
+    private void RedrawViewData() {
 
         if(KeyoneKb2AccessibilityService.Instance == null) {
             btSavePluginData.setText("NEED ENABLE ACCESSIBILITY");
@@ -62,22 +87,9 @@ public class ActivitySettingsMore extends Activity {
                 continue;
             }
         }
-        Button btClear = (Button)findViewById(R.id.pref_more_bt_clear);
-        btClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                for (KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
-                    plugin.setId("");
-                    KeyoneKb2AccessibilityService.Instance.ClearFromSettings(plugin);
-                }
-                SetTextPluginData();
-            }
-        });
 
 
         SetTextPluginData();
-
-
     }
 
     private void InitAddPluginButton(String packageName, Button btAddPlugin) {
