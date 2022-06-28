@@ -27,6 +27,12 @@ public class KbSettings {
         return _instance;
     }
 
+    public void ClearFromSettings(String pref_name) {
+        if(_mSettings.contains(pref_name)) {
+            _mSettings.edit().remove(pref_name).commit();
+        }
+    }
+
     public void CheckSettingOrSetDefault(String pref_name, boolean default_value) {
         if(!_mSettings.contains(pref_name)) {
             _mSettings.edit().putBoolean(pref_name, default_value).apply();

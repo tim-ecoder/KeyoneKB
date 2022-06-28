@@ -94,37 +94,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         private AccessibilityNodeInfo findIdAll(AccessibilityNodeInfo root) {
 
-            AccessibilityNodeInfo info = FindFirstByTextRecursive(root, SEARCH_CONST_FIND1);
-            if(info != null) {
-                return info;
-            }
-            List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND1);
-            if (infoList.size() > 0) {
-                return infoList.get(0);
-            }
-            info = FindFirstByTextRecursive(root, SEARCH_CONST_FIND2);
-            if (info != null) {
-                return info;
-            }
-            infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND2);
-            if (infoList.size() > 0) {
-                return infoList.get(0);
-            }
-            info = FindFirstByTextRecursive(root, SEARCH_CONST_FIND3);
-            if (info != null) {
-                return info;
-            }
-            infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND3);
-            if (infoList.size() > 0) {
-                return infoList.get(0);
-            }
-            info = FindFirstByTextRecursive(root, SEARCH_CONST_FIND4);
-            if (info != null) {
-                return info;
-            }
-            infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND4);
-            if (infoList.size() > 0) {
-                return infoList.get(0);
+            for (String searchWord : Instance.DefaultSearchWords) {
+
+                AccessibilityNodeInfo info = FindFirstByTextRecursive(root, searchWord);
+                if (info != null) {
+                    return info;
+                }
+                List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(searchWord);
+                if (infoList.size() > 0) {
+                    return infoList.get(0);
+                }
             }
             return null;
         }
@@ -151,8 +130,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     ExecutorService executorService;
 
+    ArrayList<String> DefaultSearchWords;
+
     @Override
-    public void onCreate() {
+    public synchronized void onDestroy() {
+        Instance = null;
+        super.onDestroy();
+    }
+
+    @Override
+    public synchronized void onCreate() {
         super.onCreate();
         Instance = this;
 
@@ -162,6 +149,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         KeyoneKb2PluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<KeyoneKb2PluginData>() {}, getApplicationContext());
         if(data2 == null)
             return;
+        if(data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
+            DefaultSearchWords = data2.DefaultSearchWords;
+        } else {
+            DefaultSearchWords = new ArrayList<>();
+            DefaultSearchWords.add(SEARCH_CONST_FIND1);
+            DefaultSearchWords.add(SEARCH_CONST_FIND2);
+            DefaultSearchWords.add(SEARCH_CONST_FIND3);
+            DefaultSearchWords.add(SEARCH_CONST_FIND4);
+        }
         for (KeyoneKb2PluginData.SearchPluginData data : data2.SearchPlugins) {
             SearchHackPlugin shp = new SearchHackPlugin(data.PackageName);
             if(data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
@@ -183,9 +179,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
         for (SearchHackPlugin plugin : searchHackPlugins) {
-            String value = GetFromSetting(plugin);
-            if (value != null && value.length() > 0) {
-                plugin.setId(value);
+            if(plugin.getId() == null || plugin.getId().isEmpty()) {
+                String value = GetFromSetting(plugin);
+                if (value != null && value.length() > 0) {
+                    plugin.setId(value);
+                }
             }
         }
 
@@ -200,77 +198,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         kbSettings.SetStringValue(plugin.getPreferenceKey(), value);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    public boolean onKeyEvent(KeyEvent event) {
-
-        //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
-        //Зажатие speed_key+Буква не передается в сервис клавиатуры
-        //Но зато передается сюда, поэтмоу приходится отсюда туда переправлять
-        if(!IsMetaFunctionOrFunction(event))
-            return false;
-        if(KeyoneIME.Instance == null)
-            return false;
-        // Этот блок ХАК-а нужен на К2_не_РСТ иначе при нажатиии speed_key вызывается меню биндинга букв
-        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION) {
-            KeyEvent event1 = GetCopy(event);
-            if(event.getAction() == KeyEvent.ACTION_DOWN) {
-                KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
-            }
-            if(event.getAction() == KeyEvent.ACTION_UP) {
-                KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
-            }
-
-            return true;
-        }
-        if(     event.getKeyCode() != KeyEvent.KEYCODE_A
-                && event.getKeyCode() != KeyEvent.KEYCODE_C
-                && event.getKeyCode() != KeyEvent.KEYCODE_X
-                && event.getKeyCode() != KeyEvent.KEYCODE_V
-                && event.getKeyCode() != KeyEvent.KEYCODE_Z
-                && event.getKeyCode() != KeyEvent.KEYCODE_0) {
-            return false;
-        }
-        if(event.getAction() == KeyEvent.ACTION_DOWN) {
-            //KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
-            executorService.execute(
-                    () -> {
-                        try {
-                            KeyEvent event1 = GetCopy(event);
-                            Thread.sleep(100);
-                            KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
-                        }catch(Throwable ignored) {}
-                    });
-            return true;
-        } else if(event.getAction() == KeyEvent.ACTION_UP) {
-            //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
-            KeyEvent event1 = GetCopy(event);
-            KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
-            return true;
-        }
-        return false;
+    public void ClearFromSettings(SearchHackPlugin plugin) {
+        kbSettings.ClearFromSettings(plugin.getPreferenceKey());
     }
 
-    private boolean IsMetaFunctionOrFunction(KeyEvent event) {
-        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION)
-            return true;
-        if((event.getMetaState() & KeyEvent.META_FUNCTION_ON) == KeyEvent.META_FUNCTION_ON)
-            return true;
-        return false;
-    }
 
-    private KeyEvent GetCopyNewTime(KeyEvent keyEvent) {
-        long now = SystemClock.uptimeMillis();
-        return new KeyEvent(now, now, keyEvent.getAction(), keyEvent.getKeyCode(), keyEvent.getRepeatCount(),keyEvent.getMetaState(),keyEvent.getDeviceId(),keyEvent.getScanCode(),keyEvent.getFlags(),keyEvent.getFlags());
-    }
-
-    private KeyEvent GetCopy(KeyEvent keyEvent) {
-        long now = SystemClock.uptimeMillis();
-        return new KeyEvent(keyEvent.getDownTime(), keyEvent.getEventTime(), keyEvent.getAction(), keyEvent.getKeyCode(), keyEvent.getRepeatCount(),keyEvent.getMetaState(),keyEvent.getDeviceId(),keyEvent.getScanCode(),keyEvent.getFlags(),keyEvent.getFlags());
-    }
 
     @Override
-    public void onAccessibilityEvent(AccessibilityEvent event) {
+    public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
 
         if(DEBUG && event.getPackageName() != null && event.getPackageName().toString().equals("com.android.systemui"))
             return;
@@ -414,5 +349,79 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @Override
     public void onInterrupt() {
     }
+
+
+    //region ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    public synchronized boolean onKeyEvent(KeyEvent event) {
+
+        //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
+        //Зажатие speed_key+Буква не передается в сервис клавиатуры
+        //Но зато передается сюда, поэтмоу приходится отсюда туда переправлять
+        if(!IsMetaFunctionOrFunction(event))
+            return false;
+        if(KeyoneIME.Instance == null)
+            return false;
+        // Этот блок ХАК-а нужен на К2_не_РСТ иначе при нажатиии speed_key вызывается меню биндинга букв
+        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION) {
+            KeyEvent event1 = GetCopy(event);
+            if(event.getAction() == KeyEvent.ACTION_DOWN) {
+                KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+            }
+            if(event.getAction() == KeyEvent.ACTION_UP) {
+                KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+            }
+
+            return true;
+        }
+        if(     event.getKeyCode() != KeyEvent.KEYCODE_A
+                && event.getKeyCode() != KeyEvent.KEYCODE_C
+                && event.getKeyCode() != KeyEvent.KEYCODE_X
+                && event.getKeyCode() != KeyEvent.KEYCODE_V
+                && event.getKeyCode() != KeyEvent.KEYCODE_Z
+                && event.getKeyCode() != KeyEvent.KEYCODE_0) {
+            return false;
+        }
+        if(event.getAction() == KeyEvent.ACTION_DOWN) {
+            //KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
+            executorService.execute(
+                    () -> {
+                        try {
+                            KeyEvent event1 = GetCopy(event);
+                            Thread.sleep(100);
+                            KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                        }catch(Throwable ignored) {}
+                    });
+            return true;
+        } else if(event.getAction() == KeyEvent.ACTION_UP) {
+            //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
+            KeyEvent event1 = GetCopy(event);
+            KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean IsMetaFunctionOrFunction(KeyEvent event) {
+        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION)
+            return true;
+        if((event.getMetaState() & KeyEvent.META_FUNCTION_ON) == KeyEvent.META_FUNCTION_ON)
+            return true;
+        return false;
+    }
+
+    private KeyEvent GetCopyNewTime(KeyEvent keyEvent) {
+        long now = SystemClock.uptimeMillis();
+        return new KeyEvent(now, now, keyEvent.getAction(), keyEvent.getKeyCode(), keyEvent.getRepeatCount(),keyEvent.getMetaState(),keyEvent.getDeviceId(),keyEvent.getScanCode(),keyEvent.getFlags(),keyEvent.getFlags());
+    }
+
+    private KeyEvent GetCopy(KeyEvent keyEvent) {
+        long now = SystemClock.uptimeMillis();
+        return new KeyEvent(keyEvent.getDownTime(), keyEvent.getEventTime(), keyEvent.getAction(), keyEvent.getKeyCode(), keyEvent.getRepeatCount(),keyEvent.getMetaState(),keyEvent.getDeviceId(),keyEvent.getScanCode(),keyEvent.getFlags(),keyEvent.getFlags());
+    }
+
+    //endregion
 
 }

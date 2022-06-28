@@ -36,10 +36,21 @@ public class SettingsMoreActivity extends Activity {
         });
 
         btSavePluginData = (Button)findViewById(R.id.pref_more_bt_save_search_plugins);
-        btSavePluginData.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { SavePluginData(); }
-        });
+
+        if(KeyoneKb2AccessibilityService.Instance == null) {
+            btSavePluginData.setText("NEED ENABLE ACCESSIBILITY");
+            btSavePluginData.setEnabled(false);
+        } else {
+            btSavePluginData.setEnabled(true);
+            btSavePluginData.setText("SAVE PLUGIN DATA");
+
+            btSavePluginData.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) { SavePluginData(); }
+            });
+
+        }
+
 
         if(KeyoneIME.Instance != null && KeyoneIME.Instance.PackageHistory.size() > 0) {
             int i = 0;
@@ -57,6 +68,7 @@ public class SettingsMoreActivity extends Activity {
             public void onClick(View view) {
                 for (KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
                     plugin.setId("");
+                    KeyoneKb2AccessibilityService.Instance.ClearFromSettings(plugin);
                 }
                 SetTextPluginData();
             }
@@ -86,10 +98,16 @@ public class SettingsMoreActivity extends Activity {
 
     private void SavePluginData() {
 
+        if(KeyoneKb2AccessibilityService.Instance == null) {
+            return;
+        }
+
         if(!btSavePluginData.getText().toString().equals("SAVED")) {
 
 
             KeyoneKb2PluginData data = new KeyoneKb2PluginData();
+
+            data.DefaultSearchWords = KeyoneKb2AccessibilityService.Instance.DefaultSearchWords;
 
             for (KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
                 KeyoneKb2PluginData.SearchPluginData pluginData = new KeyoneKb2PluginData.SearchPluginData();
@@ -102,26 +120,20 @@ public class SettingsMoreActivity extends Activity {
                     if(plugin.DynamicSearchMethod != null && !plugin.DynamicSearchMethod.isEmpty()) {
                         pluginData.DynamicSearchMethod = plugin.DynamicSearchMethod;
                     } else {
+
                         pluginData.DynamicSearchMethod = new ArrayList<>();
-                        KeyoneKb2PluginData.DynamicSearchMethod d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
-                        d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
-                        d1.ContainsString = "Найти";
-                        pluginData.DynamicSearchMethod.add(d1);
+                        for (String searchWord : data.DefaultSearchWords) {
 
-                        d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
-                        d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
-                        d1.ContainsString = "Поиск";
-                        pluginData.DynamicSearchMethod.add(d1);
+                            KeyoneKb2PluginData.DynamicSearchMethod d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
+                            d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
+                            d1.ContainsString = searchWord;
+                            pluginData.DynamicSearchMethod.add(d1);
 
-                        d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
-                        d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
-                        d1.ContainsString = "Поиск";
-                        pluginData.DynamicSearchMethod.add(d1);
-
-                        d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
-                        d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
-                        d1.ContainsString = "Search";
-                        pluginData.DynamicSearchMethod.add(d1);
+                            d1 = new KeyoneKb2PluginData.DynamicSearchMethod();
+                            d1.DynamicSearchMethodFunction = KeyoneKb2PluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
+                            d1.ContainsString = searchWord;
+                            pluginData.DynamicSearchMethod.add(d1);
+                        }
                     }
                 }
 

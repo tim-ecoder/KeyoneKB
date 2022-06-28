@@ -169,6 +169,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
 
     @Override
     public void onDestroy() {
+        Instance = null;
         notificationProcessor.CancelAll();
         super.onDestroy();
     }

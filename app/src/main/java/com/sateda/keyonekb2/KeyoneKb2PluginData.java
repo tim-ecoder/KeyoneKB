@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 public class KeyoneKb2PluginData {
 
+    @JsonProperty(index=5)
+    public ArrayList<String>  DefaultSearchWords = new ArrayList<>();
     @JsonProperty(index=10)
     public ArrayList<SearchPluginData>  SearchPlugins = new ArrayList<>();
 
