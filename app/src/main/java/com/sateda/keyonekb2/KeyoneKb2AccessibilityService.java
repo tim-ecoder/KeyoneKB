@@ -23,6 +23,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     public static String SEARCH_CONST_FIND1 = "Найти";
     public static String SEARCH_CONST_FIND2 = "Поиск";
     public static String SEARCH_CONST_FIND3 = "Search";
+    public static String SEARCH_CONST_FIND4 = "Искать";
     public static KeyoneKb2AccessibilityService Instance;
     private static String TAG = "KeyoneKb2-AS";
 
@@ -97,7 +98,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if(info != null) {
                 return info;
             }
-            List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND2);
+            List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND1);
             if (infoList.size() > 0) {
                 return infoList.get(0);
             }
@@ -105,7 +106,23 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if (info != null) {
                 return info;
             }
+            infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND2);
+            if (infoList.size() > 0) {
+                return infoList.get(0);
+            }
+            info = FindFirstByTextRecursive(root, SEARCH_CONST_FIND3);
+            if (info != null) {
+                return info;
+            }
             infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND3);
+            if (infoList.size() > 0) {
+                return infoList.get(0);
+            }
+            info = FindFirstByTextRecursive(root, SEARCH_CONST_FIND4);
+            if (info != null) {
+                return info;
+            }
+            infoList = root.findAccessibilityNodeInfosByText(SEARCH_CONST_FIND4);
             if (infoList.size() > 0) {
                 return infoList.get(0);
             }
