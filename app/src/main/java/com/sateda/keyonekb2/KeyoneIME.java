@@ -30,7 +30,10 @@ import com.android.internal.telephony.ITelephony;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import java.lang.reflect.Method;
+import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 @Keep
 public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -92,7 +95,9 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
     private boolean metaSymPressed;
     private boolean metaAltPressed; //нажатие клавишь с зажатым альтом
 
-    private String lastPackageName = "";
+    private String _lastPackageName = "";
+
+    public FixedSizeSet<String> PackageHistory = new FixedSizeSet<>(4);
 
     //settings
     private int pref_height_bottom_bar = 10;
@@ -124,6 +129,43 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
     KeyboardLayout.KeyboardLayoutOptions.IconRes navIconRes;
 
     KeyboardLayout.KeyboardLayoutOptions.IconRes navFnIconRes;
+
+    public class FixedSizeSet<E> extends AbstractSet<E> {
+        private final LinkedHashMap<E, E> contents;
+
+        FixedSizeSet(final int maxCapacity) {
+            contents = new LinkedHashMap<E, E>(maxCapacity * 4 /3, 0.75f, false) {
+                @Override
+                protected boolean removeEldestEntry(java.util.Map.Entry<E, E> eldest) {
+                    return size() == maxCapacity;
+                }
+            };
+        }
+
+        @Override
+        public Iterator<E> iterator() {
+            return contents.keySet().iterator();
+        }
+
+        @Override
+        public int size() {
+            return contents.size();
+        }
+
+        public boolean add(E e) {
+            boolean hadNull = false;
+            if (e == null) {
+                hadNull = contents.containsKey(null);
+            }
+            E previous = contents.put(e, e);
+            return e == null ? hadNull : previous != null;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return contents.containsKey(o);
+        }
+    }
 
     @Override
     public void onDestroy() {
@@ -218,7 +260,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
             UpdateGestureModeVisualization(false);
         }
 
-        if (lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards();
+        if (_lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards();
 
         //TODO: Подумать, чтобы не надо было инициализировать свайп-клавиаутуру по настройке pref_show_default_onscreen_keyboard
         keyboardView.showFlag(pref_flag);
@@ -240,8 +282,9 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
         // the underlying state of the text editor could have changed in any way.
 
         // Обрабатываем переход между приложениями
-        if (!editorInfo.packageName.equals(lastPackageName)) {
-            lastPackageName = editorInfo.packageName;
+        if (!editorInfo.packageName.equals(_lastPackageName)) {
+            PackageHistory.add(_lastPackageName);
+            _lastPackageName = editorInfo.packageName;
 
             //Отключаем режим навигации
             navigationOnScreenKeyboardMode = false;
@@ -1835,7 +1878,7 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
     }
 
     private void SearchInputActivateOnLetterHack(InputConnection inputConnection) {
-        if(IsInputMode() && SearchHack != null) {
+        if(IsInputMode() && isInputViewShown() && SearchHack != null) {
             SetSearchHack(null, null);
         }
         if(SearchHack != null) {

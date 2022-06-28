@@ -26,14 +26,17 @@
     "search-field-id" : "ru.yandex.yandexmaps:id/search_line_search_text",
     "wait-before-send-char-ms": 300
   }, {
+    "package-name" : "ru.yandex.yandexnavi",
+    "additional-event-type-type-window-content-changed" : true,
+    "search-field-id" : "ru.yandex.yandexnavi:id/edittext_searchbar"
+  }, {
     "package-name" : "com.blackberry.notes",
     "search-field-id" : "com.blackberry.notes:id/menu_search"
-  },{
+  }, {
     "package-name" : "com.modoohut.dialer",
     "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "com.modoohut.dialer:id/display_name"
-  },
-    {
+  }, {
     "package-name" : "org.example.dummy",
     "additional-event-type-type-window-content-changed" : true,
     "custom-click-adapter-click-parent" : true,
@@ -50,6 +53,5 @@
       "dynamic-search-method-function" : "FindAccessibilityNodeInfosByText",
       "contains-string" : "Search"
     } ]
-  }
-  ]
+  } ]
 }

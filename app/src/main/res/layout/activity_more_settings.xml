@@ -33,17 +33,11 @@
                 android:layout_below="@id/divider2"
                 android:text="SAVE KEYBOARD DATA"
         />
-        <Button android:id="@+id/pref_more_bt_save_search_plugins"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/pref_more_bt_save"
-                android:text="SAVE PLUGIN DATA"
-        />
         <View
                 android:id="@+id/divider1"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_below="@id/pref_more_bt_save_search_plugins"
+                android:layout_below="@id/pref_more_bt_save"
                 android:background="?android:attr/listDivider" />
         <TextView
                 android:id="@+id/tv_search_plugins_title"
@@ -55,11 +49,35 @@
                 android:layout_below="@id/divider1"
                 android:padding="8dp"
                 android:textSize="16sp" />
+        <Button android:id="@+id/pref_more_bt_save_search_plugins"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tv_search_plugins_title"
+                android:text="SAVE PLUGIN DATA"
+        />
+        <Button android:id="@+id/pref_more_bt_add_plugin1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/pref_more_bt_save_search_plugins"
+                android:text="ADD PLUGIN1"
+        />
+        <Button android:id="@+id/pref_more_bt_add_plugin2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/pref_more_bt_add_plugin1"
+                android:text="ADD PLUGIN2"
+        />
+        <Button android:id="@+id/pref_more_bt_add_plugin3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/pref_more_bt_add_plugin2"
+                android:text="ADD PLUGIN3"
+        />
         <View
                 android:id="@+id/divider3"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_below="@id/tv_search_plugins_title"
+                android:layout_below="@id/pref_more_bt_add_plugin3"
                 android:background="?android:attr/listDivider" />
         <TextView
                 android:id="@+id/tv_search_plugins_data"

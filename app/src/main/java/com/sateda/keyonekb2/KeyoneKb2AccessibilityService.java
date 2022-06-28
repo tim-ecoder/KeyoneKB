@@ -30,9 +30,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         AccessibilityNodeInfo getNode(AccessibilityNodeInfo info);
     }
 
-    public int STD_EVENTS = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED;
+    public static int STD_EVENTS = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED;
 
-    class SearchHackPlugin {
+    static class SearchHackPlugin {
 
         String _packageName;
         String _id = "";
@@ -302,18 +302,25 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if(!searchHackPlugin.checkEventType(eventType))
             return false;
         if (packageName.equals(searchHackPlugin.getPackageName())) {
-            if (IsSearchHackSet(searchHackPlugin.getPackageName()))
-                return true;
+
 
             AccessibilityNodeInfo info = searchHackPlugin.Convert(FindOrGetFromCache(root, searchHackPlugin));
 
             if (info != null) {
+                if (IsSearchHackSet(searchHackPlugin.getPackageName()))
+                    return true;
                 if(info.isFocused() )
                     return true;
                 Log.d(TAG, "SetSearchHack "+searchHackPlugin.getPackageName());
                 int wait = searchHackPlugin.WaitBeforeSendChar;
                 SetSearchHack(() -> {
-                    info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    boolean answer = info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+
+                    //Для случая уезжающего окна поиска как в Яндекс.Навигаторе плагин хватает поле, которое уже не существует
+                    if(!answer) {
+                        Log.e(TAG, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
+                    }
+
                     if(wait > 0) {
                         try { Thread.sleep(wait); } catch(Throwable ignore) {}
                     }
@@ -337,16 +344,22 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
         } else {
             info = searchHackPlugin.findId(root);
-            if (info != null && info.getViewIdResourceName() != null) {
-                Log.d(TAG, "SetSearchHack: research mode: field found "+info.getViewIdResourceName());
-                searchHackPlugin.setId(info.getViewIdResourceName());
-                SetToSetting(searchHackPlugin, info.getViewIdResourceName());
+
+            if (info != null) {
+                if (info.getViewIdResourceName() != null) {
+                    Log.d(TAG, "SetSearchHack: research mode: field found " + info.getViewIdResourceName());
+                    searchHackPlugin.setId(info.getViewIdResourceName());
+                    SetToSetting(searchHackPlugin, info.getViewIdResourceName());
+                } else {
+                    //AccessibilityNodeInfo info2 = info.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
+                    Log.d(TAG, "SetSearchHack: getViewIdResourceName() == null " + info.getContentDescription());
+                }
             }
         }
         return info;
     }
 
-    private AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text) {
+    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text) {
         if (node == null)
             return null;
         if(node.getViewIdResourceName() != null)
