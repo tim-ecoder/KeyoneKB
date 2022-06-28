@@ -9,6 +9,8 @@ import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
 import android.os.SystemClock;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
 import android.telecom.TelecomManager;
@@ -178,62 +180,67 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     @Override
     public synchronized void onCreate() {
-        super.onCreate();
-        Instance = this;
+        try {
+            super.onCreate();
+            Instance = this;
 
-        TITLE_NAV_TEXT = getString(R.string.notification_kb_state_nav_mode);
-        TITLE_NAV_FV_TEXT = getString(R.string.notification_kb_state_nav_fn_mode);
-        TITLE_SYM_TEXT = getString(R.string.notification_kb_state_alt_mode);
-        TITLE_SYM2_TEXT = getString(R.string.notification_kb_state_sym_mode);
-        TITLE_GESTURE_INPUT = getString(R.string.notification_kb_state_gesture_input);
-        TITLE_GESTURE_INPUT_UP_DOWN = getString(R.string.notification_kb_state_gesture_input_up_down);
-        TITLE_GESTURE_VIEW = getString(R.string.notification_kb_state_gesture_view);
-        TITLE_GESTURE_OFF = getString(R.string.notification_kb_state_gesture_off);
+            TITLE_NAV_TEXT = getString(R.string.notification_kb_state_nav_mode);
+            TITLE_NAV_FV_TEXT = getString(R.string.notification_kb_state_nav_fn_mode);
+            TITLE_SYM_TEXT = getString(R.string.notification_kb_state_alt_mode);
+            TITLE_SYM2_TEXT = getString(R.string.notification_kb_state_sym_mode);
+            TITLE_GESTURE_INPUT = getString(R.string.notification_kb_state_gesture_input);
+            TITLE_GESTURE_INPUT_UP_DOWN = getString(R.string.notification_kb_state_gesture_input_up_down);
+            TITLE_GESTURE_VIEW = getString(R.string.notification_kb_state_gesture_view);
+            TITLE_GESTURE_OFF = getString(R.string.notification_kb_state_gesture_off);
 
-        AltOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
-        AltAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt_all);
-        AltHoldIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt);
-        SymOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym_one, R.drawable.ic_kb_sym_one);
-        SymAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym_all);
-        SymHoldIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym);
+            AltOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
+            AltAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt_all);
+            AltHoldIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt);
+            SymOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym_one, R.drawable.ic_kb_sym_one);
+            SymAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym_all);
+            SymHoldIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym);
 
-        navIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav, R.drawable.ic_kb_nav);
-        navFnIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav_fn, R.drawable.ic_kb_nav_fn);
+            navIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav, R.drawable.ic_kb_nav);
+            navFnIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav_fn, R.drawable.ic_kb_nav_fn);
 
-        callStateCallback = new CallStateCallback();
-        telephonyManager = getTelephonyManager();
-        telecomManager = getTelecomManager();
+            callStateCallback = new CallStateCallback();
+            telephonyManager = getTelephonyManager();
+            telecomManager = getTelecomManager();
 
-        if (telephonyManager != null) {
-            telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_CALL_STATE);
+            if (telephonyManager != null) {
+                telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_CALL_STATE);
+            }
+
+
+            pref_height_bottom_bar = 10;
+
+            pref_show_toast = false;
+            pref_alt_space = true;
+            pref_long_press_key_alt_symbol = false;
+
+            kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+            LoadSettingsAndKeyboards();
+            LoadKeyProcessingMechanics();
+
+            onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
+
+            keyboardView = (SatedaKeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
+            keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
+            keyboardView.setOnKeyboardActionListener(this);
+            keyboardView.setPreviewEnabled(false);
+            keyboardView.setService(this);
+            keyboardView.clearAnimation();
+            keyboardView.showFlag(pref_flag);
+
+            keyboardNavigation = new Keyboard(this, R.xml.navigation);
+
+            notificationProcessor.Initialize(getApplicationContext());
+            UpdateGestureModeVisualization(false);
+            UpdateKeyboardModeVisualization();
+        } catch(Throwable ex) {
+            Log.e(TAG2, "onCreate Exception: "+ex);
+            throw ex;
         }
-
-
-        pref_height_bottom_bar = 10;
-
-        pref_show_toast = false;
-        pref_alt_space = true;
-        pref_long_press_key_alt_symbol = false;
-
-        kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        LoadSettingsAndKeyboards();
-        LoadKeyProcessingMechanics();
-
-        onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
-
-        keyboardView = (SatedaKeyboardView) getLayoutInflater().inflate(R.layout.keyboard, null);
-        keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
-        keyboardView.setOnKeyboardActionListener(this);
-        keyboardView.setPreviewEnabled(false);
-        keyboardView.setService(this);
-        keyboardView.clearAnimation();
-        keyboardView.showFlag(pref_flag);
-
-        keyboardNavigation = new Keyboard(this, R.xml.navigation);
-
-        notificationProcessor.Initialize(getApplicationContext());
-        UpdateGestureModeVisualization(false);
-        UpdateKeyboardModeVisualization();
     }
 
 
@@ -372,6 +379,18 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
         // says it will do.
     }
 
+    public void Vibrate(int ms) {
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if(v == null)
+            return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            v.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            //deprecated in API 26
+            v.vibrate(ms);
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public synchronized boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -391,6 +410,8 @@ public class KeyoneIME extends KeyboardCoreGesture implements KeyboardView.OnKey
             Log.d(TAG, "App transparency mode");
             return super.onKeyDown(keyCode, event);
         }
+
+        //Vibrate(50);
 
         //region Режим "Навигационные клавиши"
 

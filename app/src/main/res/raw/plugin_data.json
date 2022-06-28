@@ -68,10 +68,6 @@
     "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "com.blackberry.hub:id/search_bar_button"
   }, {
-    "package-name" : "ru.fourpda.client",
-    "additional-event-type-type-window-content-changed" : true,
-    "search-field-id" : "ru.fourpda.client:id/bar_search"
-  }, {
     "package-name" : "com.avito.android",
     "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "com.avito.android:id/search_current_query"

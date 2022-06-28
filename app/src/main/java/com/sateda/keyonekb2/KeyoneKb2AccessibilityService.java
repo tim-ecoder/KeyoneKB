@@ -20,10 +20,6 @@ import static com.sateda.keyonekb2.BuildConfig.DEBUG;
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
-    public static String SEARCH_CONST_FIND1 = "Найти";
-    public static String SEARCH_CONST_FIND2 = "Поиск";
-    public static String SEARCH_CONST_FIND3 = "Search";
-    public static String SEARCH_CONST_FIND4 = "Искать";
     public static KeyoneKb2AccessibilityService Instance;
     private static String TAG = "KeyoneKb2-AS";
 
@@ -140,51 +136,55 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     @Override
     public synchronized void onCreate() {
-        super.onCreate();
-        Instance = this;
+        try {
+            super.onCreate();
+            Instance = this;
 
-        kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        executorService = Executors.newFixedThreadPool(2);
+            kbSettings = KbSettings.Get(getSharedPreferences(KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+            executorService = Executors.newFixedThreadPool(2);
 
-        KeyoneKb2PluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<KeyoneKb2PluginData>() {}, getApplicationContext());
-        if(data2 == null)
-            return;
-        if(data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
-            DefaultSearchWords = data2.DefaultSearchWords;
-        } else {
-            DefaultSearchWords = new ArrayList<>();
-            DefaultSearchWords.add(SEARCH_CONST_FIND1);
-            DefaultSearchWords.add(SEARCH_CONST_FIND2);
-            DefaultSearchWords.add(SEARCH_CONST_FIND3);
-            DefaultSearchWords.add(SEARCH_CONST_FIND4);
-        }
-        for (KeyoneKb2PluginData.SearchPluginData data : data2.SearchPlugins) {
-            SearchHackPlugin shp = new SearchHackPlugin(data.PackageName);
-            if(data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
-                shp.setId(data.SearchFieldId);
-            else if(data.DynamicSearchMethod != null) {
-                shp.DynamicSearchMethod = data.DynamicSearchMethod;
+            KeyoneKb2PluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<KeyoneKb2PluginData>() {
+            }, getApplicationContext());
+            if (data2 == null)
+                return;
+            if (data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
+                DefaultSearchWords = data2.DefaultSearchWords;
+            } else {
+                DefaultSearchWords = new ArrayList<>();
+                DefaultSearchWords.add("Search");
+                Log.e(TAG, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
             }
-            if(data.AdditionalEventTypeTypeWindowContentChanged)
-                shp.setEvents(STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
-            else
-                shp.setEvents(STD_EVENTS);
-            if(data.CustomClickAdapterClickParent)
-                shp.setConverter(AccessibilityNodeInfo::getParent);
+            for (KeyoneKb2PluginData.SearchPluginData data : data2.SearchPlugins) {
+                SearchHackPlugin shp = new SearchHackPlugin(data.PackageName);
+                if (data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
+                    shp.setId(data.SearchFieldId);
+                else if (data.DynamicSearchMethod != null) {
+                    shp.DynamicSearchMethod = data.DynamicSearchMethod;
+                }
+                if (data.AdditionalEventTypeTypeWindowContentChanged)
+                    shp.setEvents(STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+                else
+                    shp.setEvents(STD_EVENTS);
+                if (data.CustomClickAdapterClickParent)
+                    shp.setConverter(AccessibilityNodeInfo::getParent);
 
-            shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
+                shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
 
-            searchHackPlugins.add(shp);
-        }
+                searchHackPlugins.add(shp);
+            }
 
 
-        for (SearchHackPlugin plugin : searchHackPlugins) {
-            if(plugin.getId() == null || plugin.getId().isEmpty()) {
-                String value = GetFromSetting(plugin);
-                if (value != null && value.length() > 0) {
-                    plugin.setId(value);
+            for (SearchHackPlugin plugin : searchHackPlugins) {
+                if (plugin.getId() == null || plugin.getId().isEmpty()) {
+                    String value = GetFromSetting(plugin);
+                    if (value != null && value.length() > 0) {
+                        plugin.setId(value);
+                    }
                 }
             }
+        } catch(Throwable ex) {
+            Log.e(TAG, "onCreate Exception: "+ex);
+            throw ex;
         }
 
     }
@@ -206,47 +206,51 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
-
-        if(DEBUG && event.getPackageName() != null && event.getPackageName().toString().equals("com.android.systemui"))
-            return;
-        //https://stackoverflow.com/questions/36067686/how-to-interrupt-an-action-from-being-performed-in-accessibilityservice
-
-        if(event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-            && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
-            && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-
-            Log.d(TAG, "event.getPackageName() " + event.getPackageName());
-            Log.d(TAG, "event.getEventType() " + event.getEventType());
-            Log.d(TAG, "event.getWindowId() " + event.getWindowId());
-            Log.d(TAG, "event.getSource() " + event.getSource());
-            Log.d(TAG, "event.getClassName() " + event.getClassName());
-            Log.d(TAG, "event.getText() " + event.getText());
-            Log.d(TAG, "event.getContentDescription() " + event.getContentDescription());
-            return;
-        }
-        CharSequence packageNameCs = event.getPackageName();
-        if(packageNameCs == null || packageNameCs.length() == 0)
-            return;
-        String packageName = packageNameCs.toString();
-        AccessibilityNodeInfo root = getRootInActiveWindow();
-        if(root == null)
-            return;
-
-        for(SearchHackPlugin plugin : searchHackPlugins) {
-            if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin))
+        try {
+            if(KeyoneIME.Instance == null)
                 return;
-        }
+            if (event.getPackageName() != null && event.getPackageName().toString().equals("com.android.systemui"))
+                return;
 
-        if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-            && IsSearchHackSet(packageName)) {
-            SetSearchHack(null, null);
-            Log.d(TAG, "event.getPackageName() " + event.getPackageName());
-            Log.d(TAG, "event.getEventType() " + event.getEventType());
-            Log.d(TAG, "event.getWindowId() " + event.getWindowId());
-            Log.d(TAG, "event.getSource() " + event.getSource());
-            Log.d(TAG, "event.getClassName() " + event.getClassName());
-            Log.d(TAG, "event.getText() " + event.getText());
-            Log.d(TAG, "event.getContentDescription() " + event.getContentDescription());
+            if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                    && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
+                    && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+
+                Log.d(TAG, "event.getPackageName() " + event.getPackageName());
+                Log.d(TAG, "event.getEventType() " + event.getEventType());
+                Log.d(TAG, "event.getWindowId() " + event.getWindowId());
+                Log.d(TAG, "event.getSource() " + event.getSource());
+                Log.d(TAG, "event.getClassName() " + event.getClassName());
+                Log.d(TAG, "event.getText() " + event.getText());
+                Log.d(TAG, "event.getContentDescription() " + event.getContentDescription());
+                return;
+            }
+            CharSequence packageNameCs = event.getPackageName();
+            if (packageNameCs == null || packageNameCs.length() == 0)
+                return;
+            String packageName = packageNameCs.toString();
+            AccessibilityNodeInfo root = getRootInActiveWindow();
+            if (root == null)
+                return;
+
+            for (SearchHackPlugin plugin : searchHackPlugins) {
+                if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin))
+                    return;
+            }
+
+            if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                    && IsSearchHackSet(packageName)) {
+                SetSearchHack(null, null);
+                Log.d(TAG, "event.getPackageName() " + event.getPackageName());
+                Log.d(TAG, "event.getEventType() " + event.getEventType());
+                Log.d(TAG, "event.getWindowId() " + event.getWindowId());
+                Log.d(TAG, "event.getSource() " + event.getSource());
+                Log.d(TAG, "event.getClassName() " + event.getClassName());
+                Log.d(TAG, "event.getText() " + event.getText());
+                Log.d(TAG, "event.getContentDescription() " + event.getContentDescription());
+            }
+        } catch (Throwable ex) {
+            Log.e(TAG, "onAccessibilityEvent Exception: "+ex);
         }
     }
 
@@ -356,50 +360,55 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public synchronized boolean onKeyEvent(KeyEvent event) {
+        try {
+            //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
+            //Зажатие speed_key+Буква не передается в сервис клавиатуры
+            //Но зато передается сюда, поэтмоу приходится отсюда туда переправлять
+            if (!IsMetaFunctionOrFunction(event))
+                return false;
+            if (KeyoneIME.Instance == null)
+                return false;
+            // Этот блок ХАК-а нужен на К2_не_РСТ иначе при нажатиии speed_key вызывается меню биндинга букв
+            if (event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION) {
+                KeyEvent event1 = GetCopy(event);
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                }
+                if (event.getAction() == KeyEvent.ACTION_UP) {
+                    KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+                }
 
-        //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
-        //Зажатие speed_key+Буква не передается в сервис клавиатуры
-        //Но зато передается сюда, поэтмоу приходится отсюда туда переправлять
-        if(!IsMetaFunctionOrFunction(event))
-            return false;
-        if(KeyoneIME.Instance == null)
-            return false;
-        // Этот блок ХАК-а нужен на К2_не_РСТ иначе при нажатиии speed_key вызывается меню биндинга букв
-        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION) {
-            KeyEvent event1 = GetCopy(event);
-            if(event.getAction() == KeyEvent.ACTION_DOWN) {
-                KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                return true;
             }
-            if(event.getAction() == KeyEvent.ACTION_UP) {
+            if (event.getKeyCode() != KeyEvent.KEYCODE_A
+                    && event.getKeyCode() != KeyEvent.KEYCODE_C
+                    && event.getKeyCode() != KeyEvent.KEYCODE_X
+                    && event.getKeyCode() != KeyEvent.KEYCODE_V
+                    && event.getKeyCode() != KeyEvent.KEYCODE_Z
+                    && event.getKeyCode() != KeyEvent.KEYCODE_0) {
+                return false;
+            }
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                //KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
+                executorService.execute(
+                        () -> {
+                            try {
+                                KeyEvent event1 = GetCopy(event);
+                                Thread.sleep(100);
+                                KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                            } catch (Throwable ignored) {
+                            }
+                        });
+                return true;
+            } else if (event.getAction() == KeyEvent.ACTION_UP) {
+                //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
+                KeyEvent event1 = GetCopy(event);
                 KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+                return true;
             }
 
-            return true;
-        }
-        if(     event.getKeyCode() != KeyEvent.KEYCODE_A
-                && event.getKeyCode() != KeyEvent.KEYCODE_C
-                && event.getKeyCode() != KeyEvent.KEYCODE_X
-                && event.getKeyCode() != KeyEvent.KEYCODE_V
-                && event.getKeyCode() != KeyEvent.KEYCODE_Z
-                && event.getKeyCode() != KeyEvent.KEYCODE_0) {
-            return false;
-        }
-        if(event.getAction() == KeyEvent.ACTION_DOWN) {
-            //KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
-            executorService.execute(
-                    () -> {
-                        try {
-                            KeyEvent event1 = GetCopy(event);
-                            Thread.sleep(100);
-                            KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
-                        }catch(Throwable ignored) {}
-                    });
-            return true;
-        } else if(event.getAction() == KeyEvent.ACTION_UP) {
-            //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
-            KeyEvent event1 = GetCopy(event);
-            KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
-            return true;
+        } catch(Throwable ex) {
+            Log.e(TAG, "onKeyEvent Exception: "+ex);
         }
         return false;
     }
@@ -418,7 +427,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     private KeyEvent GetCopy(KeyEvent keyEvent) {
-        long now = SystemClock.uptimeMillis();
         return new KeyEvent(keyEvent.getDownTime(), keyEvent.getEventTime(), keyEvent.getAction(), keyEvent.getKeyCode(), keyEvent.getRepeatCount(),keyEvent.getMetaState(),keyEvent.getDeviceId(),keyEvent.getScanCode(),keyEvent.getFlags(),keyEvent.getFlags());
     }
 

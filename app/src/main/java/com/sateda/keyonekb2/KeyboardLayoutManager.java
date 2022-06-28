@@ -31,10 +31,6 @@ public class KeyboardLayoutManager {
 
     public synchronized void Initialize(ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts, Resources resources, Context context) {
 
-        if(Instance != null) {
-            return;
-        }
-
         Instance = this;
         FileJsonUtils.Initialize(context.getPackageName(), context);
         KeyboardLayout currentLayout = null;

@@ -311,6 +311,7 @@ public abstract class KeyboardCoreGesture extends KeyboardCoreKeyPress {
     protected abstract boolean IsNoGesturesMode();
 
     protected boolean IsInputMode() {
+        if(getCurrentInputEditorInfo() == null) return false;
         return getCurrentInputEditorInfo().inputType > 0;
     }
 }
