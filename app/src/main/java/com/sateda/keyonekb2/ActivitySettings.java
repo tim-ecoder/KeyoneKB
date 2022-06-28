@@ -69,7 +69,7 @@ public class ActivitySettings extends AppCompatActivity {
             }
 
             currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
-            keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_IS_ENABLED_DEFAULT);
+            keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
             SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
 
             currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

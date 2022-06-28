@@ -1305,7 +1305,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts = new ArrayList<>();
         //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
         for(KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : allLayouts) {
-            keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_IS_ENABLED_DEFAULT);
+            keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
             boolean enabled = keyoneKb2Settings.GetBooleanValue(keyboardLayoutOptions.getPreferenceName());
             if(enabled) {
                 activeLayouts.add(keyboardLayoutOptions);
