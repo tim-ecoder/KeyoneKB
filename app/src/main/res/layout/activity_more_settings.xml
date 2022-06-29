@@ -59,25 +59,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/pref_more_bt_save_search_plugins"
-                android:text="ADD PLUGIN1"
+                android:enabled="false"
+                android:text="OPEN CANDIDATE APPLICATION, RETURN HERE"
         />
         <Button android:id="@+id/pref_more_bt_add_plugin2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/pref_more_bt_add_plugin1"
-                android:text="ADD PLUGIN2"
+                android:enabled="false"
+                android:text="OPEN CANDIDATE APPLICATION, RETURN HERE"
         />
         <Button android:id="@+id/pref_more_bt_add_plugin3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/pref_more_bt_add_plugin2"
-                android:text="ADD PLUGIN3"
+                android:enabled="false"
+                android:text="OPEN CANDIDATE APPLICATION, RETURN HERE"
         />
+        <Button
+                android:id="@+id/btn_sys_kb_accessibility_setting"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/pref_more_bt_add_plugin3"
+                android:text="@string/main_btn_sys_kb_accessibility_setting_enabled" />
         <View
                 android:id="@+id/divider3"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_below="@id/pref_more_bt_add_plugin3"
+                android:layout_below="@id/btn_sys_kb_accessibility_setting"
                 android:background="?android:attr/listDivider" />
         <TextView
                 android:id="@+id/tv_search_plugins_data"

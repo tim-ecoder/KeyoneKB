@@ -2,11 +2,14 @@ package com.sateda.keyonekb2;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -17,6 +20,7 @@ public class ActivitySettingsMore extends Activity {
 
     Button btSave;
     Button btSavePluginData;
+    Button btn_sys_kb_accessibility_setting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +53,16 @@ public class ActivitySettingsMore extends Activity {
             }
         });
 
+        btn_sys_kb_accessibility_setting = (Button) findViewById(R.id.btn_sys_kb_accessibility_setting);
+        btn_sys_kb_accessibility_setting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                getApplicationContext().startActivity(intent);
+            }
+        });
+
         RedrawViewData();
 
 
@@ -58,6 +72,24 @@ public class ActivitySettingsMore extends Activity {
     public void onResume(){
         super.onResume();
         RedrawViewData();
+    }
+
+    private boolean isAccessibilityEnabled() {
+        String accEnabled = Settings.Secure.getString(getContentResolver(),
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        return accEnabled != null && accEnabled.contains(getPackageName());
+    }
+
+    private boolean UpdateAccessibilityButton() {
+        boolean accEnabledFlag = isAccessibilityEnabled();
+        if(accEnabledFlag) {
+            btn_sys_kb_accessibility_setting.setEnabled(false);
+            btn_sys_kb_accessibility_setting.setText(R.string.main_btn_sys_kb_accessibility_setting_disabled);
+        } else {
+            btn_sys_kb_accessibility_setting.setEnabled(true);
+            btn_sys_kb_accessibility_setting.setText(R.string.main_btn_sys_kb_accessibility_setting_enabled);
+        }
+        return accEnabledFlag;
     }
 
     private void RedrawViewData() {
@@ -73,40 +105,64 @@ public class ActivitySettingsMore extends Activity {
                 @Override
                 public void onClick(View view) { SavePluginData(); }
             });
-
         }
-
 
         if(KeyoneIME.Instance != null && KeyoneIME.Instance.PackageHistory.size() > 0) {
             int i = 0;
             for (String packageName : KeyoneIME.Instance.PackageHistory) {
                 i++;
-                if(i == 1) InitAddPluginButton(packageName, findViewById(R.id.pref_more_bt_add_plugin1));
+                if(i == 1) InitAddPluginButton(packageName, findViewById(R.id.pref_more_bt_add_plugin3));
                 else if(i == 2) InitAddPluginButton(packageName, findViewById(R.id.pref_more_bt_add_plugin2));
-                else if(i == 3) InitAddPluginButton(packageName, findViewById(R.id.pref_more_bt_add_plugin3));
-                continue;
+                else if(i == 3) InitAddPluginButton(packageName, findViewById(R.id.pref_more_bt_add_plugin1));
             }
         }
 
-
+        UpdateAccessibilityButton();
         SetTextPluginData();
     }
 
     private void InitAddPluginButton(String packageName, Button btAddPlugin) {
-        btAddPlugin.setText("ADD PLUGIN: " + packageName);
-        btAddPlugin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (KeyoneIME.Instance == null) return;
-                if (packageName.isEmpty()) return;
-                if (KeyoneKb2AccessibilityService.Instance == null) return;
-                KeyoneKb2AccessibilityService.SearchHackPlugin sp = new KeyoneKb2AccessibilityService.SearchHackPlugin(packageName);
-                sp.setEvents(KeyoneKb2AccessibilityService.STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
-                KeyoneKb2AccessibilityService.Instance.searchHackPlugins.add(sp);
-                btAddPlugin.setText("ADDED");
+        if(packageName == null || packageName.isEmpty())
+            return;
+        boolean isAdded = false;
+        for(KeyoneKb2AccessibilityService.SearchHackPlugin searchHackPlugin: KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
+            if(searchHackPlugin.getPackageName().equals(packageName)) {
+                isAdded = true;
+                break;
             }
-        });
+        }
+
+        if(!isAdded) {
+            btAddPlugin.setEnabled(true);
+            btAddPlugin.setText("ADD PLUGIN: " + packageName);
+            btAddPlugin.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (KeyoneIME.Instance == null) return;
+                    if (packageName.isEmpty()) return;
+                    if (KeyoneKb2AccessibilityService.Instance == null) return;
+                    KeyoneKb2AccessibilityService.SearchHackPlugin sp = new KeyoneKb2AccessibilityService.SearchHackPlugin(packageName);
+                    sp.setEvents(KeyoneKb2AccessibilityService.STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+                    KeyoneKb2AccessibilityService.TempAddedSearchHackPlugins.add(sp);
+                    btAddPlugin.setText("ADDED: " + packageName);
+                    btAddPlugin.setEnabled(false);
+                    ShowToast("Application added. Accessibility service automatic stopped. Need start manually.");
+                    KeyoneKb2AccessibilityService.Instance.StopService();
+                    UpdateAccessibilityButton();
+                }
+            });
+        } else {
+            btAddPlugin.setText("PLUGIN EXISTS: " + packageName);
+            btAddPlugin.setEnabled(false);
+            btAddPlugin.setOnClickListener(null);
+        }
     }
+
+    private void ShowToast(String text) {
+        Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG);
+        toast.show();
+    }
+
 
     private void SavePluginData() {
 

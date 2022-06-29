@@ -1,6 +1,7 @@
 package com.sateda.keyonekb2;
 
 import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
 import android.os.Build;
 import android.os.SystemClock;
@@ -127,6 +128,21 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     ArrayList<String> DefaultSearchWords;
 
     @Override
+    protected void onServiceConnected() {
+        Log.v(TAG3, "onServiceConnected()");
+        super.onServiceConnected();
+        AccessibilityServiceInfo info = getServiceInfo();
+        info.packageNames = SearchHackPackages.toArray(new String[SearchHackPackages.size()]);
+        if(!TempAddedSearchHackPlugins.isEmpty())
+            info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
+        setServiceInfo(info);
+    }
+
+    private final ArrayList<String> SearchHackPackages = new ArrayList<>();
+
+    public static final ArrayList<SearchHackPlugin> TempAddedSearchHackPlugins = new ArrayList<>();
+
+    @Override
     public synchronized void onDestroy() {
         Instance = null;
         super.onDestroy();
@@ -134,6 +150,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     @Override
     public synchronized void onCreate() {
+        Log.v(TAG3, "onCreate()");
         try {
             super.onCreate();
             Instance = this;
@@ -154,6 +171,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
             for (AutoClickPluginData.SearchPluginData data : data2.SearchPlugins) {
                 SearchHackPlugin shp = new SearchHackPlugin(data.PackageName);
+                SearchHackPackages.add(data.PackageName);
                 if (data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
                     shp.setId(data.SearchFieldId);
                 else if (data.DynamicSearchMethod != null) {
@@ -171,6 +189,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 searchHackPlugins.add(shp);
             }
 
+            for(SearchHackPlugin shp2: TempAddedSearchHackPlugins) {
+                SearchHackPackages.add(shp2.getPackageName());
+                searchHackPlugins.add(shp2);
+            }
+
 
             for (SearchHackPlugin plugin : searchHackPlugins) {
                 if (plugin.getId() == null || plugin.getId().isEmpty()) {
@@ -182,7 +205,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
         } catch(Throwable ex) {
             Log.e(TAG3, "onCreate Exception: "+ex);
-            throw ex;
+            new Thread(() -> {
+                try { Thread.sleep(200); } catch (Throwable ignored) {}
+                StopService();
+            }).start();
         }
 
     }
@@ -204,32 +230,36 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
+        Log.v(TAG3, "onAccessibilityEvent()");
         try {
             if(KeyoneIME.Instance == null)
-                return;
-            if (event.getPackageName() != null && event.getPackageName().toString().equals("com.android.systemui"))
                 return;
 
             if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                     && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
                     && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
 
-                Log.d(TAG3, "event.getPackageName() " + event.getPackageName());
-                Log.d(TAG3, "event.getEventType() " + event.getEventType());
-                Log.d(TAG3, "event.getWindowId() " + event.getWindowId());
-                Log.d(TAG3, "event.getSource() " + event.getSource());
-                Log.d(TAG3, "event.getClassName() " + event.getClassName());
-                Log.d(TAG3, "event.getText() " + event.getText());
-                Log.d(TAG3, "event.getContentDescription() " + event.getContentDescription());
+                LogEventD(event);
                 return;
             }
             CharSequence packageNameCs = event.getPackageName();
             if (packageNameCs == null || packageNameCs.length() == 0)
                 return;
             String packageName = packageNameCs.toString();
+
+            if(!SearchHackPackages.contains(packageName)) {
+                LogEventD(event);
+                return;
+            }
+
             AccessibilityNodeInfo root = getRootInActiveWindow();
             if (root == null)
                 return;
+
+            //TODO: Можно еще фильтровать по чтобы не было лишних срабатываний
+            //event.getWindowChanges()
+            //event.getContentChangeTypes()
+            //event.get
 
             for (SearchHackPlugin plugin : searchHackPlugins) {
                 if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin))
@@ -239,17 +269,21 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                     && IsSearchHackSet(packageName)) {
                 SetSearchHack(null, null);
-                Log.d(TAG3, "event.getPackageName() " + event.getPackageName());
-                Log.d(TAG3, "event.getEventType() " + event.getEventType());
-                Log.d(TAG3, "event.getWindowId() " + event.getWindowId());
-                Log.d(TAG3, "event.getSource() " + event.getSource());
-                Log.d(TAG3, "event.getClassName() " + event.getClassName());
-                Log.d(TAG3, "event.getText() " + event.getText());
-                Log.d(TAG3, "event.getContentDescription() " + event.getContentDescription());
+                LogEventD(event);
             }
         } catch (Throwable ex) {
             Log.e(TAG3, "onAccessibilityEvent Exception: "+ex);
         }
+    }
+
+    private void LogEventD(AccessibilityEvent event) {
+        Log.v(TAG3, "event.getPackageName() " + event.getPackageName());
+        Log.v(TAG3, "event.getEventType() " + event.getEventType());
+        Log.v(TAG3, "event.getWindowId() " + event.getWindowId());
+        Log.v(TAG3, "event.getSource() " + event.getSource());
+        Log.v(TAG3, "event.getClassName() " + event.getClassName());
+        Log.v(TAG3, "event.getText() " + event.getText());
+        Log.v(TAG3, "event.getContentDescription() " + event.getContentDescription());
     }
 
     private boolean ProcessSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchHackPlugin searchHackPlugin) {
@@ -332,6 +366,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         return null;
     }
 
+    public void StopService() {
+        disableSelf();
+    }
 
     private void SetSearchHack(KeyoneIME.Processable processable, String packageName) {
         if (KeyoneIME.Instance != null) {
@@ -350,6 +387,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     @Override
     public void onInterrupt() {
+        Log.v(TAG3, "onInterrupt()");
     }
 
 
@@ -358,6 +396,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public synchronized boolean onKeyEvent(KeyEvent event) {
+        Log.v(TAG3, "onKeyEvent()");
         try {
             //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
             //Зажатие speed_key+Буква не передается в сервис клавиатуры

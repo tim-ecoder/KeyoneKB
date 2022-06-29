@@ -57,9 +57,9 @@
     <string name="keyonekb_accessibility_service_label">KeyoneKB2</string>
     <string name="keyonekb_accessibility_service_description">Помогает KeyoneKB понять в каком поле находится курсор для вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.).\n
     Кроме того, _обязательно_ включить, чтобы на Blackberry Key2 _НЕ_ РСТ SpeedKey работал как CTRL.</string>
-    <string name="pref_more_tv_search_plugins_title">Данные поисковых плагинов</string>
+    <string name="pref_more_tv_search_plugins_title">ПОИСКОВЫЕ ПЛАГИНЫ</string>
     <string name="pref_more_tv_search_plugins_data">Идентификаторы ресурса Поискового поля, чтобы в него само кликнулось, когда начинаешь набор</string>
-    <string name="pref_more_tv_settings_more_title">Дополнительные настройки</string>
+    <string name="pref_more_tv_settings_more_title">РАСШИРЕННЫЕ НАСТРОЙКИ</string>
     <string name="pref_more_tv_single_plugin_data">Зайдите в приложение для автоматического нахождения поискового поля.\nЕсли зашли,
         но тут ничего не изменилось, то и авто-поиск в приложении не работает и алгоритм определения поискового поля ничего не находит, либо идентификатор поискового
         поля определяется только динамически и все работает.</string>

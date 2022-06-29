@@ -45,7 +45,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     protected abstract boolean IsGestureModeEnabled();
 
     protected boolean ProcessGestureAtMotionEvent(MotionEvent motionEvent) {
-        LogKeyboardTest("GESTURE ACTION: "+motionEvent.getAction());
+        //LogKeyboardTest("GESTURE ACTION: "+motionEvent.getAction());
         if (IsGestureModeEnabled()
                 && !IsNoGesturesMode()
                 && !IsInputMode()) {

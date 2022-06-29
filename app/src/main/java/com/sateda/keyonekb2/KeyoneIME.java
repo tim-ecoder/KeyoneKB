@@ -45,11 +45,17 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     }
 
     public void SetSearchHack(KeyoneIME.Processable processable, String packageName) {
+        if((IsInputMode() || isInputViewShown()) && processable != null) {
+            Log.d(TAG2, "SetSearchHack IS NOT SET IsInputMode()=true");
+            return;
+        }
+        if(SearchHack != null && processable == null) {
+            Log.d(TAG2, "SetSearchHack NULL");
+        } else if(SearchHack != processable) {
+            Log.d(TAG2, "SetSearchHack CHANGE");
+        }
         SearchHack = processable;
         SearchHackPackage = packageName;
-        if(processable == null) {
-            Log.d(TAG2, "SetSearchHack NULL");
-        }
     }
 
     private static final boolean DEBUG = false;
