@@ -10,6 +10,8 @@
                        android:settingsActivity="com.sateda.keyonekb2.ActivityMain"
                        >
 <!--
+typeWindowContentChanged
+                       android:accessibilityFeedbackType="feedbackSpoken"
                        android:accessibilityFlags="flagDefault|flagReportViewIds|flagRequestFilterKeyEvents"
 
 android:accessibilityEventTypes="typeAllMask"

@@ -18,7 +18,7 @@
     "search-field-id" : "com.blackberry.blackberrylauncher:id/search_box_collapsed"
   }, {
     "package-name" : "org.telegram.messenger",
-    "additional-event-type-type-window-content-changed" : true,
+    "additional-event-type-type-window-content-changed" : false,
     "dynamic-search-method" : [ {
       "dynamic-search-method-function" : "FindAccessibilityNodeInfosByText",
       "contains-string" : "Search"
@@ -32,6 +32,7 @@
     "search-field-id" : "com.blackberry.contacts:id/menu_search"
   }, {
     "package-name" : "com.oasisfeng.island",
+    "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "com.oasisfeng.island:id/menu_search"
   }, {
     "package-name" : "ru.yandex.yandexmaps",

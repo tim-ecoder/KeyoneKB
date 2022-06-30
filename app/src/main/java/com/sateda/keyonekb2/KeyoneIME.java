@@ -45,14 +45,18 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     }
 
     public void SetSearchHack(KeyoneIME.Processable processable, String packageName) {
+        if(SearchHack == null && processable == null)
+            return;
         if((IsInputMode() || isInputViewShown()) && processable != null) {
             Log.d(TAG2, "SetSearchHack IS NOT SET IsInputMode()=true");
             return;
         }
         if(SearchHack != null && processable == null) {
             Log.d(TAG2, "SetSearchHack NULL");
-        } else if(SearchHack != processable) {
+        } else if(SearchHack != null && SearchHack != processable) {
             Log.d(TAG2, "SetSearchHack CHANGE");
+        } else {
+            Log.d(TAG2, "SetSearchHack NEW");
         }
         SearchHack = processable;
         SearchHackPackage = packageName;
@@ -286,12 +290,20 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     @Override
     public synchronized void onStartInput(EditorInfo editorInfo, boolean restarting) {
         super.onStartInput(editorInfo, restarting);
-        Log.d(TAG2, "onStartInput package: " + editorInfo.packageName + " fieldName: "+editorInfo.fieldName+" label: " + editorInfo.label);
         //TODO: Минорно. Если надо знать какие флаги их надо расшифровывать
-        Log.d(TAG2, "editorInfo.inputType: "+Integer.toBinaryString(editorInfo.inputType));
-        Log.d(TAG2, "editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions));
+        Log.d(TAG2, "onStartInput package: " + editorInfo.packageName
+                + " editorInfo.inputType: "+Integer.toBinaryString(editorInfo.inputType)
+                +" editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions));
+
         // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
+
+        if(     SearchHack != null
+                && SearchHackPackage != null
+                && !SearchHackPackage.isEmpty()
+                && !editorInfo.packageName.equals(SearchHackPackage)) {
+            SetSearchHack(null, null);
+        }
 
         // Обрабатываем переход между приложениями
         if (!editorInfo.packageName.equals(_lastPackageName)) {

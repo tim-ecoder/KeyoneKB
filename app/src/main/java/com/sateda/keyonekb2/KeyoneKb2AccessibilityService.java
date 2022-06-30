@@ -109,6 +109,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         public boolean checkEventType(int eventType) {
             if((eventType & _events) == 0)
                 return false;
+
             return true;
         }
 
@@ -230,7 +231,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
-        Log.v(TAG3, "onAccessibilityEvent()");
+        Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
         try {
             if(KeyoneIME.Instance == null)
                 return;
@@ -241,6 +242,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
                 LogEventD(event);
                 return;
+            }
+            if((event.getEventType() & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                if(event.getContentChangeTypes() == 6) {
+                    //Этот хак нужен потому что Blackberry.Dialer жестко спамит эвентами (вроде как никому эти эвенты больше не нужны)
+                    Log.d(TAG3, "IGNORING TYPE_WINDOW_CONTENT_CHANGED TYPES: " + event.getContentChangeTypes());
+                    return;
+                }
             }
             CharSequence packageNameCs = event.getPackageName();
             if (packageNameCs == null || packageNameCs.length() == 0)
@@ -277,48 +285,54 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     private void LogEventD(AccessibilityEvent event) {
-        Log.v(TAG3, "event.getPackageName() " + event.getPackageName());
         Log.v(TAG3, "event.getEventType() " + event.getEventType());
+        Log.v(TAG3, "event.getPackageName() " + event.getPackageName());
+        Log.v(TAG3, "event.getClassName() " + event.getClassName());
         Log.v(TAG3, "event.getWindowId() " + event.getWindowId());
         Log.v(TAG3, "event.getSource() " + event.getSource());
-        Log.v(TAG3, "event.getClassName() " + event.getClassName());
         Log.v(TAG3, "event.getText() " + event.getText());
         Log.v(TAG3, "event.getContentDescription() " + event.getContentDescription());
     }
 
     private boolean ProcessSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchHackPlugin searchHackPlugin) {
+        if (!packageName.equals(searchHackPlugin.getPackageName()))
+            return false;
         if(!searchHackPlugin.checkEventType(eventType))
             return false;
-        if (packageName.equals(searchHackPlugin.getPackageName())) {
 
-
-            AccessibilityNodeInfo info = searchHackPlugin.Convert(FindOrGetFromCache(root, searchHackPlugin));
-
-            if (info != null) {
-                if (IsSearchHackSet(searchHackPlugin.getPackageName()))
-                    return true;
-                if(info.isFocused() )
-                    return true;
-                Log.d(TAG3, "SetSearchHack "+searchHackPlugin.getPackageName());
-                int wait = searchHackPlugin.WaitBeforeSendChar;
-                SetSearchHack(() -> {
-                    boolean answer = info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-
-                    //Для случая уезжающего окна поиска как в Яндекс.Навигаторе плагин хватает поле, которое уже не существует
-                    if(!answer) {
-                        Log.e(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
-                    }
-
-                    if(wait > 0) {
-                        try { Thread.sleep(wait); } catch(Throwable ignore) {}
-                    }
-                }, searchHackPlugin.getPackageName());
-            } else {
-                SetSearchHack(null, null);
-            }
-            return true;
+        if((eventType & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+            Log.d(TAG3, "TYPE_WINDOW_CONTENT_CHANGED TYPES: " +event.getContentChangeTypes());
         }
-        return false;
+
+        AccessibilityNodeInfo info = searchHackPlugin.Convert(FindOrGetFromCache(root, searchHackPlugin));
+
+        if (info != null) {
+            //if (IsSearchHackSet(searchHackPlugin.getPackageName()))
+            //    return true;
+            if(info.isFocused() )
+                return true;
+            Log.d(TAG3, "SetSearchHack=SET package: "+searchHackPlugin.getPackageName());
+            Log.d(TAG3, "SetSearchHack=SET getClassName: " + event.getClassName());
+            int wait = searchHackPlugin.WaitBeforeSendChar;
+            SetSearchHack(() -> {
+                boolean answer = info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+
+                //Для случая уезжающего окна поиска как в Яндекс.Навигаторе плагин хватает поле, которое уже не существует
+                if(!answer) {
+                    Log.e(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
+                }
+
+                if(wait > 0) {
+                    try { Thread.sleep(wait); } catch(Throwable ignore) {}
+                }
+            }, searchHackPlugin.getPackageName());
+        } else {
+            Log.d(TAG3, "SetSearchHack=NULL package: "+searchHackPlugin.getPackageName());
+            Log.d(TAG3, "SetSearchHack=NULL: getClassName: " + event.getClassName());
+            SetSearchHack(null, null);
+        }
+        return true;
+
     }
 
     private AccessibilityNodeInfo FindOrGetFromCache(AccessibilityNodeInfo root, SearchHackPlugin searchHackPlugin) {
