@@ -44,30 +44,28 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         void Process();
     }
 
-    public void SetSearchHack(KeyoneIME.Processable processable, String packageName) {
-        if(SearchHack == null && processable == null)
+    public void SetSearchHack(SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData) {
+        if(SearchPluginLauncher == null && searchPluginLaunchData == null)
             return;
-        if((IsInputMode() || isInputViewShown()) && processable != null) {
+        if((IsInputMode() || isInputViewShown()) && searchPluginLaunchData != null) {
             Log.d(TAG2, "SetSearchHack IS NOT SET IsInputMode()=true");
             return;
         }
-        if(SearchHack != null && processable == null) {
+        if(SearchPluginLauncher != null && searchPluginLaunchData == null) {
             Log.d(TAG2, "SetSearchHack NULL");
-        } else if(SearchHack != null && SearchHack != processable) {
+        } else if(SearchPluginLauncher != null && !SearchPluginLauncher.Equals(searchPluginLaunchData)) {
             Log.d(TAG2, "SetSearchHack CHANGE");
         } else {
             Log.d(TAG2, "SetSearchHack NEW");
         }
-        SearchHack = processable;
-        SearchHackPackage = packageName;
+        SearchPluginLauncher = searchPluginLaunchData;
     }
 
     private static final boolean DEBUG = false;
 
     public static KeyoneIME Instance;
 
-    public Processable SearchHack;
-    public String SearchHackPackage;
+    public SearchClickPlugin.SearchPluginLauncher SearchPluginLauncher;
     public static final int CHAR_0 = 48;
     public String TITLE_NAV_TEXT;
     public String TITLE_NAV_FV_TEXT;
@@ -298,11 +296,9 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
 
-        if(     SearchHack != null
-                && SearchHackPackage != null
-                && !SearchHackPackage.isEmpty()
-                && !editorInfo.packageName.equals(SearchHackPackage)) {
-            SetSearchHack(null, null);
+        if(     SearchPluginLauncher != null
+                && !editorInfo.packageName.equals(SearchPluginLauncher.PackageName)) {
+            SetSearchHack(null);
         }
 
         // Обрабатываем переход между приложениями
@@ -421,7 +417,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         if(
             !IsInputMode()
             && IsViewModeKeyCode(keyCode, event.getMetaState())
-            && SearchHack == null
+            && SearchPluginLauncher == null
             && !IsNavMode())  {
             Log.d(TAG2, "App transparency mode");
             return super.onKeyDown(keyCode, event);
@@ -488,7 +484,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             !IsInputMode()
             && FindAtKeyDownList(keyCode, event.getScanCode()) == null
             && IsViewModeKeyCode(keyCode, event.getMetaState())
-            && SearchHack == null)  {
+            && SearchPluginLauncher == null)  {
 
             Log.d(TAG2, "App transparency mode");
             return super.onKeyUp(keyCode, event);
@@ -1916,13 +1912,13 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     }
 
     private void SearchInputActivateOnLetterHack(InputConnection inputConnection) {
-        if(IsInputMode() && isInputViewShown() && SearchHack != null) {
-            SetSearchHack(null, null);
+        if(IsInputMode() && isInputViewShown() && SearchPluginLauncher != null) {
+            SetSearchHack(null);
         }
-        if(SearchHack != null) {
+        if(SearchPluginLauncher != null) {
             Log.d(TAG2, "FIRE SearchHack!");
-            SearchHack.Process();
-            SetSearchHack(null, null);
+            SearchPluginLauncher.FirePluginAction();
+            SetSearchHack(null);
         }
     }
 

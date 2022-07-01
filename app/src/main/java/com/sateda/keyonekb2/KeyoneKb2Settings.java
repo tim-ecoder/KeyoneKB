@@ -1,8 +1,10 @@
 package com.sateda.keyonekb2;
 
 import android.content.SharedPreferences;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class KeyoneKb2Settings {
+
     public static final String APP_PREFERENCES = "kbsettings";
     public final String APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM = "notification_icon_system";
     public final String APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
@@ -85,5 +87,31 @@ public class KeyoneKb2Settings {
     }
     public void SetStringValue(String name, String value) {
         _mSettings.edit().putString(name, value).apply();
+    }
+
+
+    public static String CoreKeyboardSettingsResFileName = "keyboard_core";
+    public static class CoreKeyboardSettings {
+
+        @JsonProperty(index=10)
+        public int TimeShortPress;
+        @JsonProperty(index=20)
+        public int TimeDoublePress;
+        @JsonProperty(index=30)
+        public int TimeLongPress;
+        @JsonProperty(index=40)
+        public int TimeLongAfterShortPress;
+        @JsonProperty(index=50)
+        public int TimeWaitGestureUponKey0Hold;
+        @JsonProperty(index=70)
+        public int GestureFingerPressRadius;
+        @JsonProperty(index=80)
+        public int GestureMotionBaseSensitivity;
+
+        @JsonProperty(index=90)
+        public int GestureRow4BeginY;
+        @JsonProperty(index=100)
+        public int GestureRow1BeginY;
+
     }
 }

@@ -1,0 +1,11 @@
+{
+  "time-short-press" : 200,
+  "time-double-press" : 400,
+  "time-long-press" : 300,
+  "time-long-after-short-press" : 600,
+  "time-wait-gesture-upon-key0-hold" : 1000,
+  "gesture-finger-press-radius" : 45,
+  "gesture-motion-base-sensitivity" : 48,
+  "gesture-row4-begin-y" : 425,
+  "gesture-row1-begin-y" : 25
+}

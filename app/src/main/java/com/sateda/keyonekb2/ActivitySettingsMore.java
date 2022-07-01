@@ -45,7 +45,7 @@ public class ActivitySettingsMore extends Activity {
         btClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                for (KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
+                for (SearchClickPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
                     plugin.setId("");
                     KeyoneKb2AccessibilityService.Instance.ClearFromSettings(plugin);
                 }
@@ -125,8 +125,8 @@ public class ActivitySettingsMore extends Activity {
         if(packageName == null || packageName.isEmpty())
             return;
         boolean isAdded = false;
-        for(KeyoneKb2AccessibilityService.SearchHackPlugin searchHackPlugin: KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
-            if(searchHackPlugin.getPackageName().equals(packageName)) {
+        for(SearchClickPlugin searchClickPlugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
+            if(searchClickPlugin.getPackageName().equals(packageName)) {
                 isAdded = true;
                 break;
             }
@@ -141,9 +141,9 @@ public class ActivitySettingsMore extends Activity {
                     if (KeyoneIME.Instance == null) return;
                     if (packageName.isEmpty()) return;
                     if (KeyoneKb2AccessibilityService.Instance == null) return;
-                    KeyoneKb2AccessibilityService.SearchHackPlugin sp = new KeyoneKb2AccessibilityService.SearchHackPlugin(packageName);
+                    SearchClickPlugin sp = new SearchClickPlugin(packageName);
                     sp.setEvents(KeyoneKb2AccessibilityService.STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
-                    KeyoneKb2AccessibilityService.TempAddedSearchHackPlugins.add(sp);
+                    KeyoneKb2AccessibilityService.TEMP_ADDED_SEARCH_CLICK_PLUGINS.add(sp);
                     btAddPlugin.setText("ADDED: " + packageName);
                     btAddPlugin.setEnabled(false);
                     ShowToast("Application added. Accessibility service automatic stopped. Need start manually.");
@@ -173,12 +173,12 @@ public class ActivitySettingsMore extends Activity {
         if(!btSavePluginData.getText().toString().equals("SAVED")) {
 
 
-            AutoClickPluginData data = new AutoClickPluginData();
+            SearchClickPlugin.SearchClickPluginData data = new SearchClickPlugin.SearchClickPluginData();
 
             data.DefaultSearchWords = KeyoneKb2AccessibilityService.Instance.DefaultSearchWords;
 
-            for (KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
-                AutoClickPluginData.SearchPluginData pluginData = new AutoClickPluginData.SearchPluginData();
+            for (SearchClickPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
+                SearchClickPlugin.SearchClickPluginData.SearchPluginData pluginData = new SearchClickPlugin.SearchClickPluginData.SearchPluginData();
                 pluginData.PackageName = plugin.getPackageName();
                 pluginData.SearchFieldId = plugin.getId();
 
@@ -192,13 +192,13 @@ public class ActivitySettingsMore extends Activity {
                         pluginData.DynamicSearchMethod = new ArrayList<>();
                         for (String searchWord : data.DefaultSearchWords) {
 
-                            AutoClickPluginData.DynamicSearchMethod d1 = new AutoClickPluginData.DynamicSearchMethod();
-                            d1.DynamicSearchMethodFunction = AutoClickPluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
+                            SearchClickPlugin.SearchClickPluginData.DynamicSearchMethod d1 = new SearchClickPlugin.SearchClickPluginData.DynamicSearchMethod();
+                            d1.DynamicSearchMethodFunction = SearchClickPlugin.SearchClickPluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
                             d1.ContainsString = searchWord;
                             pluginData.DynamicSearchMethod.add(d1);
 
-                            d1 = new AutoClickPluginData.DynamicSearchMethod();
-                            d1.DynamicSearchMethodFunction = AutoClickPluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
+                            d1 = new SearchClickPlugin.SearchClickPluginData.DynamicSearchMethod();
+                            d1.DynamicSearchMethodFunction = SearchClickPlugin.SearchClickPluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
                             d1.ContainsString = searchWord;
                             pluginData.DynamicSearchMethod.add(d1);
                         }
@@ -235,7 +235,7 @@ public class ActivitySettingsMore extends Activity {
             return;
         }
         String text_data = "";
-        for(KeyoneKb2AccessibilityService.SearchHackPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchHackPlugins) {
+        for(SearchClickPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
             String value = plugin.getId();
             if(value.isEmpty()) {
                 if(plugin.DynamicSearchMethod != null && plugin.DynamicSearchMethod.size() == 1)
@@ -255,7 +255,8 @@ public class ActivitySettingsMore extends Activity {
     private void SaveResFiles() {
         String path = "NOT SAVED";
         path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_layouts), getApplicationContext());
-        //FileJsonUtils.SerializeToFile(KeyoneIME.allLayouts, "keyboard_layouts.json");
+        path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_core), getApplicationContext());
+        //FileJsonUtils.SerializeToFile(settings, "keyboard_core.json");
         for (KeyboardLayout keyboardLayout: Instance.KeyboardLayoutList) {
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.Resources.KeyboardMapping, getApplicationContext());
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.AltModeLayout, getApplicationContext());

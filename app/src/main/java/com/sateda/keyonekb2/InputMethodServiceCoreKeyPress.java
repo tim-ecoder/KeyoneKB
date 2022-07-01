@@ -8,6 +8,7 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.inputmethod.InputConnection;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,17 +66,19 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
     KeyPressData LastShortPressKey1 = null;
     KeyPressData LastDoublePressKey = null;
 
-
+    KeyoneKb2Settings.CoreKeyboardSettings CoreKeyboardSettings;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onCreate() {
         super.onCreate();
-        TIME_DOUBLE_PRESS = Integer.parseInt(getString(R.string.KB_CORE_TIME_DOUBLE_PRESS));
-        TIME_SHORT_2ND_LONG_PRESS = Integer.parseInt(getString(R.string.KB_CORE_TIME_SHORT_2ND_LONG_PRESS));
-        TIME_LONG_PRESS = Integer.parseInt(getString(R.string.KB_CORE_TIME_LONG_PRESS));
-        TIME_SHORT_PRESS = Integer.parseInt(getString(R.string.KB_CORE_TIME_SHORT_PRESS));
+        FileJsonUtils.Initialize(this.getPackageName(), this);
+        CoreKeyboardSettings = FileJsonUtils.DeserializeFromJson(KeyoneKb2Settings.CoreKeyboardSettingsResFileName, new TypeReference<KeyoneKb2Settings.CoreKeyboardSettings>() {}, this);
+        TIME_DOUBLE_PRESS = CoreKeyboardSettings.TimeDoublePress;
+        TIME_SHORT_2ND_LONG_PRESS = CoreKeyboardSettings.TimeLongAfterShortPress;
+        TIME_LONG_PRESS = CoreKeyboardSettings.TimeLongPress;
+        TIME_SHORT_PRESS = CoreKeyboardSettings.TimeShortPress;
     }
 
     //region KEY_DOWN_UP

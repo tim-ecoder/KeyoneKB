@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     public static KeyoneKb2AccessibilityService Instance;
-    private static String TAG3 = "KeyoneKb2-AS";
+    public static String TAG3 = "KeyoneKb2-AS";
 
     interface NodeClickableConverter {
         AccessibilityNodeInfo getNode(AccessibilityNodeInfo info);
@@ -28,99 +28,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     public static int STD_EVENTS = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_VIEW_FOCUSED;
 
-    static class SearchHackPlugin {
-
-        String _packageName;
-        String _id = "";
-
-        int _events = 0;
-
-        NodeClickableConverter _converter;
-
-        public ArrayList<AutoClickPluginData.DynamicSearchMethod> DynamicSearchMethod;
-
-        public int WaitBeforeSendChar;
-
-        public void setConverter(NodeClickableConverter converter) {
-            _converter = converter;
-        }
-
-        public void setEvents(int events) {
-            _events = events;
-        }
-
-        public SearchHackPlugin(String packageName) {
-            _packageName = packageName;
-        }
-        public void setId(String id) {
-            _id = id;
-        }
-        public String getId() {
-            return _id;
-        }
-
-        public String getPreferenceKey() {
-            return ""+_packageName;
-        }
-
-        private AccessibilityNodeInfo findId(AccessibilityNodeInfo root) {
-
-            if(DynamicSearchMethod == null || DynamicSearchMethod.isEmpty()) {
-                return findIdAll(root);
-            }
-
-            for(AutoClickPluginData.DynamicSearchMethod method : DynamicSearchMethod) {
-                if(method.DynamicSearchMethodFunction == AutoClickPluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive) {
-                    AccessibilityNodeInfo info = FindFirstByTextRecursive(root, method.ContainsString);
-                    if(info != null) {
-                        return info;
-                    }
-                }
-                if(method.DynamicSearchMethodFunction == AutoClickPluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText) {
-                    List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(method.ContainsString);
-                    if (infoList.size() > 0) {
-                        return infoList.get(0);
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private AccessibilityNodeInfo findIdAll(AccessibilityNodeInfo root) {
-
-            for (String searchWord : Instance.DefaultSearchWords) {
-
-                AccessibilityNodeInfo info = FindFirstByTextRecursive(root, searchWord);
-                if (info != null) {
-                    return info;
-                }
-                List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(searchWord);
-                if (infoList.size() > 0) {
-                    return infoList.get(0);
-                }
-            }
-            return null;
-        }
-
-        public String getPackageName() {
-            return _packageName;
-        }
-        public boolean checkEventType(int eventType) {
-            if((eventType & _events) == 0)
-                return false;
-
-            return true;
-        }
-
-        public AccessibilityNodeInfo Convert(AccessibilityNodeInfo info) {
-            if (_converter != null && info != null)
-                return _converter.getNode(info);
-            return info;
-        }
-    }
-
-    public final ArrayList<SearchHackPlugin> searchHackPlugins = new ArrayList<>();
+    public final ArrayList<SearchClickPlugin> searchClickPlugins = new ArrayList<>();
 
     KeyoneKb2Settings keyoneKb2Settings;
 
@@ -133,15 +41,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "onServiceConnected()");
         super.onServiceConnected();
         AccessibilityServiceInfo info = getServiceInfo();
-        info.packageNames = SearchHackPackages.toArray(new String[SearchHackPackages.size()]);
-        if(!TempAddedSearchHackPlugins.isEmpty())
+        info.packageNames = SearchClickPackages.toArray(new String[SearchClickPackages.size()]);
+        if(!TEMP_ADDED_SEARCH_CLICK_PLUGINS.isEmpty())
             info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
         setServiceInfo(info);
     }
 
-    private final ArrayList<String> SearchHackPackages = new ArrayList<>();
+    private final ArrayList<String> SearchClickPackages = new ArrayList<>();
 
-    public static final ArrayList<SearchHackPlugin> TempAddedSearchHackPlugins = new ArrayList<>();
+    public static final ArrayList<SearchClickPlugin> TEMP_ADDED_SEARCH_CLICK_PLUGINS = new ArrayList<>();
 
     @Override
     public synchronized void onDestroy() {
@@ -159,7 +67,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
             executorService = Executors.newFixedThreadPool(2);
 
-            AutoClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<AutoClickPluginData>() {
+            SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {
             }, getApplicationContext());
             if (data2 == null)
                 return;
@@ -170,9 +78,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 DefaultSearchWords.add("Search");
                 Log.e(TAG3, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
             }
-            for (AutoClickPluginData.SearchPluginData data : data2.SearchPlugins) {
-                SearchHackPlugin shp = new SearchHackPlugin(data.PackageName);
-                SearchHackPackages.add(data.PackageName);
+            for (SearchClickPlugin.SearchClickPluginData.SearchPluginData data : data2.SearchPlugins) {
+                SearchClickPlugin shp = new SearchClickPlugin(data.PackageName);
+                SearchClickPackages.add(data.PackageName);
                 if (data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
                     shp.setId(data.SearchFieldId);
                 else if (data.DynamicSearchMethod != null) {
@@ -187,16 +95,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
                 shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
 
-                searchHackPlugins.add(shp);
+                searchClickPlugins.add(shp);
             }
 
-            for(SearchHackPlugin shp2: TempAddedSearchHackPlugins) {
-                SearchHackPackages.add(shp2.getPackageName());
-                searchHackPlugins.add(shp2);
+            for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
+                SearchClickPackages.add(shp2.getPackageName());
+                searchClickPlugins.add(shp2);
             }
 
 
-            for (SearchHackPlugin plugin : searchHackPlugins) {
+            for (SearchClickPlugin plugin : searchClickPlugins) {
                 if (plugin.getId() == null || plugin.getId().isEmpty()) {
                     String value = GetFromSetting(plugin);
                     if (value != null && value.length() > 0) {
@@ -214,16 +122,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     }
 
-    private String GetFromSetting(SearchHackPlugin plugin) {
+    private String GetFromSetting(SearchClickPlugin plugin) {
         keyoneKb2Settings.CheckSettingOrSetDefault(plugin.getPreferenceKey(), "");
         return keyoneKb2Settings.GetStringValue(plugin.getPreferenceKey());
     }
 
-    private void SetToSetting(SearchHackPlugin plugin, String value) {
+    private void SetToSetting(SearchClickPlugin plugin, String value) {
         keyoneKb2Settings.SetStringValue(plugin.getPreferenceKey(), value);
     }
 
-    public void ClearFromSettings(SearchHackPlugin plugin) {
+    public void ClearFromSettings(SearchClickPlugin plugin) {
         keyoneKb2Settings.ClearFromSettings(plugin.getPreferenceKey());
     }
 
@@ -244,7 +152,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 return;
             }
             if((event.getEventType() & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-                if(event.getContentChangeTypes() == 6) {
+                if(event.getContentChangeTypes() == (AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT | AccessibilityEvent.CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION)) {
                     //Этот хак нужен потому что Blackberry.Dialer жестко спамит эвентами (вроде как никому эти эвенты больше не нужны)
                     Log.d(TAG3, "IGNORING TYPE_WINDOW_CONTENT_CHANGED TYPES: " + event.getContentChangeTypes());
                     return;
@@ -255,7 +163,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 return;
             String packageName = packageNameCs.toString();
 
-            if(!SearchHackPackages.contains(packageName)) {
+            if(!SearchClickPackages.contains(packageName)) {
                 LogEventD(event);
                 return;
             }
@@ -269,14 +177,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             //event.getContentChangeTypes()
             //event.get
 
-            for (SearchHackPlugin plugin : searchHackPlugins) {
+            for (SearchClickPlugin plugin : searchClickPlugins) {
                 if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin))
                     return;
             }
 
             if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                     && IsSearchHackSet(packageName)) {
-                SetSearchHack(null, null);
+                SetSearchHack(null);
                 LogEventD(event);
             }
         } catch (Throwable ex) {
@@ -294,50 +202,39 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "event.getContentDescription() " + event.getContentDescription());
     }
 
-    private boolean ProcessSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchHackPlugin searchHackPlugin) {
-        if (!packageName.equals(searchHackPlugin.getPackageName()))
+    private boolean ProcessSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchClickPlugin searchClickPlugin) {
+        if (!packageName.equals(searchClickPlugin.getPackageName()))
             return false;
-        if(!searchHackPlugin.checkEventType(eventType))
+        if(!searchClickPlugin.checkEventType(eventType))
             return false;
 
         if((eventType & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             Log.d(TAG3, "TYPE_WINDOW_CONTENT_CHANGED TYPES: " +event.getContentChangeTypes());
         }
 
-        AccessibilityNodeInfo info = searchHackPlugin.Convert(FindOrGetFromCache(root, searchHackPlugin));
+        AccessibilityNodeInfo info = searchClickPlugin.Convert(FindOrGetFromCache(root, searchClickPlugin));
 
         if (info != null) {
-            //if (IsSearchHackSet(searchHackPlugin.getPackageName()))
-            //    return true;
+            if (IsSearchHackSet(searchClickPlugin.getPackageName(), info))
+                return true;
             if(info.isFocused() )
                 return true;
-            Log.d(TAG3, "SetSearchHack=SET package: "+searchHackPlugin.getPackageName());
+            Log.d(TAG3, "SetSearchHack=SET package: "+ searchClickPlugin.getPackageName());
             Log.d(TAG3, "SetSearchHack=SET getClassName: " + event.getClassName());
-            int wait = searchHackPlugin.WaitBeforeSendChar;
-            SetSearchHack(() -> {
-                boolean answer = info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-
-                //Для случая уезжающего окна поиска как в Яндекс.Навигаторе плагин хватает поле, которое уже не существует
-                if(!answer) {
-                    Log.e(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
-                }
-
-                if(wait > 0) {
-                    try { Thread.sleep(wait); } catch(Throwable ignore) {}
-                }
-            }, searchHackPlugin.getPackageName());
+            SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData = new SearchClickPlugin.SearchPluginLauncher(searchClickPlugin.getPackageName(), info, searchClickPlugin.WaitBeforeSendChar);
+            SetSearchHack(searchPluginLaunchData);
         } else {
-            Log.d(TAG3, "SetSearchHack=NULL package: "+searchHackPlugin.getPackageName());
+            Log.d(TAG3, "SetSearchHack=NULL package: "+ searchClickPlugin.getPackageName());
             Log.d(TAG3, "SetSearchHack=NULL: getClassName: " + event.getClassName());
-            SetSearchHack(null, null);
+            SetSearchHack(null);
         }
         return true;
 
     }
 
-    private AccessibilityNodeInfo FindOrGetFromCache(AccessibilityNodeInfo root, SearchHackPlugin searchHackPlugin) {
+    private AccessibilityNodeInfo FindOrGetFromCache(AccessibilityNodeInfo root, SearchClickPlugin searchClickPlugin) {
         AccessibilityNodeInfo info = null;
-        String fieldId = searchHackPlugin.getId();
+        String fieldId = searchClickPlugin.getId();
         if(fieldId != "") {
             List<AccessibilityNodeInfo> infoList  = root.findAccessibilityNodeInfosByViewId(fieldId);
             if (infoList.size() > 0) {
@@ -345,13 +242,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 info = infoList.get(0);
             }
         } else {
-            info = searchHackPlugin.findId(root);
+            info = searchClickPlugin.findId(root);
 
             if (info != null) {
                 if (info.getViewIdResourceName() != null) {
                     Log.d(TAG3, "SetSearchHack: research mode: field found " + info.getViewIdResourceName());
-                    searchHackPlugin.setId(info.getViewIdResourceName());
-                    SetToSetting(searchHackPlugin, info.getViewIdResourceName());
+                    searchClickPlugin.setId(info.getViewIdResourceName());
+                    SetToSetting(searchClickPlugin, info.getViewIdResourceName());
                 } else {
                     //AccessibilityNodeInfo info2 = info.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
                     Log.d(TAG3, "SetSearchHack: getViewIdResourceName() == null " + info.getContentDescription());
@@ -361,42 +258,33 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         return info;
     }
 
-    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text) {
-        if (node == null)
-            return null;
-        if(node.getViewIdResourceName() != null)
-            Log.d(TAG3, node.getViewIdResourceName());
-        if (node.getText() != null) {
-            if (node.getText().toString().contains(text))
-                return node;
-            //else Log.d(TAG, "TEXT: "+node.getText());
-        }
-        for (int i = 0; i < node.getChildCount(); i++) {
-            AccessibilityNodeInfo child = node.getChild(i);
-            AccessibilityNodeInfo result = FindFirstByTextRecursive(child, text);
-            if (result != null)
-                return result;
-        }
-        return null;
-    }
+
 
     public void StopService() {
         disableSelf();
     }
 
-    private void SetSearchHack(KeyoneIME.Processable processable, String packageName) {
+    private void SetSearchHack(SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData) {
         if (KeyoneIME.Instance != null) {
-            KeyoneIME.Instance.SetSearchHack(processable, packageName);
+            KeyoneIME.Instance.SetSearchHack(searchPluginLaunchData);
         }
 
     }
 
+    private boolean IsSearchHackSet(String packageName, AccessibilityNodeInfo info) {
+        if (KeyoneIME.Instance == null)
+            return false;
+        if(KeyoneIME.Instance.SearchPluginLauncher == null)
+            return false;
+        return KeyoneIME.Instance.SearchPluginLauncher.IsSameAsMine(packageName, info);
+    }
+
     private boolean IsSearchHackSet(String packageName) {
-        if (KeyoneIME.Instance != null) {
-            if(KeyoneIME.Instance.SearchHackPackage != null && KeyoneIME.Instance.SearchHackPackage.equals(packageName))
-                return KeyoneIME.Instance.SearchHack != null;
-        }
-        return false;
+        if (KeyoneIME.Instance == null)
+            return false;
+        if(KeyoneIME.Instance.SearchPluginLauncher == null)
+            return false;
+        return KeyoneIME.Instance.SearchPluginLauncher.IsSameAsMine(packageName);
     }
 
     @Override

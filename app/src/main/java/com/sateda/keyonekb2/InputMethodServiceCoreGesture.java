@@ -13,6 +13,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     private int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
     private int MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST ;
     private int ROW_4_BEGIN_Y;
+    private int ROW_1_BEGIN_Y;
     protected int TIME_WAIT_GESTURE_UPON_KEY_0;
     private float lastGestureX;
     protected boolean mode_keyboard_gestures = false;
@@ -36,10 +37,11 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     @Override
     public void onCreate() {
         super.onCreate();
-        MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST = Integer.parseInt(getString(R.string.KB_CORE_GESTURE_FINGER_XY_RAD));;
-        MAGIC_KEYBOARD_GESTURE_MOTION_CONST = Integer.parseInt(getString(R.string.KB_CORE_MOTION_BASE_SENSITIVITY));
-        ROW_4_BEGIN_Y = Integer.parseInt(getString(R.string.KB_CORE_ROW_4_BEGIN_Y));
-        TIME_WAIT_GESTURE_UPON_KEY_0 = Integer.parseInt(getString(R.string.KB_CORE_WAIT_GESTURE_UPON_KEY_0));
+        MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST = CoreKeyboardSettings.GestureFingerPressRadius;
+        MAGIC_KEYBOARD_GESTURE_MOTION_CONST = CoreKeyboardSettings.GestureMotionBaseSensitivity;
+        ROW_4_BEGIN_Y = CoreKeyboardSettings.GestureRow4BeginY;
+        ROW_1_BEGIN_Y = CoreKeyboardSettings.GestureRow1BeginY;
+        TIME_WAIT_GESTURE_UPON_KEY_0 = CoreKeyboardSettings.TimeWaitGestureUponKey0Hold;
     }
 
     protected abstract boolean IsGestureModeEnabled();
@@ -56,7 +58,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             return true;
 
         //Не ловим движение на нижнем ряду где поблел и переключение языка (иначе при зажатии KEY_0 курсор будет прыгать и придется фильтровать эти события
-        if (motionEvent.getY() > ROW_4_BEGIN_Y) {
+        if (motionEvent.getY() > ROW_4_BEGIN_Y || motionEvent.getY() < ROW_1_BEGIN_Y) {
             return true;
         }
 
