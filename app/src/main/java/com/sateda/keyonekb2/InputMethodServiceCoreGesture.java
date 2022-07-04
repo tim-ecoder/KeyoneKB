@@ -291,27 +291,34 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         }
     }
 
-    protected void TurnOffGesturesMode() {
-        //mode_keyboard_gestures_plus_up_down = false;
-        if (mode_keyboard_gestures) {
-            mode_keyboard_gestures = false;
-            UpdateGestureModeVisualization();
-        }
-    }
+
 
     protected abstract void UpdateGestureModeVisualization();
 
-    protected void ResetDoubleClickGestureState() {
-        prevDownTime = 0;
-        prevUpTime = 0;
-        prevPrevDownTime = 0;
-        prevPrevUpTime = 0;
-    }
+
 
     protected abstract boolean IsNoGesturesMode();
 
     protected boolean IsInputMode() {
         if(getCurrentInputEditorInfo() == null) return false;
         return getCurrentInputEditorInfo().inputType > 0;
+    }
+
+    protected boolean ActionTurnOffGesturesMode() {
+        //mode_keyboard_gestures_plus_up_down = false;
+        if (mode_keyboard_gestures) {
+            mode_keyboard_gestures = false;
+            UpdateGestureModeVisualization();
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean ActionResetDoubleClickGestureState() {
+        prevDownTime = 0;
+        prevUpTime = 0;
+        prevPrevDownTime = 0;
+        prevPrevUpTime = 0;
+        return true;
     }
 }

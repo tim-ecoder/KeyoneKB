@@ -10,6 +10,8 @@ import android.view.KeyEvent;
 import android.view.inputmethod.InputConnection;
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -88,6 +90,9 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         keyDownUpKeepTouch(keyEventCode, ic, 0);
     }
 
+    protected void ActionCustomKeyDownUpNoMetaKeepTouch(int keyEventCode) {
+        keyDownUpKeepTouch(keyEventCode, getCurrentInputConnection(), 0);
+    }
 
     protected static void keyDownUpDefaultFlags(int keyEventCode, InputConnection ic) {
         if (ic == null) return;
@@ -97,6 +102,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         ic.sendKeyEvent(
                 new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
     }
+
 
     protected static void keyDownUp(int keyEventCode, InputConnection ic, int meta, int flag) {
         if (ic == null) return;
@@ -457,7 +463,10 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
     interface Processable {
         boolean Process(KeyPressData keyPressData);
+
     }
+
+
 
     class KeyProcessingMode {
 
@@ -473,8 +482,6 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         public Processable OnHoldOn;
         public Processable OnHoldOff;
         public Processable OnUndoShortPress;
-        public boolean KeyHoldPlusKey;
-        public boolean WaitForDoublePress;
 
         //Только короткое нажатие, если зажать - символ будет повторяться
         public boolean IsShortPressOnly() {
@@ -482,7 +489,6 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             if(OnLongPress != null) return false;
             if(OnHoldOn != null) return false;
             if(OnHoldOff != null) return false;
-            if(KeyHoldPlusKey) return false;
             if(OnShortPress == null) return false;
             return true;
         }
@@ -491,7 +497,6 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         public boolean IsLetterShortDoubleLongPressMode() {
             if(OnHoldOn != null) return false;
             if(OnHoldOff != null) return false;
-            if(KeyHoldPlusKey) return false;
 
             return OnShortPress != null
                     && OnUndoShortPress != null
@@ -502,8 +507,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         //Зажатие срабатывает сразу по keyDown а вот короткое нажатие по отжатию (если успел), двойное тоже работает
         public boolean IsMetaShortDoubleHoldPlusButtonPressMode() {
             if(OnLongPress != null) return false;
-            return KeyHoldPlusKey
-                    && OnShortPress != null
+            return
+                       OnShortPress != null
                     && OnUndoShortPress != null
                     && OnDoublePress != null
                     && OnHoldOn != null
@@ -515,7 +520,6 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             if(OnLongPress != null) return false;
             if(OnHoldOn != null) return false;
             if(OnHoldOff != null) return false;
-            if(KeyHoldPlusKey) return false;
             return OnShortPress != null && OnDoublePress != null && OnUndoShortPress != null;
         }
     }
@@ -538,4 +542,19 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         public KeyProcessingMode KeyProcessingMode;
         public int MetaBase = 0;
     }
+
+
+    protected boolean ActionKeyDownUpDefaultFlags(int keyEventCode) {
+        keyDownUpDefaultFlags(keyEventCode, getCurrentInputConnection());
+        return true;
+    }
+
+    protected boolean ActionKeyDown(int customKeyCode) {
+        InputConnection inputConnection = getCurrentInputConnection();
+        if(inputConnection!=null)
+            inputConnection.sendKeyEvent(new KeyEvent(   KeyEvent.ACTION_DOWN, customKeyCode));
+        return true;
+    }
+
+
 }
