@@ -304,7 +304,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return getCurrentInputEditorInfo().inputType > 0;
     }
 
-    protected boolean ActionTurnOffGesturesMode() {
+    protected boolean ActionTryTurnOffGesturesMode() {
         //mode_keyboard_gestures_plus_up_down = false;
         if (mode_keyboard_gestures) {
             mode_keyboard_gestures = false;

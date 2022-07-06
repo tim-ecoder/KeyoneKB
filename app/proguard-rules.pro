@@ -45,3 +45,5 @@
 -keep class com.sateda.keyonekb2.SearchClickPlugin$SearchClickPluginData { *; }
 -keep class com.sateda.keyonekb2.SearchClickPlugin$SearchClickPluginData$* { *; }
 -keep class com.sateda.keyonekb2.KeyoneKb2Settings$CoreKeyboardSettings { *; }
+-keep class com.sateda.keyonekb2.KeyoneIME$KeyboardMechanics { *; }
+-keep class com.sateda.keyonekb2.KeyoneIME$KeyboardMechanics$* { *; }

@@ -836,6 +836,10 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         return ProcessGestureAtMotionEvent(motionEvent);
     }
 
+    private boolean IsShiftMeta(int meta) {
+        return (meta & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
+    }
+
 
 
     //region VISUAL UPDATE
@@ -916,7 +920,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
         String languageOnScreenNaming = keyboardLayout.KeyboardName;
         boolean changed;
-        boolean needUsefullKeyboard = false;
+        boolean needUsefulKeyboard = false;
         if (IsNavMode()) {
             if (!fnSymbolOnScreenKeyboardMode) {
                 changed = UpdateNotification(navIconRes, TITLE_NAV_TEXT);
@@ -926,10 +930,10 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             //onScreenKeyboardSymbols = keyboardNavigation;
             keyboardView.setKeyboard(keyboardNavigation);
             keyboardView.setNavigationLayer();
-            needUsefullKeyboard = true;
+            needUsefulKeyboard = true;
         } else if (symbolOnScreenKeyboardMode) {
 
-            if (IsSym2Mode()) {
+            if (MetaIsSym2Mode()) {
                 changed = UpdateNotification(SymAllIconRes, TITLE_SYM2_TEXT);
             } else {
                 changed = UpdateNotification(AltAllIconRes, TITLE_SYM_TEXT);
@@ -938,10 +942,10 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             keyboardView.setKeyboard(keyboardLayoutManager.GetSymKeyboard(symPadAltShift));
             keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), symPadAltShift);
 
-            needUsefullKeyboard = true;
+            needUsefulKeyboard = true;
 
         } else if (doubleAltPressAllSymbolsAlted || metaAltPressed) {
-            if (IsSym2Mode()) {
+            if (MetaIsSym2Mode()) {
                 if(metaAltPressed)
                     changed = UpdateNotification(SymHoldIconRes, TITLE_SYM2_TEXT);
                 else
@@ -953,7 +957,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             }
             UpdateKeyboardViewAltMode(updateSwipePanelData);
         } else if (altPressSingleSymbolAltedMode) {
-            if (IsSym2Mode()) {
+            if (MetaIsSym2Mode()) {
                 changed = UpdateNotification(SymOneIconRes, TITLE_SYM2_TEXT);
             } else {
                 changed = UpdateNotification(AltOneIconRes, TITLE_SYM_TEXT);
@@ -971,7 +975,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             UpdateKeyboardViewLetterMode(updateSwipePanelData, languageOnScreenNaming);
         }
 
-        if (needUsefullKeyboard)
+        if (needUsefulKeyboard)
             if (IsInputMode())
                 ShowKeyboard();
             else
@@ -1013,7 +1017,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     private void UpdateKeyboardViewAltMode(boolean updateSwipePanelData) {
         keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
         if (updateSwipePanelData) {
-            if (IsSym2Mode()) {
+            if (MetaIsSym2Mode()) {
                 keyboardView.setLang(TITLE_SYM2_TEXT);
             } else {
                 keyboardView.setLang(TITLE_SYM_TEXT);
@@ -1165,15 +1169,6 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         return true;
     }
 
-    private void ChangeLanguage() {
-        keyboardLayoutManager.ChangeLayout();
-        if(pref_show_toast) {
-            Toast toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
-            toast.show();
-        }
-        UpdateKeyboardModeVisualization();
-    }
-
     private boolean isAlphabet(int code) {
         if (Character.isLetter(code)) {
             return true;
@@ -1210,7 +1205,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         if(editorInfo == null)
             return false;
 
-        if (IsAltMode()
+        if (MetaIsAltMode()
                 || doubleShiftCapsMode)
             return false;
 
@@ -1325,6 +1320,8 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             public ArrayList<Action>  OnHoldOn;
             @JsonProperty(index=60)
             public ArrayList<Action>  OnHoldOff;
+            @JsonProperty(index=70)
+            public ArrayList<Action>  OnTriplePress;
         }
 
         public static class Action {
@@ -1338,14 +1335,16 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             public Method ActionMethod;
 
             @JsonProperty(index=30)
-            public Boolean MethodNeedsKeyPressParameter;
+            public boolean MethodNeedsKeyPressParameter;
             @JsonProperty(index=40)
-            public Boolean NeedUpdateVisualState;
+            public boolean NeedUpdateVisualState;
             @JsonProperty(index=50)
-            public Boolean StopProcessingAtSuccessResult;
+            public boolean StopProcessingAtSuccessResult;
             @JsonProperty(index=60)
             public String CustomKeyCode;
             public int CustomKeyCodeInt;
+            @JsonProperty(index=70)
+            public char CustomChar;
 
         }
     }
@@ -1385,6 +1384,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
                 keyAction.OnLongPress = ProcessReflectionMappingAndCreateProcessable(kgp.OnLongPress);
                 keyAction.OnHoldOn = ProcessReflectionMappingAndCreateProcessable(kgp.OnHoldOn);
                 keyAction.OnHoldOff = ProcessReflectionMappingAndCreateProcessable(kgp.OnHoldOff);
+                keyAction.OnTriplePress = ProcessReflectionMappingAndCreateProcessable(kgp.OnTriplePress);
             }
 
         } catch(Throwable ex) {
@@ -1407,7 +1407,9 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
                 Field f = KeyEvent.class.getField(action.CustomKeyCode);
                 action.CustomKeyCodeInt = f.getInt(null);
                 method = KeyoneIME.class.getDeclaredMethod(action.ActionMethodName, int.class);
-            } else if(action.MethodNeedsKeyPressParameter != null && action.MethodNeedsKeyPressParameter) {
+            } else if(action.CustomChar > 0) {
+                method = KeyoneIME.class.getDeclaredMethod(action.ActionMethodName, char.class);
+            } else if(action.MethodNeedsKeyPressParameter) {
                 method = KeyoneIME.class.getDeclaredMethod(action.ActionMethodName, KeyPressData.class);
             } else {
                 method = KeyoneIME.class.getDeclaredMethod(action.ActionMethodName);
@@ -1526,9 +1528,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         return (bitmask & bits) > 0;
     }
 
-    private void SetNeedUpdateVisualState() {
-        needUpdateVisualInsideSingleEvent = true;
-    }
+
 
 
     private void ProcessImeOptions() {
@@ -1624,7 +1624,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     boolean onSymShortPress(KeyPressData keyPressData) {
 
-        if(IsMetaAltPressed()) { //вызов меню
+        if(MetaIsAltPressed()) { //вызов меню
             return ActionKeyDown(KeyEvent.KEYCODE_MENU);
         }
 
@@ -1653,14 +1653,14 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     //endregion
 
-    //region OTHER OK
+    //region OTHER OK OK
 
     boolean onShortPressEnter(KeyPressData keyPressData) {
-        if(IsMetaShiftPressed()) {
+        if(MetaIsShiftPressed()) {
             ActionUnCrLf();
             return true;
         }
-        ActionTurnOffGesturesMode();
+        ActionTryTurnOffGesturesMode();
         ActionResetDoubleClickGestureState();
         ActionCustomKeyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER);
         return true;
@@ -1670,63 +1670,47 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
 
 
-    boolean onShortPressSendAsIs(KeyPressData keyPressData) {
-        ActionKeyDownUpDefaultFlags(keyPressData.KeyCode);
-        return true;
-    }
-
     boolean onDelShortPress(KeyPressData keyPressData) {
-        ActionTurnOffGesturesMode();
-        ActionResetDoubleClickGestureState();
 
-        if(IsMetaAltPressed()) {
+
+        if(MetaIsAltPressed()) {
             ActionDeleteUntilPrevCrLf();
             return true;
         }
-        if(metaShiftPressed) {
+        if(MetaIsShiftPressed()) {
             ActionKeyDownUpDefaultFlags(KeyEvent.KEYCODE_FORWARD_DEL);
             return true;
         }
+
+        ActionTryTurnOffGesturesMode();
+        ActionResetDoubleClickGestureState();
         ActionKeyDownUpDefaultFlags(KeyEvent.KEYCODE_DEL);
         return true;
 
     }
 
-    public boolean IsMetaAltPressed() {
-        return metaAltPressed;
-    }
 
-
-    boolean onUndoLastSymbol(KeyPressData keyPressData) {
-        DeleteLastSymbol();
-        SetNeedUpdateVisualState();
-        return true;
-    }
-
-    boolean DoNothingAndMakeUndoAtSubsequentKeyAction(KeyPressData keyPressData) {
-        return true;
-    }
 
 
 
     //endregion
 
-    //region SPACE OK
-
+    //region SPACE OK OK
 
     boolean onSpaceShortPress(KeyPressData keyPressData) {
-        if (ActionIsOnCallDoNothing()) return true;
-        if(IsMetaShiftPressed()) {
+
+        if(MetaIsShiftPressed()) {
             return ActionChangeKeyboardLayout();
         }
-        if(IsShiftMeta (keyPressData)) {
+        if(IsShiftMeta(keyPressData.MetaBase)) {
             return ActionChangeKeyboardLayout();
         }
 
-        ActionTurnOffGesturesMode();
+        if (MetaStateIsOnCall()) return ActionDoNothing();
+        ActionTryTurnOffGesturesMode();
         ActionTryDisableAltModeUponSpace();
         ActionKeyDownUpDefaultFlags(KeyEvent.KEYCODE_SPACE);
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState(); //ok
         return true;
     }
 
@@ -1738,16 +1722,16 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         if (ActionTryAcceptCall()) return true;
         if (ActionTryDoubleSpaceDotSpaceConversion()) return true;
         ActionKeyDownUpDefaultFlags(KeyEvent.KEYCODE_SPACE);
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState();//ok
         return true;
     }
 
     //endregion
 
-    //region K2:CTRL_LEFT (K1: SHIFT_RIGHT) OK
+    //region K2:CTRL_LEFT (K1: SHIFT_RIGHT) OK OK
 
     boolean onCtrlShortPress(KeyPressData keyPressData) {
-        if(metaShiftPressed) {
+        if(MetaIsShiftPressed()) {
             return ActionChangeSwipePanelVisibility();
         }
         ActionDisableAndResetGesturesAtInputMode();
@@ -1785,7 +1769,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     //endregion
 
-    //region SHIFT_LEFT OK
+    //region SHIFT_LEFT OK OK
 
     boolean onShiftShortPress(KeyPressData keyPressData) {
         if (ActionTryChangeSymPadLayout()) return true;
@@ -1813,24 +1797,23 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     //endregion
 
-    //region KEY_0 OK
+    //region KEY_0 OK OK
     boolean onKey0ShortPress(KeyPressData keyPressData) {
-        if(IsAltMode()) {
-            ActionTurnOffGesturesMode();
+        if(MetaIsAltMode()) {
+            ActionTryTurnOffGesturesMode();
             ActionSendCharToInput((char) CHAR_0);
             ActionTryDisableFirstSymbolAltMode();
             ActionTryDisableFirstLetterShiftMode();
             return true;
         }
 
-        ChangeLanguage();
-        SetNeedUpdateVisualState();
+        ActionChangeKeyboardLayout();
         return true;
     }
 
     //onKey0DoublePress
     boolean onKey0DoublePress(KeyPressData keyPressData) {
-        if (IsAltMode()) {
+        if (MetaIsAltMode()) {
             ActionSendCharToInput((char) CHAR_0);
             //ResetSingleAltSingleShiftModeAfterOneLetter();
         }
@@ -1838,13 +1821,13 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     }
 
     boolean onKey0HoldOn(KeyPressData keyPressData) {
-        if (IsAltMode()) return true;
+        if (MetaIsAltMode()) return ActionDoNothing();
         ActionTryEnableGestureAtInputOnHoldState();
         return true;
     }
 
     boolean onKey0HoldOff(KeyPressData keyPressData) {
-        if (IsAltMode()) return true;
+        if (MetaIsAltMode()) return ActionDoNothing();
         ActionDisableGestureMode();
         return true;
     }
@@ -1852,17 +1835,17 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     //endregion
 
-    //region LETTER OK
+    //region LETTER OK OK
     boolean onLetterShortPress(KeyPressData keyPressData) {
-        if(IsMetaCtrlPressed()) {
+        if(MetaIsCtrlPressed()) {
             return ActionSendCtrlPlusKey(keyPressData);
         }
 
-        if(IsAltMode()) {
+        if(MetaIsAltMode()) {
             return ActionSendCharSinglePressAltOrSymMode(keyPressData);
         }
 
-        if(IsShiftMode()) {
+        if(MetaIsShiftMode()) {
             return ActionSendCharSinglePressShiftMode(keyPressData);
         }
 
@@ -1876,7 +1859,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         sendKeyChar((char) code2send);
         ActionTryDisableFirstSymbolAltMode();
         ActionTryDisableFirstLetterShiftMode();
-        ActionTurnOffGesturesMode();
+        ActionTryTurnOffGesturesMode();
         ActionResetDoubleClickGestureState();
     }
 
@@ -1893,14 +1876,14 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     }
 
     boolean onLetterDoublePress(KeyPressData keyPressData) {
-        if(IsMetaCtrlPressed()) {
+        if(MetaIsCtrlPressed()) {
             return ActionSendCtrlPlusKey(keyPressData);
         }
         int code2send;
 
         //TODO: Проверить: Двойное нажатие ALT->SYM символ т.е. инвертировать SHIFT
-        if(IsAltMode()) {
-            if(IsShiftMode()) {
+        if(MetaIsAltMode()) {
+            if(MetaIsShiftMode()) {
                 return ActionSendCharSinglePressAltAndShiftMode(keyPressData);
             }
             return ActionSendCharSinglePressAldMode(keyPressData);
@@ -1921,7 +1904,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     }
 
     boolean onLetterLongPress(KeyPressData keyPressData) {
-        if(IsMetaCtrlPressed()) {
+        if(MetaIsCtrlPressed()) {
             return ActionDoNothing();
         }
         return ActionLetterLongPressRefactor(keyPressData);
@@ -1963,14 +1946,24 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
                         }
 
                         if (metaResult) {
-                            if (InvokeMethod(keyPressData, action)) return true;
+                            boolean result = InvokeMethod(keyPressData, action);
+                            if (result && action.NeedUpdateVisualState)
+                                Keyboard.ActionSetNeedUpdateVisualState();
+                            if (action.StopProcessingAtSuccessResult && result) {
+                                return true;
+                            }
                         }
                     }
                 }
                 for (KeyoneIME.KeyboardMechanics.Action action : Actions) {
 
                     if (action.MetaModeMethods == null || action.MetaModeMethods.isEmpty()) {
-                        if (InvokeMethod(keyPressData, action)) return true;
+                        boolean result = InvokeMethod(keyPressData, action);
+                        if (result && action.NeedUpdateVisualState)
+                            Keyboard.ActionSetNeedUpdateVisualState();
+                        if (action.StopProcessingAtSuccessResult && result) {
+                            return true;
+                        }
                     }
 
                 }
@@ -1984,14 +1977,15 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             boolean result;
             if(action.CustomKeyCodeInt > 0) {
                 result = (Boolean) action.ActionMethod.invoke(Keyboard, action.CustomKeyCodeInt);
-            } else if(action.MethodNeedsKeyPressParameter!= null && action.MethodNeedsKeyPressParameter) {
+            } else if(action.CustomChar > 0) {
+                result = (Boolean) action.ActionMethod.invoke(Keyboard, action.CustomChar);
+            } else if(action.MethodNeedsKeyPressParameter) {
                 result = (Boolean) action.ActionMethod.invoke(Keyboard, keyPressData);
             } else {
                 result = (Boolean) action.ActionMethod.invoke(Keyboard);
             }
-            if(action.StopProcessingAtSuccessResult != null && action.StopProcessingAtSuccessResult && result)
-                return true;
-            return false;
+
+            return result;
         }
 
 
@@ -2012,7 +2006,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             doubleAltPressAllSymbolsAlted = false;
             DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
             UpdateGestureModeVisualization();
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -2026,7 +2020,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             fnSymbolOnScreenKeyboardMode = false;
             //TODO: Зачем это?
             keyboardView.SetFnKeyboardMode(false);
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
             UpdateGestureModeVisualization();
             return true;
         }
@@ -2035,14 +2029,14 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     public boolean SetNavModeHoldOnState() {
         keyboardStateHolding_NavModeAndKeyboard = true;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         UpdateGestureModeVisualization();
         return true;
     }
 
     public boolean SetNavModeHoldOffState() {
         keyboardStateHolding_NavModeAndKeyboard = false;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         UpdateGestureModeVisualization();
         return true;
     }
@@ -2066,7 +2060,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         return false;
     }
 
-    public boolean ActionIsOnCallDoNothing() {
+    public boolean MetaStateIsOnCall() {
         if(pref_manage_call && IsCalling() && !IsInputMode()) {
             return true;
         }
@@ -2078,6 +2072,14 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     //region Actions GESTURE
 
+    public boolean ActionTryTurnOffGesturesMode() {
+        return super.ActionTryTurnOffGesturesMode();
+    }
+
+    protected boolean ActionResetDoubleClickGestureState() {
+        return super.ActionResetDoubleClickGestureState();
+    }
+
     public boolean ActionTryEnableGestureAtInputOnHoldState() {
         if (SystemClock.uptimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
             Log.d(TAG2, "GestureMode at key_0_down first time");
@@ -2088,9 +2090,10 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         return false;
     }
 
-    public void ActionDisableGestureMode() {
+    public boolean ActionDisableGestureMode() {
         mode_keyboard_gestures = false;
         UpdateGestureModeVisualization();
+        return true;
     }
 
     public boolean ActionChangeGestureModeState() {
@@ -2101,7 +2104,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         }
         UpdateGestureModeVisualization();
         //TODO: ???
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
@@ -2111,7 +2114,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             mode_keyboard_gestures_plus_up_down = true;
             UpdateGestureModeVisualization();
             //TODO: ???
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
         }
 
         return true;
@@ -2132,26 +2135,26 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     //region Actions ALT-MODE
     public boolean ActionEnableHoldAltMode() {
         metaAltPressed = true;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
     public boolean ActionDisableHoldAltMode() {
         metaAltPressed = false;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
     public boolean ActionChangeFirstSymbolAltMode() {
         altPressSingleSymbolAltedMode = !altPressSingleSymbolAltedMode;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
     public boolean ActionTryDisableFirstSymbolAltMode() {
         if (altPressSingleSymbolAltedMode && !pref_alt_space) {
             altPressSingleSymbolAltedMode = false;
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -2160,7 +2163,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     public boolean ActionChangeFixedAltModeState() {
         altPressSingleSymbolAltedMode = false;
         doubleAltPressAllSymbolsAlted = !doubleAltPressAllSymbolsAlted;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
@@ -2168,7 +2171,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         if(doubleAltPressAllSymbolsAlted){
             doubleAltPressAllSymbolsAlted = false;
             altPressSingleSymbolAltedMode = false;
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -2180,26 +2183,26 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     public boolean ActionEnableHoldShiftMode() {
         metaShiftPressed = true;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
     public boolean ActionDisableHoldShiftMode() {
         metaShiftPressed = false;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
     public boolean ActionChangeFirstLetterShiftMode() {
         oneTimeShiftOneTimeBigMode = !oneTimeShiftOneTimeBigMode;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
     public boolean ActionTryDisableFirstLetterShiftMode() {
         if (oneTimeShiftOneTimeBigMode) {
             oneTimeShiftOneTimeBigMode = false;
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -2209,7 +2212,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         if(doubleShiftCapsMode) {
             doubleShiftCapsMode = false;
             DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -2218,7 +2221,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     public boolean ActionChangeShiftCapslockState() {
         oneTimeShiftOneTimeBigMode = false;
         doubleShiftCapsMode = !doubleShiftCapsMode;
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
@@ -2242,7 +2245,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
                 DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
             }
             //TODO: Много лишних вызовов апдейта нотификаций
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -2252,7 +2255,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     public boolean ActionTryChangeSymPadLayout() {
         if(symbolOnScreenKeyboardMode) {
             symPadAltShift = !symPadAltShift;
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -2288,6 +2291,45 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     //region Actions OTHER
 
+
+    //SAME AS: "need-update-visual-state": true,
+    public boolean ActionSetNeedUpdateVisualState() {
+        needUpdateVisualInsideSingleEvent = true;
+        return true;
+    }
+
+    public boolean ActionSetNeedUpdateVisualState1() {
+        //IS ON: "need-update-visual-state": true
+        //needUpdateVisualInsideSingleEvent = true;
+        return true;
+    }
+
+    public boolean ActionDeletePreviousSymbol(KeyPressData keyPressData) {
+        DeleteLastSymbol();
+        //ActionSetNeedUpdateVisualState();
+        return true;
+    }
+
+    boolean DoNothingAndMakeUndoAtSubsequentKeyAction(KeyPressData keyPressData) {
+        return true;
+    }
+
+    public boolean ChangeLanguage() {
+        keyboardLayoutManager.ChangeLayout();
+        if(pref_show_toast) {
+            Toast toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        UpdateKeyboardModeVisualization();
+        return true;
+    }
+
+    public boolean ActionTryChangeKeyboardLayoutAtBaseMetaShift(KeyPressData keyPressData) {
+        if(!IsShiftMeta(keyPressData.MetaBase))
+            return false;
+        return ActionChangeKeyboardLayout();
+    }
+
     public boolean ActionChangeSwipePanelVisibility() {
         if (keyboardView.isShown()) {
             pref_show_default_onscreen_keyboard = false;
@@ -2300,9 +2342,17 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     }
 
     public boolean ActionKeyDown(int customKeyCode) {
-        return this.ActionKeyDown(customKeyCode);
+        return super.ActionKeyDown(customKeyCode);
     }
 
+    public boolean ActionKeyDownUpDefaultFlags(int customKeyCode) {
+        return super.ActionKeyDownUpDefaultFlags(customKeyCode);
+    }
+
+    public boolean ActionKeyDownUpNoMetaKeepTouch(int keyEventCode) {
+        super.ActionCustomKeyDownUpNoMetaKeepTouch(keyEventCode);
+        return true;
+    }
 
     public boolean ActionDoNothing() {
         return true;
@@ -2345,7 +2395,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         if(back_letter.length() == 2 && Character.isLetterOrDigit(back_letter.charAt(0)) && back_letter.charAt(1) == ' ') {
             inputConnection.deleteSurroundingText(1, 0);
             inputConnection.commitText(". ", 2);
-            SetNeedUpdateVisualState();
+            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -2355,7 +2405,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     public boolean ActionChangeKeyboardLayout() {
         ChangeLanguage();
-        SetNeedUpdateVisualState();
+        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
@@ -2407,7 +2457,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     public boolean ActionSendCharSinglePressAltOrSymMode(KeyPressData keyPressData) {
         int code2send;
-        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, IsShiftSym2State(), false);
+        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, MetaIsShiftSym2Mode(), false);
         SendLetterOrSymbol(code2send);
         //keyboardLayoutManager.ScanCodeKeyCodeMapping.put(keyPressData.ScanCode, keyPressData.KeyCode);
         return true;
@@ -2442,7 +2492,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         //TODO: Попробовать: по сути это можно поднять в логику выше
         if(IsNotPairedLetter(keyPressData)) {
             //TODO: Особенно is_double_press
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, IsShiftMode(), true);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, MetaIsShiftMode(), true);
             SendLetterOrSymbol(code2send);
             return true;
         }
@@ -2468,7 +2518,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         DeleteLastSymbol();
         if(pref_long_press_key_alt_symbol) {
             if(keyPressData.Short2ndLongPress) {
-                if(IsAltMode()) {
+                if(MetaIsAltMode()) {
                     DeleteLastSymbol();
                     code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
                     if(code2send == 0) {
@@ -2482,18 +2532,18 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
             } else {
                 //!keyPressData.Short2ndLongPress
-                if(IsAltMode()) {
+                if(MetaIsAltMode()) {
                     code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
                 } else {
-                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, IsShiftMode(), false);
+                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, MetaIsShiftMode(), false);
                 }
             }
             SendLetterOrSymbol(code2send);
         } else {
             if(keyPressData.Short2ndLongPress) {
-                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, IsAltMode(), true, true);
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, MetaIsAltMode(), true, true);
             } else {
-                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, IsAltMode(), true, false);
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, MetaIsAltMode(), true, false);
             }
             SendLetterOrSymbol(code2send);
         }
@@ -2505,35 +2555,38 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     //region META
 
-    public boolean IsShiftMeta(int meta) {
-        return (meta & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
-    }
+    //TODO: Блин вот хоть убей не помню нафига этот хак, но помню что без него что-то не работало (возвожно на К1)
 
-    public boolean IsShiftMeta(KeyPressData keyPressData) {
-        return (keyPressData.MetaBase & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
-    }
 
-    public boolean IsMetaShiftPressed() {
+
+    public boolean MetaIsShiftPressed() {
+
         return metaShiftPressed;
     }
 
-    public boolean IsMetaCtrlPressed() {
+    public boolean MetaIsCtrlPressed() {
+
         return metaCtrlPressed;
     }
 
-    public boolean IsShiftMode() {
+    public boolean MetaIsShiftMode() {
+
         return oneTimeShiftOneTimeBigMode || doubleShiftCapsMode || metaShiftPressed;
     }
 
-    public boolean IsAltMode() {
+    public boolean MetaIsAltMode() {
         return altPressSingleSymbolAltedMode || doubleAltPressAllSymbolsAlted || metaAltPressed;
     }
 
-    public boolean IsSym2Mode() {
-        return IsAltMode() && IsShiftSym2State();
+    public boolean MetaIsAltPressed() {
+        return metaAltPressed;
     }
 
-    public boolean IsShiftSym2State() {
+    public boolean MetaIsSym2Mode() {
+        return MetaIsAltMode() && MetaIsShiftSym2Mode();
+    }
+
+    public boolean MetaIsShiftSym2Mode() {
         return metaShiftPressed || (symbolOnScreenKeyboardMode && symPadAltShift);
     }
 
