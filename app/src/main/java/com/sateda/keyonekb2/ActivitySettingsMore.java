@@ -256,101 +256,13 @@ public class ActivitySettingsMore extends Activity {
         String path = "NOT SAVED";
         path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_layouts), getApplicationContext());
         path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_core), getApplicationContext());
-        KeyoneIME.KeyboardMechanics km = CreateNewKeyboardMechanics();
-        FileJsonUtils.SerializeToFile(km, "keyboard_mechanics.json");
+        path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_mechanics), getApplicationContext());
         for (KeyboardLayout keyboardLayout: Instance.KeyboardLayoutList) {
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.Resources.KeyboardMapping, getApplicationContext());
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.AltModeLayout, getApplicationContext());
         }
 
         btSave.setText(path);
-
-    }
-
-    private KeyoneIME.KeyboardMechanics CreateNewKeyboardMechanics() {
-        KeyoneIME.KeyboardMechanics km = new KeyoneIME.KeyboardMechanics();
-        KeyoneIME.KeyboardMechanics.KeyGroupProcessor kgp = new KeyoneIME.KeyboardMechanics.KeyGroupProcessor();
-        km.KeyGroupProcessors.add(kgp);
-
-        kgp.KeyCodes.add("KEYCODE_ALT_LEFT");
-        kgp.KeyCodes.add("KEYCODE_ALT_RIGHT");
-
-        kgp.OnShortPress = new ArrayList<>();
-        KeyoneIME.KeyboardMechanics.Action action;
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnShortPress.add(action);
-        action.ActionMethodName = "ActionTryChangeSymPadLayout";
-        action.NeedUpdateVisualState = true;
-        action.StopProcessingAtSuccessResult = true;
-
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnShortPress.add(action);
-        action.ActionMethodName = "ActionTryDisableFixedAltModeState";
-        action.NeedUpdateVisualState = true;
-        action.StopProcessingAtSuccessResult = true;
-
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnShortPress.add(action);
-        action.ActionMethodName = "ActionChangeFirstSymbolAltMode";
-        action.NeedUpdateVisualState = true;
-
-        kgp.OnDoublePress = new ArrayList<>();
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnDoublePress.add(action);
-        action.ActionMethodName = "ActionChangeFixedAltModeState";
-
-        kgp.OnHoldOn = new ArrayList<>();
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnHoldOn.add(action);
-        action.ActionMethodName = "ActionEnableHoldAltMode";
-
-        kgp.OnHoldOff = new ArrayList<>();
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnHoldOff.add(action);
-        action.ActionMethodName = "ActionDisableHoldAltMode";
-
-
-        kgp = new KeyoneIME.KeyboardMechanics.KeyGroupProcessor();
-        km.KeyGroupProcessors.add(kgp);
-
-        kgp.KeyCodes.add("KEYCODE_A");
-        kgp.KeyCodes.add("KEYCODE_B");
-        kgp.OnShortPress = new ArrayList<>();
-
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnShortPress.add(action);
-        action.ActionMethodName = "ActionSendCharSinglePressNoMeta";
-        action.NeedUpdateVisualState = true;
-        action.StopProcessingAtSuccessResult = true;
-
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnShortPress.add(action);
-        action.MetaModeMethodNames = new ArrayList<>();
-        action.MetaModeMethodNames.add("IsMetaCtrlPressed");
-        action.ActionMethodName = "ActionSendCtrlPlusKey";
-        action.MethodNeedsKeyPressParameter = true;
-        action.NeedUpdateVisualState = true;
-        action.StopProcessingAtSuccessResult = true;
-
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnShortPress.add(action);
-        action.MetaModeMethodNames = new ArrayList<>();
-        action.MetaModeMethodNames.add("IsAltMode");
-        action.ActionMethodName = "ActionSendCharSinglePressAltOrSymMode";
-        action.MethodNeedsKeyPressParameter = true;
-        action.NeedUpdateVisualState = true;
-        action.StopProcessingAtSuccessResult = true;
-
-        action = new KeyoneIME.KeyboardMechanics.Action();
-        kgp.OnShortPress.add(action);
-        action.MetaModeMethodNames = new ArrayList<>();
-        action.MetaModeMethodNames.add("IsShiftMode");
-        action.ActionMethodName = "ActionSendCharSinglePressShiftMode";
-        action.MethodNeedsKeyPressParameter = true;
-        action.NeedUpdateVisualState = true;
-        action.StopProcessingAtSuccessResult = true;
-
-        return km;
 
     }
 
