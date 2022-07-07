@@ -173,11 +173,11 @@ public class KeyboardLayoutManager {
 
             keyboardLayoutOptions.IconCapsRes.DrawableResId= resources.getIdentifier(keyboardLayoutOptions.IconCapslock, "drawable", context.getPackageName());
             keyboardLayoutOptions.IconFirstShiftRes.DrawableResId = resources.getIdentifier(keyboardLayoutOptions.IconFirstShift, "drawable", context.getPackageName());
-            keyboardLayoutOptions.IconLittleRes.DrawableResId = resources.getIdentifier(keyboardLayoutOptions.IconLowercase, "drawable", context.getPackageName());
+            keyboardLayoutOptions.IconLowercaseRes.DrawableResId = resources.getIdentifier(keyboardLayoutOptions.IconLowercase, "drawable", context.getPackageName());
 
             keyboardLayoutOptions.IconCapsRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconCapslock, "mipmap", context.getPackageName());
             keyboardLayoutOptions.IconFirstShiftRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconFirstShift, "mipmap", context.getPackageName());
-            keyboardLayoutOptions.IconLittleRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconLowercase, "mipmap", context.getPackageName());
+            keyboardLayoutOptions.IconLowercaseRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconLowercase, "mipmap", context.getPackageName());
         }
 
         return keyboardLayoutOptionsArray;

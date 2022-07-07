@@ -24,8 +24,10 @@ public class ActivitySettings extends AppCompatActivity {
 
     private float touchY;
 
-    private void SetSwitchStateOrDefault(Switch switch1, String settingName) {
-        switch1.setChecked(keyoneKb2Settings.GetBooleanValue(settingName));
+    private boolean SetSwitchStateOrDefault(Switch switch1, String settingName) {
+        boolean enabled = keyoneKb2Settings.GetBooleanValue(settingName);
+        switch1.setChecked(enabled);
+        return enabled;
     }
 
     private void SetProgressOrDefault(SeekBar seekBar, String settingName) {
@@ -40,10 +42,11 @@ public class ActivitySettings extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         layout = (RelativeLayout) findViewById(R.id.activity_settings);
-        //layout.setMinimumHeight(5000);
+
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
         Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_keyboard_layout);
         int prevId = 0;
+        int enableCount = 0;
         for (KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayouts) {
             Switch currentKeyboardLayoutSwitch;
             //Первый язык будет по умолчанию всегда активирован
@@ -70,7 +73,9 @@ public class ActivitySettings extends AppCompatActivity {
 
             currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
             keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
-            SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
+            boolean enabled = SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
+            if(enabled)
+                enableCount++;
 
             currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -79,6 +84,12 @@ public class ActivitySettings extends AppCompatActivity {
                 }
             });
 
+        }
+
+        if(enableCount == 0) {
+            KeyboardLayout.KeyboardLayoutOptions defLayout = keyboardLayouts.get(0);
+            keyoneKb2Settings.SetBooleanValue(defLayout.getPreferenceName(), true);
+            SetSwitchStateOrDefault(defaultKeyboardLayoutSwitch, defLayout.getPreferenceName());
         }
 
         View divider = findViewById(R.id.divider2);
@@ -210,6 +221,16 @@ public class ActivitySettings extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM, isChecked);
+            }
+        });
+
+        Switch switch_vibrate_on_key_down = (Switch) findViewById(R.id.switch_vibrate_on_key_down);
+        SetSwitchStateOrDefault(switch_vibrate_on_key_down, keyoneKb2Settings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN);
+
+        switch_vibrate_on_key_down.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN, isChecked);
             }
         });
 

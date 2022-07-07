@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
+    android:keyWidth="10%p"
+    android:horizontalGap="0px"
+    android:verticalGap="0px"
+    android:keyHeight="45dp"
+    >
+    <Row >
+        <Key android:codes="16" android:keyLabel=" " android:keyEdgeFlags="left" />
+        <Key android:codes="17" android:keyLabel=" " />
+        <Key android:codes="18" android:keyLabel=" " />
+        <Key android:codes="19" android:keyLabel=" " />
+        <Key android:codes="20" android:keyLabel=" " />
+        <Key android:codes="21" android:keyLabel=" " />
+        <Key android:codes="22" android:keyLabel=" " />
+        <Key android:codes="23" android:keyLabel=" " />
+        <Key android:codes="24" android:keyLabel=" " />
+        <Key android:codes="25" android:keyLabel=" " android:keyEdgeFlags="right"  />
+    </Row>
+    <Row>
+        <Key android:codes="30" android:keyLabel=" " android:keyEdgeFlags="left" />
+        <Key android:codes="31" android:keyLabel=" " />
+        <Key android:codes="32" android:keyLabel=" " />
+        <Key android:codes="33" android:keyLabel=" " />
+        <Key android:codes="34" android:keyLabel=" " />
+        <Key android:codes="35" android:keyLabel=" " />
+        <Key android:codes="36" android:keyLabel=" " />
+        <Key android:codes="37" android:keyLabel=" " />
+        <Key android:codes="38" android:keyLabel=" " />
+        <Key android:codes="-5" android:keyIcon="@mipmap/ic_backspace_white_24dp"
+            android:isRepeatable="true" android:keyEdgeFlags="right"  />
+    </Row>
+    <Row>
+        <Key android:codes="0"  android:keyLabel=" "  android:keyEdgeFlags="left" />
+        <Key android:codes="44" android:keyLabel=" " />
+        <Key android:codes="45" android:keyLabel=" " />
+        <Key android:codes="46" android:keyLabel=" " />
+        <Key android:codes="47" android:keyLabel=" " />
+        <Key android:codes="48" android:keyLabel=" " />
+        <Key android:codes="49" android:keyLabel=" " />
+        <Key android:codes="50" android:keyLabel=" " />
+        <Key android:codes="5"  android:keyLabel=" " />
+        <Key android:codes="-4" android:keyIcon="@mipmap/ic_keyboard_return_white_24dp"
+            android:isRepeatable="true" android:keyEdgeFlags="right" />
+    </Row>
+
+</Keyboard>

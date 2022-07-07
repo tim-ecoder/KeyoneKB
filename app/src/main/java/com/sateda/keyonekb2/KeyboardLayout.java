@@ -64,21 +64,22 @@ public class KeyboardLayout {
         String KeyboardMapping;
         @JsonProperty(index=30)
         String IconLowercase;
+        IconRes IconLowercaseRes;
         @JsonProperty(index=40)
         String IconFirstShift;
+        IconRes IconFirstShiftRes;
         @JsonProperty(index=50)
         String IconCapslock;
-
         IconRes IconCapsRes;
-        IconRes IconFirstShiftRes;
-        IconRes IconLittleRes;
+        @JsonProperty(index=60)
+        String CustomKeyboardMechanics;
 
         int id = 0;
 
         public KeyboardLayoutOptions() {
             IconCapsRes = new IconRes();
             IconFirstShiftRes = new IconRes();
-            IconLittleRes = new IconRes();
+            IconLowercaseRes = new IconRes();
         }
 
         String getPreferenceName() {

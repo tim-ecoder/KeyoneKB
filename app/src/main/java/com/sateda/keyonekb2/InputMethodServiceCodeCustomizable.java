@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
-import android.widget.Toast;
 import com.android.internal.telephony.ITelephony;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -30,39 +29,57 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     protected boolean pref_show_default_onscreen_keyboard = true;
     protected boolean pref_alt_space = true;
     protected boolean pref_manage_call = false;
-
     protected boolean pref_long_press_key_alt_symbol = false;
     protected boolean pref_keyboard_gestures_at_views_enable = true;
 
-    private boolean metaCtrlPressed = false; // только первая буква будет большая
-
-    protected boolean oneTimeShiftOneTimeBigMode; // только первая буква будет большая
-    protected boolean doubleShiftCapsMode; //все следующий буквы будут большие
-    protected boolean metaShiftPressed; //нажатие клавишь с зажатым альтом
-
+    private boolean metaHoldCtrl; // только первая буква будет большая
+    protected boolean metaFixedModeFirstLetterUpper; // только первая буква будет большая
+    protected boolean metaFixedModeCapslock; //все следующий буквы будут большие
+    protected boolean metaHoldShift; //нажатие клавишь с зажатым альтом
     protected boolean symPadAltShift;
+    protected boolean metaHoldAlt; //нажатие клавишь с зажатым альтом
+    protected boolean metaFixedModeFirstSymbolAlt;
+    protected boolean metaFixedModeAllSymbolsAlt;
 
-    protected boolean altPressSingleSymbolAltedMode;
-    protected boolean doubleAltPressAllSymbolsAlted;
-
-    protected boolean symbolOnScreenKeyboardMode = false;
+    protected boolean keyboardStateFixed_SymbolOnScreenKeyboard;
+    protected boolean keyboardStateFixed_FnSymbolOnScreenKeyboard;
     protected boolean keyboardStateFixed_NavModeAndKeyboard;
-    protected boolean fnSymbolOnScreenKeyboardMode;
 
     protected boolean keyboardStateHolding_NavModeAndKeyboard;
-    protected boolean metaAltPressed; //нажатие клавишь с зажатым альтом
 
-    protected boolean needUpdateVisualInsideSingleEvent = false;
+    protected boolean needUpdateVisualInsideSingleEvent;
 
     protected ViewSatedaKeyboard keyboardView;
 
+
+
+    protected Processable OnStartInput;
+    protected Processable OnFinishInput;
+    protected Processable BeforeSendChar;
+    protected Processable AfterSendChar;
+
+    protected String DEFAULT_KEYBOARD_MECHANICS_RES = "keyboard_mechanics";
+
+    public String keyboard_mechanics_res = DEFAULT_KEYBOARD_MECHANICS_RES;
 
     //region LOAD
 
     public static class KeyboardMechanics {
 
-        @JsonProperty(index=10)
+        @JsonProperty(index=100)
         public ArrayList<KeyGroupProcessor> KeyGroupProcessors = new ArrayList<>();
+
+        @JsonProperty(index=20)
+        public ArrayList<Action> OnStartInputActions;
+
+        @JsonProperty(index=30)
+        public ArrayList<Action> OnFinishInputActions;
+        @JsonProperty(index=40)
+        public ArrayList<Action> BeforeSendCharActions;
+        @JsonProperty(index=50)
+        public ArrayList<Action> AfterSendCharActions;
+
+
 
         public static class KeyGroupProcessor {
             @JsonProperty(index=10)
@@ -114,12 +131,17 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
         try {
 
-            KeyboardMechanics = FileJsonUtils.DeserializeFromJson("keyboard_mechanics", new TypeReference<KeyboardMechanics>() {}, context);
+            KeyboardMechanics = FileJsonUtils.DeserializeFromJson(keyboard_mechanics_res, new TypeReference<KeyboardMechanics>() {}, context);
 
             if(KeyboardMechanics == null) {
                 Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS JSON FILE");
                 return;
             }
+
+            OnStartInput = ProcessReflectionMappingAndCreateProcessable(KeyboardMechanics.OnStartInputActions);
+            OnFinishInput = ProcessReflectionMappingAndCreateProcessable(KeyboardMechanics.OnFinishInputActions);
+            BeforeSendChar = ProcessReflectionMappingAndCreateProcessable(KeyboardMechanics.BeforeSendCharActions);
+            AfterSendChar = ProcessReflectionMappingAndCreateProcessable(KeyboardMechanics.AfterSendCharActions);
 
             for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.KeyGroupProcessors) {
 
@@ -150,9 +172,13 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
             Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS: "+ex);
         }
 
-        //OldAndStableStaticMechanics();
 
-        //endregion
+    }
+
+    //endregion
+
+    boolean DoNothingAndMakeUndoAtSubsequentKeyAction(KeyPressData keyPressData) {
+        return true;
     }
 
     private InputMethodServiceCoreKeyPress.Processable ProcessReflectionMappingAndCreateProcessable(ArrayList<KeyboardMechanics.Action> list) throws NoSuchMethodException, NoSuchFieldException, IllegalAccessException {
@@ -193,6 +219,10 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         p.Keyboard = this;
         return p;
     }
+
+
+
+    //endregion
 
     //region Processable2
 
@@ -258,8 +288,6 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
         InputMethodServiceCodeCustomizable Keyboard = null;
     }
-
-    //endregion
 
     //endregion
 
@@ -354,12 +382,11 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     public boolean ActionTryDisableNavModeAndKeyboard() {
         if(keyboardStateFixed_NavModeAndKeyboard) {
             keyboardStateFixed_NavModeAndKeyboard = false;
-            symbolOnScreenKeyboardMode = false;
-            altPressSingleSymbolAltedMode = false;
-            doubleAltPressAllSymbolsAlted = false;
-            DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
+            keyboardStateFixed_SymbolOnScreenKeyboard = false;
+            metaFixedModeFirstSymbolAlt = false;
+            metaFixedModeAllSymbolsAlt = false;
+            DetermineForceFirstUpper(getCurrentInputEditorInfo());
             UpdateGestureModeVisualization();
-            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -369,9 +396,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         if (!keyboardStateFixed_NavModeAndKeyboard) {
             //Двойное нажание SYM -> Режим навигации
             keyboardStateFixed_NavModeAndKeyboard = true;
-            fnSymbolOnScreenKeyboardMode = false;
+            keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
             keyboardView.SetFnKeyboardMode(false);
-            ActionSetNeedUpdateVisualState1();
             UpdateGestureModeVisualization();
             return true;
         }
@@ -380,14 +406,12 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public boolean SetNavModeHoldOnState() {
         keyboardStateHolding_NavModeAndKeyboard = true;
-        ActionSetNeedUpdateVisualState1();
         UpdateGestureModeVisualization();
         return true;
     }
 
     public boolean SetNavModeHoldOffState() {
         keyboardStateHolding_NavModeAndKeyboard = false;
-        ActionSetNeedUpdateVisualState1();
         UpdateGestureModeVisualization();
         return true;
     }
@@ -447,6 +471,13 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return true;
     }
 
+    public boolean ActionDisableAndResetGestureMode() {
+        mode_keyboard_gestures = false;
+        mode_keyboard_gestures_plus_up_down = false;
+        UpdateGestureModeVisualization();
+        return true;
+    }
+
     public boolean ActionChangeGestureModeState() {
         if(IsInputMode()) {
             mode_keyboard_gestures = !mode_keyboard_gestures;
@@ -455,7 +486,6 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         }
         UpdateGestureModeVisualization();
         //TODO: ???
-        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
@@ -465,7 +495,6 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
             mode_keyboard_gestures_plus_up_down = true;
             UpdateGestureModeVisualization();
             //TODO: ???
-            ActionSetNeedUpdateVisualState1();
         }
 
         return true;
@@ -485,44 +514,44 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //region Actions ALT-MODE
     public boolean ActionEnableHoldAltMode() {
-        metaAltPressed = true;
-        ActionSetNeedUpdateVisualState1();
+        metaHoldAlt = true;
         return true;
     }
 
     public boolean ActionDisableHoldAltMode() {
-        metaAltPressed = false;
-        ActionSetNeedUpdateVisualState1();
+        metaHoldAlt = false;
         return true;
     }
 
     public boolean ActionChangeFirstSymbolAltMode() {
-        altPressSingleSymbolAltedMode = !altPressSingleSymbolAltedMode;
-        ActionSetNeedUpdateVisualState1();
+        metaFixedModeFirstSymbolAlt = !metaFixedModeFirstSymbolAlt;
         return true;
     }
 
     public boolean ActionTryDisableFirstSymbolAltMode() {
-        if (altPressSingleSymbolAltedMode && !pref_alt_space) {
-            altPressSingleSymbolAltedMode = false;
-            ActionSetNeedUpdateVisualState1();
+        if (metaFixedModeFirstSymbolAlt && !pref_alt_space) {
+            metaFixedModeFirstSymbolAlt = false;
             return true;
         }
         return false;
     }
 
     public boolean ActionChangeFixedAltModeState() {
-        altPressSingleSymbolAltedMode = false;
-        doubleAltPressAllSymbolsAlted = !doubleAltPressAllSymbolsAlted;
-        ActionSetNeedUpdateVisualState1();
+        metaFixedModeFirstSymbolAlt = false;
+        metaFixedModeAllSymbolsAlt = !metaFixedModeAllSymbolsAlt;
+        return true;
+    }
+
+    public boolean ActionEnableFixedAltModeState() {
+        metaFixedModeFirstSymbolAlt = false;
+        metaFixedModeAllSymbolsAlt = true;
         return true;
     }
 
     public boolean ActionTryDisableFixedAltModeState() {
-        if(doubleAltPressAllSymbolsAlted){
-            doubleAltPressAllSymbolsAlted = false;
-            altPressSingleSymbolAltedMode = false;
-            ActionSetNeedUpdateVisualState1();
+        if(metaFixedModeAllSymbolsAlt){
+            metaFixedModeAllSymbolsAlt = false;
+            metaFixedModeFirstSymbolAlt = false;
             return true;
         }
         return false;
@@ -533,46 +562,40 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     //region Actions SHIFT-MODE
 
     public boolean ActionEnableHoldShiftMode() {
-        metaShiftPressed = true;
-        ActionSetNeedUpdateVisualState1();
+        metaHoldShift = true;
         return true;
     }
 
     public boolean ActionDisableHoldShiftMode() {
-        metaShiftPressed = false;
-        ActionSetNeedUpdateVisualState1();
+        metaHoldShift = false;
         return true;
     }
 
     public boolean ActionChangeFirstLetterShiftMode() {
-        oneTimeShiftOneTimeBigMode = !oneTimeShiftOneTimeBigMode;
-        ActionSetNeedUpdateVisualState1();
+        metaFixedModeFirstLetterUpper = !metaFixedModeFirstLetterUpper;
         return true;
     }
 
     public boolean ActionTryDisableFirstLetterShiftMode() {
-        if (oneTimeShiftOneTimeBigMode) {
-            oneTimeShiftOneTimeBigMode = false;
-            ActionSetNeedUpdateVisualState1();
+        if (metaFixedModeFirstLetterUpper) {
+            metaFixedModeFirstLetterUpper = false;
             return true;
         }
         return false;
     }
 
     public boolean ActionTryDisableCapslockShiftMode() {
-        if(doubleShiftCapsMode) {
-            doubleShiftCapsMode = false;
-            DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
-            ActionSetNeedUpdateVisualState1();
+        if(metaFixedModeCapslock) {
+            metaFixedModeCapslock = false;
+            DetermineForceFirstUpper(getCurrentInputEditorInfo());
             return true;
         }
         return false;
     }
 
     public boolean ActionChangeShiftCapslockState() {
-        oneTimeShiftOneTimeBigMode = false;
-        doubleShiftCapsMode = !doubleShiftCapsMode;
-        ActionSetNeedUpdateVisualState1();
+        metaFixedModeFirstLetterUpper = false;
+        metaFixedModeCapslock = !metaFixedModeCapslock;
         return true;
     }
 
@@ -580,23 +603,31 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //region Actions SYM-PAD
 
+    public boolean ActionDisableNavSymFnKeyboard() {
+        //Отключаем режим навигации
+        keyboardStateFixed_NavModeAndKeyboard = false;
+        keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
+        keyboardView.SetFnKeyboardMode(false);
+        UpdateGestureModeVisualization();
+        return true;
+    }
+
     public boolean ActionTryChangeSymPadVisibilityAtInputMode() {
         if(IsInputMode()) {
-            if(!symbolOnScreenKeyboardMode){
-                symbolOnScreenKeyboardMode = true;
-                doubleAltPressAllSymbolsAlted = true;
+            if(!keyboardStateFixed_SymbolOnScreenKeyboard){
+                keyboardStateFixed_SymbolOnScreenKeyboard = true;
+                metaFixedModeAllSymbolsAlt = true;
                 symPadAltShift = true;
-                altPressSingleSymbolAltedMode = false;
+                metaFixedModeFirstSymbolAlt = false;
             } else {
                 symPadAltShift = false;
-                symbolOnScreenKeyboardMode = false;
-                altPressSingleSymbolAltedMode = false;
-                doubleAltPressAllSymbolsAlted = false;
+                keyboardStateFixed_SymbolOnScreenKeyboard = false;
+                metaFixedModeFirstSymbolAlt = false;
+                metaFixedModeAllSymbolsAlt = false;
                 //TODO: Поубирать
-                DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
+                //DetermineForceFirstUpper(getCurrentInputEditorInfo());
             }
             //TODO: Много лишних вызовов апдейта нотификаций
-            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
@@ -604,9 +635,17 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
 
     public boolean ActionTryChangeSymPadLayout() {
-        if(symbolOnScreenKeyboardMode) {
+        if(keyboardStateFixed_SymbolOnScreenKeyboard) {
             symPadAltShift = !symPadAltShift;
-            ActionSetNeedUpdateVisualState1();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean ActionTryDisableSymPad() {
+        if (keyboardStateFixed_SymbolOnScreenKeyboard) {
+            keyboardStateFixed_SymbolOnScreenKeyboard = false;
+            symPadAltShift = false;
             return true;
         }
         return false;
@@ -618,7 +657,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public boolean ActionEnableHoldCtrlMode(KeyPressData keyPressData) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-        metaCtrlPressed = true;
+        metaHoldCtrl = true;
 
         getCurrentInputConnection().sendKeyEvent(
                 new KeyEvent(
@@ -630,7 +669,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public boolean ActionDisableHoldCtrlMode(KeyPressData keyPressData) {
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-        metaCtrlPressed = false;
+        metaHoldCtrl = false;
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(
                 keyPressData.BaseKeyEvent.getDownTime(),
                 keyPressData.BaseKeyEvent.getEventTime(),
@@ -640,50 +679,36 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //endregion
 
-    //region Actions OTHER
+    //region Actions Search-Hack
 
-
-    //SAME AS: "need-update-visual-state": true,
-    public boolean ActionSetNeedUpdateVisualState() {
-        needUpdateVisualInsideSingleEvent = true;
-        return true;
-    }
-
-    public boolean ActionSetNeedUpdateVisualState1() {
-        //IS ON: "need-update-visual-state": true
-        //needUpdateVisualInsideSingleEvent = true;
-        return true;
-    }
-
-    public boolean ActionDeletePreviousSymbol(KeyPressData keyPressData) {
-        DeleteLastSymbol();
-        //ActionSetNeedUpdateVisualState();
-        return true;
-    }
-
-    boolean DoNothingAndMakeUndoAtSubsequentKeyAction(KeyPressData keyPressData) {
-        return true;
-    }
-
-
-
-    //TODO: Блин вот хоть убей не помню нафига этот хак, но помню что без него что-то не работало (возвожно на К1)
-    public boolean ActionTryChangeKeyboardLayoutAtBaseMetaShift(KeyPressData keyPressData) {
-        if(!IsShiftMeta(keyPressData.MetaBase))
-            return false;
-        return ActionChangeKeyboardLayout();
-    }
-
-    public boolean ActionChangeSwipePanelVisibility() {
-        if (keyboardView.isShown()) {
-            pref_show_default_onscreen_keyboard = false;
-            UpdateKeyboardVisibilityOnPrefChange();
-        } else if (!keyboardView.isShown()) {
-            pref_show_default_onscreen_keyboard = true;
-            UpdateKeyboardVisibilityOnPrefChange();
+    public boolean ActionTryResetSearchPlugin() {
+        EditorInfo editorInfo = getCurrentInputEditorInfo();
+        if(     SearchPluginLauncher != null
+                && !editorInfo.packageName.equals(SearchPluginLauncher.PackageName)) {
+            SetSearchHack(null);
+            return true;
         }
-        return true;
+        return false;
     }
+
+    public boolean SearchInputActivateOnLetterHack() {
+        if(IsInputMode() && isInputViewShown() && SearchPluginLauncher != null) {
+            Log.d(TAG2, "NO_FIRE SearchPluginAction INPUT_MODE");
+            SetSearchHack(null);
+            return true;
+        }
+        if(SearchPluginLauncher != null) {
+            Log.d(TAG2, "FIRE SearchPluginAction!");
+            SearchPluginLauncher.FirePluginAction();
+            SetSearchHack(null);
+            return true;
+        }
+        return false;
+    }
+
+    //endregion
+
+    //region Action KEYs
 
     public boolean ActionKeyDown(int customKeyCode) {
         return super.ActionKeyDown(customKeyCode);
@@ -698,7 +723,28 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return true;
     }
 
-    public boolean ActionDoNothing() {
+    //endregion
+
+
+
+    //region Actions Misc. InputMode
+
+    public boolean ActionSendCharToInput(char char1) {
+        InputConnection inputConnection = getCurrentInputConnection();
+        if (inputConnection != null)
+            inputConnection.commitText(String.valueOf(char1), 1);
+        return true;
+    }
+
+    public boolean ActionTryCapitalizeFirstLetter() {
+        return DetermineForceFirstUpper(getCurrentInputEditorInfo());
+    }
+
+
+
+    public boolean ActionDeletePreviousSymbol(KeyPressData keyPressData) {
+        DeleteLastSymbol();
+        //ActionSetNeedUpdateVisualState();
         return true;
     }
 
@@ -739,41 +785,63 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         if(back_letter.length() == 2 && Character.isLetterOrDigit(back_letter.charAt(0)) && back_letter.charAt(1) == ' ') {
             inputConnection.deleteSurroundingText(1, 0);
             inputConnection.commitText(". ", 2);
-            ActionSetNeedUpdateVisualState1();
             return true;
         }
         return false;
+    }
+
+    //endregion
+
+    //region Actions OTHER
+
+    //SAME AS: "need-update-visual-state": true,
+    public boolean ActionSetNeedUpdateVisualState() {
+        needUpdateVisualInsideSingleEvent = true;
+        return true;
+    }
+
+    //TODO: Блин вот хоть убей не помню нафига этот хак, но помню что без него что-то не работало (возвожно на К1)
+    public boolean ActionTryChangeKeyboardLayoutAtBaseMetaShift(KeyPressData keyPressData) {
+        if(!IsShiftMeta(keyPressData.MetaBase))
+            return false;
+        return ActionChangeKeyboardLayout();
+    }
+
+    public boolean ActionChangeSwipePanelVisibility() {
+        if (keyboardView.isShown()) {
+            pref_show_default_onscreen_keyboard = false;
+            UpdateKeyboardVisibilityOnPrefChange();
+        } else if (!keyboardView.isShown()) {
+            pref_show_default_onscreen_keyboard = true;
+            UpdateKeyboardVisibilityOnPrefChange();
+        }
+        return true;
+    }
+
+
+
+    public boolean ActionDoNothing() {
+        return true;
     }
 
 
 
     public boolean ActionChangeKeyboardLayout() {
         ChangeLanguage();
-        ActionSetNeedUpdateVisualState1();
         return true;
     }
 
     public boolean ActionTryDisableAltModeUponSpace() {
-        if(altPressSingleSymbolAltedMode && pref_alt_space) {
-            altPressSingleSymbolAltedMode = false;
+        if(metaFixedModeFirstSymbolAlt && pref_alt_space) {
+            metaFixedModeFirstSymbolAlt = false;
             return true;
         }
         return false;
     }
 
-
-
-    public boolean ActionSendCharToInput(char char1) {
-        InputConnection inputConnection = getCurrentInputConnection();
-        if (inputConnection != null)
-            inputConnection.commitText(String.valueOf(char1), 1);
-        return true;
-    }
-
-
     //endregion
 
-    //region Actions LETTERS
+    //region Actions LETTERS (CHARS)
 
     public boolean ActionSendCtrlPlusKey(KeyPressData keyPressData) {
         if(keyPressData.KeyCode == KeyEvent.KEYCODE_S) {
@@ -921,11 +989,16 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
 
+
     //endregion
+
+
 
     //region META
 
-
+    public boolean IsActionBeforeMeta() {
+        return true;
+    }
 
     public boolean PrefLongPressAltSymbol() {
         return pref_long_press_key_alt_symbol;
@@ -933,65 +1006,82 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public boolean MetaIsShiftPressed() {
 
-        return metaShiftPressed;
+        return metaHoldShift;
     }
 
     public boolean MetaIsCtrlPressed() {
 
-        return metaCtrlPressed;
+        return metaHoldCtrl;
     }
 
     public boolean MetaIsShiftMode() {
 
-        return oneTimeShiftOneTimeBigMode || doubleShiftCapsMode || metaShiftPressed;
+        return metaFixedModeFirstLetterUpper || metaFixedModeCapslock || metaHoldShift;
     }
 
     public boolean MetaIsAltMode() {
-        return altPressSingleSymbolAltedMode || doubleAltPressAllSymbolsAlted || metaAltPressed;
+        return metaFixedModeFirstSymbolAlt || metaFixedModeAllSymbolsAlt || metaHoldAlt;
     }
 
     public boolean MetaIsAltPressed() {
-        return metaAltPressed;
+        return metaHoldAlt;
     }
-
-
 
 
     public boolean MetaIsSymPadAltShiftMode() {
-        return symbolOnScreenKeyboardMode && symPadAltShift;
+        return keyboardStateFixed_SymbolOnScreenKeyboard && symPadAltShift;
     }
 
     //endregion
 
-    //region end
+    //region INPUT_TYPE
+
+    public abstract boolean IsPackageChanged();
+
+    public boolean InputIsNumber() {
+        EditorInfo editorInfo = getCurrentInputEditorInfo();
+        return (editorInfo.inputType & InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_NUMBER;
+    }
+
+    public boolean InputIsPhone() {
+        EditorInfo editorInfo = getCurrentInputEditorInfo();
+        return (editorInfo.inputType & InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_PHONE;
+    }
+
+    public boolean InputIsDate() {
+        EditorInfo editorInfo = getCurrentInputEditorInfo();
+        return (editorInfo.inputType & InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_DATETIME;
+    }
+
+    public boolean InputIsText() {
+        EditorInfo editorInfo = getCurrentInputEditorInfo();
+        return (editorInfo.inputType & InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_TEXT;
+    }
+
     //endregion
 
-    protected abstract void HideKeyboard();
-    protected abstract void ShowKeyboard();
+    //region end all the rest -->
+    //endregion
+
+    private void SendLetterOrSymbol(int code2send) {
+        Log.v(TAG2, "KEY SEND: "+String.format("%c", code2send));
+
+        BeforeSendChar.Process(null);
+
+        sendKeyChar((char) code2send);
+
+        AfterSendChar.Process(null);
+    }
+
     protected KeyboardLayoutManager keyboardLayoutManager = new KeyboardLayoutManager();
 
     protected abstract void UpdateKeyboardModeVisualization(boolean updateSwipePanelData);
 
     protected abstract void UpdateKeyboardModeVisualization();
 
-    private boolean ChangeLanguage() {
-        keyboardLayoutManager.ChangeLayout();
-        if(pref_show_toast) {
-            Toast toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
-            toast.show();
-        }
-        UpdateKeyboardModeVisualization();
-        return true;
-    }
+    protected abstract void ChangeLanguage();
 
-    void UpdateKeyboardVisibilityOnPrefChange() {
-        if (pref_show_default_onscreen_keyboard) {
-            UpdateKeyboardModeVisualization(true);
-            ShowKeyboard();
-        } else {
-            HideKeyboard();
-        }
-    }
+    protected abstract void UpdateKeyboardVisibilityOnPrefChange();
 
     protected boolean IsShiftMeta(int meta) {
         return (meta & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
@@ -1015,8 +1105,16 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
     public SearchClickPlugin.SearchPluginLauncher SearchPluginLauncher;
 
+
+    private boolean IsNotPairedLetter(KeyPressData keyPressData) {
+        //TODO: По сути - это определение сдвоенная буква или нет, наверное можно как-то оптимальнее сделать потом
+        int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, true);
+        int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, false);
+        return code2send == code2sendNoDoublePress;
+    }
+
     //TODO: Иногда вызывается по несколько раз подряд (видимо из разных мест)
-    protected boolean DetermineFirstBigCharAndReturnChangedState(EditorInfo editorInfo) {
+    protected boolean DetermineForceFirstUpper(EditorInfo editorInfo) {
         //Если мы вывалились из зоны ввода текста
         //NOTE: Проверка не дает вводить Заглавную прям на первом входе в приложение. Видимо не успевает еще активироваться.
         //if(!isInputViewShown())
@@ -1026,7 +1124,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
             return false;
 
         if (MetaIsAltMode()
-                || doubleShiftCapsMode)
+                || metaFixedModeCapslock)
             return false;
 
         int makeFirstBig = 0;
@@ -1035,15 +1133,15 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         }
 
         if(makeFirstBig != 0){
-            if(!oneTimeShiftOneTimeBigMode) {
-                oneTimeShiftOneTimeBigMode = true;
+            if(!metaFixedModeFirstLetterUpper) {
+                metaFixedModeFirstLetterUpper = true;
                 Log.d(TAG2, "updateShiftKeyState (changed to) oneTimeShiftOneTimeBigMode = true");
                 return true;
             }
         }else {
             //makeFirstBig == 0
-            if(oneTimeShiftOneTimeBigMode) {
-                oneTimeShiftOneTimeBigMode = false;
+            if(metaFixedModeFirstLetterUpper) {
+                metaFixedModeFirstLetterUpper = false;
                 Log.d(TAG2, "updateShiftKeyState (changed to) oneTimeShiftOneTimeBigMode = false");
                 return true;
             }
@@ -1094,45 +1192,4 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         }
         return 0;
     }
-
-
-
-
-    private void SendLetterOrSymbol(int code2send) {
-        Log.v(TAG2, "KEY SEND: "+String.format("%c", code2send));
-        SearchInputActivateOnLetterHack();
-        sendKeyChar((char) code2send);
-        ActionTryDisableFirstSymbolAltMode();
-        ActionTryDisableFirstLetterShiftMode();
-        ActionTryTurnOffGesturesMode();
-        ActionResetDoubleClickGestureState();
-    }
-
-    private void SearchInputActivateOnLetterHack() {
-        if(IsInputMode() && isInputViewShown() && SearchPluginLauncher != null) {
-            Log.d(TAG2, "NO_FIRE SearchPluginAction INPUT_MODE");
-            SetSearchHack(null);
-        }
-        if(SearchPluginLauncher != null) {
-            Log.d(TAG2, "FIRE SearchPluginAction!");
-            SearchPluginLauncher.FirePluginAction();
-            SetSearchHack(null);
-        }
-    }
-
-
-
-
-
-    private boolean IsNotPairedLetter(KeyPressData keyPressData) {
-        //TODO: По сути - это определение сдвоенная буква или нет, наверное можно как-то оптимальнее сделать потом
-        int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, true);
-        int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, false);
-        return code2send == code2sendNoDoublePress;
-    }
-
-
-
-
-
 }

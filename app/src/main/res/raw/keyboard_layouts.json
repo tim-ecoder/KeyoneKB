@@ -27,11 +27,13 @@
   "keyboard-mapping" : "pocket_english_hw",
   "icon-lowercase" : "ic_eng_small",
   "icon-first-shift" : "ic_eng_shift_first",
-  "icon-capslock" : "ic_eng_shift_all"
+  "icon-capslock" : "ic_eng_shift_all",
+  "custom-keyboard-mechanics": "keyboard_mechanics_pocket"
 }, {
   "options-name" : "Pocket Русский",
   "keyboard-mapping" : "pocket_russian_hw",
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
-  "icon-capslock" : "ic_rus_shift_all"
+  "icon-capslock" : "ic_rus_shift_all",
+  "custom-keyboard-mechanics": "keyboard_mechanics_pocket"
 } ]

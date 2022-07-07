@@ -254,11 +254,25 @@
         android:layout_height="1dp"
         android:layout_below="@id/switch_notification_icon_system"
         android:background="?android:attr/listDivider" />
+    <Switch
+            android:id="@+id/switch_vibrate_on_key_down"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/divider13"
+            android:text="@string/pref_p_11_name"
+            android:textSize="24sp"
+            tools:checked="true" />
+    <View
+            android:id="@+id/divider14"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/switch_vibrate_on_key_down"
+            android:background="?android:attr/listDivider" />
     <TextView
         android:id="@+id/manual_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/divider13"
+        android:layout_below="@id/divider14"
         android:text="@string/pref_manual_name"
         android:textSize="24sp"
         tools:checked="true" />
@@ -270,7 +284,7 @@
         android:autoLink="web"
         android:text="@string/pref_manual_link"  />
     <View
-        android:id="@+id/divider14"
+        android:id="@+id/divider99"
         android:layout_width="match_parent"
         android:layout_height="6dp"
         android:layout_below="@id/text_manual_link"

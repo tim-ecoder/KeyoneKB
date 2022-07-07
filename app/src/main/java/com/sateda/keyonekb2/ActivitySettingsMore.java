@@ -256,7 +256,7 @@ public class ActivitySettingsMore extends Activity {
         String path = "NOT SAVED";
         path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_layouts), getApplicationContext());
         path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_core), getApplicationContext());
-        path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_mechanics), getApplicationContext());
+        path = FileJsonUtils.SaveJsonResToFile(KeyoneIME.Instance.keyboard_mechanics_res, getApplicationContext());
         for (KeyboardLayout keyboardLayout: Instance.KeyboardLayoutList) {
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.Resources.KeyboardMapping, getApplicationContext());
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.AltModeLayout, getApplicationContext());
