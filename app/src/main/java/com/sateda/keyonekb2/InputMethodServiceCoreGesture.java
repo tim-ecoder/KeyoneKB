@@ -293,9 +293,9 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
 
 
+    protected abstract void UpdateGestureModeVisualization(boolean isInput);
+
     protected abstract void UpdateGestureModeVisualization();
-
-
 
     protected abstract boolean IsNoGesturesMode();
 
