@@ -46,9 +46,27 @@
         },
         {
           "meta-mode-method-names": [
+            "MetaIsAltMode",
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionSendCharSinglePressSymMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsAltMode",
+            "MetaIsSymPadAltShiftMode"
+          ],
+          "action-method-name": "ActionSendCharSinglePressSymMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
-          "action-method-name": "ActionSendCharSinglePressAltOrSymMode",
+          "action-method-name": "ActionSendCharSinglePressAltMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
         },
@@ -80,7 +98,7 @@
             "MetaIsAltMode",
             "MetaIsShiftMode"
           ],
-          "action-method-name": "ActionSendCharSinglePressAltAndShiftMode",
+          "action-method-name": "ActionSendCharSinglePressSymMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
         },
@@ -88,14 +106,48 @@
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
-          "action-method-name": "ActionSendCharSinglePressAldMode",
+          "action-method-name": "ActionSendCharSinglePressAltMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
         }
       ],
       "on-long-press": [
         {
-          "action-method-name": "ActionLetterLongPressRefactor",
+          "action-method-name": "ActionSendCharLongPressCapitalize",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
+            "PrefLongPressAltSymbol",
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionSendCharLongPressAltSymbolAltMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
+            "PrefLongPressAltSymbol",
+            "MetaIsShiftMode"
+          ],
+          "action-method-name": "ActionSendCharLongPressAltSymbolShiftMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
+            "PrefLongPressAltSymbol"
+          ],
+          "action-method-name": "ActionSendCharLongPressAltSymbolNoMeta",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionSendCharLongPressCapitalizeAltMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
         },

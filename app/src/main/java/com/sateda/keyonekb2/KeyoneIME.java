@@ -836,6 +836,15 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         return ProcessGestureAtMotionEvent(motionEvent);
     }
 
+
+    public boolean IsSym2Mode() {
+        return MetaIsAltMode() && IsShiftModeOrSymPadAltShiftMode();
+    }
+
+    private boolean IsShiftModeOrSymPadAltShiftMode() {
+        return MetaIsShiftPressed() || MetaIsSymPadAltShiftMode();
+    }
+
     private boolean IsShiftMeta(int meta) {
         return (meta & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
     }
@@ -933,7 +942,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             needUsefulKeyboard = true;
         } else if (symbolOnScreenKeyboardMode) {
 
-            if (MetaIsSym2Mode()) {
+            if (IsSym2Mode()) {
                 changed = UpdateNotification(SymAllIconRes, TITLE_SYM2_TEXT);
             } else {
                 changed = UpdateNotification(AltAllIconRes, TITLE_SYM_TEXT);
@@ -945,7 +954,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             needUsefulKeyboard = true;
 
         } else if (doubleAltPressAllSymbolsAlted || metaAltPressed) {
-            if (MetaIsSym2Mode()) {
+            if (IsSym2Mode()) {
                 if(metaAltPressed)
                     changed = UpdateNotification(SymHoldIconRes, TITLE_SYM2_TEXT);
                 else
@@ -957,7 +966,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             }
             UpdateKeyboardViewAltMode(updateSwipePanelData);
         } else if (altPressSingleSymbolAltedMode) {
-            if (MetaIsSym2Mode()) {
+            if (IsSym2Mode()) {
                 changed = UpdateNotification(SymOneIconRes, TITLE_SYM2_TEXT);
             } else {
                 changed = UpdateNotification(AltOneIconRes, TITLE_SYM_TEXT);
@@ -1017,7 +1026,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
     private void UpdateKeyboardViewAltMode(boolean updateSwipePanelData) {
         keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
         if (updateSwipePanelData) {
-            if (MetaIsSym2Mode()) {
+            if (IsSym2Mode()) {
                 keyboardView.setLang(TITLE_SYM2_TEXT);
             } else {
                 keyboardView.setLang(TITLE_SYM_TEXT);
@@ -1835,14 +1844,14 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     //endregion
 
-    //region LETTER OK OK
+    //region LETTER OK OK OK
     boolean onLetterShortPress(KeyPressData keyPressData) {
         if(MetaIsCtrlPressed()) {
             return ActionSendCtrlPlusKey(keyPressData);
         }
 
         if(MetaIsAltMode()) {
-            return ActionSendCharSinglePressAltOrSymMode(keyPressData);
+            return DeprecatedActionSendCharSinglePressAltOrSymMode(keyPressData);
         }
 
         if(MetaIsShiftMode()) {
@@ -1884,9 +1893,9 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         //TODO: Проверить: Двойное нажатие ALT->SYM символ т.е. инвертировать SHIFT
         if(MetaIsAltMode()) {
             if(MetaIsShiftMode()) {
-                return ActionSendCharSinglePressAltAndShiftMode(keyPressData);
+                return ActionSendCharSinglePressSymMode(keyPressData);
             }
-            return ActionSendCharSinglePressAldMode(keyPressData);
+            return ActionSendCharSinglePressAltMode(keyPressData);
         }
 
 
@@ -1907,7 +1916,20 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         if(MetaIsCtrlPressed()) {
             return ActionDoNothing();
         }
-        return ActionLetterLongPressRefactor(keyPressData);
+        if(PrefLongPressAltSymbol() && MetaIsAltMode()) {
+            ActionSendCharLongPressAltSymbolAltMode(keyPressData);
+        } else if(PrefLongPressAltSymbol() ) {
+            ActionSendCharLongPressAltSymbolNoMeta(keyPressData);
+
+        } else if (!PrefLongPressAltSymbol()){
+            if(MetaIsAltMode()) {
+                ActionSendCharLongPressCapitalizeAltMode(keyPressData);
+            } else {
+                ActionSendCharLongPressCapitalize(keyPressData);
+            }
+
+        }
+        return true;
     }
 
 
@@ -2448,16 +2470,17 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
 
 
-    public boolean ActionSendCharSinglePressAltAndShiftMode(KeyPressData keyPressData) {
+    public boolean ActionSendCharSinglePressSymMode(KeyPressData keyPressData) {
         int code2send;
         code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
         SendLetterOrSymbol(code2send);
         return true;
     }
 
-    public boolean ActionSendCharSinglePressAltOrSymMode(KeyPressData keyPressData) {
+    //TODO: DELETE ME
+    public boolean DeprecatedActionSendCharSinglePressAltOrSymMode(KeyPressData keyPressData) {
         int code2send;
-        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, MetaIsShiftSym2Mode(), false);
+        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, IsShiftModeOrSymPadAltShiftMode(), false);
         SendLetterOrSymbol(code2send);
         //keyboardLayoutManager.ScanCodeKeyCodeMapping.put(keyPressData.ScanCode, keyPressData.KeyCode);
         return true;
@@ -2471,7 +2494,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         return true;
     }
 
-    public boolean ActionSendCharSinglePressAldMode(KeyPressData keyPressData) {
+    public boolean ActionSendCharSinglePressAltMode(KeyPressData keyPressData) {
         int code2send;
         code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, false, false);
         SendLetterOrSymbol(code2send);
@@ -2492,7 +2515,7 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         //TODO: Попробовать: по сути это можно поднять в логику выше
         if(IsNotPairedLetter(keyPressData)) {
             //TODO: Особенно is_double_press
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, MetaIsShiftMode(), true);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, false);
             SendLetterOrSymbol(code2send);
             return true;
         }
@@ -2505,7 +2528,6 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
             needShift = true;
 
 
-        // Todo: IsAltMode()->false т.к. выше уже было
         DeleteLastSymbol();
         //DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
         code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, needShift, true);
@@ -2513,40 +2535,75 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         return true;
     }
 
-    public boolean ActionLetterLongPressRefactor(KeyPressData keyPressData) {
+    public boolean ActionSendCharLongPressCapitalize(KeyPressData keyPressData) {
         int code2send;
         DeleteLastSymbol();
-        if(pref_long_press_key_alt_symbol) {
-            if(keyPressData.Short2ndLongPress) {
-                if(MetaIsAltMode()) {
-                    DeleteLastSymbol();
-                    code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
-                    if(code2send == 0) {
-                        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
-                    }
-                } else {
-                    if (IsNotPairedLetter(keyPressData))
-                        DeleteLastSymbol();
-                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
-                }
-
-            } else {
-                //!keyPressData.Short2ndLongPress
-                if(MetaIsAltMode()) {
-                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
-                } else {
-                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, MetaIsShiftMode(), false);
-                }
-            }
-            SendLetterOrSymbol(code2send);
+        if (keyPressData.Short2ndLongPress) {
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, true, true);
         } else {
-            if(keyPressData.Short2ndLongPress) {
-                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, MetaIsAltMode(), true, true);
-            } else {
-                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, MetaIsAltMode(), true, false);
-            }
-            SendLetterOrSymbol(code2send);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, true, false);
         }
+        SendLetterOrSymbol(code2send);
+        return true;
+    }
+
+    public boolean ActionSendCharLongPressCapitalizeAltMode(KeyPressData keyPressData) {
+        int code2send;
+        DeleteLastSymbol();
+        if (keyPressData.Short2ndLongPress) {
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, true);
+        } else {
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+        }
+        SendLetterOrSymbol(code2send);
+        return true;
+    }
+
+    public boolean ActionSendCharLongPressAltSymbolNoMeta(KeyPressData keyPressData) {
+        int code2send;
+        DeleteLastSymbol();
+        if(keyPressData.Short2ndLongPress ) {
+            if (IsNotPairedLetter(keyPressData))
+                DeleteLastSymbol();
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+
+        } else {
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, false, false);
+        }
+
+        SendLetterOrSymbol(code2send);
+        return true;
+    }
+
+    public boolean ActionSendCharLongPressAltSymbolShiftMode(KeyPressData keyPressData) {
+        int code2send;
+        DeleteLastSymbol();
+        if(keyPressData.Short2ndLongPress ) {
+            if (IsNotPairedLetter(keyPressData))
+                DeleteLastSymbol();
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+
+        } else {
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+        }
+
+        SendLetterOrSymbol(code2send);
+        return true;
+    }
+
+    public boolean ActionSendCharLongPressAltSymbolAltMode(KeyPressData keyPressData) {
+        int code2send;
+        DeleteLastSymbol();
+        if (keyPressData.Short2ndLongPress) {
+            DeleteLastSymbol();
+            code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
+            if (code2send == 0) {
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+            }
+        } else {
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+        }
+        SendLetterOrSymbol(code2send);
         return true;
     }
 
@@ -2557,7 +2614,9 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
 
     //TODO: Блин вот хоть убей не помню нафига этот хак, но помню что без него что-то не работало (возвожно на К1)
 
-
+    public boolean PrefLongPressAltSymbol() {
+        return pref_long_press_key_alt_symbol;
+    }
 
     public boolean MetaIsShiftPressed() {
 
@@ -2582,12 +2641,11 @@ public class KeyoneIME extends InputMethodServiceCoreGesture implements Keyboard
         return metaAltPressed;
     }
 
-    public boolean MetaIsSym2Mode() {
-        return MetaIsAltMode() && MetaIsShiftSym2Mode();
-    }
 
-    public boolean MetaIsShiftSym2Mode() {
-        return metaShiftPressed || (symbolOnScreenKeyboardMode && symPadAltShift);
+
+
+    public boolean MetaIsSymPadAltShiftMode() {
+        return symbolOnScreenKeyboardMode && symPadAltShift;
     }
 
     //endregion
