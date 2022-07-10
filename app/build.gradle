@@ -22,10 +22,10 @@ android {
     defaultConfig {
         applicationId "com.sateda.keyonekb2"
         minSdkVersion 25
-        targetSdkVersion 25
+        targetSdkVersion 27
         //TODO: ---- Меняем каждый раз! ----
-        versionCode 2380
-        versionName "v2.3-build8.0"
+        versionCode 2382
+        versionName "v2.3-build8.2"
         //TODO: ----------------------------
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
