@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.SystemClock;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.support.annotation.RequiresApi;
 import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
@@ -30,6 +32,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     protected boolean pref_manage_call = false;
     protected boolean pref_long_press_key_alt_symbol = false;
     protected boolean pref_keyboard_gestures_at_views_enable = true;
+    protected boolean pref_vibrate_on_key_down = false;
 
     private boolean metaHoldCtrl; // только первая буква будет большая
     protected boolean metaFixedModeFirstLetterUpper; // только первая буква будет большая
@@ -61,6 +64,10 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     protected String DEFAULT_KEYBOARD_MECHANICS_RES = "keyboard_mechanics";
 
     public String keyboard_mechanics_res = DEFAULT_KEYBOARD_MECHANICS_RES;
+
+    protected Vibrator vibratorService;
+
+    protected int TIME_VIBRATE;
 
     //region LOAD
 
@@ -400,7 +407,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("SearchInputActivateOnLetterHack", InitializeMethod3((Object o) -> SearchInputActivateOnLetterHack(), Object.class));
         Methods.put("SetNavModeHoldOffState", InitializeMethod3((Object o) -> SetNavModeHoldOffState(), Object.class));
         Methods.put("SetNavModeHoldOnState", InitializeMethod3((Object o) -> SetNavModeHoldOnState(), Object.class));
-
+        Methods.put("ActionTryVibrate", InitializeMethod3((Object o) -> ActionTryVibrate(), Object.class));
 
     }
 
@@ -980,6 +987,14 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //region Actions OTHER
 
+    public boolean ActionTryVibrate() {
+        if(pref_vibrate_on_key_down && vibratorService != null) {
+            Vibrate(TIME_VIBRATE);
+            return true;
+        }
+        return false;
+    }
+
     //SAME AS: "need-update-visual-state": true,
     public boolean ActionSetNeedUpdateVisualState() {
         needUpdateVisualInsideSingleEvent = true;
@@ -1377,5 +1392,17 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                 return c.charAt(0);
         }
         return 0;
+    }
+
+    private void Vibrate(int ms) {
+
+        if(vibratorService == null)
+            return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibratorService.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            //deprecated in API 26
+            vibratorService.vibrate(ms);
+        }
     }
 }

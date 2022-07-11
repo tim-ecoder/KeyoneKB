@@ -147,6 +147,12 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionSendCharSinglePressNoMeta",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
@@ -188,6 +194,12 @@
         }
       ],
       "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
         {
           "action-method-name": "ActionSendCharDoublePressNoMeta",
           "method-needs-key-press-parameter": true,
@@ -262,6 +274,12 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionTryChangeKeyboardLayoutAtBaseMetaShift",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
@@ -290,6 +308,12 @@
       ],
       "on-double-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionTryAcceptCall",
           "stop-processing-at-success-result": true
         }, {
@@ -307,6 +331,12 @@
         "KEYCODE_DEL"
       ],
       "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
         {
           "action-method-name": "ActionKeyDownUpDefaultFlags",
           "custom-key-code": "KEYCODE_DEL"
@@ -335,6 +365,12 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionKeyDownUpNoMetaKeepTouch",
           "custom-key-code": "KEYCODE_ENTER"
         }, {
@@ -355,6 +391,12 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionTryChangeSymPadLayout",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
@@ -369,11 +411,23 @@
       ],
       "on-double-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionChangeFixedAltModeState",
           "need-update-visual-state": true
         }
       ],
       "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
         {
           "action-method-name": "ActionEnableHoldAltMode",
           "need-update-visual-state": true
@@ -391,6 +445,12 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionDisableAndResetGesturesAtInputMode",
           "stop-processing-at-success-result": true
         }, {
@@ -403,11 +463,23 @@
       ],
       "on-double-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionChangeGestureModeState",
           "need-update-visual-state": true
         }
       ],
       "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
         {
           "action-method-name": "ActionEnableHoldCtrlMode",
           "method-needs-key-press-parameter": true
@@ -421,6 +493,12 @@
       ],
       "on-triple-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionEnableGestureAtInputModeAndUpDownMode",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
@@ -431,6 +509,12 @@
         "KEYCODE_SHIFT_LEFT"
       ],
       "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
         {
           "action-method-name": "ActionTryChangeSymPadLayout",
           "need-update-visual-state": true,
@@ -447,11 +531,23 @@
       ],
       "on-double-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionChangeShiftCapslockState",
           "need-update-visual-state": true
         }
       ],
       "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
         {
           "action-method-name": "ActionEnableHoldShiftMode",
           "need-update-visual-state": true
@@ -468,6 +564,12 @@
         "KEYCODE_0"
       ],
       "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
         {
           "action-method-name": "ActionChangeKeyboardLayout",
           "need-update-visual-state": true,
@@ -510,6 +612,12 @@
       "on-double-press": [
         {
           "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
           "action-method-name": "ActionSendCharToInput",
@@ -518,6 +626,12 @@
         }
       ],
       "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
         {
           "action-method-name": "ActionTryEnableGestureAtInputOnHoldState"
         }, {
@@ -545,6 +659,12 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionTryDisableNavModeAndKeyboard",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
@@ -563,6 +683,12 @@
       ],
       "on-double-press": [
         {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
           "action-method-name": "ActionTryDeclineCall",
           "stop-processing-at-success-result": true
         }, {
@@ -571,6 +697,12 @@
         }
       ],
       "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
         {
           "action-method-name": "SetNavModeHoldOnState",
           "need-update-visual-state": true

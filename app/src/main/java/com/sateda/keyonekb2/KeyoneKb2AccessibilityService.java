@@ -38,16 +38,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     ArrayList<String> DefaultSearchWords;
 
-    @Override
-    protected void onServiceConnected() {
-        Log.v(TAG3, "onServiceConnected()");
-        super.onServiceConnected();
-        AccessibilityServiceInfo info = getServiceInfo();
-        info.packageNames = SearchClickPackages.toArray(new String[SearchClickPackages.size()]);
-        if(!TEMP_ADDED_SEARCH_CLICK_PLUGINS.isEmpty())
-            info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
-        setServiceInfo(info);
-    }
+
 
     private final ArrayList<String> SearchClickPackages = new ArrayList<>();
 
@@ -55,8 +46,47 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     KeyoneKb2AccServiceOptions keyoneKb2AccServiceOptions;
 
-    int[] retranslateKeyCodes;
 
+
+    public static class KeyoneKb2AccServiceOptions {
+        public static final String ResName = "keyonekb2_as_options";
+
+        public static class MetaKeyPlusKey {
+            @JsonProperty(index=10)
+            public String MetaKeyCode;
+            public int MetaKeyCodeInt;
+
+            @JsonProperty(index=20)
+            public String KeyKeyCode;
+            public int KeyKeyCodeInt;
+        }
+
+        @JsonProperty(index=10)
+        public boolean SearchPluginsEnabled;
+        @JsonProperty(index=20)
+        public ArrayList<String> RetranslateKeyboardKeyCodes = new ArrayList<>();
+
+        @JsonProperty(index=30)
+        public ArrayList<MetaKeyPlusKey> RetraslateKeyboardMetaKeyPlusKeyList = new ArrayList<>();
+    }
+
+    @Override
+    protected void onServiceConnected() {
+        Log.v(TAG3, "onServiceConnected()");
+        super.onServiceConnected();
+
+        AccessibilityServiceInfo info = getServiceInfo();
+        if(keyoneKb2AccServiceOptions.SearchPluginsEnabled) {
+            info.packageNames = SearchClickPackages.toArray(new String[SearchClickPackages.size()]);
+            if (!TEMP_ADDED_SEARCH_CLICK_PLUGINS.isEmpty())
+                info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
+        } else {
+            info.packageNames = null;
+            info.flags = 0;
+            info.eventTypes = 0;
+        }
+        setServiceInfo(info);
+    }
     @Override
     public synchronized void onDestroy() {
         Instance = null;
@@ -73,70 +103,12 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
             keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJson(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, getApplicationContext());
 
-            assert keyoneKb2AccServiceOptions != null;
-            if(keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty()) {
-                retranslateKeyCodes = new int[keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.size()];
-                int i = 0;
-                for (String keyCode: keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes) {
-                    retranslateKeyCodes[i] = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCode);
-                    i++;
-                }
-            }
-            if(keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
-                for(KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList) {
-                    pair.MetaKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.MetaKeyCode);
-                    pair.KeyKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.KeyKeyCode);
-                }
-            }
+            LoadRetraslationData();
+            executorService = Executors.newFixedThreadPool(2);
 
             if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
                 return;
-
-            executorService = Executors.newFixedThreadPool(2);
-            SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
-            if (data2 == null)
-                return;
-            if (data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
-                DefaultSearchWords = data2.DefaultSearchWords;
-            } else {
-                DefaultSearchWords = new ArrayList<>();
-                DefaultSearchWords.add("Search");
-                Log.e(TAG3, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
-            }
-            for (SearchClickPlugin.SearchClickPluginData.SearchPluginData data : data2.SearchPlugins) {
-                SearchClickPlugin shp = new SearchClickPlugin(data.PackageName);
-                SearchClickPackages.add(data.PackageName);
-                if (data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
-                    shp.setId(data.SearchFieldId);
-                else if (data.DynamicSearchMethod != null) {
-                    shp.DynamicSearchMethod = data.DynamicSearchMethod;
-                }
-                if (data.AdditionalEventTypeTypeWindowContentChanged)
-                    shp.setEvents(STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
-                else
-                    shp.setEvents(STD_EVENTS);
-                if (data.CustomClickAdapterClickParent)
-                    shp.setConverter(AccessibilityNodeInfo::getParent);
-
-                shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
-
-                searchClickPlugins.add(shp);
-            }
-
-            for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
-                SearchClickPackages.add(shp2.getPackageName());
-                searchClickPlugins.add(shp2);
-            }
-
-
-            for (SearchClickPlugin plugin : searchClickPlugins) {
-                if (plugin.getId() == null || plugin.getId().isEmpty()) {
-                    String value = GetFromSetting(plugin);
-                    if (value != null && value.length() > 0) {
-                        plugin.setId(value);
-                    }
-                }
-            }
+            LoadSearchPluginData();
         } catch(Throwable ex) {
             Log.e(TAG3, "onCreate Exception: "+ex);
             new Thread(() -> {
@@ -147,6 +119,62 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     }
 
+    @Override
+    public void onInterrupt() {
+        Log.v(TAG3, "onInterrupt()");
+    }
+
+
+
+    //region SEARCH PLUGIN
+
+
+    private void LoadSearchPluginData() {
+        SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
+        if (data2 == null)
+            return;
+        if (data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
+            DefaultSearchWords = data2.DefaultSearchWords;
+        } else {
+            DefaultSearchWords = new ArrayList<>();
+            DefaultSearchWords.add("Search");
+            Log.e(TAG3, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
+        }
+        for (SearchClickPlugin.SearchClickPluginData.SearchPluginData data : data2.SearchPlugins) {
+            SearchClickPlugin shp = new SearchClickPlugin(data.PackageName);
+            SearchClickPackages.add(data.PackageName);
+            if (data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
+                shp.setId(data.SearchFieldId);
+            else if (data.DynamicSearchMethod != null) {
+                shp.DynamicSearchMethod = data.DynamicSearchMethod;
+            }
+            if (data.AdditionalEventTypeTypeWindowContentChanged)
+                shp.setEvents(STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+            else
+                shp.setEvents(STD_EVENTS);
+            if (data.CustomClickAdapterClickParent)
+                shp.setConverter(AccessibilityNodeInfo::getParent);
+
+            shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
+
+            searchClickPlugins.add(shp);
+        }
+
+        for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
+            SearchClickPackages.add(shp2.getPackageName());
+            searchClickPlugins.add(shp2);
+        }
+
+
+        for (SearchClickPlugin plugin : searchClickPlugins) {
+            if (plugin.getId() == null || plugin.getId().isEmpty()) {
+                String value = GetFromSetting(plugin);
+                if (value != null && value.length() > 0) {
+                    plugin.setId(value);
+                }
+            }
+        }
+    }
 
 
     private String GetFromSetting(SearchClickPlugin plugin) {
@@ -316,36 +344,31 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         return KeyoneIME.Instance.SearchPluginLauncher.IsSameAsMine(packageName);
     }
 
-    public static class KeyoneKb2AccServiceOptions {
-        public static final String ResName = "keyonekb2_as_options";
 
-        public static class MetaKeyPlusKey {
-            @JsonProperty(index=10)
-            public String MetaKeyCode;
-            public int MetaKeyCodeInt;
 
-            @JsonProperty(index=20)
-            public String KeyKeyCode;
-            public int KeyKeyCodeInt;
+    //endregion
+
+    //region KEY RETRANSLATION
+    // ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
+
+    int[] RetranslateKeyCodes;
+
+    private void LoadRetraslationData() throws NoSuchFieldException, IllegalAccessException {
+        if(keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty()) {
+            RetranslateKeyCodes = new int[keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.size()];
+            int i = 0;
+            for (String keyCode: keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes) {
+                RetranslateKeyCodes[i] = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCode);
+                i++;
+            }
         }
-
-        @JsonProperty(index=10)
-        public boolean SearchPluginsEnabled;
-        @JsonProperty(index=20)
-        public ArrayList<String> RetranslateKeyboardKeyCodes = new ArrayList<>();
-
-        @JsonProperty(index=30)
-        public ArrayList<MetaKeyPlusKey> RetraslateKeyboardMetaKeyPlusKeyList = new ArrayList<>();
+        if(keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
+            for(KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList) {
+                pair.MetaKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.MetaKeyCode);
+                pair.KeyKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.KeyKeyCode);
+            }
+        }
     }
-
-    @Override
-    public void onInterrupt() {
-        Log.v(TAG3, "onInterrupt()");
-    }
-
-
-    //region ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public synchronized boolean onKeyEvent(KeyEvent event) {
@@ -403,7 +426,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     private boolean IsRetranslateKeyCode(KeyEvent event) {
-        for (int retr : retranslateKeyCodes) {
+        for (int retr : RetranslateKeyCodes) {
             if(retr == event.getKeyCode())
                 return true;
         }

@@ -6,7 +6,6 @@ import android.content.res.Configuration;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
-import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
@@ -58,10 +57,6 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
     private int pref_height_bottom_bar = 10;
     private boolean pref_flag = false;
     private boolean pref_system_icon_no_notification_text = false;
-    private boolean pref_vibrate_on_key_down = false;
-
-    int TIME_VIBRATE;
-
 
     //Предзагружаем клавиатуры, чтобы не плодить объекты
     private Keyboard keyboardNavigation;
@@ -181,6 +176,9 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
             keyboardNavigation = new Keyboard(this, R.xml.navigation);
 
             notificationProcessor.Initialize(getApplicationContext());
+
+            vibratorService = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
             UpdateGestureModeVisualization(false);
             UpdateKeyboardModeVisualization();
         } catch(Throwable ex) {
@@ -188,6 +186,8 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
             throw ex;
         }
     }
+
+
 
     @Override
     public void onDestroy() {
@@ -262,17 +262,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         Log.d(TAG2, "onFinishInput ");
     }
 
-    private void Vibrate(int ms) {
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        if(v == null)
-            return;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE));
-        } else {
-            //deprecated in API 26
-            v.vibrate(ms);
-        }
-    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -293,9 +283,6 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
             Log.d(TAG2, "App transparency mode");
             return super.onKeyDown(keyCode, event);
         }
-
-        if(pref_vibrate_on_key_down)
-            Vibrate(TIME_VIBRATE);
 
         //region Режим "Навигационные клавиши"
 
