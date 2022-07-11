@@ -56,6 +56,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     protected Processable OnFinishInput;
     protected Processable BeforeSendChar;
     protected Processable AfterSendChar;
+    protected int[] ViewModeExcludeKeyCodes;
 
     protected String DEFAULT_KEYBOARD_MECHANICS_RES = "keyboard_mechanics";
 
@@ -70,20 +71,21 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
         @JsonProperty(index=20)
         public ArrayList<Action> OnStartInputActions;
-
         @JsonProperty(index=30)
         public ArrayList<Action> OnFinishInputActions;
         @JsonProperty(index=40)
         public ArrayList<Action> BeforeSendCharActions;
         @JsonProperty(index=50)
         public ArrayList<Action> AfterSendCharActions;
+        @JsonProperty(index=60)
+        public ArrayList<String> ViewModeKeyTransparencyExcludeKeyCodes;
 
 
 
         public static class KeyGroupProcessor {
             @JsonProperty(index=10)
-            public ArrayList<String> KeyCodes = new ArrayList<String>();
-            public ArrayList<Integer> KeyCodeList = new ArrayList<Integer>();
+            public ArrayList<String> KeyCodes = new ArrayList<>();
+            public ArrayList<Integer> KeyCodeList = new ArrayList<>();
 
             @JsonProperty(index=20)
             public ArrayList<Action>  OnShortPress;
@@ -103,11 +105,11 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
             @JsonProperty(index=10)
             public ArrayList<String> MetaModeMethodNames;
-            public ArrayList<Method3> MetaModeMethods;
+            public ArrayList<IActionMethod> MetaModeMethods;
 
             @JsonProperty(index=20)
             public String ActionMethodName;
-            public Method3 ActionMethod;
+            public IActionMethod ActionMethod;
 
             @JsonProperty(index=30)
             public boolean MethodNeedsKeyPressParameter;
@@ -140,6 +142,14 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
             LoadMethods();
 
+            if(KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes != null) {
+                ViewModeExcludeKeyCodes = new int[KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes.size()];
+                int i = 0;
+                for (String keyCode1 : KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes) {
+                    ViewModeExcludeKeyCodes[i] =  FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCode1);
+                    i++;
+                }
+            }
             OnStartInput = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnStartInputActions);
             OnFinishInput = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnFinishInputActions);
             BeforeSendChar = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.BeforeSendCharActions);
@@ -154,8 +164,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                 kgp.KeyCodeList = new ArrayList<>();
                 for (String keyCodeCode : kgp.KeyCodes) {
 
-                    Field f = KeyEvent.class.getField(keyCodeCode);
-                    kgp.KeyCodeList.add(f.getInt(null));
+                    int value = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCodeCode);
+                    kgp.KeyCodeList.add(value);
 
                 }
 
@@ -182,32 +192,31 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return true;
     }
 
-    private InputMethodServiceCoreKeyPress.Processable ProcessMethodMappingAndCreateProcessable(ArrayList<KeyboardMechanics.Action> list) throws NoSuchMethodException, NoSuchFieldException, IllegalAccessException {
+    private InputMethodServiceCoreKeyPress.Processable ProcessMethodMappingAndCreateProcessable(ArrayList<KeyboardMechanics.Action> list) throws NoSuchFieldException, IllegalAccessException {
         if(list == null || list.isEmpty()) {
             return null;
         }
 
         for (KeyboardMechanics.Action action : list) {
-            Method31 method;
+            ActionMethod method;
             if(action.CustomKeyCode != null && !action.CustomKeyCode.isEmpty()) {
-                Field f = KeyEvent.class.getField(action.CustomKeyCode);
-                action.CustomKeyCodeInt = f.getInt(null);
-                method = GetMethod3(action.ActionMethodName);
+                action.CustomKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(action.CustomKeyCode);
+                method = FindActionMethodByName(action.ActionMethodName);
                 if(!method.getType().equals(Integer.class)) {
                     Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH "+action.ActionMethodName+" NEED: "+method.getType());
                 }
             } else if(action.CustomChar > 0) {
-                method = GetMethod3(action.ActionMethodName);
+                method = FindActionMethodByName(action.ActionMethodName);
                 if(!method.getType().equals(Character.class)) {
                     Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH "+action.ActionMethodName+" NEED: "+method.getType());
                 }
             } else if(action.MethodNeedsKeyPressParameter) {
-                method = GetMethod3(action.ActionMethodName);
+                method = FindActionMethodByName(action.ActionMethodName);
                 if(!method.getType().equals(KeyPressData.class)) {
                     Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH "+action.ActionMethodName+" NEED: "+method.getType());
                 }
             } else {
-                method = GetMethod3(action.ActionMethodName);
+                method = FindActionMethodByName(action.ActionMethodName);
             }
             action.ActionMethod = method;
 
@@ -215,7 +224,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                 action.MetaModeMethods = new ArrayList<>();
                 for (String metaMethodName : action.MetaModeMethodNames) {
 
-                    Method31 metaMethod = GetMethod3(metaMethodName);
+                    ActionMethod metaMethod = FindActionMethodByName(metaMethodName);
                     action.MetaModeMethods.add(metaMethod);
                     if(!metaMethod.getType().equals(Object.class)) {
                         Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH "+metaMethodName+" NEED: "+method.getType());
@@ -230,7 +239,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return p;
     }
 
-    Method31 GetMethod3(String methodName) {
+    ActionMethod FindActionMethodByName(String methodName) {
         if(!Methods.containsKey(methodName)) {
             Log.e(TAG2, "CAN NOT FIND ACTION METHOD "+methodName);
             return null;
@@ -240,33 +249,33 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //endregion
 
-    //region Methods HashMap
+    //region ActionMethod HashMap
 
-    interface Method3<T> {
+    interface IActionMethod<T> {
         boolean invoke(T t);
     }
 
-    class Method31<T> implements Method3<T> {
+    class ActionMethod<T> implements IActionMethod<T> {
 
         Class _class;
         public Class getType() {
             return _class;
         }
 
-        private Method31() {}
+        private ActionMethod() {}
 
-        public Method31(Method3<T> method3, Class class1) {
+        public ActionMethod(IActionMethod<T> IActionMethod, Class class1) {
             _class = class1;
-            _method = method3;
+            _method = IActionMethod;
         }
-        Method3<T> _method;
+        IActionMethod<T> _method;
         @Override
         public boolean invoke(T t) {
             return _method.invoke(t);
         }
     }
 
-    HashMap<String, Method31> Methods = new HashMap<>();
+    HashMap<String, ActionMethod> Methods = new HashMap<>();
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     void LoadMethods() {
@@ -309,8 +318,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
 
 
-    private <T >Method31<T> InitializeMethod3(Method3<T> method3, Class class1) {
-        return new Method31<T>(method3, class1);
+    private <T > ActionMethod<T> InitializeMethod3(IActionMethod<T> IActionMethod, Class class1) {
+        return new ActionMethod<T>(IActionMethod, class1);
     }
     
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -409,7 +418,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
                     if (action.MetaModeMethods != null && !action.MetaModeMethods.isEmpty()) {
                         boolean metaResult = true;
-                        for (Method3 metaMethod : action.MetaModeMethods) {
+                        for (IActionMethod metaMethod : action.MetaModeMethods) {
                             metaResult &= metaMethod.invoke(Keyboard);
                         }
 
@@ -441,8 +450,12 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
             return true;
         }
 
-        private boolean InvokeMethod(KeyPressData keyPressData, KeyboardMechanics.Action action) throws IllegalAccessException, InvocationTargetException {
+        private boolean InvokeMethod(KeyPressData keyPressData, KeyboardMechanics.Action action) {
             boolean result;
+            if(action.ActionMethod == null) {
+                Log.e(TAG2, "action.ActionMethod == null; MethodName: "+action.ActionMethodName+" KeyCode: "+keyPressData.KeyCode);
+                return false;
+            }
             if(action.CustomKeyCodeInt > 0) {
                 result = action.ActionMethod.invoke(action.CustomKeyCodeInt);
             } else if(action.CustomChar > 0) {

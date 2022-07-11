@@ -972,6 +972,14 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
     }
 
     private boolean IsViewModeKeyCode(int keyCode, int meta) {
+        for (int keyCode1 : ViewModeExcludeKeyCodes) {
+            if(keyCode == keyCode1)
+                return false;
+        }
+        return true;
+    }
+
+    private boolean IsViewModeKeyCodeOld(int keyCode, int meta) {
         if (keyCode == KeyEvent.KEYCODE_0 && (meta & KeyEvent.META_ALT_ON) == 0) return false;
         if (keyCode == KeyEvent.KEYCODE_CTRL_LEFT) return false;
         if (keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) return false;

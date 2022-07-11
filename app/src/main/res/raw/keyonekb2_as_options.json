@@ -1,0 +1,24 @@
+{
+  "search-plugins-enabled": true,
+  "retranslate-keyboard-key-codes": [
+    "KEYCODE_FUNCTION", "KEYCODE_FP_LONG_TOUCH", "287"
+  ],
+  "retraslate-keyboard-meta-key-plus-key-list": [
+    {
+      "meta-key-code": "META_FUNCTION_ON",
+      "key-key-code": "KEYCODE_A"
+    }, {
+      "meta-key-code": "META_FUNCTION_ON",
+      "key-key-code": "KEYCODE_C"
+    }, {
+      "meta-key-code": "META_FUNCTION_ON",
+      "key-key-code": "KEYCODE_V"
+    }, {
+      "meta-key-code": "META_FUNCTION_ON",
+      "key-key-code": "KEYCODE_X"
+    }, {
+      "meta-key-code": "META_FUNCTION_ON",
+      "key-key-code": "KEYCODE_Z"
+    }
+  ]
+}

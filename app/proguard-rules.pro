@@ -47,3 +47,5 @@
 -keep class com.sateda.keyonekb2.KeyoneKb2Settings$CoreKeyboardSettings { *; }
 -keep class com.sateda.keyonekb2.InputMethodServiceCodeCustomizable$KeyboardMechanics { *; }
 -keep class com.sateda.keyonekb2.InputMethodServiceCodeCustomizable$KeyboardMechanics$* { *; }
+-keep class com.sateda.keyonekb2.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions { *; }
+-keep class com.sateda.keyonekb2.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions$* { *; }

@@ -129,6 +129,14 @@
       "need-update-visual-state": true
     }
   ],
+  "view-mode-key-transparency-exclude-key-codes": [
+    "KEYCODE_CTRL_LEFT",
+    "KEYCODE_SHIFT_RIGHT",
+    "KEYCODE_FUNCTION",
+    "KEYCODE_SPACE",
+    "KEYCODE_SYM",
+    "KEYCODE_0"
+  ],
   "key-group-processors": [
     {
       "key-codes": [

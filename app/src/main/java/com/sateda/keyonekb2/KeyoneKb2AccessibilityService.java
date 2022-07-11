@@ -10,12 +10,14 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
@@ -51,6 +53,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     public static final ArrayList<SearchClickPlugin> TEMP_ADDED_SEARCH_CLICK_PLUGINS = new ArrayList<>();
 
+    KeyoneKb2AccServiceOptions keyoneKb2AccServiceOptions;
+
+    int[] retranslateKeyCodes;
+
     @Override
     public synchronized void onDestroy() {
         Instance = null;
@@ -65,10 +71,29 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             Instance = this;
 
             keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
-            executorService = Executors.newFixedThreadPool(2);
+            keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJson(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, getApplicationContext());
 
-            SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {
-            }, getApplicationContext());
+            assert keyoneKb2AccServiceOptions != null;
+            if(keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty()) {
+                retranslateKeyCodes = new int[keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.size()];
+                int i = 0;
+                for (String keyCode: keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes) {
+                    retranslateKeyCodes[i] = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCode);
+                    i++;
+                }
+            }
+            if(keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
+                for(KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList) {
+                    pair.MetaKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.MetaKeyCode);
+                    pair.KeyKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.KeyKeyCode);
+                }
+            }
+
+            if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
+                return;
+
+            executorService = Executors.newFixedThreadPool(2);
+            SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
             if (data2 == null)
                 return;
             if (data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
@@ -122,6 +147,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     }
 
+
+
     private String GetFromSetting(SearchClickPlugin plugin) {
         keyoneKb2Settings.CheckSettingOrSetDefault(plugin.getPreferenceKey(), "");
         return keyoneKb2Settings.GetStringValue(plugin.getPreferenceKey());
@@ -140,6 +167,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
         Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
+        if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
+            return;
         try {
             if(KeyoneIME.Instance == null)
                 return;
@@ -287,6 +316,28 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         return KeyoneIME.Instance.SearchPluginLauncher.IsSameAsMine(packageName);
     }
 
+    public static class KeyoneKb2AccServiceOptions {
+        public static final String ResName = "keyonekb2_as_options";
+
+        public static class MetaKeyPlusKey {
+            @JsonProperty(index=10)
+            public String MetaKeyCode;
+            public int MetaKeyCodeInt;
+
+            @JsonProperty(index=20)
+            public String KeyKeyCode;
+            public int KeyKeyCodeInt;
+        }
+
+        @JsonProperty(index=10)
+        public boolean SearchPluginsEnabled;
+        @JsonProperty(index=20)
+        public ArrayList<String> RetranslateKeyboardKeyCodes = new ArrayList<>();
+
+        @JsonProperty(index=30)
+        public ArrayList<MetaKeyPlusKey> RetraslateKeyboardMetaKeyPlusKeyList = new ArrayList<>();
+    }
+
     @Override
     public void onInterrupt() {
         Log.v(TAG3, "onInterrupt()");
@@ -299,16 +350,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @Override
     public synchronized boolean onKeyEvent(KeyEvent event) {
         Log.v(TAG3, "onKeyEvent()");
+        if (KeyoneIME.Instance == null)
+            return false;
+        if(keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes == null || keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty())
+            return false;
         try {
             //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
             //Зажатие speed_key+Буква не передается в сервис клавиатуры
-            //Но зато передается сюда, поэтмоу приходится отсюда туда переправлять
-            if (!IsMetaFunctionOrFunction(event))
-                return false;
-            if (KeyoneIME.Instance == null)
-                return false;
+
             // Этот блок ХАК-а нужен на К2_не_РСТ иначе при нажатиии speed_key вызывается меню биндинга букв
-            if (event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION) {
+            if (IsRetranslateKeyCode(event)) {
                 KeyEvent event1 = GetCopy(event);
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
                     KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
@@ -316,46 +367,51 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 if (event.getAction() == KeyEvent.ACTION_UP) {
                     KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
                 }
-
-                return true;
-            }
-            if (event.getKeyCode() != KeyEvent.KEYCODE_A
-                    && event.getKeyCode() != KeyEvent.KEYCODE_C
-                    && event.getKeyCode() != KeyEvent.KEYCODE_X
-                    && event.getKeyCode() != KeyEvent.KEYCODE_V
-                    && event.getKeyCode() != KeyEvent.KEYCODE_Z
-                    && event.getKeyCode() != KeyEvent.KEYCODE_0) {
-                return false;
-            }
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                //KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
-                executorService.execute(
-                        () -> {
-                            try {
-                                KeyEvent event1 = GetCopy(event);
-                                Thread.sleep(100);
-                                KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
-                            } catch (Throwable ignored) {
-                            }
-                        });
-                return true;
-            } else if (event.getAction() == KeyEvent.ACTION_UP) {
-                //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
-                KeyEvent event1 = GetCopy(event);
-                KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
                 return true;
             }
 
+            if(keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
+                for (KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList) {
+                    if(pair.KeyKeyCodeInt != event.getKeyCode())
+                        continue;
+                    if(!IsMeta(event, pair.MetaKeyCodeInt))
+                        continue;
+                    if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                        //KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
+                        executorService.execute(
+                                () -> {
+                                    try {
+                                        KeyEvent event1 = GetCopy(event);
+                                        Thread.sleep(100);
+                                        KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                                    } catch (Throwable ignored) {
+                                    }
+                                });
+                        return true;
+                    } else if (event.getAction() == KeyEvent.ACTION_UP) {
+                        //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
+                        KeyEvent event1 = GetCopy(event);
+                        KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+                        return true;
+                    }
+                }
+            }
         } catch(Throwable ex) {
             Log.e(TAG3, "onKeyEvent Exception: "+ex);
         }
         return false;
     }
 
-    private boolean IsMetaFunctionOrFunction(KeyEvent event) {
-        if(event.getKeyCode() == KeyEvent.KEYCODE_FUNCTION)
-            return true;
-        if((event.getMetaState() & KeyEvent.META_FUNCTION_ON) == KeyEvent.META_FUNCTION_ON)
+    private boolean IsRetranslateKeyCode(KeyEvent event) {
+        for (int retr : retranslateKeyCodes) {
+            if(retr == event.getKeyCode())
+                return true;
+        }
+        return false;
+    }
+
+    private boolean IsMeta(KeyEvent event, int meta) {
+        if((event.getMetaState() & meta) == meta)
             return true;
         return false;
     }

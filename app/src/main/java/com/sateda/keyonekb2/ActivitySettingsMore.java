@@ -1,10 +1,13 @@
 package com.sateda.keyonekb2;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.Button;
@@ -13,6 +16,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import static com.sateda.keyonekb2.ActivitySettings.REQUEST_PERMISSION_CODE;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
 
 public class ActivitySettingsMore extends Activity {
@@ -254,9 +258,15 @@ public class ActivitySettingsMore extends Activity {
 
     private void SaveResFiles() {
         String path = "NOT SAVED";
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE);
+        }
+
         path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_layouts), getApplicationContext());
         path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_core), getApplicationContext());
         path = FileJsonUtils.SaveJsonResToFile(KeyoneIME.Instance.keyboard_mechanics_res, getApplicationContext());
+        path = FileJsonUtils.SaveJsonResToFile(KeyoneKb2AccessibilityService.KeyoneKb2AccServiceOptions.ResName, getApplicationContext());
         for (KeyboardLayout keyboardLayout: Instance.KeyboardLayoutList) {
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.Resources.KeyboardMapping, getApplicationContext());
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.AltModeLayout, getApplicationContext());

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.os.Environment;
 import android.util.Log;
+import android.view.KeyEvent;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
@@ -12,6 +13,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
@@ -189,5 +191,16 @@ public class FileJsonUtils {
         //String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();
         //btSave.setText(baseFolder);
 
+    }
+
+    public static int GetKeyCodeIntFromKeyEventOrInt(String keyCode) throws NoSuchFieldException, IllegalAccessException {
+        int value;
+        if(keyCode.startsWith("KEYCODE_") || keyCode.startsWith("META_")) {
+            Field f = KeyEvent.class.getField(keyCode);
+            value = f.getInt(null);
+        } else {
+            value = Integer.valueOf(keyCode);
+        }
+        return value;
     }
 }
