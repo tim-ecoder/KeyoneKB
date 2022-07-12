@@ -1,6 +1,12 @@
 {
   "on-start-input-actions": [
     {
+      "meta-mode-method-names": [
+        "IsActionBeforeMeta"
+      ],
+      "action-method-name": "ActionTryResetSearchPlugin"
+    },
+    {
       "action-method-name": "ActionTryDisableFirstSymbolAltMode"
     }, {
       "action-method-name": "ActionTryDisableFixedAltModeState"
@@ -14,16 +20,16 @@
       "action-method-name": "ActionTryCapitalizeFirstLetter"
     }, {
       "action-method-name": "ActionSetNeedUpdateVisualState"
-    }, {
-      "meta-mode-method-names": [
-        "IsActionBeforeMeta"
-      ],
-      "action-method-name": "ActionTryResetSearchPlugin"
-    }, {
+    },  {
       "meta-mode-method-names": [
         "IsPackageChanged"
       ],
       "action-method-name": "ActionDisableNavSymFnKeyboard"
+    }, {
+      "meta-mode-method-names": [
+        "InputIsAnyInput"
+      ],
+      "action-method-name": "ActionDisableAndResetGestureMode"
     }, {
       "meta-mode-method-names": [
         "InputIsNumber"
@@ -715,5 +721,26 @@
         }
       ]
     }
-  ]
+  ],
+  "gesture-processor" : {
+    "keyboard-gestures-at-input-mode-enabled" : true,
+    "key-hold-plus-gesture-enabled" : true,
+    "on-gesture-double-click" : [
+      {
+        "action-method-name": "ActionEnableGestureAtInputMode"
+      }
+    ],
+    "on-gesture-triple-click" : [
+      {
+        "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode"
+      }, {
+        "action-method-name": "ActionEnableGestureAtInputMode"
+      }
+    ],
+    "on-gesture-second-click-up" : [
+      {
+        "action-method-name": "ActionDisableGestureMode"
+      }
+    ]
+  }
 }

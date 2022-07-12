@@ -193,6 +193,10 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                 }
             } else {
                 KeyPressData keyPressData2 = FindAtKeyDownList(keyCode, scanCode);
+                if(keyPressData2 == null) {
+                    Log.e(TAG2, "keyPressData2 == null at IsLetterShortDoubleLongPressMode");
+                    return true;
+                }
                 if(keyPressData2.LongPressBeginTime == 0
                     && eventTime - keyPressData2.KeyDownTime > TIME_LONG_PRESS ) {
                     keyPressData2.LongPressBeginTime = eventTime;

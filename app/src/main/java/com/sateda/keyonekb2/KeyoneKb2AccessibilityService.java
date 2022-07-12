@@ -405,7 +405,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                                 () -> {
                                     try {
                                         KeyEvent event1 = GetCopy(event);
-                                        Thread.sleep(100);
+                                        //Было sleep 100 из-за задержки в KeyoneIME относительно AS
+                                        Thread.sleep(1);
                                         KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
                                     } catch (Throwable ignored) {
                                     }

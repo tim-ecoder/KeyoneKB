@@ -33,6 +33,14 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     private float lastGestureY;
     private boolean enteredGestureMovement = false;
 
+    protected Processable OnGestureDoubleClick;
+    protected Processable OnGestureTripleClick;
+    protected Processable OnGestureSecondClickUp;
+
+    protected boolean KeyboardGesturesAtInputModeEnabled;
+
+    protected boolean KeyHoldPlusGestureEnabled;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onCreate() {
@@ -57,12 +65,15 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         if (IsNoGesturesMode())
             return true;
 
+        if(!KeyboardGesturesAtInputModeEnabled)
+            return true;
+
         //Не ловим движение на нижнем ряду где поблел и переключение языка (иначе при зажатии KEY_0 курсор будет прыгать и придется фильтровать эти события
         if (motionEvent.getY() > ROW_4_BEGIN_Y || motionEvent.getY() < ROW_1_BEGIN_Y) {
             return true;
         }
 
-        if (!mode_keyboard_gestures) {
+        if (!mode_keyboard_gestures && KeyHoldPlusGestureEnabled) {
             ProcessPrepareAtHoldGesture(motionEvent);
         }
 
@@ -153,6 +164,123 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return false;
     }
 
+
+
+
+
+    private void ProcessPrepareAtHoldGesture(MotionEvent motionEvent) {
+
+
+        if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)) {
+
+            lastGestureSwipingBeginTime = 0;
+            enteredGestureMovement = false;
+        }
+        if (CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE) && enteredGestureMovement) {
+            lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
+            lastGestureX = motionEvent.getX();
+            lastGestureY = motionEvent.getY();
+        }
+        if (CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN))  {
+
+            lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
+            lastGestureX = motionEvent.getX();
+            lastGestureY = motionEvent.getY();
+            enteredGestureMovement = true;
+        }
+    }
+
+    private void ProcessDoubleGestureClick(MotionEvent motionEvent) {
+
+
+        if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)) {
+            if(modeDoubleClickGesture) {
+                modeDoubleClickGesture = false;
+                //mode_keyboard_gestures = false;
+                // //mode_keyboard_gestures_plus_up_down = false;
+                //UpdateGestureModeVisualization();
+                if(OnGestureSecondClickUp != null) {
+                    OnGestureSecondClickUp.Process(null);
+                }
+            } else {
+                prevPrevUpTime = prevUpTime;
+                prevUpTime = motionEvent.getEventTime();
+                prevX = motionEvent.getX();
+                prevY = motionEvent.getY();
+            }
+        } else if( CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE)) {
+            float curX = motionEvent.getX();
+            float curY = motionEvent.getY();
+            //Случай когда два пальца работают вместе (получается мултитач) и для второго пальца нет сигнала DOWN
+            if(Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+            || Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST) {
+                prevY = 0;
+                prevX = 0;
+            }
+        }
+        else if (   CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)) {
+
+            long curDownTime = motionEvent.getEventTime();
+            float curX = motionEvent.getX();
+            float curY = motionEvent.getY();
+
+            if(     Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && Math.abs(prevPrevX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && Math.abs(prevPrevY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && prevUpTime - prevDownTime <= TIME_LONG_PRESS
+                    && prevPrevUpTime - prevPrevDownTime <= TIME_LONG_PRESS
+                    && prevUpTime - prevPrevDownTime <= TIME_DOUBLE_PRESS
+                    && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
+                Log.d(TAG2, "GESTURE TRIPLE CLICK");
+                //ActionEnableGestureMode();
+                //ActionChangeGestureAtInputModeUpAndDownMode();
+                if(OnGestureTripleClick != null) {
+                    OnGestureTripleClick.Process(null);
+                }
+                modeDoubleClickGesture = true;
+            }
+            else if(Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
+                    && prevUpTime - prevDownTime <= TIME_LONG_PRESS
+                    && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
+                Log.d(TAG2, "GESTURE DOUBLE CLICK");
+                //ActionEnableGestureMode();
+                if(OnGestureDoubleClick != null) {
+                    OnGestureDoubleClick.Process(null);
+                }
+                modeDoubleClickGesture = true;
+            }
+
+            prevPrevDownTime = prevDownTime;
+            prevDownTime = curDownTime;
+
+            prevPrevX = prevX;
+            prevPrevY = prevY;
+            prevX = motionEvent.getX();
+            prevY = motionEvent.getY();
+
+
+
+        }
+    }
+
+    protected abstract boolean ProcessOnCursorMovement(EditorInfo editorInfo);
+
+    protected abstract void UpdateGestureModeVisualization(boolean isInput);
+
+    protected abstract void UpdateGestureModeVisualization();
+
+    protected abstract boolean IsNoGesturesMode();
+
+    //region CURSOR MOVE
+
     private boolean MoveCursorDownSafe(InputConnection inputConnection) {
         CharSequence c = inputConnection.getTextAfterCursor(1, 0);
         if (c.length() > 0) {
@@ -193,114 +321,13 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return false;
     }
 
-    protected abstract boolean ProcessOnCursorMovement(EditorInfo editorInfo);
+    //endregion
 
-    private void ProcessPrepareAtHoldGesture(MotionEvent motionEvent) {
-
-
-        if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)) {
-
-            lastGestureSwipingBeginTime = 0;
-            enteredGestureMovement = false;
-        }
-        if (CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE) && enteredGestureMovement) {
-            lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
-            lastGestureX = motionEvent.getX();
-            lastGestureY = motionEvent.getY();
-        }
-        if (CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN))  {
-
-            lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
-            lastGestureX = motionEvent.getX();
-            lastGestureY = motionEvent.getY();
-            enteredGestureMovement = true;
-        }
-    }
-
-    private void ProcessDoubleGestureClick(MotionEvent motionEvent) {
-
-
-        if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)) {
-            if(modeDoubleClickGesture) {
-                modeDoubleClickGesture = false;
-                mode_keyboard_gestures = false;
-                //mode_keyboard_gestures_plus_up_down = false;
-                UpdateGestureModeVisualization();
-            } else {
-                prevPrevUpTime = prevUpTime;
-                prevUpTime = motionEvent.getEventTime();
-                prevX = motionEvent.getX();
-                prevY = motionEvent.getY();
-            }
-        } else if( CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE)) {
-            float curX = motionEvent.getX();
-            float curY = motionEvent.getY();
-            //Случай когда два пальца работают вместе (получается мултитач) и для второго пальца нет сигнала DOWN
-            if(Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
-            || Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST) {
-                prevY = 0;
-                prevX = 0;
-            }
-        }
-        else if (   CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)) {
-
-            long curDownTime = motionEvent.getEventTime();
-            float curX = motionEvent.getX();
-            float curY = motionEvent.getY();
-
-            if(     Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
-                    && Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
-                    && Math.abs(prevPrevX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
-                    && Math.abs(prevPrevY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
-                    && prevUpTime - prevDownTime <= TIME_LONG_PRESS
-                    && prevPrevUpTime - prevPrevDownTime <= TIME_LONG_PRESS
-                    && prevUpTime - prevPrevDownTime <= TIME_DOUBLE_PRESS
-                    && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
-                Log.d(TAG2, "GESTURE TRIPLE CLICK");
-                mode_keyboard_gestures = true;
-                mode_keyboard_gestures_plus_up_down = !mode_keyboard_gestures_plus_up_down;
-                modeDoubleClickGesture = true;
-                UpdateGestureModeVisualization();
-            }
-            else if(Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
-                    && Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
-                    && prevUpTime - prevDownTime <= TIME_LONG_PRESS
-                    && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
-                Log.d(TAG2, "GESTURE DOUBLE CLICK");
-                mode_keyboard_gestures = true;
-                modeDoubleClickGesture = true;
-                UpdateGestureModeVisualization();
-            }
-
-            prevPrevDownTime = prevDownTime;
-            prevDownTime = curDownTime;
-
-            prevPrevX = prevX;
-            prevPrevY = prevY;
-            prevX = motionEvent.getX();
-            prevY = motionEvent.getY();
-
-
-
-        }
-    }
-
-
-
-    protected abstract void UpdateGestureModeVisualization(boolean isInput);
-
-    protected abstract void UpdateGestureModeVisualization();
-
-    protected abstract boolean IsNoGesturesMode();
+    //region ACTIONS
 
     protected boolean IsInputMode() {
         if(getCurrentInputEditorInfo() == null) return false;
+        //Log.d(TAG2, "IsInputMode() "+getCurrentInputEditorInfo().inputType);
         return getCurrentInputEditorInfo().inputType > 0;
     }
 
@@ -321,4 +348,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         prevPrevUpTime = 0;
         return true;
     }
+
+    //endregion
 }

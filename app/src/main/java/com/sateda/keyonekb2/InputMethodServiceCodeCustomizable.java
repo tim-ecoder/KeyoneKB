@@ -87,6 +87,22 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         @JsonProperty(index=60)
         public ArrayList<String> ViewModeKeyTransparencyExcludeKeyCodes;
 
+        @JsonProperty(index=110)
+        public GestureProcessor GestureProcessor = new GestureProcessor();
+
+        public static class GestureProcessor {
+            @JsonProperty(index=10)
+            public boolean KeyboardGesturesAtInputModeEnabled;
+            @JsonProperty(index=20)
+            public boolean KeyHoldPlusGestureEnabled;
+            @JsonProperty(index=30)
+            public ArrayList<Action> OnGestureDoubleClick;
+            @JsonProperty(index=40)
+            public ArrayList<Action> OnGestureTripleClick;
+            @JsonProperty(index=50)
+            public ArrayList<Action> OnGestureSecondClickUp;
+        }
+
 
 
         public static class KeyGroupProcessor {
@@ -185,6 +201,24 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                 keyAction.OnHoldOn = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn);
                 keyAction.OnHoldOff = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff);
                 keyAction.OnTriplePress = ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress);
+            }
+
+            if(KeyboardMechanics.GestureProcessor != null) {
+                super.KeyboardGesturesAtInputModeEnabled = KeyboardMechanics.GestureProcessor.KeyboardGesturesAtInputModeEnabled;
+
+                if( !KeyboardMechanics.GestureProcessor.KeyboardGesturesAtInputModeEnabled)
+                    return;
+                super.KeyHoldPlusGestureEnabled = KeyboardMechanics.GestureProcessor.KeyHoldPlusGestureEnabled;
+
+                if(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick != null) {
+                    super.OnGestureDoubleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick);
+                }
+                if(KeyboardMechanics.GestureProcessor.OnGestureTripleClick != null) {
+                    super.OnGestureTripleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureTripleClick);
+                }
+                if(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp != null) {
+                    super.OnGestureSecondClickUp = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp);
+                }
             }
 
         } catch(Throwable ex) {
@@ -407,8 +441,11 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("SearchInputActivateOnLetterHack", InitializeMethod3((Object o) -> SearchInputActivateOnLetterHack(), Object.class));
         Methods.put("SetNavModeHoldOffState", InitializeMethod3((Object o) -> SetNavModeHoldOffState(), Object.class));
         Methods.put("SetNavModeHoldOnState", InitializeMethod3((Object o) -> SetNavModeHoldOnState(), Object.class));
-        Methods.put("ActionTryVibrate", InitializeMethod3((Object o) -> ActionTryVibrate(), Object.class));
 
+        Methods.put("ActionTryVibrate", InitializeMethod3((Object o) -> ActionTryVibrate(), Object.class));
+        Methods.put("InputIsAnyInput", InitializeMethod3((Object o) -> InputIsAnyInput(), Object.class));
+        Methods.put("ActionChangeGestureAtInputModeUpAndDownMode", InitializeMethod3((Object o) -> ActionChangeGestureAtInputModeUpAndDownMode(), Object.class));
+        Methods.put("ActionEnableGestureAtInputMode", InitializeMethod3((Object o) -> ActionEnableGestureAtInputMode(), Object.class));
     }
 
     //endregion
@@ -651,11 +688,21 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     public boolean ActionTryEnableGestureAtInputOnHoldState() {
         if (SystemClock.uptimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
             Log.d(TAG2, "GestureMode at key_0_down first time");
-            mode_keyboard_gestures = true;
-            UpdateGestureModeVisualization();
-            return true;
+            return ActionEnableGestureAtInputMode();
         }
         return false;
+    }
+
+    private boolean ActionEnableGestureAtInputMode() {
+        mode_keyboard_gestures = true;
+        UpdateGestureModeVisualization();
+        return true;
+    }
+
+    public boolean ActionChangeGestureAtInputModeUpAndDownMode() {
+        mode_keyboard_gestures_plus_up_down = !mode_keyboard_gestures_plus_up_down;
+        UpdateGestureModeVisualization();
+        return true;
     }
 
     public boolean ActionDisableGestureMode() {
@@ -1236,6 +1283,10 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     //endregion
 
     //region INPUT_TYPE
+
+    public boolean InputIsAnyInput() {
+        return IsInputMode();
+    }
 
     public abstract boolean IsPackageChanged();
 
