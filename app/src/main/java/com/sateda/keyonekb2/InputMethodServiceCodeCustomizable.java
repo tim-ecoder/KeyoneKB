@@ -446,6 +446,9 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("InputIsAnyInput", InitializeMethod3((Object o) -> InputIsAnyInput(), Object.class));
         Methods.put("ActionChangeGestureAtInputModeUpAndDownMode", InitializeMethod3((Object o) -> ActionChangeGestureAtInputModeUpAndDownMode(), Object.class));
         Methods.put("ActionEnableGestureAtInputMode", InitializeMethod3((Object o) -> ActionEnableGestureAtInputMode(), Object.class));
+
+        Methods.put("ActionSendCharDoublePressShiftMode", InitializeMethod3(this::ActionSendCharDoublePressShiftMode, KeyPressData.class));
+
     }
 
     //endregion
@@ -1139,12 +1142,20 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean ActionSendCharDoublePressNoMeta(KeyPressData keyPressData) {
+        return SendCharDoublePress(keyPressData, false);
+    }
+
+    public boolean ActionSendCharDoublePressShiftMode(KeyPressData keyPressData) {
+        return SendCharDoublePress(keyPressData, true);
+    }
+
+    private boolean SendCharDoublePress(KeyPressData keyPressData, boolean isShiftMode) {
         int code2send;
 
         //TODO: Попробовать: по сути это можно поднять в логику выше
         if(IsNotPairedLetter(keyPressData)) {
             //TODO: Особенно is_double_press
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, false);
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, isShiftMode, false);
             SendLetterOrSymbol(code2send);
             return true;
         }
