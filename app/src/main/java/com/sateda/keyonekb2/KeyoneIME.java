@@ -193,6 +193,9 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
     public void onDestroy() {
         Instance = null;
         notificationProcessor.CancelAll();
+        if (telephonyManager != null) {
+            telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_NONE);
+        }
         super.onDestroy();
     }
 
@@ -232,6 +235,9 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         if (needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
+        if(needUpdateGestureNotificationInsideSingleEvent)
+            UpdateGestureModeVisualization();
+        needUpdateGestureNotificationInsideSingleEvent = false;
         isPackageChangedInsideSingleEvent = false;
     }
 
@@ -250,7 +256,9 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         if (needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
-
+        if(needUpdateGestureNotificationInsideSingleEvent)
+            UpdateGestureModeVisualization();
+        needUpdateGestureNotificationInsideSingleEvent = false;
         //TODO: Проверить как это работает
         if (_lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards();
 
@@ -319,6 +327,10 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
 
+        if(needUpdateGestureNotificationInsideSingleEvent)
+            UpdateGestureModeVisualization();
+        needUpdateGestureNotificationInsideSingleEvent = false;
+
         //Это нужно чтобы работал "чужой"/встроенный механизм выделения с Shift-ом
         return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
     }
@@ -357,6 +369,10 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         if (needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
+
+        if(needUpdateGestureNotificationInsideSingleEvent)
+            UpdateGestureModeVisualization();
+        needUpdateGestureNotificationInsideSingleEvent = false;
 
         //Это нужно чтобы работал "чужой"/встроенный механизм выделения с Shift-ом
         return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
@@ -695,7 +711,11 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
     public boolean onGenericMotionEvent(MotionEvent motionEvent) {
         //Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
 
-        return ProcessGestureAtMotionEvent(motionEvent);
+        boolean ret = ProcessGestureAtMotionEvent(motionEvent);
+         if(needUpdateGestureNotificationInsideSingleEvent)
+             UpdateGestureModeVisualization();
+         needUpdateGestureNotificationInsideSingleEvent = false;
+         return ret;
     }
 
 
@@ -735,7 +755,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         UpdateGestureModeVisualization(IsInputMode());
     }
 
-    @Override
+    //@Override
     protected void UpdateGestureModeVisualization(boolean isInput) {
         boolean changed;
 
@@ -758,6 +778,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         if (changed)
             notificationProcessor.UpdateNotificationGestureMode();
     }
+
 
     private boolean setSmallIcon2(int resId) {
         return notificationProcessor.SetSmallIconGestureMode(resId);
@@ -1031,10 +1052,6 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 */
     }
 
-    //region MODES/META/RESET
-
-
-    //endregion
 
     //region LOAD SETTINGS & KEYBOARDS
 

@@ -14,9 +14,9 @@ public class NotificationProcessor {
     public static final int NOTIFICATION_ID1 = 1;
     public static final int NOTIFICATION_ID2 = 2;
     private final String gestureModeChannelId1 = "KeyoneKb2_NotificationChannel_GestureMode";
-    private final String gestureModeChannelDescription = "Режимы жестов (на полях ввода, на просмотре, выключен)";
+    private String gestureModeChannelDescription;
     private final String layoutModeChannelId1 = "KeyoneKb2_NotificationChannel_KeyboardLayout";
-    private final String layoutModeChannelDescription = "Раскладка клавиатуры (языки, символы и пр.)";
+    private String layoutModeChannelDescription;
     private android.support.v4.app.NotificationCompat.Builder builderLayout;
     private Notification.Builder builder2Layout;
     private android.support.v4.app.NotificationCompat.Builder builderGesture;
@@ -28,6 +28,9 @@ public class NotificationProcessor {
     public void Initialize(Context context) {
         if(notificationManager != null)
             return;
+
+        gestureModeChannelDescription = context.getString(R.string.gesture_mode_notification_text);
+        layoutModeChannelDescription = context.getString(R.string.keyboard_layout_mode_notification_text);
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         Intent intent = new Intent(context, ActivityMain.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -164,31 +167,25 @@ public class NotificationProcessor {
     String currentTitleGestures = "";
 
     public boolean SetSmallIconGestureMode(int icon1) {
+        if(currentIconGestures == icon1)
+            return false;
+        currentIconGestures = icon1;
         if(builderGesture != null) {
             builderGesture.setSmallIcon(icon1);
         } else if (builder2Gesture != null) {
             builder2Gesture.setSmallIcon(icon1);
         }
-        //Changed
-        if(currentIconGestures != icon1) {
-            currentIconGestures = icon1;
-            return true;
-        }
-        else
-            return false;
+        return true;
     }
 
     public boolean SetContentTitleGestureMode(String title) {
+        if(currentTitleGestures.compareTo(title) == 0)
+            return false;
+        currentTitleGestures = title;
         if(builderGesture != null)
             builderGesture.setContentTitle(title);
         else if (builder2Gesture != null)
             builder2Gesture.setContentTitle(title);
-        //Changed
-        if(currentTitleGestures.compareTo(title) != 0) {
-            currentTitleGestures = title;
-            return true;
-        }
-        else
-            return false;
+        return true;
     }
 }

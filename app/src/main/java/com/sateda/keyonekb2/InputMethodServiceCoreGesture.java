@@ -273,9 +273,9 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     protected abstract boolean ProcessOnCursorMovement(EditorInfo editorInfo);
 
-    protected abstract void UpdateGestureModeVisualization(boolean isInput);
+    //private abstract void UpdateGestureModeVisualization(boolean isInput);
 
-    protected abstract void UpdateGestureModeVisualization();
+    //private abstract void UpdateGestureModeVisualization();
 
     protected abstract boolean IsNoGesturesMode();
 
@@ -335,7 +335,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         //mode_keyboard_gestures_plus_up_down = false;
         if (mode_keyboard_gestures) {
             mode_keyboard_gestures = false;
-            UpdateGestureModeVisualization();
+            //UpdateGestureModeVisualization();
             return true;
         }
         return false;

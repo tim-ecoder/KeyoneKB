@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.widget.Toast;
 import com.android.internal.telephony.ITelephony;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -138,6 +139,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
             public boolean MethodNeedsKeyPressParameter;
             @JsonProperty(index=40)
             public boolean NeedUpdateVisualState;
+            @JsonProperty(index=45)
+            public boolean NeedUpdateGestureVisualState;
             @JsonProperty(index=50)
             public boolean StopProcessingAtSuccessResult;
             @JsonProperty(index=60)
@@ -439,8 +442,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("MetaStateIsOnCall", InitializeMethod3((Object o) -> MetaStateIsOnCall(), Object.class));
         Methods.put("PrefLongPressAltSymbol", InitializeMethod3((Object o) -> PrefLongPressAltSymbol(), Object.class));
         Methods.put("SearchInputActivateOnLetterHack", InitializeMethod3((Object o) -> SearchInputActivateOnLetterHack(), Object.class));
-        Methods.put("SetNavModeHoldOffState", InitializeMethod3((Object o) -> SetNavModeHoldOffState(), Object.class));
-        Methods.put("SetNavModeHoldOnState", InitializeMethod3((Object o) -> SetNavModeHoldOnState(), Object.class));
+        Methods.put("ActionSetNavModeHoldOffState", InitializeMethod3((Object o) -> ActionSetNavModeHoldOffState(), Object.class));
+        Methods.put("ActionSetNavModeHoldOnState", InitializeMethod3((Object o) -> ActionSetNavModeHoldOnState(), Object.class));
 
         Methods.put("ActionTryVibrate", InitializeMethod3((Object o) -> ActionTryVibrate(), Object.class));
         Methods.put("InputIsAnyInput", InitializeMethod3((Object o) -> InputIsAnyInput(), Object.class));
@@ -473,6 +476,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                             boolean result = InvokeMethod(keyPressData, action);
                             if (result && action.NeedUpdateVisualState)
                                 Keyboard.ActionSetNeedUpdateVisualState();
+                            if(action.NeedUpdateGestureVisualState)
+                                Keyboard.ActionSetNeedUpdateGestureNotification();
                             if (action.StopProcessingAtSuccessResult && result) {
                                 return true;
                             }
@@ -485,6 +490,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                         boolean result = InvokeMethod(keyPressData, action);
                         if (result && action.NeedUpdateVisualState)
                             Keyboard.ActionSetNeedUpdateVisualState();
+                        if(action.NeedUpdateGestureVisualState)
+                            Keyboard.ActionSetNeedUpdateGestureNotification();
                         if (action.StopProcessingAtSuccessResult && result) {
                             return true;
                         }
@@ -526,6 +533,11 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //region CALL_MANAGER
 
+    private void ShowDebugToast(String text) {
+        Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
+        toast.show();
+    }
+
     protected CallStateCallback callStateCallback;
 
     protected TelephonyManager telephonyManager;
@@ -541,6 +553,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     private boolean IsCalling() {
         if(callStateCallback == null) {
+            ShowDebugToast("callStateCallback == null");
+            Log.e(TAG2, "callStateCallback == null");
             return false;
         }
         return callStateCallback.isCalling();
@@ -551,13 +565,14 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Log.d(TAG2, "handleShiftOnCalling hello");
         if(telecomManager == null) {
             Log.e(TAG2, "telecomManager == null");
-            return false;
+            ShowDebugToast("telecomManager == null");
         }
         if(!IsCalling())
             return false;
         // Accept calls using SHIFT key
         if (this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG2, "handleShiftOnCalling callStateCallback - Calling");
+            ShowDebugToast("ACCEPT-CALL");
             telecomManager.acceptRingingCall();
             return true;
         } else {
@@ -569,10 +584,12 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     private boolean DeclinePhone() {
         if(telecomManager == null) {
             Log.e(TAG2, "telecomManager == null");
+            ShowDebugToast("telecomManager == null");
             return false;
         }
         if(telephonyManager == null) {
             Log.e(TAG2, "telephonyManager == null");
+            ShowDebugToast("telephonyManager == null");
             return false;
         }
         if(!IsCalling())
@@ -580,9 +597,9 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
         if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                if (telecomManager != null) {
-                    return telecomManager.endCall();
-                }
+                ShowDebugToast("END-CALL1");
+                return telecomManager.endCall();
+
             } else {
 
                 try {
@@ -591,19 +608,26 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                     methodGetITelephony.setAccessible(true);
                     ITelephony telephonyService = (ITelephony) methodGetITelephony.invoke(telephonyManager);
                     if (telephonyService != null) {
+                        ShowDebugToast("END-CALL2");
                         return telephonyService.endCall();
+                    } else {
+                        Log.e(TAG2, "telephonyService == null (reflection)");
+                        ShowDebugToast("telephonyService == null (reflection)");
+                        return false;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Log.d("LOG", "Cant disconnect call");
+                    Log.d("LOG", "Can't disconnect call");
+                    ShowDebugToast("Can't disconnect call "+e);
                     return false;
                 }
             }
         } else {
             Log.e(TAG2, "DeclinePhone no permission");
+            ShowDebugToast("DeclinePhone no permission");
             return false;
         }
-        return false;
+        //return false;
     }
 
 
@@ -619,7 +643,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
             metaFixedModeFirstSymbolAlt = false;
             metaFixedModeAllSymbolsAlt = false;
             DetermineForceFirstUpper(getCurrentInputEditorInfo());
-            UpdateGestureModeVisualization();
+            //UpdateGestureModeVisualization();
             return true;
         }
         return false;
@@ -631,21 +655,21 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
             keyboardStateFixed_NavModeAndKeyboard = true;
             keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
             keyboardView.SetFnKeyboardMode(false);
-            UpdateGestureModeVisualization();
+            //UpdateGestureModeVisualization();
             return true;
         }
         return false;
     }
 
-    public boolean SetNavModeHoldOnState() {
+    public boolean ActionSetNavModeHoldOnState() {
         keyboardStateHolding_NavModeAndKeyboard = true;
-        UpdateGestureModeVisualization();
+        //UpdateGestureModeVisualization();
         return true;
     }
 
-    public boolean SetNavModeHoldOffState() {
+    public boolean ActionSetNavModeHoldOffState() {
         keyboardStateHolding_NavModeAndKeyboard = false;
-        UpdateGestureModeVisualization();
+        //UpdateGestureModeVisualization();
         return true;
     }
 
@@ -684,6 +708,13 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return super.ActionTryTurnOffGesturesMode();
     }
 
+    protected boolean needUpdateGestureNotificationInsideSingleEvent;
+
+    public boolean ActionSetNeedUpdateGestureNotification() {
+        needUpdateGestureNotificationInsideSingleEvent = true;
+        return true;
+    }
+
     public boolean ActionResetDoubleClickGestureState() {
         return super.ActionResetDoubleClickGestureState();
     }
@@ -698,26 +729,26 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     private boolean ActionEnableGestureAtInputMode() {
         mode_keyboard_gestures = true;
-        UpdateGestureModeVisualization();
+        //UpdateGestureModeVisualization();
         return true;
     }
 
     public boolean ActionChangeGestureAtInputModeUpAndDownMode() {
         mode_keyboard_gestures_plus_up_down = !mode_keyboard_gestures_plus_up_down;
-        UpdateGestureModeVisualization();
+        //UpdateGestureModeVisualization();
         return true;
     }
 
     public boolean ActionDisableGestureMode() {
         mode_keyboard_gestures = false;
-        UpdateGestureModeVisualization();
+        //UpdateGestureModeVisualization();
         return true;
     }
 
     public boolean ActionDisableAndResetGestureMode() {
         mode_keyboard_gestures = false;
         mode_keyboard_gestures_plus_up_down = false;
-        UpdateGestureModeVisualization();
+        //UpdateGestureModeVisualization();
         return true;
     }
 
@@ -727,7 +758,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         } else {
             pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
         }
-        UpdateGestureModeVisualization();
+        //UpdateGestureModeVisualization();
         //TODO: ???
         return true;
     }
@@ -736,7 +767,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         if(IsInputMode()) {
             mode_keyboard_gestures = true;
             mode_keyboard_gestures_plus_up_down = true;
-            UpdateGestureModeVisualization();
+            //UpdateGestureModeVisualization();
             //TODO: ???
         }
 
@@ -747,7 +778,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         if(mode_keyboard_gestures && IsInputMode()) {
             mode_keyboard_gestures = false;
             mode_keyboard_gestures_plus_up_down = false;
-            UpdateGestureModeVisualization(true);
+            //UpdateGestureModeVisualization(true);
             return true;
         }
         return false;
@@ -851,7 +882,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         keyboardStateFixed_NavModeAndKeyboard = false;
         keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
         keyboardView.SetFnKeyboardMode(false);
-        UpdateGestureModeVisualization();
+        //UpdateGestureModeVisualization();
         return true;
     }
 

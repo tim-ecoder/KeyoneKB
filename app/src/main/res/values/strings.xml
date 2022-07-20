@@ -60,4 +60,6 @@
     <string name="pref_more_tv_search_plugins_comment">Когда заходишь в приложение, можно не кликать в "Поиск", а сразу начать набирать. Плагин сам кликнет в "Поиск", когда начинаешь набирать.\n
     Бывало (рекдо), что обучается неправильно, тогда надо нажать кнопку "Clear" внизу и заново переобучить.\n\n</string>
     <string name="pref_more_tv_search_plugins_comment_not_active">\nДля работы поисковых плагинов необходимо активировать спец. возможности в главном меню.</string>
+    <string name="gesture_mode_notification_text">Режимы жестов (на полях ввода, на просмотре выключен)</string>
+    <string name="keyboard_layout_mode_notification_text">Раскладка клавиатуры (языки, символы и пр.)</string>
 </resources>

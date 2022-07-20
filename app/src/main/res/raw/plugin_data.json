@@ -18,7 +18,7 @@
     "search-field-id" : "com.blackberry.blackberrylauncher:id/search_box_collapsed"
   }, {
     "package-name" : "org.telegram.messenger",
-    "additional-event-type-type-window-content-changed" : false,
+    "additional-event-type-type-window-content-changed" : true,
     "dynamic-search-method" : [ {
       "dynamic-search-method-function" : "FindAccessibilityNodeInfosByText",
       "contains-string" : "Search"
@@ -64,10 +64,6 @@
     "package-name" : "com.synology.dsmail",
     "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "com.synology.dsmail:id/menu_item_search"
-  }, {
-    "package-name" : "com.blackberry.hub",
-    "additional-event-type-type-window-content-changed" : true,
-    "search-field-id" : "com.blackberry.hub:id/search_bar_button"
   }, {
     "package-name" : "com.avito.android",
     "additional-event-type-type-window-content-changed" : true,
