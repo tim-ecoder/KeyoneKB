@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.ExtractedText;
+import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 
 public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCoreKeyPress {
@@ -69,9 +71,9 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             return true;
 
         //Не ловим движение на нижнем ряду где поблел и переключение языка (иначе при зажатии KEY_0 курсор будет прыгать и придется фильтровать эти события
-        if (motionEvent.getY() > ROW_4_BEGIN_Y || motionEvent.getY() < ROW_1_BEGIN_Y) {
-            return true;
-        }
+        //if (motionEvent.getY() > ROW_4_BEGIN_Y || motionEvent.getY() < ROW_1_BEGIN_Y) {
+        //    return true;
+        //}
 
         if (!mode_keyboard_gestures && KeyHoldPlusGestureEnabled) {
             ProcessPrepareAtHoldGesture(motionEvent);
@@ -88,12 +90,23 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             //TODO: Подумать отдельно обрабатывать жесты по горизонтали и отдельно по вертикали ориентируясь на событие ACTION_UP
 
             InputConnection inputConnection = getCurrentInputConnection();
-            float motionEventX = motionEvent.getX();
-            float motionEventY = motionEvent.getY();
+            float motionEventX;
+            float motionEventY;
 
-            int motionEventAction = motionEvent.getAction();
+            if(motionEvent.getPointerCount() == 1) {
+                motionEventX = motionEvent.getX();
+                motionEventY = motionEvent.getY();
+            } else {
+                if (motionEvent.getY(0) > ROW_4_BEGIN_Y) {
+                    motionEventX = motionEvent.getX(1);
+                    motionEventY = motionEvent.getY(1);
+                } else {
+                    motionEventX = motionEvent.getX(0);
+                    motionEventY = motionEvent.getY(0);
+                }
+            }
 
-            if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, motionEventAction))
+            if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY))
                 return true;
 
         }
@@ -109,10 +122,11 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return false;
     }
 
-    private boolean PerformGestureAction(MotionEvent motionEvent, InputConnection inputConnection, float motionEventX, float motionEventY, int motionEventAction) {
+    private boolean PerformGestureAction(MotionEvent motionEvent, InputConnection inputConnection, float motionEventX, float motionEventY) {
         //Жесть по клавиатуре всегда начинается с ACTION_DOWN
         if (CheckMotionAction(motionEvent,  MotionEvent.ACTION_DOWN)
-            || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)) {
+            || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)
+            ) {
             //if (debug_gestures)
             //    Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
             lastGestureX = motionEventX;
@@ -156,6 +170,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             }
             lastGestureX = motionEventX;
             lastGestureY = motionEventY;
+            Log.d(TAG2, "lastX: "+lastGestureX+" lastY: "+lastGestureY);
         } else if(CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)
                 || CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)) {
             lastGestureX = 0;
@@ -182,6 +197,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
             lastGestureX = motionEvent.getX();
             lastGestureY = motionEvent.getY();
+
         }
         if (CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)
                 || CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN))  {
@@ -282,41 +298,85 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     //region CURSOR MOVE
 
     private boolean MoveCursorDownSafe(InputConnection inputConnection) {
-        CharSequence c = inputConnection.getTextAfterCursor(1, 0);
-        if (c.length() > 0) {
-            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
-            ProcessOnCursorMovement(getCurrentInputEditorInfo());
-            return true;
+        if(inputConnection.getSelectedText(0) == null) {
+            CharSequence c = inputConnection.getTextAfterCursor(1, 0);
+            if (c.length() > 0) {
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                return true;
+            }
+        } else {
+            ExtractedTextRequest request = new ExtractedTextRequest();
+            ExtractedText extractedText = inputConnection.getExtractedText(request, 0);
+            int end = extractedText.selectionEnd;
+            if (end < extractedText.text.length()) {
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                return true;
+            }
         }
         return false;
     }
 
     private boolean MoveCursorUpSafe(InputConnection inputConnection) {
-        CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
-        if (c.length() > 0) {
-            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
-            ProcessOnCursorMovement(getCurrentInputEditorInfo());
-            return true;
+        if(inputConnection.getSelectedText(0) == null) {
+            CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
+            if (c.length() > 0) {
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                return true;
+            }
+        } else {
+            ExtractedTextRequest request = new ExtractedTextRequest();
+            ExtractedText extractedText = inputConnection.getExtractedText(request, 0);
+            int end = extractedText.selectionEnd;
+            if (end > 0) {
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                return true;
+            }
         }
         return false;
     }
 
     protected boolean MoveCursorLeftSafe(InputConnection inputConnection) {
-        CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
-        if (c.length() > 0) {
-            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
-            ProcessOnCursorMovement(getCurrentInputEditorInfo());
-            return true;
+        if(inputConnection.getSelectedText(0) == null) {
+            CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
+            if (c.length() > 0) {
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                return true;
+            }
+        } else {
+            ExtractedTextRequest request = new ExtractedTextRequest();
+            ExtractedText extractedText = inputConnection.getExtractedText(request, 0);
+            int end = extractedText.selectionEnd;
+            if (end > 0) {
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                return true;
+            }
         }
         return false;
     }
 
     protected boolean MoveCursorRightSafe(InputConnection inputConnection) {
-        CharSequence c = inputConnection.getTextAfterCursor(1, 0);
-        if (c.length() > 0) {
-            keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
-            ProcessOnCursorMovement(getCurrentInputEditorInfo());
-            return true;
+        if(inputConnection.getSelectedText(0) == null) {
+            CharSequence c = inputConnection.getTextAfterCursor(1, 0);
+            if (c.length() > 0) {
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                return true;
+            }
+        } else {
+            ExtractedTextRequest request = new ExtractedTextRequest();
+            ExtractedText extractedText = inputConnection.getExtractedText(request, 0);
+            int end = extractedText.selectionEnd;
+            if (end < extractedText.text.length()) {
+                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                return true;
+            }
         }
         return false;
     }

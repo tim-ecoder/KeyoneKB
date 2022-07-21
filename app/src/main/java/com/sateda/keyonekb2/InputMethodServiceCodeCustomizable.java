@@ -724,7 +724,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
             Log.d(TAG2, "GestureMode at key_0_down first time");
             return ActionEnableGestureAtInputMode();
         }
-        return false;
+        return ActionEnableGestureAtInputMode();
+        //return false;
     }
 
     private boolean ActionEnableGestureAtInputMode() {
