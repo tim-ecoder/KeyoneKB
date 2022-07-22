@@ -96,18 +96,35 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             if(motionEvent.getPointerCount() == 1) {
                 motionEventX = motionEvent.getX();
                 motionEventY = motionEvent.getY();
+                if(motionEventY > ROW_4_BEGIN_Y)
+                    return true;
+                if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
+                    return true;
             } else {
                 if (motionEvent.getY(0) > ROW_4_BEGIN_Y) {
                     motionEventX = motionEvent.getX(1);
                     motionEventY = motionEvent.getY(1);
+                    if(motionEvent.getActionIndex() == 0) {
+                        if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
+                            return true;
+                    } else {
+                        if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_POINTER_DOWN))
+                            return true;
+                    }
                 } else {
                     motionEventX = motionEvent.getX(0);
                     motionEventY = motionEvent.getY(0);
+                    if(motionEvent.getActionIndex() == 0) {
+                        if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_POINTER_DOWN))
+                            return true;
+                    } else {
+                        if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
+                            return true;
+                    }
                 }
             }
 
-            if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY))
-                return true;
+
 
         }
 
@@ -122,10 +139,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return false;
     }
 
-    private boolean PerformGestureAction(MotionEvent motionEvent, InputConnection inputConnection, float motionEventX, float motionEventY) {
+    private boolean PerformGestureAction(MotionEvent motionEvent, InputConnection inputConnection, float motionEventX, float motionEventY, int ACTION_OR_POINTER_UP, int ACTION_OR_POINTER_DOWN ) {
         //Жесть по клавиатуре всегда начинается с ACTION_DOWN
-        if (CheckMotionAction(motionEvent,  MotionEvent.ACTION_DOWN)
-            || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)
+        if (CheckMotionAction(motionEvent,  ACTION_OR_POINTER_DOWN)
+            //|| CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)
             ) {
             //if (debug_gestures)
             //    Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
@@ -171,8 +188,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             lastGestureX = motionEventX;
             lastGestureY = motionEventY;
             Log.d(TAG2, "lastX: "+lastGestureX+" lastY: "+lastGestureY);
-        } else if(CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)) {
+        //} else if(CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP) || CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)) {
+        } else if(CheckMotionAction(motionEvent, ACTION_OR_POINTER_UP)) {
             lastGestureX = 0;
             lastGestureY = 0;
         }
@@ -213,8 +230,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
 
         if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)) {
+                || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)) {
+                //|| CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)) {
             if(modeDoubleClickGesture) {
                 modeDoubleClickGesture = false;
                 //mode_keyboard_gestures = false;
@@ -239,8 +256,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 prevX = 0;
             }
         }
-        else if (   CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)
-                || CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)) {
+        else if (   CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)) {
+                //|| CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)) {
 
             long curDownTime = motionEvent.getEventTime();
             float curX = motionEvent.getX();

@@ -1,7 +1,7 @@
 {
   "search-plugins-enabled": true,
   "retranslate-keyboard-key-codes": [
-    "KEYCODE_FUNCTION", "KEYCODE_FP_LONG_TOUCH", "287"
+    "KEYCODE_FUNCTION"
   ],
   "retraslate-keyboard-meta-key-plus-key-list": [
     {

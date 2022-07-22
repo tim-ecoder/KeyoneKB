@@ -6,7 +6,7 @@
   "time-wait-gesture-upon-key0-hold" : 1000,
   "gesture-finger-press-radius" : 45,
   "gesture-motion-base-sensitivity" : 48,
-  "gesture-row4-begin-y" : 425,
+  "gesture-row4-begin-y" : 415,
   "gesture-row1-begin-y" : 25,
   "time-vibrate" : 30
 }
