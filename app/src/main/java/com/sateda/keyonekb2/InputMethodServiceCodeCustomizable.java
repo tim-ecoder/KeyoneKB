@@ -595,39 +595,40 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         if(!IsCalling())
             return false;
 
-        if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                ShowDebugToast("END-CALL1");
-                return telecomManager.endCall();
+        if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
+        || (this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) ) {
 
-            } else {
-
-                try {
-                    Class<?> classTelephony = Class.forName(telephonyManager.getClass().getName());
-                    Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
-                    methodGetITelephony.setAccessible(true);
-                    ITelephony telephonyService = (ITelephony) methodGetITelephony.invoke(telephonyManager);
-                    if (telephonyService != null) {
-                        ShowDebugToast("END-CALL2");
-                        return telephonyService.endCall();
-                    } else {
-                        Log.e(TAG2, "telephonyService == null (reflection)");
-                        ShowDebugToast("telephonyService == null (reflection)");
-                        return false;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.d("LOG", "Can't disconnect call");
-                    ShowDebugToast("Can't disconnect call "+e);
-                    return false;
-                }
-            }
-        } else {
             Log.e(TAG2, "DeclinePhone no permission");
             ShowDebugToast("DeclinePhone no permission");
             return false;
+
         }
-        //return false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ShowDebugToast("END-CALL (A>=28)");
+            return telecomManager.endCall();
+        } else {
+
+            try {
+                Class<?> classTelephony = Class.forName(telephonyManager.getClass().getName());
+                Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
+                methodGetITelephony.setAccessible(true);
+                ITelephony telephonyService = (ITelephony) methodGetITelephony.invoke(telephonyManager);
+                if (telephonyService != null) {
+                    ShowDebugToast("END-CALL (A<=27:REFLECTION)");
+                    return telephonyService.endCall();
+                } else {
+                    Log.e(TAG2, "telephonyService == null (reflection)");
+                    ShowDebugToast("telephonyService == null (reflection)");
+                    return false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.d("LOG", "Can't disconnect call");
+                ShowDebugToast("Can't disconnect call "+e);
+                return false;
+            }
+        }
+
     }
 
 
