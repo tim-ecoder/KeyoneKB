@@ -234,6 +234,16 @@ public class ActivitySettings extends AppCompatActivity {
             }
         });
 
+        Switch switch_ensure_entered_text = (Switch) findViewById(R.id.switch_ensure_entered_text);
+        SetSwitchStateOrDefault(switch_ensure_entered_text, keyoneKb2Settings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT);
+
+        switch_ensure_entered_text.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, isChecked);
+            }
+        });
+
     }
 
 

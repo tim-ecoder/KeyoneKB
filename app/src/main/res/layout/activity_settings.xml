@@ -268,11 +268,31 @@
             android:layout_height="1dp"
             android:layout_below="@id/switch_vibrate_on_key_down"
             android:background="?android:attr/listDivider" />
+    <Switch
+            android:id="@+id/switch_ensure_entered_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/divider14"
+            android:text="@string/pref_p_12_name"
+            android:textSize="24sp"
+            tools:checked="true" />
+    <TextView
+            android:id="@+id/text_help_p12"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/switch_ensure_entered_text"
+            android:text="@string/pref_p_12_hint" />
+    <View
+            android:id="@+id/divider15"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/text_help_p12"
+            android:background="?android:attr/listDivider" />
     <TextView
         android:id="@+id/manual_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/divider14"
+        android:layout_below="@id/divider15"
         android:text="@string/pref_manual_name"
         android:textSize="24sp"
         tools:checked="true" />

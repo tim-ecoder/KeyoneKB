@@ -34,7 +34,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     protected boolean pref_long_press_key_alt_symbol = false;
     protected boolean pref_keyboard_gestures_at_views_enable = true;
     protected boolean pref_vibrate_on_key_down = false;
-
+    protected boolean pref_ensure_entered_text = true;
     private boolean metaHoldCtrl; // только первая буква будет большая
     protected boolean metaFixedModeFirstLetterUpper; // только первая буква будет большая
     protected boolean metaFixedModeCapslock; //все следующий буквы будут большие
@@ -453,6 +453,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("ActionSendCharDoublePressShiftMode", InitializeMethod3(this::ActionSendCharDoublePressShiftMode, KeyPressData.class));
         //2.4
         Methods.put("ActionSetKeyTransparency", InitializeMethod3((Object o) -> ActionSetKeyTransparency(), Object.class));
+        Methods.put("InputIsInputFieldAndEnteredText", InitializeMethod3((Object o) -> InputIsInputFieldAndEnteredText(), Object.class));
+        Methods.put("PrefEnsureEnteredText", InitializeMethod3((Object o) -> PrefEnsureEnteredText(), Object.class));
 
     }
 
@@ -1295,16 +1297,22 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //endregion
 
+    //region PREFERENCES
 
+    public boolean PrefLongPressAltSymbol() {
+        return pref_long_press_key_alt_symbol;
+    }
+
+    public boolean PrefEnsureEnteredText() {
+        return pref_ensure_entered_text;
+    }
+
+    //endregion
 
     //region META
 
     public boolean IsActionBeforeMeta() {
         return true;
-    }
-
-    public boolean PrefLongPressAltSymbol() {
-        return pref_long_press_key_alt_symbol;
     }
 
     public boolean MetaIsShiftPressed() {
@@ -1338,6 +1346,19 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     //endregion
 
     //region INPUT_TYPE
+
+    public boolean InputIsInputFieldAndEnteredText() {
+        EditorInfo editorInfo = getCurrentInputEditorInfo();
+        if(editorInfo == null) return false;
+        if(editorInfo.inputType == 0) return false;
+        InputConnection ic = super.getCurrentInputConnection();
+        if(ic == null) return false;
+        CharSequence c = ic.getTextBeforeCursor(1, 0);
+        if(c.length() > 0) return true;
+        c = ic.getTextAfterCursor(1, 0);
+        if(c.length() > 0) return true;
+        return false;
+    }
 
     public boolean InputIsAnyInput() {
         return IsInputMode();

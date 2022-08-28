@@ -767,12 +767,12 @@
           ],
           "action-method-name": "ActionTryVibrate"
         }, {
-          "action-method-name": "ActionKeyDownUpDefaultFlags",
-          "stop-processing-at-success-result": true,
-          "custom-key-code": "KEYCODE_BACK"
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
-            "InputIsAnyInput"
+            "PrefEnsureEnteredText",
+            "InputIsInputFieldAndEnteredText"
           ],
           "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true
@@ -785,9 +785,8 @@
           ],
           "action-method-name": "ActionTryVibrate"
         }, {
-          "action-method-name": "ActionKeyDownUpDefaultFlags",
-          "stop-processing-at-success-result": true,
-          "custom-key-code": "KEYCODE_BACK"
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
         }
       ]
     }, {
@@ -805,7 +804,8 @@
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
-            "InputIsAnyInput"
+            "PrefEnsureEnteredText",
+            "InputIsInputFieldAndEnteredText"
           ],
           "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true

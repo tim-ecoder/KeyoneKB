@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class KeyoneKb2Settings {
 
     public static final String APP_PREFERENCES = "kbsettings";
+    public final String APP_PREFERENCES_12_ENSURE_ENTERED_TEXT = "ensure_entered_text";
     public final String APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN = "vibrate_on_key_down";
     public final String APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM = "notification_icon_system";
     public final String APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
@@ -68,6 +69,7 @@ public class KeyoneKb2Settings {
         CheckSettingOrSetDefault(APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN, false);
+        CheckSettingOrSetDefault(APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, true);
     }
 
     public boolean GetBooleanValue(String name) {
