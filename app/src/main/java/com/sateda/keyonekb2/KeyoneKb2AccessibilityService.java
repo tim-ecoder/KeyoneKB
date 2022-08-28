@@ -67,7 +67,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         public ArrayList<String> RetranslateKeyboardKeyCodes = new ArrayList<>();
 
         @JsonProperty(index=30)
-        public ArrayList<MetaKeyPlusKey> RetraslateKeyboardMetaKeyPlusKeyList = new ArrayList<>();
+        public ArrayList<MetaKeyPlusKey> RetranslateKeyboardMetaKeyPlusKeyList = new ArrayList<>();
     }
 
     @Override
@@ -362,8 +362,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 i++;
             }
         }
-        if(keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
-            for(KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList) {
+        if(keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
+            for(KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList) {
                 pair.MetaKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.MetaKeyCode);
                 pair.KeyKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.KeyKeyCode);
             }
@@ -385,16 +385,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if (IsRetranslateKeyCode(event)) {
                 KeyEvent event1 = GetCopy(event);
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                    KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                    return KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
                 }
                 if (event.getAction() == KeyEvent.ACTION_UP) {
-                    KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+                    return KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
                 }
-                return true;
             }
 
-            if(keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
-                for (KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetraslateKeyboardMetaKeyPlusKeyList) {
+            if(keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
+                for (KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList) {
                     if(pair.KeyKeyCodeInt != event.getKeyCode())
                         continue;
                     if(!IsMeta(event, pair.MetaKeyCodeInt))

@@ -146,7 +146,9 @@
     "KEYCODE_FUNCTION",
     "KEYCODE_SPACE",
     "KEYCODE_SYM",
-    "KEYCODE_0"
+    "KEYCODE_0",
+    "KEYCODE_BACK",
+    "KEYCODE_HOME"
   ],
   "key-group-processors": [
     {
@@ -286,7 +288,8 @@
           "stop-processing-at-success-result": true
         }
       ]
-    }, {
+    },
+    {
       "key-codes": [
         "KEYCODE_SPACE"
       ],
@@ -345,7 +348,8 @@
           "need-update-visual-state": true
         }
       ]
-    }, {
+    },
+    {
       "key-codes": [
         "KEYCODE_DEL"
       ],
@@ -379,7 +383,8 @@
           "custom-key-code": "KEYCODE_FORWARD_DEL"
         }
       ]
-    }, {
+    },
+    {
       "key-codes": [
         "KEYCODE_ENTER"
       ],
@@ -406,7 +411,8 @@
           "stop-processing-at-success-result": true
         }
       ]
-    }, {
+    },
+    {
       "key-codes": [
         "KEYCODE_ALT_LEFT", "KEYCODE_ALT_RIGHT"
       ],
@@ -460,7 +466,8 @@
           "need-update-visual-state": true
         }
       ]
-    }, {
+    },
+    {
       "key-codes": [
         "KEYCODE_CTRL_LEFT", "KEYCODE_CTRL_RIGHT", "KEYCODE_SHIFT_RIGHT", "KEYCODE_FUNCTION"
       ],
@@ -528,7 +535,8 @@
           "stop-processing-at-success-result": true
         }
       ]
-    }, {
+    },
+    {
       "key-codes": [
         "KEYCODE_SHIFT_LEFT"
       ],
@@ -583,7 +591,8 @@
           "need-update-visual-state": true
         }
       ]
-    }, {
+    },
+    {
       "key-codes": [
         "KEYCODE_0"
       ],
@@ -680,7 +689,8 @@
           "stop-processing-at-success-result": true
         }
       ]
-    }, {
+    },
+    {
       "key-codes": [
         "KEYCODE_SYM"
       ],
@@ -743,6 +753,73 @@
           "action-method-name": "ActionSetNavModeHoldOffState",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_BACK"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "action-method-name": "ActionKeyDownUpDefaultFlags",
+          "stop-processing-at-success-result": true,
+          "custom-key-code": "KEYCODE_BACK"
+        }, {
+          "meta-mode-method-names": [
+            "InputIsAnyInput"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "action-method-name": "ActionKeyDownUpDefaultFlags",
+          "stop-processing-at-success-result": true,
+          "custom-key-code": "KEYCODE_BACK"
+        }
+      ]
+    }, {
+      "key-codes": [
+        "KEYCODE_HOME"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "InputIsAnyInput"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
         }
       ]
     }

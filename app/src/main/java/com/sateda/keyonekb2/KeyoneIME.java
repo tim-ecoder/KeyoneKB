@@ -279,9 +279,10 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         Log.v(TAG2, "onKeyDown " + event);
 
         //TODO: Hack 4 pocket
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            return false;
-        }
+        //TODO: Временно не поддерживается
+        //if (keyCode == KeyEvent.KEYCODE_BACK) {
+        //    return false;
+        //}
 
         if(
             !IsInputMode()
@@ -318,7 +319,10 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         //endregion
 
         needUpdateVisualInsideSingleEvent = false;
+        _isKeyTransparencyInsideUpDownEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyDown(keyCode, event);
+        if(_isKeyTransparencyInsideUpDownEvent)
+            return false;
         if (!processed)
             return false;
 
@@ -340,9 +344,9 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         Log.v(TAG2, "onKeyUp " + event);
 
         //TODO: Hack 4 pocket
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            return false;
-        }
+        //if (keyCode == KeyEvent.KEYCODE_BACK) {
+        //    return false;
+        //}
 
         //region Блок навигационной клавиатуры
 
@@ -363,6 +367,11 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
         needUpdateVisualInsideSingleEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyUp(keyCode, event);
+        if (_isKeyTransparencyInsideUpDownEvent) {
+            _isKeyTransparencyInsideUpDownEvent = false;
+            return false;
+
+        }
         if (!processed)
             return false;
 

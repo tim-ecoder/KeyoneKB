@@ -451,6 +451,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("ActionEnableGestureAtInputMode", InitializeMethod3((Object o) -> ActionEnableGestureAtInputMode(), Object.class));
 
         Methods.put("ActionSendCharDoublePressShiftMode", InitializeMethod3(this::ActionSendCharDoublePressShiftMode, KeyPressData.class));
+        //2.4
+        Methods.put("ActionSetKeyTransparency", InitializeMethod3((Object o) -> ActionSetKeyTransparency(), Object.class));
 
     }
 
@@ -988,6 +990,15 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public boolean ActionKeyDown(int customKeyCode) {
         return super.ActionKeyDown(customKeyCode);
+    }
+
+    protected boolean _isKeyTransparencyInsideUpDownEvent = false;
+
+    //Метод onKeyDown и onKeyUp вернут false как будто бы он ничего не делал
+    //Это нужно например для KEYCODE_HOME который нет возможности (пока) эмулировать программно
+    public boolean ActionSetKeyTransparency() {
+        _isKeyTransparencyInsideUpDownEvent = true;
+        return true;
     }
 
     public boolean ActionKeyDownUpDefaultFlags(int customKeyCode) {
