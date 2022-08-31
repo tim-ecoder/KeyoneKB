@@ -228,6 +228,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
                 && getCurrentInputConnection() != null
                 && IsInputMode()
                 && Orientation == 1) {
+            keyboardView.setOnTouchListener(this);
             this.showWindow(true);
         }
 
