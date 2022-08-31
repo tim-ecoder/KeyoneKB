@@ -103,7 +103,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
             keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJson(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, getApplicationContext());
 
-            LoadRetraslationData();
+            LoadRetranslationData();
             executorService = Executors.newFixedThreadPool(2);
 
             if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
@@ -161,6 +161,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
 
         for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
+            if(SearchClickPackages.contains(shp2.getPackageName()))
+                continue;
+            if(searchClickPlugins.stream().anyMatch((SearchClickPlugin shp3) -> shp3._packageName.equals(shp2._packageName)))
+                continue;
             SearchClickPackages.add(shp2.getPackageName());
             searchClickPlugins.add(shp2);
         }
@@ -353,7 +357,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     int[] RetranslateKeyCodes;
 
-    private void LoadRetraslationData() throws NoSuchFieldException, IllegalAccessException {
+    private void LoadRetranslationData() throws NoSuchFieldException, IllegalAccessException {
         if(keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty()) {
             RetranslateKeyCodes = new int[keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.size()];
             int i = 0;

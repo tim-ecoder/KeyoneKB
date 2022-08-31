@@ -49,6 +49,7 @@ public class ActivitySettingsMore extends Activity {
         btClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                KeyoneKb2AccessibilityService.TEMP_ADDED_SEARCH_CLICK_PLUGINS.clear();
                 for (SearchClickPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
                     plugin.setId("");
                     KeyoneKb2AccessibilityService.Instance.ClearFromSettings(plugin);

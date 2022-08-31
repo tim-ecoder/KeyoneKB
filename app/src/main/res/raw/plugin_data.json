@@ -24,9 +24,13 @@
       "contains-string" : "Search"
     } ]
   }, {
-    "package-name" : "com.android.dialer",
+    "package-name" : "com.android.dialer.variant2",
     "custom-click-adapter-click-parent" : true,
     "search-field-id" : "com.android.dialer:id/voice_search_button"
+  }, {
+    "package-name" : "com.android.dialer",
+    "custom-click-adapter-click-parent" : true,
+    "search-field-id" : "com.android.dialer:id/search_box_start_search"
   }, {
     "package-name" : "com.blackberry.contacts",
     "search-field-id" : "com.blackberry.contacts:id/menu_search"
