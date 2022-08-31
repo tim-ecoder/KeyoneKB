@@ -829,9 +829,11 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean ActionTryDisableFixedAltModeState() {
-        if(metaFixedModeAllSymbolsAlt){
+        if(metaFixedModeAllSymbolsAlt) {
             metaFixedModeAllSymbolsAlt = false;
             metaFixedModeFirstSymbolAlt = false;
+            //TODO: NEW! Разобраться с обращениями к этому ресурсоемкому методу!
+            DetermineForceFirstUpper(getCurrentInputEditorInfo());
             return true;
         }
         return false;
@@ -1457,6 +1459,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
         int makeFirstBig = 0;
         if (editorInfo.inputType != InputType.TYPE_NULL) {
+            Log.d(TAG2, "getCursorCapsMode(editorInfo.inputType)");
             makeFirstBig = getCurrentInputConnection().getCursorCapsMode(editorInfo.inputType);
         }
 

@@ -718,7 +718,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
      @Override
     public boolean onGenericMotionEvent(MotionEvent motionEvent) {
-        Log.d(TAG2, "onGenericMotionEvent(): " + motionEvent);
+         //Log.d(TAG2, "onGenericMotionEvent(): " + motionEvent);
 
         boolean ret = ProcessGestureAtMotionEvent(motionEvent);
          if(needUpdateGestureNotificationInsideSingleEvent)
