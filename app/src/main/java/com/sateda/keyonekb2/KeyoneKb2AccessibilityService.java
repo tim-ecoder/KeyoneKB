@@ -77,7 +77,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         AccessibilityServiceInfo info = getServiceInfo();
         if(keyoneKb2AccServiceOptions.SearchPluginsEnabled) {
-            info.packageNames = SearchClickPackages.toArray(new String[SearchClickPackages.size()]);
+            //info.packageNames = SearchClickPackages.toArray(new String[SearchClickPackages.size()]);
+            info.packageNames = null;
             if (!TEMP_ADDED_SEARCH_CLICK_PLUGINS.isEmpty())
                 info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
         } else {
@@ -194,11 +195,69 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         keyoneKb2Settings.ClearFromSettings(plugin.getPreferenceKey());
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.P)
+    public static AccessibilityNodeInfo FindFirstByOtherRecursive(AccessibilityNodeInfo node, String text) {
+        if (node == null)
+            return null;
+        if(node.getViewIdResourceName() != null)
+            Log.d(TAG3, node.getViewIdResourceName());
+        if (node.getContentDescription() != null) {
+            if (node.getContentDescription().toString().contains(text))
+                return node;
+            //else Log.d(TAG, "TEXT: "+node.getText());
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            AccessibilityNodeInfo child = node.getChild(i);
+            AccessibilityNodeInfo result = FindFirstByOtherRecursive(child, text);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
 
+    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text) {
+        if (node == null)
+            return null;
+        if(node.getViewIdResourceName() != null)
+            Log.d(TAG3, node.getViewIdResourceName());
+        if (node.getText() != null) {
+            if (node.getText().toString().startsWith(text))
+                return node;
+            //else Log.d(TAG, "TEXT: "+node.getText());
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            AccessibilityNodeInfo child = node.getChild(i);
+            AccessibilityNodeInfo result = FindFirstByTextRecursive(child, text);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
 
+    private boolean ContainsAllDigitsButtons(AccessibilityNodeInfo node) {
+        for(int i = 0; i < 10; i++) {
+            AccessibilityNodeInfo info3 = FindFirstByTextRecursive(node, Integer.toString(i));
+            if(info3 == null)
+                return false;
+
+            /*
+            List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText("7");
+            if (infoList.size() > 0) {
+                Log.d(TAG3, infoList.get(0).getViewIdResourceName());
+            }
+            info3 = FindFirstByOtherRecursive(root, "7");
+            if(info3 != null) {
+                Log.d(TAG3, info3.getViewIdResourceName());
+            }
+*/
+        }
+        return true;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
-        Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
+        //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
         if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
             return;
         try {
@@ -219,19 +278,30 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     return;
                 }
             }
+
+            AccessibilityNodeInfo root = getRootInActiveWindow();
+            if (root == null)
+                return;
+
+            if(ContainsAllDigitsButtons(root)) {
+                SetDigitsHack(true);
+            } else {
+                //SetDigitsHack(false);
+            }
+
             CharSequence packageNameCs = event.getPackageName();
             if (packageNameCs == null || packageNameCs.length() == 0)
                 return;
             String packageName = packageNameCs.toString();
 
             if(!SearchClickPackages.contains(packageName)) {
-                LogEventD(event);
+                //LogEventD(event);
                 return;
             }
 
-            AccessibilityNodeInfo root = getRootInActiveWindow();
-            if (root == null)
-                return;
+            //AccessibilityNodeInfo root = getRootInActiveWindow();
+            //if (root == null)
+            //    return;
 
             //TODO: Можно еще фильтровать по чтобы не было лишних срабатываний
             //event.getWindowChanges()
@@ -329,7 +399,12 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if (KeyoneIME.Instance != null) {
             KeyoneIME.Instance.SetSearchHack(searchPluginLaunchData);
         }
+    }
 
+    private void SetDigitsHack(boolean value) {
+        if (KeyoneIME.Instance != null) {
+            KeyoneIME.Instance.SetDigitsHack(value);
+        }
     }
 
     private boolean IsSearchHackSet(String packageName, AccessibilityNodeInfo info) {

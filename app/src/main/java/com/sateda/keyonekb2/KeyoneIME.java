@@ -45,6 +45,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
     public String TITLE_GESTURE_INPUT_UP_DOWN;
     public String TITLE_GESTURE_VIEW;
     public String TITLE_GESTURE_OFF;
+    public String TITLE_DIGITS_TEXT;
 
 
 
@@ -75,6 +76,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
     KeyboardLayout.KeyboardLayoutOptions.IconRes SymHoldIconRes;
     KeyboardLayout.KeyboardLayoutOptions.IconRes navIconRes;
     KeyboardLayout.KeyboardLayoutOptions.IconRes navFnIconRes;
+    KeyboardLayout.KeyboardLayoutOptions.IconRes digitsPadIconRes;
 
 
     private String _lastPackageName = "";
@@ -137,6 +139,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
             TITLE_GESTURE_INPUT_UP_DOWN = getString(R.string.notification_kb_state_gesture_input_up_down);
             TITLE_GESTURE_VIEW = getString(R.string.notification_kb_state_gesture_view);
             TITLE_GESTURE_OFF = getString(R.string.notification_kb_state_gesture_off);
+            TITLE_DIGITS_TEXT = getString(R.string.notification_kb_state_digits_pad);
 
             AltOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
             AltAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt_all);
@@ -147,6 +150,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
             navIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav, R.drawable.ic_kb_nav);
             navFnIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav_fn, R.drawable.ic_kb_nav_fn);
+            digitsPadIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_digits, R.drawable.ic_kb_digits);
 
             callStateCallback = new CallStateCallback();
             telephonyManager = getTelephonyManager();
@@ -289,6 +293,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
             !IsInputMode()
             && IsViewModeKeyCode(keyCode, event.getMetaState())
             && SearchPluginLauncher == null
+            && !_digitsHackActive
             && !IsNavMode())  {
             Log.d(TAG2, "App transparency mode");
             return super.onKeyDown(keyCode, event);
@@ -368,11 +373,12 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
         needUpdateVisualInsideSingleEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyUp(keyCode, event);
+
         if (_isKeyTransparencyInsideUpDownEvent) {
             _isKeyTransparencyInsideUpDownEvent = false;
             return false;
-
         }
+
         if (!processed)
             return false;
 
@@ -833,7 +839,9 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         String languageOnScreenNaming = keyboardLayout.KeyboardName;
         boolean changed;
         boolean needUsefulKeyboard = false;
-        if (IsNavMode()) {
+        if(_digitsHackActive) {
+            changed = UpdateNotification(digitsPadIconRes, TITLE_DIGITS_TEXT);
+        } else if (IsNavMode()) {
             if (!keyboardStateFixed_FnSymbolOnScreenKeyboard) {
                 changed = UpdateNotification(navIconRes, TITLE_NAV_TEXT);
             } else {

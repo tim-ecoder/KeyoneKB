@@ -49,6 +49,7 @@
     <string name="notification_kb_state_gesture_input_up_down">Жесты по текстовому вводу (+вверх/вниз)</string>
     <string name="notification_kb_state_gesture_view">Жесты по режиму просмотра</string>
     <string name="notification_kb_state_gesture_off">Жесты по клавиатуре выключены</string>
+    <string name="notification_kb_state_digits_pad">Циферная панель (номеронабиратель)</string>
     <string name="keyonekb_accessibility_service_label">KeyoneKB2</string>
     <string name="keyonekb_accessibility_service_description">Помогает KeyoneKB понять в каком поле находится курсор для вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.).\n
     Кроме того, _обязательно_ включить, чтобы на Blackberry Key2 _НЕ_ РСТ SpeedKey работал как CTRL.</string>

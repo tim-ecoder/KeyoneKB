@@ -21,7 +21,7 @@
       "action-method-name": "ActionTryCapitalizeFirstLetter"
     }, {
       "action-method-name": "ActionSetNeedUpdateVisualState"
-    },  {
+    }, {
       "meta-mode-method-names": [
         "IsPackageChanged"
       ],
@@ -113,6 +113,9 @@
     {
       "action-method-name": "ActionTryDisableSymPad"
     }, {
+      "action-method-name": "ActionResetDigitsHack",
+      "need-update-visual-state": true
+    }, {
       "action-method-name": "ActionDisableAndResetGestureMode",
       "need-update-gesture-visual-state": true
     }, {
@@ -169,7 +172,8 @@
           "action-method-name": "ActionSendCharSinglePressNoMeta",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsCtrlPressed"
           ],
@@ -180,6 +184,12 @@
           ],
           "action-method-name": "ActionSendCtrlPlusKey",
           "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionSetKeyTransparency",
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
@@ -222,12 +232,19 @@
           "action-method-name": "ActionSendCharDoublePressNoMeta",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsCtrlPressed"
           ],
           "action-method-name": "ActionSendCtrlPlusKey",
           "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionSetKeyTransparency",
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
@@ -619,6 +636,13 @@
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionKeyDownUpDefaultFlags",
+          "custom-key-code": "KEYCODE_0",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
           "action-method-name": "ActionSendCharToInput",
@@ -661,6 +685,12 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
+          "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        }, {
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
@@ -799,7 +829,8 @@
           "stop-processing-at-success-result": true
         }
       ]
-    }, {
+    },
+    {
       "key-codes": [
         "KEYCODE_HOME"
       ],

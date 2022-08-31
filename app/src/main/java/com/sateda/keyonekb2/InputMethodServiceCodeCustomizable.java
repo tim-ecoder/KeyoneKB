@@ -455,6 +455,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("ActionSetKeyTransparency", InitializeMethod3((Object o) -> ActionSetKeyTransparency(), Object.class));
         Methods.put("InputIsInputFieldAndEnteredText", InitializeMethod3((Object o) -> InputIsInputFieldAndEnteredText(), Object.class));
         Methods.put("PrefEnsureEnteredText", InitializeMethod3((Object o) -> PrefEnsureEnteredText(), Object.class));
+        Methods.put("InputIsDigitsPad", InitializeMethod3((Object o) -> InputIsDigitsPad(), Object.class));
+        Methods.put("ActionResetDigitsHack", InitializeMethod3((Object o) -> ActionResetDigitsHack(), Object.class));
 
     }
 
@@ -1085,6 +1087,11 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //region Actions OTHER
 
+    public boolean ActionResetDigitsHack() {
+        SetDigitsHack(false);
+        return true;
+    }
+
     public boolean ActionTryVibrate() {
         if(pref_vibrate_on_key_down && vibratorService != null) {
             Vibrate(TIME_VIBRATE);
@@ -1317,6 +1324,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return true;
     }
 
+
+
     public boolean MetaIsShiftPressed() {
 
         return metaHoldShift;
@@ -1348,6 +1357,10 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     //endregion
 
     //region INPUT_TYPE
+
+    public boolean InputIsDigitsPad() {
+        return _digitsHackActive;
+    }
 
     public boolean InputIsInputFieldAndEnteredText() {
         EditorInfo editorInfo = getCurrentInputEditorInfo();
@@ -1417,6 +1430,17 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return (meta & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
     }
 
+    boolean _digitsHackActive = false;
+
+    public void SetDigitsHack(boolean value) {
+        if(_digitsHackActive != value) {
+            Log.d(TAG2, "DIGITS-PAD-HACK SET="+value);
+            _digitsHackActive = value;
+            //TODO: Это сделано тут в обход keyboard_mechanics т.к. определение номеронабирателя и вызов метода происходит после onStartInput
+            if(value)
+                UpdateKeyboardModeVisualization();
+        }
+    }
     public void SetSearchHack(SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData) {
         if(SearchPluginLauncher == null && searchPluginLaunchData == null)
             return;

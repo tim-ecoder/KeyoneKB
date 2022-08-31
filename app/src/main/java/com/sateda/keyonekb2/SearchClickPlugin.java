@@ -70,7 +70,7 @@ public class SearchClickPlugin {
         return null;
     }
 
-    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text) {
+    public static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text) {
         if (node == null)
             return null;
         if(node.getViewIdResourceName() != null)
