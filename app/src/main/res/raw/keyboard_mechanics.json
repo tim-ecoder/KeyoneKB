@@ -659,16 +659,16 @@
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
-          "action-method-name": "ActionTryDisableFirstSymbolAltMode",
+          "action-method-name": "ActionTryDisableFirstLetterShiftMode",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": false
         }, {
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
-          "action-method-name": "ActionTryDisableFirstLetterShiftMode",
+          "action-method-name": "ActionTryDisableFirstSymbolAltMode",
           "need-update-visual-state": true,
-          "stop-processing-at-success-result": false
+          "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
             "MetaIsAltMode"

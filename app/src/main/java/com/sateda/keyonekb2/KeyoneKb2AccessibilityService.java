@@ -215,7 +215,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         return null;
     }
 
-    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text) {
+    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text, int recursLevel) {
+        if(recursLevel > 4)
+            return null;
         if (node == null)
             return null;
         if(node.getViewIdResourceName() != null)
@@ -225,9 +227,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 return node;
             //else Log.d(TAG, "TEXT: "+node.getText());
         }
-        for (int i = 0; i < node.getChildCount(); i++) {
+        for (int i = 0; i < node.getChildCount() && i < 15; i++) {
             AccessibilityNodeInfo child = node.getChild(i);
-            AccessibilityNodeInfo result = FindFirstByTextRecursive(child, text);
+            AccessibilityNodeInfo result = FindFirstByTextRecursive(child, text, recursLevel+1);
             if (result != null)
                 return result;
         }
@@ -236,7 +238,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     private boolean ContainsAllDigitsButtons(AccessibilityNodeInfo node) {
         for(int i = 0; i < 10; i++) {
-            AccessibilityNodeInfo info3 = FindFirstByTextRecursive(node, Integer.toString(i));
+            AccessibilityNodeInfo info3 = FindFirstByTextRecursive(node, Integer.toString(i), 0);
             if(info3 == null)
                 return false;
 
@@ -282,9 +284,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             AccessibilityNodeInfo root = getRootInActiveWindow();
             if (root == null)
                 return;
-
-            if(ContainsAllDigitsButtons(root)) {
+            if(event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                    && ContainsAllDigitsButtons(root)) {
                 SetDigitsHack(true);
+                return;
             } else {
                 //SetDigitsHack(false);
             }

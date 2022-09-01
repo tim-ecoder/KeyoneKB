@@ -24,8 +24,8 @@ android {
         minSdkVersion 25
         targetSdkVersion 27
         //TODO: ---- Меняем каждый раз! ----
-        versionCode 2410
-        versionName "v2.4-build1.0"
+        versionCode 2411
+        versionName "v2.4-build1.1"
         //TODO: ----------------------------
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
