@@ -58,24 +58,24 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     protected boolean ProcessGestureAtMotionEvent(MotionEvent motionEvent) {
         //LogKeyboardTest("GESTURE ACTION: "+motionEvent.getAction());
-        if (IsGestureModeEnabled()
-                && !IsNoGesturesMode()
-                && !IsInputMode()) {
-            return false;
-        }
 
         if (IsNoGesturesMode())
             return true;
 
-        if(!KeyboardGesturesAtInputModeEnabled)
-            return true;
+        if(IsInputMode()) {
+            if(!KeyboardGesturesAtInputModeEnabled)
+                return true;
+            if(_gestureInputScrollViewMode)
+                return false;
+        } else { //!IsInputMode()
 
-        //Не ловим движение на нижнем ряду где поблел и переключение языка (иначе при зажатии KEY_0 курсор будет прыгать и придется фильтровать эти события
-        //if (motionEvent.getY() > ROW_4_BEGIN_Y || motionEvent.getY() < ROW_1_BEGIN_Y) {
-        //    return true;
-        //}
+            if (!IsGestureModeEnabled())
+                return true;
+            if(!_gesturePointerMode)
+                return false;
+        }
 
-        if (!mode_keyboard_gestures && KeyHoldPlusGestureEnabled) {
+        if (!mode_keyboard_gestures && !_gesturePointerMode && KeyHoldPlusGestureEnabled) {
             ProcessPrepareAtHoldGesture(motionEvent);
         }
 
@@ -85,7 +85,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             //Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
             ProcessDoubleGestureClick(motionEvent);
         }
-        if (mode_keyboard_gestures) {
+        if (mode_keyboard_gestures || (!IsInputMode() && _gesturePointerMode)) {
 
             //TODO: Подумать отдельно обрабатывать жесты по горизонтали и отдельно по вертикали ориентируясь на событие ACTION_UP
 
@@ -158,9 +158,12 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
                 float deltaY = motionEventY - lastGestureY;
                 float absDeltaY = deltaY < 0 ? -1 * deltaY : deltaY;
+                int Kpower = 1;
+                if(!IsInputMode() && _gesturePointerMode)
+                    Kpower = 2;
 
-                int motion_delta_min_x = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
-                int motion_delta_min_y = MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity;
+                int motion_delta_min_x = MAGIC_KEYBOARD_GESTURE_MOTION_CONST*Kpower - pref_gesture_motion_sensitivity;
+                int motion_delta_min_y = MAGIC_KEYBOARD_GESTURE_MOTION_CONST*Kpower - pref_gesture_motion_sensitivity;
 
                 if (absDeltaX >= absDeltaY) {
                     if (absDeltaX < motion_delta_min_x)
@@ -172,7 +175,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                         if (MoveCursorLeftSafe(inputConnection))
                             Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
                     }
-                } else if (mode_keyboard_gestures_plus_up_down) {
+                } else if (mode_keyboard_gestures_plus_up_down || (!IsInputMode() && _gesturePointerMode)) {
                     if (absDeltaY < motion_delta_min_y)
                         return true;
                     //int times = Math.round(absDeltaY / motion_delta_min_y);
@@ -315,6 +318,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     //region CURSOR MOVE
 
     private boolean MoveCursorDownSafe(InputConnection inputConnection) {
+        if(_gesturePointerMode) {
+            keyDownUpMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection, 0);
+            return true;
+        }
         if(inputConnection.getSelectedText(0) == null) {
             CharSequence c = inputConnection.getTextAfterCursor(1, 0);
             if (c.length() > 0) {
@@ -336,6 +343,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     private boolean MoveCursorUpSafe(InputConnection inputConnection) {
+        if(_gesturePointerMode) {
+            keyDownUpMeta(KeyEvent.KEYCODE_DPAD_UP, inputConnection, 0);
+            return true;
+        }
         if(inputConnection.getSelectedText(0) == null) {
             CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
             if (c.length() > 0) {
@@ -357,6 +368,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     protected boolean MoveCursorLeftSafe(InputConnection inputConnection) {
+        if(_gesturePointerMode) {
+            keyDownUpMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection, 0);
+            return true;
+        }
         if(inputConnection.getSelectedText(0) == null) {
             CharSequence c = inputConnection.getTextBeforeCursor(1, 0);
             if (c.length() > 0) {
@@ -378,6 +393,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     protected boolean MoveCursorRightSafe(InputConnection inputConnection) {
+        if(_gesturePointerMode) {
+            keyDownUpMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection, 0);
+            return true;
+        }
         if(inputConnection.getSelectedText(0) == null) {
             CharSequence c = inputConnection.getTextAfterCursor(1, 0);
             if (c.length() > 0) {
@@ -402,6 +421,37 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     //region ACTIONS
 
+    protected boolean GESTURE_POINTER_DEFAULT_MODE = true;
+    protected boolean _gesturePointerMode = GESTURE_POINTER_DEFAULT_MODE;
+    protected boolean _gestureInputScrollViewMode = false;
+    public boolean ActionTryChangeGestureInputScrollMode() {
+        if(!IsInputMode())
+            return false;
+        _gestureInputScrollViewMode = !_gestureInputScrollViewMode;
+        Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _gestureInputScrollViewMode);
+        return true;
+    }
+
+    public boolean ActionDisableGestureInputScrollMode() {
+        _gestureInputScrollViewMode = false;
+        Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _gestureInputScrollViewMode);
+        return true;
+    }
+
+    public boolean ActionTryChangeGesturePointerModeAtViewMode() {
+        if(IsInputMode())
+            return false;
+        _gesturePointerMode = !_gesturePointerMode;
+        Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ _gesturePointerMode);
+        return true;
+    }
+
+    public boolean ActionResetGesturePointerMode() {
+        _gesturePointerMode = GESTURE_POINTER_DEFAULT_MODE;
+        Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ _gesturePointerMode);
+        return true;
+    }
+
     protected boolean IsInputMode() {
         if(getCurrentInputEditorInfo() == null) return false;
         //Log.d(TAG2, "IsInputMode() "+getCurrentInputEditorInfo().inputType);
@@ -409,7 +459,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     protected boolean ActionTryTurnOffGesturesMode() {
-        //mode_keyboard_gestures_plus_up_down = false;
+        mode_keyboard_gestures_plus_up_down = false;
         if (mode_keyboard_gestures) {
             mode_keyboard_gestures = false;
             //UpdateGestureModeVisualization();

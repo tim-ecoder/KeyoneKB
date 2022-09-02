@@ -43,6 +43,8 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
     public String TITLE_SYM2_TEXT;
     public String TITLE_GESTURE_INPUT;
     public String TITLE_GESTURE_INPUT_UP_DOWN;
+    public String TITLE_GESTURE_INPUT_LIST;
+    public String TITLE_GESTURE_VIEW_POINTER;
     public String TITLE_GESTURE_VIEW;
     public String TITLE_GESTURE_OFF;
     public String TITLE_DIGITS_TEXT;
@@ -139,6 +141,8 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
             TITLE_GESTURE_INPUT_UP_DOWN = getString(R.string.notification_kb_state_gesture_input_up_down);
             TITLE_GESTURE_VIEW = getString(R.string.notification_kb_state_gesture_view);
             TITLE_GESTURE_OFF = getString(R.string.notification_kb_state_gesture_off);
+            TITLE_GESTURE_INPUT_LIST = getString(R.string.notification_kb_state_gesture_input_list);
+            TITLE_GESTURE_VIEW_POINTER = getString(R.string.notification_kb_state_gesture_pointer);
             TITLE_DIGITS_TEXT = getString(R.string.notification_kb_state_digits_pad);
 
             AltOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
@@ -773,24 +777,40 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
     //@Override
     protected void UpdateGestureModeVisualization(boolean isInput) {
-        boolean changed;
-
-        if (isInput && mode_keyboard_gestures && !IsNoGesturesMode()) {
-
-            if (mode_keyboard_gestures_plus_up_down) {
-                changed = setSmallIcon2(R.mipmap.ic_gesture_icon_input_up_down);
-                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
-            } else {
-                changed = setSmallIcon2(R.mipmap.ic_gesture_icon_input);
-                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
-            }
-        } else if (!isInput && pref_keyboard_gestures_at_views_enable && !IsNoGesturesMode()) {
-            changed = setSmallIcon2(R.mipmap.ic_gesture_icon_view);
-            changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
-        } else {
+        boolean changed = false;
+        if(IsNoGesturesMode()) {
             changed = setSmallIcon2(R.mipmap.ic_gesture_icon_off);
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
         }
+        else if(isInput) {
+            if(_gestureInputScrollViewMode) {
+                changed = setSmallIcon2(R.mipmap.ic_gesture_icon_view);
+                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_LIST);
+            } else if (mode_keyboard_gestures) {
+                if (mode_keyboard_gestures_plus_up_down) {
+                    changed = setSmallIcon2(R.mipmap.ic_gesture_icon_input_up_down);
+                    changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
+                } else {
+                    changed = setSmallIcon2(R.mipmap.ic_gesture_icon_input);
+                    changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT);
+                }
+            } else {
+                    changed = setSmallIcon2(R.mipmap.ic_gesture_icon_off);
+                    changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
+            }
+        } else { //!isIsInput
+            if(!pref_keyboard_gestures_at_views_enable) {
+                changed = setSmallIcon2(R.mipmap.ic_gesture_icon_off);
+                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
+            } else if (_gesturePointerMode) {
+                changed = setSmallIcon2(R.mipmap.ic_gesture_icon_pointer);
+                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW_POINTER);
+            } else {
+                changed = setSmallIcon2(R.mipmap.ic_gesture_icon_view);
+                changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW);
+            }
+        }
+
         if (changed)
             notificationProcessor.UpdateNotificationGestureMode();
     }

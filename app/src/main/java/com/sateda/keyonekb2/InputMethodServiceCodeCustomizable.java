@@ -457,7 +457,11 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("PrefEnsureEnteredText", InitializeMethod3((Object o) -> PrefEnsureEnteredText(), Object.class));
         Methods.put("InputIsDigitsPad", InitializeMethod3((Object o) -> InputIsDigitsPad(), Object.class));
         Methods.put("ActionResetDigitsHack", InitializeMethod3((Object o) -> ActionResetDigitsHack(), Object.class));
-
+        Methods.put("ActionTryChangeGesturePointerModeAtViewMode", InitializeMethod3((Object o) -> ActionTryChangeGesturePointerModeAtViewMode(), Object.class));
+        Methods.put("ActionTryChangeGestureModeStateAtInputMode", InitializeMethod3((Object o) -> ActionTryChangeGestureModeStateAtInputMode(), Object.class));
+        Methods.put("ActionResetGesturePointerMode", InitializeMethod3((Object o) -> ActionResetGesturePointerMode(), Object.class));
+        Methods.put("ActionTryChangeGestureInputScrollMode", InitializeMethod3((Object o) -> ActionTryChangeGestureInputScrollMode(), Object.class));
+        Methods.put("ActionDisableGestureInputScrollMode", InitializeMethod3((Object o) -> ActionDisableGestureInputScrollMode(), Object.class));
     }
 
     //endregion
@@ -769,6 +773,15 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         //UpdateGestureModeVisualization();
         //TODO: ???
         return true;
+    }
+
+    public boolean ActionTryChangeGestureModeStateAtInputMode() {
+        if(IsInputMode()) {
+            mode_keyboard_gestures = !mode_keyboard_gestures;
+            return true;
+        }
+        return false;
+
     }
 
     public boolean ActionEnableGestureAtInputModeAndUpDownMode() {
@@ -1323,8 +1336,6 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     public boolean IsActionBeforeMeta() {
         return true;
     }
-
-
 
     public boolean MetaIsShiftPressed() {
 

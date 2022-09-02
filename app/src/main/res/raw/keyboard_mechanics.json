@@ -15,6 +15,9 @@
     }, {
       "action-method-name": "ActionTryDisableCapslockShiftMode"
     }, {
+      "action-method-name": "ActionDisableGestureInputScrollMode",
+      "need-update-gesture-visual-state": true
+    }, {
       "action-method-name": "ActionDisableAndResetGestureMode",
       "need-update-gesture-visual-state": true
     }, {
@@ -26,6 +29,13 @@
         "IsPackageChanged"
       ],
       "action-method-name": "ActionDisableNavSymFnKeyboard",
+      "need-update-gesture-visual-state": true
+    },
+    {
+      "meta-mode-method-names": [
+        "InputIsAnyInput"
+      ],
+      "action-method-name": "ActionResetGesturePointerMode",
       "need-update-gesture-visual-state": true
     }, {
       "meta-mode-method-names": [
@@ -151,7 +161,8 @@
     "KEYCODE_SYM",
     "KEYCODE_0",
     "KEYCODE_BACK",
-    "KEYCODE_HOME"
+    "KEYCODE_HOME",
+    "KEYCODE_SHIFT_LEFT"
   ],
   "key-group-processors": [
     {
@@ -321,8 +332,6 @@
             "IsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
-        }, {
-          "action-method-name": "SearchInputActivateOnLetterHack"
         }, {
           "action-method-name": "ActionTryChangeKeyboardLayoutAtBaseMetaShift",
           "method-needs-key-press-parameter": true,
@@ -525,7 +534,11 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
-          "action-method-name": "ActionChangeGestureModeState",
+          "action-method-name": "ActionTryChangeGestureModeStateAtInputMode",
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryChangeGesturePointerModeAtViewMode",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
         }
@@ -683,6 +696,17 @@
             "IsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
+        }, {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionChangeKeyboardLayout",
+          "need-update-visual-state": true
+        },
+        {
+          "action-method-name": "ActionChangeGestureModeState",
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
         },
         {
           "meta-mode-method-names": [
@@ -697,6 +721,13 @@
           "action-method-name": "ActionSendCharToInput",
           "stop-processing-at-success-result": false,
           "custom-char": "0"
+        }, {
+          "meta-mode-method-names": [
+            "InputIsAnyInput"
+          ],
+          "action-method-name": "ActionTryChangeGestureInputScrollMode",
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
         }
       ],
       "on-hold-on": [
@@ -750,7 +781,8 @@
           "action-method-name": "ActionTryChangeSymPadVisibilityAtInputMode",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsAltPressed"
           ],
@@ -786,6 +818,13 @@
           "action-method-name": "ActionSetNavModeHoldOnState",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
         }
       ],
       "on-hold-off": [
@@ -793,6 +832,13 @@
           "action-method-name": "ActionSetNavModeHoldOffState",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
         }
       ]
     },
