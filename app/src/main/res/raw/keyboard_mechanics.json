@@ -397,8 +397,8 @@
           ],
           "action-method-name": "SearchInputActivateOnLetterHack"
         }, {
-          "action-method-name": "ActionKeyDownUpDefaultFlags",
-          "custom-key-code": "KEYCODE_DEL"
+          "action-method-name": "ActionSetKeyTransparency",
+          "need-update-visual-state": true
         }, {
           "action-method-name": "ActionTryTurnOffGesturesMode"
         }, {
@@ -432,8 +432,7 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
-          "action-method-name": "ActionKeyDownUpNoMetaKeepTouch",
-          "custom-key-code": "KEYCODE_ENTER"
+          "action-method-name": "ActionSetKeyTransparency"
         }, {
           "action-method-name": "ActionTryTurnOffGesturesMode"
         }, {

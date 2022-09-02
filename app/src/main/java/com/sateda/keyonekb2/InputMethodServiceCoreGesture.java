@@ -318,7 +318,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     //region CURSOR MOVE
 
     private boolean MoveCursorDownSafe(InputConnection inputConnection) {
-        if(_gesturePointerMode) {
+        if(!IsInputMode() && _gesturePointerMode) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection, 0);
             return true;
         }
@@ -343,7 +343,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     private boolean MoveCursorUpSafe(InputConnection inputConnection) {
-        if(_gesturePointerMode) {
+        if(!IsInputMode() && _gesturePointerMode) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_UP, inputConnection, 0);
             return true;
         }
@@ -368,7 +368,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     protected boolean MoveCursorLeftSafe(InputConnection inputConnection) {
-        if(_gesturePointerMode) {
+        if(!IsInputMode() && _gesturePointerMode) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection, 0);
             return true;
         }
@@ -393,7 +393,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     protected boolean MoveCursorRightSafe(InputConnection inputConnection) {
-        if(_gesturePointerMode) {
+        if(!IsInputMode() && _gesturePointerMode) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection, 0);
             return true;
         }
