@@ -83,6 +83,8 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
     private String _lastPackageName = "";
 
+    //region FixedSizeSet
+
     public FixedSizeSet<String> PackageHistory = new FixedSizeSet<>(4);
 
 
@@ -123,7 +125,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         }
     }
 
-
+    //endregion
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})

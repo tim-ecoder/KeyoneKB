@@ -13,6 +13,7 @@ import android.telephony.TelephonyManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.widget.Toast;
@@ -462,6 +463,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("ActionResetGesturePointerMode", InitializeMethod3((Object o) -> ActionResetGesturePointerMode(), Object.class));
         Methods.put("ActionTryChangeGestureInputScrollMode", InitializeMethod3((Object o) -> ActionTryChangeGestureInputScrollMode(), Object.class));
         Methods.put("ActionDisableGestureInputScrollMode", InitializeMethod3((Object o) -> ActionDisableGestureInputScrollMode(), Object.class));
+        Methods.put("IsViewMode", InitializeMethod3((Object o) -> IsViewMode(), Object.class));
+        Methods.put("ActionPerformClickCurrentNode", InitializeMethod3((Object o) -> ActionPerformClickCurrentNode(), Object.class));
     }
 
     //endregion
@@ -1098,7 +1101,46 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //endregion
 
+    public void SetCurrentNodeInfo(AsNodeClicker info) {
+        CurrentNodeInfo = info;
+    }
+
     //region Actions OTHER
+
+    AsNodeClicker CurrentNodeInfo;
+
+    interface AsNodeClicker {
+        void Click();
+    }
+
+    public boolean ActionPerformClickCurrentNode() {
+        if(CurrentNodeInfo != null) {
+            //CurrentNodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            //CurrentNodeInfo.findFocus(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS).
+            //AccessibilityNodeInfo root = CurrentNodeInfo.getParent().getParent().getParent();
+            //boolean res = ClickRecurs(root, 0);
+            //Log.d(TAG2, "RES "+res);
+            CurrentNodeInfo.Click();
+        }
+        return true;
+    }
+
+
+
+    private boolean ClickRecurs(AccessibilityNodeInfo info, int level) {
+        if(level > 30)
+            return false;
+        for(int i = Math.min(info.getChildCount()-1, 30); i >=0 ; i--) {
+            AccessibilityNodeInfo info2 = info.getChild(i);
+
+            //boolean res = info2.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
+            Log.d(TAG2, "CLICK LEV: "+level+" "+info2.isClickable()+" FOC: "+info2.isFocused());
+            //if(level == 2 && info2.isClickable())
+            //    info2.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            ClickRecurs(info2, level + 1);
+        }
+        return false;
+    }
 
     public boolean ActionResetDigitsHack() {
         SetDigitsHack(false);
@@ -1388,6 +1430,10 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public boolean InputIsAnyInput() {
         return IsInputMode();
+    }
+
+    public boolean IsViewMode() {
+        return !IsInputMode();
     }
 
     public abstract boolean IsPackageChanged();

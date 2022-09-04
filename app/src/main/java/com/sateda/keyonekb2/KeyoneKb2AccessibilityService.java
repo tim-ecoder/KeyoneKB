@@ -2,7 +2,10 @@ package com.sateda.keyonekb2;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.accessibilityservice.GestureDescription;
 import android.content.Context;
+import android.graphics.Path;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
@@ -10,6 +13,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -274,6 +278,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 return;
             }
             if((event.getEventType() & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+
                 if(event.getContentChangeTypes() == (AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT | AccessibilityEvent.CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION)) {
                     //Этот хак нужен потому что Blackberry.Dialer жестко спамит эвентами (вроде как никому эти эвенты больше не нужны)
                     Log.d(TAG3, "IGNORING TYPE_WINDOW_CONTENT_CHANGED TYPES: " + event.getContentChangeTypes());
@@ -292,6 +297,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 //SetDigitsHack(false);
             }
 
+            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
+                //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
+                PreparePointerClickHack(event);
+            }
+
             CharSequence packageNameCs = event.getPackageName();
             if (packageNameCs == null || packageNameCs.length() == 0)
                 return;
@@ -302,18 +312,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 return;
             }
 
-            //AccessibilityNodeInfo root = getRootInActiveWindow();
-            //if (root == null)
-            //    return;
-
-            //TODO: Можно еще фильтровать по чтобы не было лишних срабатываний
-            //event.getWindowChanges()
-            //event.getContentChangeTypes()
-            //event.get
-
             for (SearchClickPlugin plugin : searchClickPlugins) {
-                if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin))
+                if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin)) {
                     return;
+                }
             }
 
             if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
@@ -323,6 +325,26 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
         } catch (Throwable ex) {
             Log.e(TAG3, "onAccessibilityEvent Exception: "+ex);
+        }
+    }
+
+    private void PreparePointerClickHack(AccessibilityEvent event) {
+        Rect rect = new Rect();
+        event.getSource().getBoundsInScreen(rect);
+        float x = rect.centerX();
+        float y = rect.centerY();
+        SetCurrentNodeInfo(() -> {
+            Path clickPath = new Path();
+            GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
+            clickPath.moveTo(x, y);
+            clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, 1));
+            dispatchGesture(clickBuilder.build(), null, null);
+        });
+    }
+
+    private void SetCurrentNodeInfo(InputMethodServiceCodeCustomizable.AsNodeClicker info) {
+        if(KeyoneIME.Instance != null) {
+            KeyoneIME.Instance.SetCurrentNodeInfo(info);
         }
     }
 

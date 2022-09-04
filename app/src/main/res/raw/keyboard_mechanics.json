@@ -332,7 +332,8 @@
             "IsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
-        }, {
+        },
+        {
           "action-method-name": "ActionTryChangeKeyboardLayoutAtBaseMetaShift",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
@@ -346,6 +347,13 @@
           "custom-char": " ",
           "need-update-visual-state": true
         }, {
+          "meta-mode-method-names": [
+            "IsViewMode"
+          ],
+          "action-method-name": "ActionPerformClickCurrentNode",
+          "stop-processing-at-success-result": true
+        },
+        {
           "meta-mode-method-names": [
             "MetaStateIsOnCall"
           ],
