@@ -264,10 +264,6 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
     @Override
     public void onFinishInput() {
 
-        if(KeyoneKb2AccessibilityService.Instance != null) {
-            KeyoneKb2AccessibilityService.Instance.TryRemoveRectangle();
-        }
-
         OnFinishInput.Process(null);
         if (needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
@@ -809,7 +805,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
             if(!pref_keyboard_gestures_at_views_enable) {
                 changed = setSmallIcon2(R.mipmap.ic_gesture_icon_off);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
-            } else if (_gesturePointerMode) {
+            } else if (GesturePointerMode) {
                 changed = setSmallIcon2(R.mipmap.ic_gesture_icon_pointer);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW_POINTER);
             } else {

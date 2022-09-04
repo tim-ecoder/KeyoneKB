@@ -74,13 +74,24 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         @JsonProperty(index=30)
         public ArrayList<MetaKeyPlusKey> RetranslateKeyboardMetaKeyPlusKeyList = new ArrayList<>();
+
+        @JsonProperty(index=40)
+        public boolean DigitsPadPluginEnabled;
+
+        @JsonProperty(index=50)
+        public boolean SelectedNodeClickHack;
+
+        @JsonProperty(index=60)
+        public boolean SelectedNodeHighlight;
     }
 
-    public void TryRemoveRectangle() {
-     if(selectionRectangle != null) {
-         wm.removeView(selectionRectangle);
-         selectionRectangle = null;
-     }
+    public boolean TryRemoveRectangle() {
+         if(selectionRectangle != null) {
+             wm.removeView(selectionRectangle);
+             selectionRectangle = null;
+             return true;
+         }
+         return false;
     }
 
     @Override
@@ -141,143 +152,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "onInterrupt()");
     }
 
-
-
-    //region SEARCH PLUGIN
-
-
-    private void LoadSearchPluginData() {
-        SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
-        if (data2 == null)
-            return;
-        if (data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
-            DefaultSearchWords = data2.DefaultSearchWords;
-        } else {
-            DefaultSearchWords = new ArrayList<>();
-            DefaultSearchWords.add("Search");
-            Log.e(TAG3, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
-        }
-        for (SearchClickPlugin.SearchClickPluginData.SearchPluginData data : data2.SearchPlugins) {
-            SearchClickPlugin shp = new SearchClickPlugin(data.PackageName);
-            SearchClickPackages.add(data.PackageName);
-            if (data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
-                shp.setId(data.SearchFieldId);
-            else if (data.DynamicSearchMethod != null) {
-                shp.DynamicSearchMethod = data.DynamicSearchMethod;
-            }
-            if (data.AdditionalEventTypeTypeWindowContentChanged)
-                shp.setEvents(STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
-            else
-                shp.setEvents(STD_EVENTS);
-            if (data.CustomClickAdapterClickParent)
-                shp.setConverter(AccessibilityNodeInfo::getParent);
-
-            shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
-
-            searchClickPlugins.add(shp);
-        }
-
-        for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
-            if(SearchClickPackages.contains(shp2.getPackageName()))
-                continue;
-            if(searchClickPlugins.stream().anyMatch((SearchClickPlugin shp3) -> shp3._packageName.equals(shp2._packageName)))
-                continue;
-            SearchClickPackages.add(shp2.getPackageName());
-            searchClickPlugins.add(shp2);
-        }
-
-
-        for (SearchClickPlugin plugin : searchClickPlugins) {
-            if (plugin.getId() == null || plugin.getId().isEmpty()) {
-                String value = GetFromSetting(plugin);
-                if (value != null && value.length() > 0) {
-                    plugin.setId(value);
-                }
-            }
-        }
-    }
-
-
-    private String GetFromSetting(SearchClickPlugin plugin) {
-        keyoneKb2Settings.CheckSettingOrSetDefault(plugin.getPreferenceKey(), "");
-        return keyoneKb2Settings.GetStringValue(plugin.getPreferenceKey());
-    }
-
-    private void SetToSetting(SearchClickPlugin plugin, String value) {
-        keyoneKb2Settings.SetStringValue(plugin.getPreferenceKey(), value);
-    }
-
-    public void ClearFromSettings(SearchClickPlugin plugin) {
-        keyoneKb2Settings.ClearFromSettings(plugin.getPreferenceKey());
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.P)
-    public static AccessibilityNodeInfo FindFirstByOtherRecursive(AccessibilityNodeInfo node, String text) {
-        if (node == null)
-            return null;
-        if(node.getViewIdResourceName() != null)
-            Log.d(TAG3, node.getViewIdResourceName());
-        if (node.getContentDescription() != null) {
-            if (node.getContentDescription().toString().contains(text))
-                return node;
-            //else Log.d(TAG, "TEXT: "+node.getText());
-        }
-        for (int i = 0; i < node.getChildCount(); i++) {
-            AccessibilityNodeInfo child = node.getChild(i);
-            AccessibilityNodeInfo result = FindFirstByOtherRecursive(child, text);
-            if (result != null)
-                return result;
-        }
-        return null;
-    }
-
-    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text, int recursLevel) {
-        if(recursLevel > 4)
-            return null;
-        if (node == null)
-            return null;
-        if(node.getViewIdResourceName() != null)
-            Log.d(TAG3, node.getViewIdResourceName());
-        if (node.getText() != null) {
-            if (node.getText().toString().startsWith(text))
-                return node;
-            //else Log.d(TAG, "TEXT: "+node.getText());
-        }
-        for (int i = 0; i < node.getChildCount() && i < 15; i++) {
-            AccessibilityNodeInfo child = node.getChild(i);
-            AccessibilityNodeInfo result = FindFirstByTextRecursive(child, text, recursLevel+1);
-            if (result != null)
-                return result;
-        }
-        return null;
-    }
-
-    private boolean ContainsAllDigitsButtons(AccessibilityNodeInfo node) {
-        for(int i = 0; i < 10; i++) {
-            AccessibilityNodeInfo info3 = FindFirstByTextRecursive(node, Integer.toString(i), 0);
-            if(info3 == null)
-                return false;
-
-            /*
-            List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText("7");
-            if (infoList.size() > 0) {
-                Log.d(TAG3, infoList.get(0).getViewIdResourceName());
-            }
-            info3 = FindFirstByOtherRecursive(root, "7");
-            if(info3 != null) {
-                Log.d(TAG3, info3.getViewIdResourceName());
-            }
-*/
-        }
-        return true;
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
         Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
-        if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
-            return;
+
         try {
             if(KeyoneIME.Instance == null)
                 return;
@@ -301,6 +180,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             AccessibilityNodeInfo root = getRootInActiveWindow();
             if (root == null)
                 return;
+
+            if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled)
             if(event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                     && ContainsAllDigitsButtons(root)) {
                 SetDigitsHack(true);
@@ -309,15 +190,21 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 //SetDigitsHack(false);
             }
 
-            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
-                    || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-                //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
-                PreparePointerClickHack(event);
-                ProcessSelectionRectangle(event);
-            }
+            if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight)
+            if(KeyoneIME.Instance != null && KeyoneIME.Instance.GesturePointerMode && !KeyoneIME.Instance.IsInputMode())
+                if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
+                        || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                    if(keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
+                        //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
+                        PreparePointerClickHack(event);
+                    }
+                    if(keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
+                        ProcessSelectionRectangle(event);
+                    }
+                }
 
-
-
+            if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
+                return;
 
             CharSequence packageNameCs = event.getPackageName();
             if (packageNameCs == null || packageNameCs.length() == 0)
@@ -345,6 +232,42 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
     }
 
+    //region DIGITS-PAD
+
+    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text, int recursLevel) {
+        if(recursLevel > 4)
+            return null;
+        if (node == null)
+            return null;
+        if(node.getViewIdResourceName() != null)
+            Log.d(TAG3, node.getViewIdResourceName());
+        if (node.getText() != null) {
+            if (node.getText().toString().startsWith(text))
+                return node;
+            //else Log.d(TAG, "TEXT: "+node.getText());
+        }
+        for (int i = 0; i < node.getChildCount() && i < 15; i++) {
+            AccessibilityNodeInfo child = node.getChild(i);
+            AccessibilityNodeInfo result = FindFirstByTextRecursive(child, text, recursLevel+1);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
+
+    private boolean ContainsAllDigitsButtons(AccessibilityNodeInfo node) {
+        for(int i = 0; i < 10; i++) {
+            AccessibilityNodeInfo info3 = FindFirstByTextRecursive(node, Integer.toString(i), 0);
+            if(info3 == null)
+                return false;
+        }
+        return true;
+    }
+
+    //endregion
+
+    //region GESTURE_POINTER
+
     private void PreparePointerClickHack(AccessibilityEvent event) {
         Rect rect = new Rect();
         event.getSource().getBoundsInScreen(rect);
@@ -358,7 +281,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, 1));
             else {
                 int longPressTime = ViewConfiguration.getLongPressTimeout();
-                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, longPressTime+50));
+                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, longPressTime+longPressTime/2));
             }
             dispatchGesture(clickBuilder.build(), null, null);
         });
@@ -438,6 +361,76 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if(KeyoneIME.Instance != null) {
             KeyoneIME.Instance.SetCurrentNodeInfo(info);
         }
+    }
+
+    //endregion
+
+    //region SEARCH PLUGIN
+
+
+    private void LoadSearchPluginData() {
+        SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
+        if (data2 == null)
+            return;
+        if (data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
+            DefaultSearchWords = data2.DefaultSearchWords;
+        } else {
+            DefaultSearchWords = new ArrayList<>();
+            DefaultSearchWords.add("Search");
+            Log.e(TAG3, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
+        }
+        for (SearchClickPlugin.SearchClickPluginData.SearchPluginData data : data2.SearchPlugins) {
+            SearchClickPlugin shp = new SearchClickPlugin(data.PackageName);
+            SearchClickPackages.add(data.PackageName);
+            if (data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
+                shp.setId(data.SearchFieldId);
+            else if (data.DynamicSearchMethod != null) {
+                shp.DynamicSearchMethod = data.DynamicSearchMethod;
+            }
+            if (data.AdditionalEventTypeTypeWindowContentChanged)
+                shp.setEvents(STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+            else
+                shp.setEvents(STD_EVENTS);
+            if (data.CustomClickAdapterClickParent)
+                shp.setConverter(AccessibilityNodeInfo::getParent);
+
+            shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
+
+            searchClickPlugins.add(shp);
+        }
+
+        for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
+            if(SearchClickPackages.contains(shp2.getPackageName()))
+                continue;
+            if(searchClickPlugins.stream().anyMatch((SearchClickPlugin shp3) -> shp3._packageName.equals(shp2._packageName)))
+                continue;
+            SearchClickPackages.add(shp2.getPackageName());
+            searchClickPlugins.add(shp2);
+        }
+
+
+        for (SearchClickPlugin plugin : searchClickPlugins) {
+            if (plugin.getId() == null || plugin.getId().isEmpty()) {
+                String value = GetFromSetting(plugin);
+                if (value != null && value.length() > 0) {
+                    plugin.setId(value);
+                }
+            }
+        }
+    }
+
+
+    private String GetFromSetting(SearchClickPlugin plugin) {
+        keyoneKb2Settings.CheckSettingOrSetDefault(plugin.getPreferenceKey(), "");
+        return keyoneKb2Settings.GetStringValue(plugin.getPreferenceKey());
+    }
+
+    private void SetToSetting(SearchClickPlugin plugin, String value) {
+        keyoneKb2Settings.SetStringValue(plugin.getPreferenceKey(), value);
+    }
+
+    public void ClearFromSettings(SearchClickPlugin plugin) {
+        keyoneKb2Settings.ClearFromSettings(plugin.getPreferenceKey());
     }
 
     private void LogEventD(AccessibilityEvent event) {
