@@ -230,6 +230,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
             PackageHistory.add(_lastPackageName);
             _lastPackageName = editorInfo.packageName;
             isPackageChangedInsideSingleEvent = true;
+
         }
 
         //Это нужно чтобы показать клаву (перейти в режим редактирования)
@@ -262,6 +263,10 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
     @Override
     public void onFinishInput() {
+
+        if(KeyoneKb2AccessibilityService.Instance != null) {
+            KeyoneKb2AccessibilityService.Instance.TryRemoveRectangle();
+        }
 
         OnFinishInput.Process(null);
         if (needUpdateVisualInsideSingleEvent)

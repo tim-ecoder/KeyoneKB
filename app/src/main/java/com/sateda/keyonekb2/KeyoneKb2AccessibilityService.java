@@ -4,16 +4,16 @@ import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.accessibilityservice.GestureDescription;
 import android.content.Context;
-import android.graphics.Path;
-import android.graphics.Rect;
+import android.graphics.*;
 import android.os.Build;
 import android.os.SystemClock;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.util.AttributeSet;
 import android.util.Log;
-import android.view.KeyEvent;
+import android.view.*;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.view.accessibility.AccessibilityWindowInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
@@ -74,6 +76,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         public ArrayList<MetaKeyPlusKey> RetranslateKeyboardMetaKeyPlusKeyList = new ArrayList<>();
     }
 
+    public void TryRemoveRectangle() {
+     if(selectionRectangle != null) {
+         wm.removeView(selectionRectangle);
+         selectionRectangle = null;
+     }
+    }
+
     @Override
     protected void onServiceConnected() {
         Log.v(TAG3, "onServiceConnected()");
@@ -98,12 +107,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         super.onDestroy();
     }
 
+    WindowManager wm;
+
     @Override
     public synchronized void onCreate() {
         Log.v(TAG3, "onCreate()");
         try {
             super.onCreate();
             Instance = this;
+            wm = (WindowManager) getSystemService(WINDOW_SERVICE);
 
             keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
             keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJson(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, getApplicationContext());
@@ -263,7 +275,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
-        //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
+        Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
         if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
             return;
         try {
@@ -297,10 +309,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 //SetDigitsHack(false);
             }
 
-            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
+            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
+                    || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
                 //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
                 PreparePointerClickHack(event);
+                ProcessSelectionRectangle(event);
             }
+
+
+
 
             CharSequence packageNameCs = event.getPackageName();
             if (packageNameCs == null || packageNameCs.length() == 0)
@@ -340,7 +357,77 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, 1));
             dispatchGesture(clickBuilder.build(), null, null);
         });
+
     }
+
+    private void ProcessSelectionRectangle(AccessibilityEvent event) {
+
+        TryRemoveRectangle();
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        lp.format = PixelFormat.TRANSLUCENT;
+
+        lp.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_FULLSCREEN
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                | WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
+                | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
+
+
+        lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.FILL;
+
+        selectionRectangle = new RectView(this, event.getSource());
+
+        selectionRectangle.setClickable(false);
+        selectionRectangle.setFocusable(false);
+        selectionRectangle.setFocusableInTouchMode(false);
+        selectionRectangle.setLongClickable(false);
+        selectionRectangle.setKeepScreenOn(false);
+
+        wm.addView(selectionRectangle, lp);
+        selectionRectangle.setVisibility(View.VISIBLE);
+    }
+
+    class RectView extends View {
+
+        AccessibilityNodeInfo _info;
+        public RectView(Context context) {
+            super(context);
+        }
+        public RectView(Context context, AccessibilityNodeInfo info) {
+            super(context);
+            _info = info;
+        }
+
+        public RectView(Context context, @Nullable AttributeSet attrs) {
+            super(context, attrs);
+        }
+
+        public RectView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+            super(context, attrs, defStyleAttr);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            Rect rect = new Rect();
+            _info.getBoundsInScreen(rect);
+            rect.left -= 2;
+            rect.right += 2;
+            rect.bottom += 2;
+            rect.top -= 2;
+
+            Paint paint = new Paint();
+            paint.setColor(Color.GREEN);
+            paint.setStrokeWidth(3);
+            paint.setStyle(Paint.Style.STROKE);
+            canvas.drawRect(rect, paint);
+        }
+    }
+
+    View selectionRectangle;
 
     private void SetCurrentNodeInfo(InputMethodServiceCodeCustomizable.AsNodeClicker info) {
         if(KeyoneIME.Instance != null) {

@@ -9,6 +9,7 @@
                        android:canRetrieveWindowContent="true"
                        android:canPerformGestures="true"
                        android:settingsActivity="com.sateda.keyonekb2.ActivityMain"
+
                        >
 <!--
 typeWindowContentChanged
@@ -16,8 +17,11 @@ typeWindowContentChanged
                        android:accessibilityFlags="flagDefault|flagReportViewIds|flagRequestFilterKeyEvents"
 
 android:accessibilityEventTypes="typeAllMask"
+
 android:canRequestTouchExplorationMode="true"
+
 |flagIncludeNotImportantViews|flagRequestTouchExplorationMode
+
 
 android:packageNames="com.example.android.apis"
 android:settingsActivity="com.example.android.accessibility.ServiceSettingsActivity"
