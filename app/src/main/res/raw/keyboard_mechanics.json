@@ -162,7 +162,8 @@
     "KEYCODE_0",
     "KEYCODE_BACK",
     "KEYCODE_HOME",
-    "KEYCODE_SHIFT_LEFT"
+    "KEYCODE_SHIFT_LEFT",
+    "KEYCODE_ALT_LEFT"
   ],
   "key-group-processors": [
     {
@@ -348,9 +349,24 @@
           "need-update-visual-state": true
         }, {
           "meta-mode-method-names": [
+            "MetaIsAltPressed",
+            "IsViewMode"
+          ],
+          "action-method-name" : "ActionPerformLongClickCurrentNode",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
             "IsViewMode"
           ],
           "action-method-name": "ActionPerformClickCurrentNode",
+          "stop-processing-at-success-result": true
+        }, {
+        "meta-mode-method-names": [
+          "MetaIsAltPressed"
+          ],
+          "action-method-name": "ActionSendCharToInput",
+          "custom-char": "\t",
+          "need-update-visual-state": true,
           "stop-processing-at-success-result": true
         },
         {

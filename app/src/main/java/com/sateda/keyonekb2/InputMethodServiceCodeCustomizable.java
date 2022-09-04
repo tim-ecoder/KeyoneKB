@@ -56,7 +56,6 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     protected ViewSatedaKeyboard keyboardView;
 
 
-
     protected Processable OnStartInput;
     protected Processable OnFinishInput;
     protected Processable BeforeSendChar;
@@ -75,79 +74,78 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public static class KeyboardMechanics {
 
-        @JsonProperty(index=100)
+        @JsonProperty(index = 100)
         public ArrayList<KeyGroupProcessor> KeyGroupProcessors = new ArrayList<>();
 
-        @JsonProperty(index=20)
+        @JsonProperty(index = 20)
         public ArrayList<Action> OnStartInputActions;
-        @JsonProperty(index=30)
+        @JsonProperty(index = 30)
         public ArrayList<Action> OnFinishInputActions;
-        @JsonProperty(index=40)
+        @JsonProperty(index = 40)
         public ArrayList<Action> BeforeSendCharActions;
-        @JsonProperty(index=50)
+        @JsonProperty(index = 50)
         public ArrayList<Action> AfterSendCharActions;
-        @JsonProperty(index=60)
+        @JsonProperty(index = 60)
         public ArrayList<String> ViewModeKeyTransparencyExcludeKeyCodes;
 
-        @JsonProperty(index=110)
+        @JsonProperty(index = 110)
         public GestureProcessor GestureProcessor = new GestureProcessor();
 
         public static class GestureProcessor {
-            @JsonProperty(index=10)
+            @JsonProperty(index = 10)
             public boolean KeyboardGesturesAtInputModeEnabled;
-            @JsonProperty(index=20)
+            @JsonProperty(index = 20)
             public boolean KeyHoldPlusGestureEnabled;
-            @JsonProperty(index=30)
+            @JsonProperty(index = 30)
             public ArrayList<Action> OnGestureDoubleClick;
-            @JsonProperty(index=40)
+            @JsonProperty(index = 40)
             public ArrayList<Action> OnGestureTripleClick;
-            @JsonProperty(index=50)
+            @JsonProperty(index = 50)
             public ArrayList<Action> OnGestureSecondClickUp;
         }
 
 
-
         public static class KeyGroupProcessor {
-            @JsonProperty(index=10)
+            @JsonProperty(index = 10)
             public ArrayList<String> KeyCodes = new ArrayList<>();
             public ArrayList<Integer> KeyCodeList = new ArrayList<>();
 
-            @JsonProperty(index=20)
-            public ArrayList<Action>  OnShortPress;
-            @JsonProperty(index=30)
-            public ArrayList<Action>  OnDoublePress;
-            @JsonProperty(index=40)
-            public ArrayList<Action>  OnLongPress;
-            @JsonProperty(index=50)
-            public ArrayList<Action>  OnHoldOn;
-            @JsonProperty(index=60)
-            public ArrayList<Action>  OnHoldOff;
-            @JsonProperty(index=70)
-            public ArrayList<Action>  OnTriplePress;
+            @JsonProperty(index = 20)
+            public ArrayList<Action> OnShortPress;
+            @JsonProperty(index = 30)
+            public ArrayList<Action> OnDoublePress;
+            @JsonProperty(index = 40)
+            public ArrayList<Action> OnLongPress;
+            @JsonProperty(index = 50)
+            public ArrayList<Action> OnHoldOn;
+            @JsonProperty(index = 60)
+            public ArrayList<Action> OnHoldOff;
+            @JsonProperty(index = 70)
+            public ArrayList<Action> OnTriplePress;
         }
 
         public static class Action {
 
-            @JsonProperty(index=10)
+            @JsonProperty(index = 10)
             public ArrayList<String> MetaModeMethodNames;
             public ArrayList<IActionMethod> MetaModeMethods;
 
-            @JsonProperty(index=20)
+            @JsonProperty(index = 20)
             public String ActionMethodName;
             public IActionMethod ActionMethod;
 
-            @JsonProperty(index=30)
+            @JsonProperty(index = 30)
             public boolean MethodNeedsKeyPressParameter;
-            @JsonProperty(index=40)
+            @JsonProperty(index = 40)
             public boolean NeedUpdateVisualState;
-            @JsonProperty(index=45)
+            @JsonProperty(index = 45)
             public boolean NeedUpdateGestureVisualState;
-            @JsonProperty(index=50)
+            @JsonProperty(index = 50)
             public boolean StopProcessingAtSuccessResult;
-            @JsonProperty(index=60)
+            @JsonProperty(index = 60)
             public String CustomKeyCode;
             public int CustomKeyCodeInt;
-            @JsonProperty(index=70)
+            @JsonProperty(index = 70)
             public char CustomChar;
 
         }
@@ -160,20 +158,21 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
         try {
 
-            KeyboardMechanics = FileJsonUtils.DeserializeFromJson(keyboard_mechanics_res, new TypeReference<KeyboardMechanics>() {}, context);
+            KeyboardMechanics = FileJsonUtils.DeserializeFromJson(keyboard_mechanics_res, new TypeReference<KeyboardMechanics>() {
+            }, context);
 
-            if(KeyboardMechanics == null) {
+            if (KeyboardMechanics == null) {
                 Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS JSON FILE");
                 return;
             }
 
             LoadMethods();
 
-            if(KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes != null) {
+            if (KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes != null) {
                 ViewModeExcludeKeyCodes = new int[KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes.size()];
                 int i = 0;
                 for (String keyCode1 : KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes) {
-                    ViewModeExcludeKeyCodes[i] =  FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCode1);
+                    ViewModeExcludeKeyCodes[i] = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCode1);
                     i++;
                 }
             }
@@ -207,26 +206,26 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                 keyAction.OnTriplePress = ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress);
             }
 
-            if(KeyboardMechanics.GestureProcessor != null) {
+            if (KeyboardMechanics.GestureProcessor != null) {
                 super.KeyboardGesturesAtInputModeEnabled = KeyboardMechanics.GestureProcessor.KeyboardGesturesAtInputModeEnabled;
 
-                if( !KeyboardMechanics.GestureProcessor.KeyboardGesturesAtInputModeEnabled)
+                if (!KeyboardMechanics.GestureProcessor.KeyboardGesturesAtInputModeEnabled)
                     return;
                 super.KeyHoldPlusGestureEnabled = KeyboardMechanics.GestureProcessor.KeyHoldPlusGestureEnabled;
 
-                if(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick != null) {
+                if (KeyboardMechanics.GestureProcessor.OnGestureDoubleClick != null) {
                     super.OnGestureDoubleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick);
                 }
-                if(KeyboardMechanics.GestureProcessor.OnGestureTripleClick != null) {
+                if (KeyboardMechanics.GestureProcessor.OnGestureTripleClick != null) {
                     super.OnGestureTripleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureTripleClick);
                 }
-                if(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp != null) {
+                if (KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp != null) {
                     super.OnGestureSecondClickUp = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp);
                 }
             }
 
-        } catch(Throwable ex) {
-            Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS: "+ex);
+        } catch (Throwable ex) {
+            Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS: " + ex);
         }
 
 
@@ -238,41 +237,41 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     private InputMethodServiceCoreKeyPress.Processable ProcessMethodMappingAndCreateProcessable(ArrayList<KeyboardMechanics.Action> list) throws NoSuchFieldException, IllegalAccessException {
-        if(list == null || list.isEmpty()) {
+        if (list == null || list.isEmpty()) {
             return null;
         }
 
         for (KeyboardMechanics.Action action : list) {
             ActionMethod method;
-            if(action.CustomKeyCode != null && !action.CustomKeyCode.isEmpty()) {
+            if (action.CustomKeyCode != null && !action.CustomKeyCode.isEmpty()) {
                 action.CustomKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(action.CustomKeyCode);
                 method = FindActionMethodByName(action.ActionMethodName);
-                if(!method.getType().equals(Integer.class)) {
-                    Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH "+action.ActionMethodName+" NEED: "+method.getType());
+                if (!method.getType().equals(Integer.class)) {
+                    Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
                 }
-            } else if(action.CustomChar > 0) {
+            } else if (action.CustomChar > 0) {
                 method = FindActionMethodByName(action.ActionMethodName);
-                if(!method.getType().equals(Character.class)) {
-                    Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH "+action.ActionMethodName+" NEED: "+method.getType());
+                if (!method.getType().equals(Character.class)) {
+                    Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
                 }
-            } else if(action.MethodNeedsKeyPressParameter) {
+            } else if (action.MethodNeedsKeyPressParameter) {
                 method = FindActionMethodByName(action.ActionMethodName);
-                if(!method.getType().equals(KeyPressData.class)) {
-                    Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH "+action.ActionMethodName+" NEED: "+method.getType());
+                if (!method.getType().equals(KeyPressData.class)) {
+                    Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
                 }
             } else {
                 method = FindActionMethodByName(action.ActionMethodName);
             }
             action.ActionMethod = method;
 
-            if(action.MetaModeMethodNames != null && !action.MetaModeMethodNames.isEmpty()) {
+            if (action.MetaModeMethodNames != null && !action.MetaModeMethodNames.isEmpty()) {
                 action.MetaModeMethods = new ArrayList<>();
                 for (String metaMethodName : action.MetaModeMethodNames) {
 
                     ActionMethod metaMethod = FindActionMethodByName(metaMethodName);
                     action.MetaModeMethods.add(metaMethod);
-                    if(!metaMethod.getType().equals(Object.class)) {
-                        Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH "+metaMethodName+" NEED: "+method.getType());
+                    if (!metaMethod.getType().equals(Object.class)) {
+                        Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + metaMethodName + " NEED: " + method.getType());
                     }
                 }
             }
@@ -285,8 +284,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     ActionMethod FindActionMethodByName(String methodName) {
-        if(!Methods.containsKey(methodName)) {
-            Log.e(TAG2, "CAN NOT FIND ACTION METHOD "+methodName);
+        if (!Methods.containsKey(methodName)) {
+            Log.e(TAG2, "CAN NOT FIND ACTION METHOD " + methodName);
             return null;
         }
         return Methods.get(methodName);
@@ -303,17 +302,21 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     class ActionMethod<T> implements IActionMethod<T> {
 
         Class _class;
+
         public Class getType() {
             return _class;
         }
 
-        private ActionMethod() {}
+        private ActionMethod() {
+        }
 
         public ActionMethod(IActionMethod<T> IActionMethod, Class class1) {
             _class = class1;
             _method = IActionMethod;
         }
+
         IActionMethod<T> _method;
+
         @Override
         public boolean invoke(T t) {
             return _method.invoke(t);
@@ -332,41 +335,40 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         String methodsHashFulfill = "";
         Method[] methods = InputMethodServiceCodeCustomizable.class.getDeclaredMethods();
         for (Method method : methods) {
-            if(Modifier.isStatic(method.getModifiers()))
+            if (Modifier.isStatic(method.getModifiers()))
                 continue;
-            if(!Modifier.isPublic(method.getModifiers()))
+            if (!Modifier.isPublic(method.getModifiers()))
                 continue;
-            if(!method.getReturnType().equals(boolean.class))
+            if (!method.getReturnType().equals(boolean.class))
                 continue;
 
-            if(method.getParameterTypes().length == 0) {
+            if (method.getParameterTypes().length == 0) {
                 //Methods.put("ActionTryAcceptCall", (Object o) -> ActionTryAcceptCall());
-                methodsHashFulfill +=  "Methods.put(\""+method.getName()+"\", InitializeMethod3((Object o) -> "+method.getName()+"(), Object.class));\n";
+                methodsHashFulfill += "Methods.put(\"" + method.getName() + "\", InitializeMethod3((Object o) -> " + method.getName() + "(), Object.class));\n";
             }
 
-            if(method.getParameterTypes().length != 1)
+            if (method.getParameterTypes().length != 1)
                 continue;
 
-            if(method.getParameterTypes()[0].equals(KeyPressData.class)) {
+            if (method.getParameterTypes()[0].equals(KeyPressData.class)) {
                 //Methods.put("ActionSendCtrlPlusKey", (Method3<KeyPressData>)this::ActionSendCtrlPlusKey);
-                methodsHashFulfill +=  "Methods.put(\""+method.getName()+"\", InitializeMethod3(this::"+method.getName()+", KeyPressData.class));\n";
-            } else if(method.getParameterTypes()[0].equals(int.class)) {
+                methodsHashFulfill += "Methods.put(\"" + method.getName() + "\", InitializeMethod3(this::" + method.getName() + ", KeyPressData.class));\n";
+            } else if (method.getParameterTypes()[0].equals(int.class)) {
                 //Methods.put("ActionKeyDown", (Method3<Integer>)this::ActionKeyDown);
-                methodsHashFulfill +=  "Methods.put(\""+method.getName()+"\", InitializeMethod3(this::"+method.getName()+", Integer.class));\n";
-            } else if(method.getParameterTypes()[0].equals(char.class)) {
+                methodsHashFulfill += "Methods.put(\"" + method.getName() + "\", InitializeMethod3(this::" + method.getName() + ", Integer.class));\n";
+            } else if (method.getParameterTypes()[0].equals(char.class)) {
                 //Methods.put("ActionKeyDown", (Method3<Character>)this::ActionSendCharToInput);
-                methodsHashFulfill +=  "Methods.put(\""+method.getName()+"\", InitializeMethod3(this::"+method.getName()+", Character.class));\n";
+                methodsHashFulfill += "Methods.put(\"" + method.getName() + "\", InitializeMethod3(this::" + method.getName() + ", Character.class));\n";
             }
         }
         Log.d(TAG2, methodsHashFulfill);
     }
 
 
-
-    private <T > ActionMethod<T> InitializeMethod3(IActionMethod<T> IActionMethod, Class class1) {
+    private <T> ActionMethod<T> InitializeMethod3(IActionMethod<T> IActionMethod, Class class1) {
         return new ActionMethod<T>(IActionMethod, class1);
     }
-    
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void FulfillMethodsHashMapGenerated2() {
 
@@ -465,6 +467,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("ActionDisableGestureInputScrollMode", InitializeMethod3((Object o) -> ActionDisableGestureInputScrollMode(), Object.class));
         Methods.put("IsViewMode", InitializeMethod3((Object o) -> IsViewMode(), Object.class));
         Methods.put("ActionPerformClickCurrentNode", InitializeMethod3((Object o) -> ActionPerformClickCurrentNode(), Object.class));
+        Methods.put("ActionPerformLongClickCurrentNode", InitializeMethod3((Object o) -> ActionPerformLongClickCurrentNode(), Object.class));
     }
 
     //endregion
@@ -474,7 +477,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     class Processable2 implements InputMethodServiceCoreKeyPress.Processable {
         @Override
         public boolean Process(KeyPressData keyPressData) {
-            if(Actions == null || Actions.isEmpty())
+            if (Actions == null || Actions.isEmpty())
                 return true;
             try {
                 for (KeyboardMechanics.Action action : Actions) {
@@ -489,7 +492,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                             boolean result = InvokeMethod(keyPressData, action);
                             if (result && action.NeedUpdateVisualState)
                                 Keyboard.ActionSetNeedUpdateVisualState();
-                            if(action.NeedUpdateGestureVisualState)
+                            if (action.NeedUpdateGestureVisualState)
                                 Keyboard.ActionSetNeedUpdateGestureNotification();
                             if (action.StopProcessingAtSuccessResult && result) {
                                 return true;
@@ -503,7 +506,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
                         boolean result = InvokeMethod(keyPressData, action);
                         if (result && action.NeedUpdateVisualState)
                             Keyboard.ActionSetNeedUpdateVisualState();
-                        if(action.NeedUpdateGestureVisualState)
+                        if (action.NeedUpdateGestureVisualState)
                             Keyboard.ActionSetNeedUpdateGestureNotification();
                         if (action.StopProcessingAtSuccessResult && result) {
                             return true;
@@ -512,22 +515,22 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
                 }
             } catch (Throwable ex) {
-                Log.e(TAG2, "Can not Process Actions "+ex);
+                Log.e(TAG2, "Can not Process Actions " + ex);
             }
             return true;
         }
 
         private boolean InvokeMethod(KeyPressData keyPressData, KeyboardMechanics.Action action) {
             boolean result;
-            if(action.ActionMethod == null) {
-                Log.e(TAG2, "action.ActionMethod == null; MethodName: "+action.ActionMethodName+" KeyCode: "+keyPressData.KeyCode);
+            if (action.ActionMethod == null) {
+                Log.e(TAG2, "action.ActionMethod == null; MethodName: " + action.ActionMethodName + " KeyCode: " + keyPressData.KeyCode);
                 return false;
             }
-            if(action.CustomKeyCodeInt > 0) {
+            if (action.CustomKeyCodeInt > 0) {
                 result = action.ActionMethod.invoke(action.CustomKeyCodeInt);
-            } else if(action.CustomChar > 0) {
+            } else if (action.CustomChar > 0) {
                 result = action.ActionMethod.invoke(action.CustomChar);
-            } else if(action.MethodNeedsKeyPressParameter) {
+            } else if (action.MethodNeedsKeyPressParameter) {
                 result = action.ActionMethod.invoke(keyPressData);
             } else {
                 result = action.ActionMethod.invoke(Keyboard);
@@ -565,7 +568,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     private boolean IsCalling() {
-        if(callStateCallback == null) {
+        if (callStateCallback == null) {
             ShowDebugToast("callStateCallback == null");
             Log.e(TAG2, "callStateCallback == null");
             return false;
@@ -576,11 +579,11 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean AcceptCallOnCalling() {
         Log.d(TAG2, "handleShiftOnCalling hello");
-        if(telecomManager == null) {
+        if (telecomManager == null) {
             Log.e(TAG2, "telecomManager == null");
             ShowDebugToast("telecomManager == null");
         }
-        if(!IsCalling())
+        if (!IsCalling())
             return false;
         // Accept calls using SHIFT key
         if (this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
@@ -595,21 +598,21 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     private boolean DeclinePhone() {
-        if(telecomManager == null) {
+        if (telecomManager == null) {
             Log.e(TAG2, "telecomManager == null");
             ShowDebugToast("telecomManager == null");
             return false;
         }
-        if(telephonyManager == null) {
+        if (telephonyManager == null) {
             Log.e(TAG2, "telephonyManager == null");
             ShowDebugToast("telephonyManager == null");
             return false;
         }
-        if(!IsCalling())
+        if (!IsCalling())
             return false;
 
         if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
-        || (this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) ) {
+                || (this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED)) {
 
             Log.e(TAG2, "DeclinePhone no permission");
             ShowDebugToast("DeclinePhone no permission");
@@ -637,7 +640,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.d("LOG", "Can't disconnect call");
-                ShowDebugToast("Can't disconnect call "+e);
+                ShowDebugToast("Can't disconnect call " + e);
                 return false;
             }
         }
@@ -651,7 +654,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     //region Actions NAV-MODE
 
     public boolean ActionTryDisableNavModeAndKeyboard() {
-        if(keyboardStateFixed_NavModeAndKeyboard) {
+        if (keyboardStateFixed_NavModeAndKeyboard) {
             keyboardStateFixed_NavModeAndKeyboard = false;
             keyboardStateFixed_SymbolOnScreenKeyboard = false;
             metaFixedModeFirstSymbolAlt = false;
@@ -693,21 +696,21 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public boolean ActionTryAcceptCall() {
-        if(pref_manage_call && IsCalling() && !IsInputMode()) {
+        if (pref_manage_call && IsCalling() && !IsInputMode()) {
             if (AcceptCallOnCalling()) return true;
         }
         return false;
     }
 
     public boolean ActionTryDeclineCall() {
-        if(pref_manage_call && IsCalling() && !IsInputMode()) {
+        if (pref_manage_call && IsCalling() && !IsInputMode()) {
             return DeclinePhone();
         }
         return false;
     }
 
     public boolean MetaStateIsOnCall() {
-        if(pref_manage_call && IsCalling() && !IsInputMode()) {
+        if (pref_manage_call && IsCalling() && !IsInputMode()) {
             return true;
         }
         return false;
@@ -768,7 +771,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean ActionChangeGestureModeState() {
-        if(IsInputMode()) {
+        if (IsInputMode()) {
             mode_keyboard_gestures = !mode_keyboard_gestures;
         } else {
             pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
@@ -779,7 +782,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean ActionTryChangeGestureModeStateAtInputMode() {
-        if(IsInputMode()) {
+        if (IsInputMode()) {
             mode_keyboard_gestures = !mode_keyboard_gestures;
             return true;
         }
@@ -788,7 +791,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean ActionEnableGestureAtInputModeAndUpDownMode() {
-        if(IsInputMode()) {
+        if (IsInputMode()) {
             mode_keyboard_gestures = true;
             mode_keyboard_gestures_plus_up_down = true;
             //UpdateGestureModeVisualization();
@@ -799,7 +802,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean ActionDisableAndResetGesturesAtInputMode() {
-        if(mode_keyboard_gestures && IsInputMode()) {
+        if (mode_keyboard_gestures && IsInputMode()) {
             mode_keyboard_gestures = false;
             mode_keyboard_gestures_plus_up_down = false;
             //UpdateGestureModeVisualization(true);
@@ -847,7 +850,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean ActionTryDisableFixedAltModeState() {
-        if(metaFixedModeAllSymbolsAlt) {
+        if (metaFixedModeAllSymbolsAlt) {
             metaFixedModeAllSymbolsAlt = false;
             metaFixedModeFirstSymbolAlt = false;
             //TODO: NEW! Разобраться с обращениями к этому ресурсоемкому методу!
@@ -885,7 +888,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean ActionTryDisableCapslockShiftMode() {
-        if(metaFixedModeCapslock) {
+        if (metaFixedModeCapslock) {
             metaFixedModeCapslock = false;
             DetermineForceFirstUpper(getCurrentInputEditorInfo());
             return true;
@@ -913,8 +916,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean ActionTryChangeSymPadVisibilityAtInputMode() {
-        if(IsInputMode()) {
-            if(!keyboardStateFixed_SymbolOnScreenKeyboard){
+        if (IsInputMode()) {
+            if (!keyboardStateFixed_SymbolOnScreenKeyboard) {
                 keyboardStateFixed_SymbolOnScreenKeyboard = true;
                 metaFixedModeAllSymbolsAlt = true;
                 symPadAltShift = true;
@@ -935,7 +938,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
 
     public boolean ActionTryChangeSymPadLayout() {
-        if(keyboardStateFixed_SymbolOnScreenKeyboard) {
+        if (keyboardStateFixed_SymbolOnScreenKeyboard) {
             symPadAltShift = !symPadAltShift;
             return true;
         }
@@ -983,7 +986,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public boolean ActionTryResetSearchPlugin() {
         EditorInfo editorInfo = getCurrentInputEditorInfo();
-        if(     SearchPluginLauncher != null
+        if (SearchPluginLauncher != null
                 && !editorInfo.packageName.equals(SearchPluginLauncher.PackageName)) {
             SetSearchHack(null);
             return true;
@@ -992,12 +995,12 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
     public boolean SearchInputActivateOnLetterHack() {
-        if(IsInputMode() && isInputViewShown() && SearchPluginLauncher != null) {
+        if (IsInputMode() && isInputViewShown() && SearchPluginLauncher != null) {
             Log.d(TAG2, "NO_FIRE SearchPluginAction INPUT_MODE");
             SetSearchHack(null);
             return true;
         }
-        if(SearchPluginLauncher != null) {
+        if (SearchPluginLauncher != null) {
             Log.d(TAG2, "FIRE SearchPluginAction!");
             SearchPluginLauncher.FirePluginAction();
             SetSearchHack(null);
@@ -1035,7 +1038,6 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     //endregion
 
 
-
     //region Actions Misc. InputMode
 
     public boolean ActionSendCharToInput(char char1) {
@@ -1050,7 +1052,6 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     }
 
 
-
     public boolean ActionDeletePreviousSymbol(KeyPressData keyPressData) {
         DeleteLastSymbol();
         //ActionSetNeedUpdateVisualState();
@@ -1061,11 +1062,11 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         InputConnection inputConnection = getCurrentInputConnection();
         CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
         int dist = findPrevEnterDistance(c);
-        if(dist == 0 && c.length() > 0) {
+        if (dist == 0 && c.length() > 0) {
             //Это первый абзац в тексте
             dist = c.length();
         }
-        if(dist > 0) {
+        if (dist > 0) {
             inputConnection.deleteSurroundingText(dist, 0);
         }
         return true;
@@ -1089,9 +1090,9 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public boolean ActionTryDoubleSpaceDotSpaceConversion() {
         InputConnection inputConnection = getCurrentInputConnection();
-        CharSequence back_letter = inputConnection.getTextBeforeCursor(2,0);
-        Log.d(TAG2, "KEYCODE_SPACE back_letter "+back_letter);
-        if(back_letter.length() == 2 && Character.isLetterOrDigit(back_letter.charAt(0)) && back_letter.charAt(1) == ' ') {
+        CharSequence back_letter = inputConnection.getTextBeforeCursor(2, 0);
+        Log.d(TAG2, "KEYCODE_SPACE back_letter " + back_letter);
+        if (back_letter.length() == 2 && Character.isLetterOrDigit(back_letter.charAt(0)) && back_letter.charAt(1) == ' ') {
             inputConnection.deleteSurroundingText(1, 0);
             inputConnection.commitText(". ", 2);
             return true;
@@ -1110,21 +1111,24 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     AsNodeClicker CurrentNodeInfo;
 
     interface AsNodeClicker {
-        void Click();
+        void Click(boolean isLongClick);
     }
 
     public boolean ActionPerformClickCurrentNode() {
-        if(CurrentNodeInfo != null) {
-            //CurrentNodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            //CurrentNodeInfo.findFocus(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS).
-            //AccessibilityNodeInfo root = CurrentNodeInfo.getParent().getParent().getParent();
-            //boolean res = ClickRecurs(root, 0);
-            //Log.d(TAG2, "RES "+res);
-            CurrentNodeInfo.Click();
+        if (CurrentNodeInfo != null) {
+            CurrentNodeInfo.Click(false);
         }
         return true;
     }
 
+    public boolean ActionPerformLongClickCurrentNode() {
+
+        if(CurrentNodeInfo !=null) {
+            CurrentNodeInfo.Click(true);
+        }
+
+            return true;
+    }
 
 
     private boolean ClickRecurs(AccessibilityNodeInfo info, int level) {

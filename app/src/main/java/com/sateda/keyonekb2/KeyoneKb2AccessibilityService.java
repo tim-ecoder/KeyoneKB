@@ -350,11 +350,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         event.getSource().getBoundsInScreen(rect);
         float x = rect.centerX();
         float y = rect.centerY();
-        SetCurrentNodeInfo(() -> {
+        SetCurrentNodeInfo((boolean isLongClick) -> {
             Path clickPath = new Path();
             GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
             clickPath.moveTo(x, y);
-            clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, 1));
+            if(!isLongClick)
+                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, 1));
+            else {
+                int longPressTime = ViewConfiguration.getLongPressTimeout();
+                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, longPressTime+50));
+            }
             dispatchGesture(clickBuilder.build(), null, null);
         });
 
@@ -415,9 +420,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             Rect rect = new Rect();
             _info.getBoundsInScreen(rect);
             rect.left -= 2;
-            rect.right += 2;
-            rect.bottom += 2;
-            rect.top -= 2;
+            //rect.right += 2;
+            //rect.bottom += 2;
+            //rect.top -= 2;
 
             Paint paint = new Paint();
             paint.setColor(Color.GREEN);
