@@ -30,14 +30,14 @@
       ],
       "action-method-name": "ActionDisableNavSymFnKeyboard",
       "need-update-gesture-visual-state": true
-    },
-    {
+    }, {
       "meta-mode-method-names": [
-        "InputIsAnyInput"
+        "IsPackageChanged"
       ],
       "action-method-name": "ActionResetGesturePointerMode",
       "need-update-gesture-visual-state": true
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsAnyInput"
       ],
@@ -559,10 +559,14 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
-          "action-method-name": "ActionTryChangeGestureModeStateAtInputMode",
+          "meta-mode-method-names": [
+            "InputIsAnyInput"
+          ],
+          "action-method-name": "ActionTryChangeGestureInputScrollMode",
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryChangeGesturePointerModeAtViewMode",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
@@ -596,10 +600,11 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
-          "action-method-name": "ActionEnableGestureAtInputModeAndUpDownMode",
-          "need-update-visual-state": true,
+          "action-method-name": "ActionChangeGestureModeEnableState",
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryRemoveSelectedNodeRectangle"
         }
       ]
     },
@@ -731,11 +736,10 @@
           "need-update-visual-state": true
         },
         {
-          "action-method-name": "ActionChangeGestureModeState",
+          "action-method-name": "ActionTryChangeGestureModeStateAtInputMode",
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
-        },
-        {
+        }, {
           "meta-mode-method-names": [
             "InputIsDigitsPad"
           ],
@@ -748,13 +752,6 @@
           "action-method-name": "ActionSendCharToInput",
           "stop-processing-at-success-result": false,
           "custom-char": "0"
-        }, {
-          "meta-mode-method-names": [
-            "InputIsAnyInput"
-          ],
-          "action-method-name": "ActionTryChangeGestureInputScrollMode",
-          "need-update-gesture-visual-state": true,
-          "stop-processing-at-success-result": true
         }
       ],
       "on-hold-on": [
@@ -784,6 +781,20 @@
             "MetaIsAltMode"
           ],
           "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-triple-press": [
+        {
+          "meta-mode-method-names": [
+            "IsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
         }
       ]

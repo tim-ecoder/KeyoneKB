@@ -2,7 +2,7 @@
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
                        android:description="@string/keyonekb_accessibility_service_description"
                        android:accessibilityEventTypes="typeViewFocused|typeWindowStateChanged|typeWindowContentChanged"
-                       android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents|flagReportViewIds|flagIncludeNotImportantViews"
+                       android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents"
                        android:accessibilityFeedbackType="feedbackSpoken"
                        android:notificationTimeout="100"
                        android:canRequestFilterKeyEvents="true"

@@ -374,7 +374,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("ActionChangeFirstLetterShiftMode", InitializeMethod3((Object o) -> ActionChangeFirstLetterShiftMode(), Object.class));
         Methods.put("ActionChangeFirstSymbolAltMode", InitializeMethod3((Object o) -> ActionChangeFirstSymbolAltMode(), Object.class));
         Methods.put("ActionChangeFixedAltModeState", InitializeMethod3((Object o) -> ActionChangeFixedAltModeState(), Object.class));
-        Methods.put("ActionChangeGestureModeState", InitializeMethod3((Object o) -> ActionChangeGestureModeState(), Object.class));
+        Methods.put("ActionChangeGestureModeEnableState", InitializeMethod3((Object o) -> ActionChangeGestureModeEnableState(), Object.class));
         Methods.put("ActionChangeKeyboardLayout", InitializeMethod3((Object o) -> ActionChangeKeyboardLayout(), Object.class));
         Methods.put("ActionChangeShiftCapslockState", InitializeMethod3((Object o) -> ActionChangeShiftCapslockState(), Object.class));
         Methods.put("ActionChangeSwipePanelVisibility", InitializeMethod3((Object o) -> ActionChangeSwipePanelVisibility(), Object.class));
@@ -770,14 +770,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return true;
     }
 
-    public boolean ActionChangeGestureModeState() {
-        if (IsInputMode()) {
-            mode_keyboard_gestures = !mode_keyboard_gestures;
-        } else {
-            pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
-        }
-        //UpdateGestureModeVisualization();
-        //TODO: ???
+    public boolean ActionChangeGestureModeEnableState() {
+        pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
         return true;
     }
 

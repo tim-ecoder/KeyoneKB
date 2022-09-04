@@ -191,7 +191,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
 
             if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight)
-            if(KeyoneIME.Instance != null && KeyoneIME.Instance.GesturePointerMode && !KeyoneIME.Instance.IsInputMode())
+            if(KeyoneIME.Instance != null
+                    && KeyoneIME.Instance.GesturePointerMode
+                    && !KeyoneIME.Instance.IsInputMode()
+                    && event.getSource() != null)
                 if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
                         || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
                     if(keyoneKb2AccServiceOptions.SelectedNodeClickHack) {

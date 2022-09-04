@@ -43,6 +43,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     protected boolean KeyHoldPlusGestureEnabled;
 
+    protected KeyoneKb2Settings keyoneKb2Settings;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onCreate() {
@@ -421,8 +423,25 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     //region ACTIONS
 
-    protected boolean GESTURE_POINTER_DEFAULT_MODE = true;
-    public boolean GesturePointerMode = GESTURE_POINTER_DEFAULT_MODE;
+    protected String _lastPackageName = "";
+
+    String GESTURE_POINTER_MODE_PREFIX = "GESTURE_POINTER_MODE_";
+
+    boolean GESTURE_POINTER_MODE_DEFAULT = true;
+
+    boolean GetGestureDefaultPointerMode() {
+        if(_lastPackageName == null || _lastPackageName.equals(""))
+            return GESTURE_POINTER_MODE_DEFAULT;
+        String prefName = GESTURE_POINTER_MODE_PREFIX+_lastPackageName;
+        keyoneKb2Settings.CheckSettingOrSetDefault(prefName, GESTURE_POINTER_MODE_DEFAULT);
+        return keyoneKb2Settings.GetBooleanValue(prefName);
+    }
+
+    protected void SetGestureDefaultPointerMode(String packageName, boolean value) {
+        keyoneKb2Settings.SetBooleanValue(GESTURE_POINTER_MODE_PREFIX+packageName, value);
+    }
+
+    public boolean GesturePointerMode = GESTURE_POINTER_MODE_DEFAULT;
     protected boolean _gestureInputScrollViewMode = false;
     public boolean ActionTryChangeGestureInputScrollMode() {
         if(!IsInputMode())
@@ -447,7 +466,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     public boolean ActionResetGesturePointerMode() {
-        GesturePointerMode = GESTURE_POINTER_DEFAULT_MODE;
+        GesturePointerMode = GetGestureDefaultPointerMode();
         Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ GesturePointerMode);
         return true;
     }

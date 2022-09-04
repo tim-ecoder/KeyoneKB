@@ -81,7 +81,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
     KeyboardLayout.KeyboardLayoutOptions.IconRes digitsPadIconRes;
 
 
-    private String _lastPackageName = "";
+
 
     //region FixedSizeSet
 
@@ -227,6 +227,10 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         isPackageChangedInsideSingleEvent = false;
         // Обрабатываем переход между приложениями
         if (!editorInfo.packageName.equals(_lastPackageName)) {
+
+            //TODO: Перенести в keyboard_mechanics с использованием PackageHistory
+            SetGestureDefaultPointerMode(_lastPackageName, GesturePointerMode);
+
             PackageHistory.add(_lastPackageName);
             _lastPackageName = editorInfo.packageName;
             isPackageChangedInsideSingleEvent = true;
@@ -1098,7 +1102,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
 
     public static ArrayList<KeyboardLayout.KeyboardLayoutOptions> allLayouts;
-    KeyoneKb2Settings keyoneKb2Settings;
+
     private void LoadSettingsAndKeyboards(){
 
         pref_show_default_onscreen_keyboard = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
