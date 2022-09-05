@@ -261,7 +261,7 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
     private boolean isPackageChangedInsideSingleEvent;
     @Override
-    public boolean IsPackageChanged() {
+    public boolean MetaIsPackageChanged() {
         return isPackageChangedInsideSingleEvent;
     }
 

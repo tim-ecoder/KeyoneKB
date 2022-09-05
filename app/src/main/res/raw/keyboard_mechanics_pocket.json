@@ -2,7 +2,7 @@
   "on-start-input-actions": [
     {
       "meta-mode-method-names": [
-        "IsActionBeforeMeta"
+        "MetaIsActionBeforeMeta"
       ],
       "action-method-name": "ActionTryResetSearchPlugin"
     },
@@ -23,7 +23,7 @@
       "action-method-name": "ActionSetNeedUpdateVisualState"
     },  {
       "meta-mode-method-names": [
-        "IsPackageChanged"
+        "MetaIsPackageChanged"
       ],
       "action-method-name": "ActionDisableNavSymFnKeyboard",
       "need-update-gesture-visual-state": true
@@ -124,7 +124,7 @@
   ],
   "before-send-char-actions": [
     {
-      "action-method-name": "SearchInputActivateOnLetterHack"
+      "action-method-name": "ActionTrySearchInputActivateOnLetterHack"
     }
   ],
   "after-send-char-actions": [
@@ -159,7 +159,7 @@
       "on-short-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -207,7 +207,7 @@
       "on-double-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -293,7 +293,7 @@
       "on-short-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -328,7 +328,7 @@
       "on-double-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -352,7 +352,7 @@
       "on-short-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -386,7 +386,7 @@
       "on-short-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -413,7 +413,7 @@
       "on-short-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -433,7 +433,7 @@
       "on-double-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -445,7 +445,7 @@
       "on-hold-on": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -467,7 +467,7 @@
       "on-short-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -486,7 +486,7 @@
       "on-double-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -499,7 +499,7 @@
       "on-hold-on": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -517,7 +517,7 @@
       "on-triple-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -535,7 +535,7 @@
       "on-short-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -556,7 +556,7 @@
       "on-double-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -568,7 +568,7 @@
       "on-hold-on": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -590,7 +590,7 @@
       "on-short-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -637,7 +637,7 @@
       "on-double-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -653,7 +653,7 @@
       "on-hold-on": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -687,7 +687,7 @@
       "on-short-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -712,7 +712,7 @@
       "on-double-press": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },
@@ -728,7 +728,7 @@
       "on-hold-on": [
         {
           "meta-mode-method-names": [
-            "IsActionBeforeMeta"
+            "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
         },

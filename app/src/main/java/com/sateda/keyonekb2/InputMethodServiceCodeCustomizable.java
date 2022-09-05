@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.annotation.RequiresApi;
@@ -73,8 +72,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     public static class KeyboardMechanics {
 
-        @JsonProperty(index = 100)
-        public ArrayList<KeyGroupProcessor> KeyGroupProcessors = new ArrayList<>();
+
 
         @JsonProperty(index = 20)
         public ArrayList<Action> OnStartInputActions;
@@ -86,6 +84,9 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         public ArrayList<Action> AfterSendCharActions;
         @JsonProperty(index = 60)
         public ArrayList<String> ViewModeKeyTransparencyExcludeKeyCodes;
+
+        @JsonProperty(index = 100)
+        public ArrayList<KeyGroupProcessor> KeyGroupProcessors = new ArrayList<>();
 
         @JsonProperty(index = 110)
         public GestureProcessor GestureProcessor = new GestureProcessor();
@@ -124,7 +125,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         }
 
         public static class Action {
-
+            @JsonProperty(index = 5)
+            public String Comment;
             @JsonProperty(index = 10)
             public ArrayList<String> MetaModeMethodNames;
             public ArrayList<IActionMethod> MetaModeMethods;
@@ -424,7 +426,6 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("ActionTryDisableNavModeAndKeyboard", InitializeMethod3((Object o) -> ActionTryDisableNavModeAndKeyboard(), Object.class));
         Methods.put("ActionTryDisableSymPad", InitializeMethod3((Object o) -> ActionTryDisableSymPad(), Object.class));
         Methods.put("ActionTryDoubleSpaceDotSpaceConversion", InitializeMethod3((Object o) -> ActionTryDoubleSpaceDotSpaceConversion(), Object.class));
-        Methods.put("ActionTryEnableGestureAtInputOnHoldState", InitializeMethod3((Object o) -> ActionTryEnableGestureAtInputOnHoldState(), Object.class));
         Methods.put("ActionTryEnableNavModeAndKeyboard", InitializeMethod3((Object o) -> ActionTryEnableNavModeAndKeyboard(), Object.class));
         Methods.put("ActionTryResetSearchPlugin", InitializeMethod3((Object o) -> ActionTryResetSearchPlugin(), Object.class));
         Methods.put("ActionTryTurnOffGesturesMode", InitializeMethod3((Object o) -> ActionTryTurnOffGesturesMode(), Object.class));
@@ -433,8 +434,8 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("InputIsNumber", InitializeMethod3((Object o) -> InputIsNumber(), Object.class));
         Methods.put("InputIsPhone", InitializeMethod3((Object o) -> InputIsPhone(), Object.class));
         Methods.put("InputIsText", InitializeMethod3((Object o) -> InputIsText(), Object.class));
-        Methods.put("IsActionBeforeMeta", InitializeMethod3((Object o) -> IsActionBeforeMeta(), Object.class));
-        Methods.put("IsPackageChanged", InitializeMethod3((Object o) -> IsPackageChanged(), Object.class));
+        Methods.put("MetaIsActionBeforeMeta", InitializeMethod3((Object o) -> MetaIsActionBeforeMeta(), Object.class));
+        Methods.put("MetaIsPackageChanged", InitializeMethod3((Object o) -> MetaIsPackageChanged(), Object.class));
         Methods.put("MetaIsAltMode", InitializeMethod3((Object o) -> MetaIsAltMode(), Object.class));
         Methods.put("MetaIsAltPressed", InitializeMethod3((Object o) -> MetaIsAltPressed(), Object.class));
         Methods.put("MetaIsCtrlPressed", InitializeMethod3((Object o) -> MetaIsCtrlPressed(), Object.class));
@@ -443,15 +444,13 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("MetaIsSymPadAltShiftMode", InitializeMethod3((Object o) -> MetaIsSymPadAltShiftMode(), Object.class));
         Methods.put("MetaStateIsOnCall", InitializeMethod3((Object o) -> MetaStateIsOnCall(), Object.class));
         Methods.put("PrefLongPressAltSymbol", InitializeMethod3((Object o) -> PrefLongPressAltSymbol(), Object.class));
-        Methods.put("SearchInputActivateOnLetterHack", InitializeMethod3((Object o) -> SearchInputActivateOnLetterHack(), Object.class));
+        Methods.put("ActionTrySearchInputActivateOnLetterHack", InitializeMethod3((Object o) -> ActionTrySearchInputActivateOnLetterHack(), Object.class));
         Methods.put("ActionSetNavModeHoldOffState", InitializeMethod3((Object o) -> ActionSetNavModeHoldOffState(), Object.class));
         Methods.put("ActionSetNavModeHoldOnState", InitializeMethod3((Object o) -> ActionSetNavModeHoldOnState(), Object.class));
-
         Methods.put("ActionTryVibrate", InitializeMethod3((Object o) -> ActionTryVibrate(), Object.class));
         Methods.put("InputIsAnyInput", InitializeMethod3((Object o) -> InputIsAnyInput(), Object.class));
         Methods.put("ActionChangeGestureAtInputModeUpAndDownMode", InitializeMethod3((Object o) -> ActionChangeGestureAtInputModeUpAndDownMode(), Object.class));
         Methods.put("ActionEnableGestureAtInputMode", InitializeMethod3((Object o) -> ActionEnableGestureAtInputMode(), Object.class));
-
         Methods.put("ActionSendCharDoublePressShiftMode", InitializeMethod3(this::ActionSendCharDoublePressShiftMode, KeyPressData.class));
         //2.4
         Methods.put("ActionSetKeyTransparency", InitializeMethod3((Object o) -> ActionSetKeyTransparency(), Object.class));
@@ -464,10 +463,14 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("ActionResetGesturePointerMode", InitializeMethod3((Object o) -> ActionResetGesturePointerMode(), Object.class));
         Methods.put("ActionTryChangeGestureInputScrollMode", InitializeMethod3((Object o) -> ActionTryChangeGestureInputScrollMode(), Object.class));
         Methods.put("ActionDisableGestureInputScrollMode", InitializeMethod3((Object o) -> ActionDisableGestureInputScrollMode(), Object.class));
-        Methods.put("IsViewMode", InitializeMethod3((Object o) -> IsViewMode(), Object.class));
+        Methods.put("MetaIsViewMode", InitializeMethod3((Object o) -> MetaIsViewMode(), Object.class));
         Methods.put("ActionTryPerformClickCurrentNode", InitializeMethod3((Object o) -> ActionTryPerformClickCurrentNode(), Object.class));
         Methods.put("ActionTryPerformLongClickCurrentNode", InitializeMethod3((Object o) -> ActionTryPerformLongClickCurrentNode(), Object.class));
         Methods.put("ActionTryRemoveSelectedNodeRectangle", InitializeMethod3((Object o) -> ActionTryRemoveSelectedNodeRectangle(), Object.class));
+        Methods.put("InputIsGestureCursor", InitializeMethod3((Object o) -> InputIsGestureCursor(), Object.class));
+        Methods.put("MetaIsDisabled", InitializeMethod3((Object o) -> MetaIsDisabled(), Object.class));
+        Methods.put("ActionTryDisableGestureCursorModeUnHoldState", InitializeMethod3((Object o) -> ActionTryDisableGestureCursorModeUnHoldState(), Object.class));
+        Methods.put("ActionTryEnableGestureCursorModeOnHoldState", InitializeMethod3((Object o) -> ActionTryEnableGestureCursorModeOnHoldState(), Object.class));
     }
 
     //endregion
@@ -736,19 +739,33 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return super.ActionResetDoubleClickGestureState();
     }
 
-    public boolean ActionTryEnableGestureAtInputOnHoldState() {
-        if (SystemClock.uptimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
-            Log.d(TAG2, "GestureMode at key_0_down first time");
-            return ActionEnableGestureAtInputMode();
-        }
-        return ActionEnableGestureAtInputMode();
-        //return false;
+    public boolean ActionEnableGestureAtInputMode() {
+        mode_keyboard_gestures = true;
+        return true;
     }
 
-    private boolean ActionEnableGestureAtInputMode() {
-        mode_keyboard_gestures = true;
-        //UpdateGestureModeVisualization();
-        return true;
+    private boolean gestureCursorAtInputEnabledByHold = false;
+
+    public boolean ActionTryEnableGestureCursorModeOnHoldState() {
+        //if (SystemClock.uptimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
+        //    Log.d(TAG2, "GestureMode at key_0_down first time");
+        //    return ActionEnableGestureAtInputMode();
+        //}
+        if(!mode_keyboard_gestures) {
+            gestureCursorAtInputEnabledByHold = true;
+            mode_keyboard_gestures = true;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean ActionTryDisableGestureCursorModeUnHoldState() {
+        if(gestureCursorAtInputEnabledByHold) {
+            gestureCursorAtInputEnabledByHold = false;
+            mode_keyboard_gestures = false;
+            return true;
+        }
+        return false;
     }
 
     public boolean ActionChangeGestureAtInputModeUpAndDownMode() {
@@ -988,7 +1005,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return false;
     }
 
-    public boolean SearchInputActivateOnLetterHack() {
+    public boolean ActionTrySearchInputActivateOnLetterHack() {
         if (IsInputMode() && isInputViewShown() && SearchPluginLauncher != null) {
             Log.d(TAG2, "NO_FIRE SearchPluginAction INPUT_MODE");
             SetSearchHack(null);
@@ -1367,7 +1384,12 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //region META
 
-    public boolean IsActionBeforeMeta() {
+
+    public abstract boolean MetaIsPackageChanged();
+    
+    public boolean MetaIsDisabled() {return false;}
+
+    public boolean MetaIsActionBeforeMeta() {
         return true;
     }
 
@@ -1403,6 +1425,10 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //region INPUT_TYPE
 
+    public boolean InputIsGestureCursor() {
+        return mode_keyboard_gestures;
+    }
+
     public boolean InputIsDigitsPad() {
         return _digitsHackActive;
     }
@@ -1424,11 +1450,10 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return IsInputMode();
     }
 
-    public boolean IsViewMode() {
+    public boolean MetaIsViewMode() {
         return !IsInputMode();
     }
 
-    public abstract boolean IsPackageChanged();
 
     public boolean InputIsNumber() {
         EditorInfo editorInfo = getCurrentInputEditorInfo();

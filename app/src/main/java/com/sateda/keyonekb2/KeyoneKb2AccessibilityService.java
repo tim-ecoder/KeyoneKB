@@ -345,11 +345,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         protected void onDraw(Canvas canvas) {
             Rect rect = new Rect();
             _info.getBoundsInScreen(rect);
-            rect.left -= 2;
-            //rect.right += 2;
-            //rect.bottom += 2;
-            //rect.top -= 2;
-
             Paint paint = new Paint();
             paint.setColor(Color.GREEN);
             paint.setStrokeWidth(3);
