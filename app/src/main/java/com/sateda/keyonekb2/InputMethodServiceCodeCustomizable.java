@@ -1055,9 +1055,10 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
     //region Actions Misc. InputMode
 
     public boolean ActionSendCharToInput(char char1) {
-        InputConnection inputConnection = getCurrentInputConnection();
-        if (inputConnection != null)
-            inputConnection.commitText(String.valueOf(char1), 1);
+        SendLetterOrSymbol(char1);
+        //InputConnection inputConnection = getCurrentInputConnection();
+        //if (inputConnection != null)
+        //    inputConnection.commitText(String.valueOf(char1), 1);
         return true;
     }
 

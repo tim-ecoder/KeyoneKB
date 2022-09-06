@@ -697,35 +697,8 @@
             "MetaIsAltMode"
           ],
           "action-method-name": "ActionSendCharToInput",
-          "stop-processing-at-success-result": false,
+          "stop-processing-at-success-result": true,
           "custom-char": "0"
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionTryTurnOffGesturesMode",
-          "need-update-gesture-visual-state": true,
-          "stop-processing-at-success-result": false
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionTryDisableFirstLetterShiftMode",
-          "need-update-visual-state": true,
-          "stop-processing-at-success-result": false
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionTryDisableFirstSymbolAltMode",
-          "need-update-visual-state": true,
-          "stop-processing-at-success-result": true
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionDoNothing",
-          "stop-processing-at-success-result": true
         }
       ],
       "on-double-press": [
@@ -734,10 +707,8 @@
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsActionBeforeMeta"
-          ],
+        },
+        {
           "action-method-name": "ActionChangeKeyboardLayout",
           "need-update-visual-state": true
         },
@@ -756,7 +727,7 @@
             "MetaIsAltMode"
           ],
           "action-method-name": "ActionSendCharToInput",
-          "stop-processing-at-success-result": false,
+          "stop-processing-at-success-result": true,
           "custom-char": "0"
         }
       ],
