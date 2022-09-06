@@ -190,21 +190,28 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 //SetDigitsHack(false);
             }
 
-            if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight)
-            if(KeyoneIME.Instance != null
-                    && (KeyoneIME.Instance.GesturePointerMode || KeyoneIME.Instance.IsNavMode())
-                    && !KeyoneIME.Instance.IsInputMode()
-                    && event.getSource() != null)
-                if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
-                        || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-                    if(keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
-                        //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
-                        PreparePointerClickHack(event);
-                    }
-                    if(keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
-                        ProcessSelectionRectangle(event);
+            if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
+                if (KeyoneIME.Instance != null
+                        && (KeyoneIME.Instance.GesturePointerMode || KeyoneIME.Instance.IsNavMode())
+                        && !KeyoneIME.Instance.IsInputMode()
+                        && event.getSource() != null) {
+                    if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
+                            || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                        if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
+                            //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
+                            PreparePointerClickHack(event);
+                        }
+                        if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
+                            ProcessSelectionRectangle(event);
+                        }
                     }
                 }
+            }
+            //if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                if(KeyoneIME.Instance != null) {
+                    KeyoneIME.Instance.ActiveNode = getRootInActiveWindow();
+                }
+            //}
 
             if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
                 return;
