@@ -471,6 +471,9 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         Methods.put("MetaIsDisabled", InitializeMethod3((Object o) -> MetaIsDisabled(), Object.class));
         Methods.put("ActionTryDisableGestureCursorModeUnHoldState", InitializeMethod3((Object o) -> ActionTryDisableGestureCursorModeUnHoldState(), Object.class));
         Methods.put("ActionTryEnableGestureCursorModeOnHoldState", InitializeMethod3((Object o) -> ActionTryEnableGestureCursorModeOnHoldState(), Object.class));
+        Methods.put("ActionDeletePrevWord", InitializeMethod3((Object o) -> ActionDeletePrevWord(), Object.class));
+        Methods.put("MetaIsKey0Pressed", InitializeMethod3((Object o) -> MetaIsKey0Pressed(), Object.class));
+
     }
 
     //endregion
@@ -1083,6 +1086,42 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return true;
     }
 
+    public boolean ActionDeletePrevWord() {
+        InputConnection inputConnection = getCurrentInputConnection();
+        CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
+        int dist1 = findPrevEnterDistance(c);
+        if (dist1 == 0 && c.length() > 0) {
+            //Это первый абзац в тексте
+            dist1 = c.length();
+        }
+        int dist2 = findPrevCharDistance(c, ' ');
+        int dist3 = findPrevCharDistance(c, '\t');
+        int dist = FindMinGreater0(dist1, dist2, dist3);
+
+        if (dist > 0) {
+            inputConnection.deleteSurroundingText(dist, 0);
+        }
+        return true;
+    }
+
+    private int FindMinGreater0(int i1, int i2, int i3) {
+        ArrayList<Integer> list = new ArrayList<Integer>();
+        if(i1 > 0)
+            list.add(i1);
+        if(i2 > 0)
+            list.add(i2);
+        if(i3 > 0)
+            list.add(i3);
+        if(list.isEmpty())
+            return 0;
+        if(list.size() == 1)
+            return list.get(0);
+        if(list.size() == 2)
+            return Math.min(list.get(0), list.get(1));
+        int ret = Math.min(list.get(0), list.get(1));
+        return Math.min(ret, list.get(2));
+    }
+
     public boolean ActionUnCrLf() {
         InputConnection inputConnection = getCurrentInputConnection();
         CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
@@ -1134,21 +1173,23 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
 
     public boolean ActionTryPerformClickCurrentNode() {
-        if(!GesturePointerMode)
-            return false;
-        if (CurrentNodeInfo != null) {
-            CurrentNodeInfo.Click(false);
+        if(GesturePointerMode || IsNavMode()) {
+            if (CurrentNodeInfo != null) {
+                CurrentNodeInfo.Click(false);
+            }
+            return true;
         }
-        return true;
+        return false;
     }
 
     public boolean ActionTryPerformLongClickCurrentNode() {
-        if(!GesturePointerMode)
-            return false;
-        if(CurrentNodeInfo !=null) {
-            CurrentNodeInfo.Click(true);
+        if(GesturePointerMode  || IsNavMode()) {
+            if (CurrentNodeInfo != null) {
+                CurrentNodeInfo.Click(true);
+            }
+            return true;
         }
-        return true;
+        return false;
     }
 
     public boolean ActionResetDigitsHack() {
@@ -1384,6 +1425,9 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     //region META
 
+    public boolean MetaIsKey0Pressed() {
+        return gestureCursorAtInputEnabledByHold;
+    }
 
     public abstract boolean MetaIsPackageChanged();
     
@@ -1504,6 +1548,10 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         return (meta & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
     }
 
+    protected boolean IsNavMode() {
+        return keyboardStateFixed_NavModeAndKeyboard || keyboardStateHolding_NavModeAndKeyboard;
+    }
+
     boolean _digitsHackActive = false;
 
     public void SetDigitsHack(boolean value) {
@@ -1600,6 +1648,18 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
         int len = c.length();
         for(int i = len; i > 0; i--) {
             if(c.charAt(i - 1) == '\r' || c.charAt(i - 1) == '\n')
+                return len - i + 1;
+        }
+        return 0;
+    }
+
+    int findPrevCharDistance(CharSequence c, char c1) {
+        if(c == null || c.length() == 0) {
+            return 0;
+        }
+        int len = c.length();
+        for(int i = len; i > 0; i--) {
+            if(c.charAt(i - 1) == c1)
                 return len - i + 1;
         }
         return 0;

@@ -443,6 +443,12 @@
           "action-method-name": "ActionKeyDownUpDefaultFlags",
           "stop-processing-at-success-result": true,
           "custom-key-code": "KEYCODE_FORWARD_DEL"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsKey0Pressed"
+          ],
+          "action-method-name": "ActionDeletePrevWord",
+          "stop-processing-at-success-result": true
         }
       ]
     },
@@ -794,10 +800,26 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
           "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode",
           "need-update-visual-state": true,
-          "need-update-gesture-visual-state": true,
+          "need-update-gesture-visual-state": true
+        },
+        {
+          "comment": "Это хак чтобы если НЕ выключился режим курсора, то ничего не делать",
+          "meta-mode-method-names": [
+            "InputIsGestureCursor"
+          ],
+          "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true
+        },
+        {
+          "comment": "А вот если вы прошли предыдущий шаг, значит мы были не в режиме курсора и его надо включить",
+          "action-method-name": "ActionEnableGestureAtInputMode",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true
         }
       ]
     },

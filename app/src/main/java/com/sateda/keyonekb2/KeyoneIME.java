@@ -311,10 +311,12 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
         }
 
         //region Режим "Навигационные клавиши"
+        //TODO: Вынести NAV режим в кастомизации keyboard_mechanics
 
         int navigationKeyCode;
         InputConnection inputConnection = getCurrentInputConnection();
         if (IsNavMode() && IsNavKeyCode(keyCode)) {
+            AnyButtonPressTimeForHoldPlusButtonState = event.getEventTime();
             int scanCode = event.getScanCode();
             navigationKeyCode = getNavigationCode(scanCode);
 
@@ -1169,13 +1171,6 @@ public class KeyoneIME extends InputMethodServiceCodeCustomizable implements Key
 
     private boolean IsCtrlPressed(KeyPressData keyPressData) {
         return (keyPressData.MetaBase & (KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON)) > 0;
-    }
-
-
-
-
-    private boolean IsNavMode() {
-        return keyboardStateFixed_NavModeAndKeyboard || keyboardStateHolding_NavModeAndKeyboard;
     }
 
     @Override

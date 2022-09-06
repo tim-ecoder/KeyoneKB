@@ -103,6 +103,8 @@ public class KeyoneKb2Settings {
         public int TimeShortPress;
         @JsonProperty(index=20)
         public int TimeDoublePress;
+        @JsonProperty(index=25)
+        public int TimeTriplePress;
         @JsonProperty(index=30)
         public int TimeLongPress;
         @JsonProperty(index=40)

@@ -192,7 +192,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
             if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight)
             if(KeyoneIME.Instance != null
-                    && KeyoneIME.Instance.GesturePointerMode
+                    && (KeyoneIME.Instance.GesturePointerMode || KeyoneIME.Instance.IsNavMode())
                     && !KeyoneIME.Instance.IsInputMode()
                     && event.getSource() != null)
                 if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
@@ -346,7 +346,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             Rect rect = new Rect();
             _info.getBoundsInScreen(rect);
             Paint paint = new Paint();
-            paint.setColor(Color.GREEN);
+            paint.setColor(Color.GRAY);
             paint.setStrokeWidth(3);
             paint.setStyle(Paint.Style.STROKE);
             canvas.drawRect(rect, paint);

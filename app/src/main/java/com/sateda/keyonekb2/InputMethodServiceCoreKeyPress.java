@@ -10,8 +10,6 @@ import android.view.KeyEvent;
 import android.view.inputmethod.InputConnection;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +45,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             KeyEvent.KEYCODE_Y,
             KeyEvent.KEYCODE_Z,
     };
+    int TIME_TRIPLE_PRESS;
     int TIME_DOUBLE_PRESS;
     int TIME_SHORT_2ND_LONG_PRESS;
     int TIME_LONG_PRESS;
@@ -56,7 +55,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
     List<KeyPressData> KeyDownList1 = new ArrayList<>();
 
-    long AnyHoldPlusButtonSignalTime = 0;
+    protected long AnyButtonPressTimeForHoldPlusButtonState = 0;
 
     public static final String TAG2 = "KeyoneKb2-IME";
 
@@ -77,6 +76,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         super.onCreate();
         FileJsonUtils.Initialize(this.getPackageName(), this);
         CoreKeyboardSettings = FileJsonUtils.DeserializeFromJson(KeyoneKb2Settings.CoreKeyboardSettingsResFileName, new TypeReference<KeyoneKb2Settings.CoreKeyboardSettings>() {}, this);
+        TIME_TRIPLE_PRESS = CoreKeyboardSettings.TimeTriplePress;
         TIME_DOUBLE_PRESS = CoreKeyboardSettings.TimeDoublePress;
         TIME_SHORT_2ND_LONG_PRESS = CoreKeyboardSettings.TimeLongAfterShortPress;
         TIME_LONG_PRESS = CoreKeyboardSettings.TimeLongPress;
@@ -143,9 +143,12 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyCode, scanCode);
         if (keyProcessingMode == null)
             return false;
+
+        AnyButtonPressTimeForHoldPlusButtonState = eventTime;
+
         //Только короткое нажатие - делаем действие сразу FAST_TRACK
         if (keyProcessingMode.IsShortPressOnly()) {
-            AnyHoldPlusButtonSignalTime = eventTime;
+            //AnyHoldPlusButtonSignalTime = eventTime;
 
             KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
             ProcessShortPress(keyPressData1);
@@ -155,7 +158,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         }
 
         if(keyProcessingMode.IsShortDoublePressMode()) {
-            AnyHoldPlusButtonSignalTime = eventTime;
+            //AnyHoldPlusButtonSignalTime = eventTime;
 
             KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
             if(repeatCount1 == 0)
@@ -176,7 +179,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         }
         if(keyProcessingMode.IsLetterShortDoubleLongPressMode()) {
             if(repeatCount1 == 0) {
-                AnyHoldPlusButtonSignalTime = eventTime;
+                //AnyHoldPlusButtonSignalTime = eventTime;
 
                 KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
                 KeyDownList1.add(keyPressData1);
@@ -225,7 +228,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                     if(keyPressData1.KeyProcessingMode.OnTriplePress != null
                             && LastDoublePressKey != null
                             && IsSameKeyDownPress(LastDoublePressKey, keyPressData1)
-                            && (LastShortPressKey1.KeyDownTime  - LastDoublePressKey.KeyDownTime <= TIME_DOUBLE_PRESS)) {
+                            && (LastShortPressKey1.KeyDownTime  - LastDoublePressKey.KeyDownTime <= TIME_TRIPLE_PRESS)) {
                         ProcessTriplePress(keyPressData1);
                     } else {
                         keyPressData1.DoublePressTime = eventTime;
@@ -302,7 +305,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             RemoveFromKeyDownList(keyPressData);
             keyPressData.KeyUpTime = eventTime;
             if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS
-                && !(AnyHoldPlusButtonSignalTime > keyPressData.KeyDownTime)
+                && !(AnyButtonPressTimeForHoldPlusButtonState > keyPressData.KeyDownTime)
                 && keyPressData.DoublePressTime == 0) {
                 ProcessKeyUnhold(keyPressData);
                 ProcessShortPress(keyPressData);
