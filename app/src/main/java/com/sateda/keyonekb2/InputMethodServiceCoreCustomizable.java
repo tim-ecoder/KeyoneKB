@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public abstract class InputMethodServiceCodeCustomizable extends InputMethodServiceCoreGesture {
+public abstract class InputMethodServiceCoreCustomizable extends InputMethodServiceCoreGesture {
     protected boolean pref_show_toast = false;
     protected boolean pref_show_default_onscreen_keyboard = true;
     protected boolean pref_alt_space = true;
@@ -334,7 +334,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
     private void CodeGenerate() {
         String methodsHashFulfill = "";
-        Method[] methods = InputMethodServiceCodeCustomizable.class.getDeclaredMethods();
+        Method[] methods = InputMethodServiceCoreCustomizable.class.getDeclaredMethods();
         for (Method method : methods) {
             if (Modifier.isStatic(method.getModifiers()))
                 continue;
@@ -548,7 +548,7 @@ public abstract class InputMethodServiceCodeCustomizable extends InputMethodServ
 
         ArrayList<KeyboardMechanics.Action> Actions = null;
 
-        InputMethodServiceCodeCustomizable Keyboard = null;
+        InputMethodServiceCoreCustomizable Keyboard = null;
     }
 
     //endregion

@@ -165,7 +165,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 if(!IsInputMode() && GesturePointerMode)
                     Kpower = 2.25f;
                 if(IsInputMode() && _gestureInputScrollViewMode)
-                    Kpower = 2f;
+                    Kpower = 1.75f;
 
                 int motion_delta_min_x = Math.round(MAGIC_KEYBOARD_GESTURE_MOTION_CONST*Kpower) - pref_gesture_motion_sensitivity;
                 int motion_delta_min_y = Math.round(MAGIC_KEYBOARD_GESTURE_MOTION_CONST*Kpower) - pref_gesture_motion_sensitivity;

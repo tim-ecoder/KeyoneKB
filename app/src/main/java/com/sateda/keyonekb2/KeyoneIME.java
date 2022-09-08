@@ -27,7 +27,7 @@ import java.util.*;
 
 
 @Keep
-public class KeyoneIME extends InputMethodServiceCodeCustomizable implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
+public class KeyoneIME extends InputMethodServiceCoreCustomizable implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
 
 
 

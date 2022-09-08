@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
@@ -85,15 +83,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         public boolean SelectedNodeHighlight;
     }
 
-    public boolean TryRemoveRectangle() {
-         if(selectionRectangle != null) {
-             wm.removeView(selectionRectangle);
-             selectionRectangle = null;
-             return true;
-         }
-         return false;
-    }
-
     @Override
     protected void onServiceConnected() {
         Log.v(TAG3, "onServiceConnected()");
@@ -118,7 +107,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         super.onDestroy();
     }
 
-    WindowManager wm;
+    WindowManager _currentWindowManager;
+    WindowManager.LayoutParams _layoutParams;
 
     @Override
     public synchronized void onCreate() {
@@ -126,7 +116,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         try {
             super.onCreate();
             Instance = this;
-            wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+            _currentWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+            _layoutParams = InitializeLayoutParams();
 
             keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
             keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJson(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, getApplicationContext());
@@ -155,7 +146,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
-        Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
+        //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
 
         try {
             if(KeyoneIME.Instance == null)
@@ -181,6 +172,20 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if (root == null)
                 return;
 
+            if(!event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
+                return;
+
+            if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
+                Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_WINDOW_STATE_CHANGED");
+            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED)
+                Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_VIEW_FOCUSED");
+            if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_WINDOW_CONTENT_CHANGED");
+                Log.d(TAG3, "TYPE_WINDOW_CONTENT_CHANGED TYPES: " + event.getContentChangeTypes());
+            }
+
+            LogEventD(event);
+
             if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled)
             if(event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                     && ContainsAllDigitsButtons(root)) {
@@ -195,16 +200,17 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                         && (KeyoneIME.Instance.GesturePointerMode || KeyoneIME.Instance.IsNavMode())
                         && !KeyoneIME.Instance.IsInputMode()
                         && event.getSource() != null) {
-                    if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
-                            || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                    //if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
+                    //        || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
                         if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
                             //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
                             PreparePointerClickHack(event);
                         }
                         if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
                             ProcessSelectionRectangle(event);
+
                         }
-                    }
+                    //}
                 }
             }
             //if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
@@ -241,6 +247,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             Log.e(TAG3, "onAccessibilityEvent Exception: "+ex);
         }
     }
+
+
 
     //region DIGITS-PAD
 
@@ -298,46 +306,97 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     }
 
-    private void ProcessSelectionRectangle(AccessibilityEvent event) {
 
+
+    private void SetCurrentNodeInfo(InputMethodServiceCoreCustomizable.AsNodeClicker info) {
+        if(KeyoneIME.Instance != null) {
+            KeyoneIME.Instance.SetCurrentNodeInfo(info);
+        }
+    }
+
+    //endregion
+
+    //region RECT_VIEW
+
+     private void ProcessSelectionRectangle(AccessibilityEvent event) {
+
+
+        if(event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
+            return;
+
+        AccessibilityNodeInfo info = event.getSource();
         TryRemoveRectangle();
 
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
-        lp.format = PixelFormat.TRANSLUCENT;
+        if(!event.getSource().isFocused()) {
+            AccessibilityNodeInfo info1 = FindSelectedRecurs(getRootInActiveWindow());
+            if(info1 != null) {
+                Log.d(TAG3, "FindSelectedRecurs FOUND "+info1.getContentDescription());
+                info = info1;
+            } else {
+                Log.d(TAG3, "FindSelectedRecurs NOT FOUND");
+                return;
+            }
+        } else {
+            Log.d(TAG3, "event.getSource().isFocused()");
+        }
 
-        lp.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                | WindowManager.LayoutParams.FLAG_FULLSCREEN
-                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                | WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
-                | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
+        if(SelectionRectView == null) {
+            SelectionRectView = CreateRectangleView();
+            LestSelectionRectView = SelectionRectView;
+        }
 
-
-        lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        lp.gravity = Gravity.FILL;
-
-        selectionRectangle = new RectView(this, event.getSource());
-
-        selectionRectangle.setClickable(false);
-        selectionRectangle.setFocusable(false);
-        selectionRectangle.setFocusableInTouchMode(false);
-        selectionRectangle.setLongClickable(false);
-        selectionRectangle.setKeepScreenOn(false);
-
-        wm.addView(selectionRectangle, lp);
-        selectionRectangle.setVisibility(View.VISIBLE);
+        if(SelectionRectView.IsSameRect(info)) {
+            Log.d(TAG3, "SelectionRectView.IsSameRect(info)");
+            return;
+        }
+        SelectionRectView.SetNodeInfo(info);
+        SelectionRectView.setVisibility(View.VISIBLE);
+        _currentWindowManager.addView(SelectionRectView, _layoutParams);
     }
+
+
+    private AccessibilityNodeInfo FindSelectedRecurs(AccessibilityNodeInfo info) {
+        if(info == null)
+            return null;
+        if(info.isFocused())
+            return info;
+        for (int i = 0; i < info.getChildCount(); i++)  {
+            AccessibilityNodeInfo res = FindSelectedRecurs(info.getChild(i));
+            if(res != null)
+                return res;
+        }
+        return null;
+    }
+
 
     class RectView extends View {
 
-        AccessibilityNodeInfo _info;
+        public AccessibilityNodeInfo SelectedNode;
+        public Rect SelectedNodeRect;
+
         public RectView(Context context) {
             super(context);
+            paint = new Paint();
+            paint.setColor(Color.GRAY);
+            paint.setStrokeWidth(3);
+            paint.setStyle(Paint.Style.STROKE);
         }
-        public RectView(Context context, AccessibilityNodeInfo info) {
-            super(context);
-            _info = info;
+
+        public void SetNodeInfo(AccessibilityNodeInfo info) {
+            SelectedNode = info;
+        }
+
+        public boolean IsSameRect(AccessibilityNodeInfo info) {
+            if(SelectedNodeRect == null)
+                return false;
+            Rect rect = new Rect();
+            info.getBoundsInScreen(rect);
+            if(rect.top == SelectedNodeRect.top
+            && rect.bottom == SelectedNodeRect.bottom
+            && rect.left == SelectedNodeRect.left
+            && rect.right == SelectedNodeRect.right)
+                return true;
+            return false;
         }
 
         public RectView(Context context, @Nullable AttributeSet attrs) {
@@ -350,22 +409,61 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         @Override
         protected void onDraw(Canvas canvas) {
-            Rect rect = new Rect();
-            _info.getBoundsInScreen(rect);
-            Paint paint = new Paint();
-            paint.setColor(Color.GRAY);
-            paint.setStrokeWidth(3);
-            paint.setStyle(Paint.Style.STROKE);
-            canvas.drawRect(rect, paint);
+
+            if(SelectedNode == null)
+                return;
+            SelectedNodeRect = new Rect();
+            SelectedNode.getBoundsInScreen(SelectedNodeRect);
+
+            canvas.drawRect(SelectedNodeRect, paint);
+
         }
+
+        Paint paint;
     }
 
-    View selectionRectangle;
 
-    private void SetCurrentNodeInfo(InputMethodServiceCodeCustomizable.AsNodeClicker info) {
-        if(KeyoneIME.Instance != null) {
-            KeyoneIME.Instance.SetCurrentNodeInfo(info);
+
+
+    RectView SelectionRectView;
+    RectView LestSelectionRectView;
+
+    private RectView CreateRectangleView() {
+        RectView rectView = new RectView(this);
+        rectView.setClickable(false);
+        rectView.setFocusable(false);
+        rectView.setFocusableInTouchMode(false);
+        rectView.setLongClickable(false);
+        rectView.setKeepScreenOn(false);
+        return rectView;
+    }
+
+    private static WindowManager.LayoutParams InitializeLayoutParams() {
+        WindowManager.LayoutParams lp1 = new WindowManager.LayoutParams();
+        lp1.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        lp1.format = PixelFormat.TRANSLUCENT;
+
+        lp1.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_FULLSCREEN
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                | WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
+                | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
+
+
+        lp1.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp1.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp1.gravity = Gravity.FILL;
+        return lp1;
+    }
+
+    public boolean TryRemoveRectangle() {
+        if(SelectionRectView != null) {
+            SelectionRectView.setVisibility(View.GONE);
+            _currentWindowManager.removeView(SelectionRectView);
+            SelectionRectView = null;
+            return true;
         }
+        return false;
     }
 
     //endregion
