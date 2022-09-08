@@ -772,6 +772,13 @@
         },
         {
           "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode",
@@ -791,6 +798,13 @@
           "action-method-name": "ActionEnableGestureAtInputMode",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionSendCharToInput",
+          "stop-processing-at-success-result": true,
+          "custom-char": "0"
         }
       ]
     },
