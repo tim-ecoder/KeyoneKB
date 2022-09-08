@@ -278,7 +278,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                     && prevUpTime - prevDownTime <= TIME_LONG_PRESS
                     && prevPrevUpTime - prevPrevDownTime <= TIME_LONG_PRESS
                     && prevUpTime - prevPrevDownTime <= TIME_DOUBLE_PRESS
-                    && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
+                    && curDownTime - prevUpTime <= TIME_LONG_PRESS) {
                 Log.d(TAG2, "GESTURE TRIPLE CLICK");
                 //ActionEnableGestureMode();
                 //ActionChangeGestureAtInputModeUpAndDownMode();
