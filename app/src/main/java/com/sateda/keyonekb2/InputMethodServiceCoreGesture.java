@@ -1,8 +1,14 @@
 package com.sateda.keyonekb2;
 
+import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.GestureDescription;
+import android.graphics.Path;
+import android.graphics.PathMeasure;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
+import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -11,6 +17,8 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
+
+import java.util.ArrayList;
 
 public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCoreKeyPress {
     private int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
@@ -90,6 +98,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         }
         //if (mode_keyboard_gestures || (!IsInputMode() && GesturePointerMode)) {
         if (mode_keyboard_gestures || (!IsInputMode() && GesturePointerMode) || _gestureInputScrollViewMode) {
+
             //TODO: Подумать отдельно обрабатывать жесты по горизонтали и отдельно по вертикали ориентируясь на событие ACTION_UP
 
             InputConnection inputConnection = getCurrentInputConnection();
@@ -163,12 +172,12 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 float absDeltaY = deltaY < 0 ? -1 * deltaY : deltaY;
                 float Kpower = 1;
                 if(!IsInputMode() && GesturePointerMode)
-                    Kpower = 2.25f;
+                    Kpower = 3f;
                 if(IsInputMode() && _gestureInputScrollViewMode)
-                    Kpower = 1.75f;
+                    Kpower = 1.5f;
 
-                int motion_delta_min_x = Math.round(MAGIC_KEYBOARD_GESTURE_MOTION_CONST*Kpower) - pref_gesture_motion_sensitivity;
-                int motion_delta_min_y = Math.round(MAGIC_KEYBOARD_GESTURE_MOTION_CONST*Kpower) - pref_gesture_motion_sensitivity;
+                int motion_delta_min_x = Math.round((MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity)*Kpower);
+                int motion_delta_min_y = Math.round((MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity)*Kpower);
 
                 if (absDeltaX >= absDeltaY) {
                     if (absDeltaX < motion_delta_min_x)
@@ -341,6 +350,81 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return null;
     }
 
+    private void moveByGesture(boolean isToTop) {
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+
+        int middleYValue = displayMetrics.heightPixels / 2;
+        int middleXValue = displayMetrics.widthPixels / 2;
+        //final int leftSideOfScreen = displayMetrics.widthPixels / 4;
+        //final int rightSizeOfScreen = middleXValue + leftSideOfScreen;
+        int topSideOfScreen = middleYValue - displayMetrics.heightPixels / 4;
+        int bottomSideOfScreen = middleYValue + displayMetrics.heightPixels / 4;
+
+        Path path = new Path();
+
+        if (!isToTop) {
+            path.moveTo(middleXValue, middleYValue);
+            path.lineTo(middleXValue, topSideOfScreen);
+            Log.d(TAG2, "GESTURE_SCROLL_TOP");
+        } else {
+            path.moveTo(middleXValue, middleYValue);
+            path.lineTo(middleXValue, bottomSideOfScreen);
+            Log.d(TAG2, "GESTURE_SCROLL_BOTTOM");
+        }
+
+        //gestureBuilder.addStroke(new GestureDescription.StrokeDescription(path, 0, 150, true));
+        //KeyoneKb2AccessibilityService.Instance.dispatchGesture(gestureBuilder.build(), null, null);
+        //swipeScreenWithDelay(path, 0l, 200l, 250l);
+        GestureDescription.StrokeDescription gesture1 = new GestureDescription.StrokeDescription(path, 0, 150, true);
+        if(gesture == null) {
+            gesture = gesture1;
+            KeyoneKb2AccessibilityService.Instance.dispatchGesture(
+                    new GestureDescription.Builder().addStroke(gesture1).build(),
+                    new GestureCompletedCallback(), null
+            );
+        } else {
+            Gestures.add(gesture1);
+        }
+
+        PathMeasure pM = new PathMeasure(path, false);
+        float breakPoint  = pM.getLength() * 0.75f;
+        EndPath = new Path();
+        pM.getSegment(breakPoint, pM.getLength(), EndPath, true);
+    }
+
+    Path EndPath;
+
+    ArrayList<GestureDescription.StrokeDescription> Gestures = new ArrayList<>();
+    GestureDescription.StrokeDescription gesture;
+
+    class GestureCompletedCallback extends AccessibilityService.GestureResultCallback {
+        @Override
+        public void onCompleted(GestureDescription gestureDescription) {
+            super.onCompleted(gestureDescription);
+
+            if (Gestures.size() > 0) {
+                GestureDescription.StrokeDescription gesture1 = Gestures.get(0);
+                Gestures.remove(gesture1);
+                KeyoneKb2AccessibilityService.Instance.dispatchGesture(
+                        new GestureDescription.Builder().addStroke(gesture1).build(),
+                        new GestureCompletedCallback(),
+                        null);
+            } else {
+                gesture = null;
+                KeyoneKb2AccessibilityService.Instance.dispatchGesture(
+                        new GestureDescription.Builder().addStroke(new GestureDescription.StrokeDescription(EndPath, 0, 300, false)).build(),
+                        null,
+                        null);
+            }
+        }
+
+        @Override
+        public void onCancelled(GestureDescription gestureDescription) {
+            super.onCancelled(gestureDescription);
+            gesture = null;
+        }
+    }
+
     private boolean MoveCursorDownSafe(InputConnection inputConnection) {
         if(!IsInputMode() && GesturePointerMode) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection, 0);
@@ -348,9 +432,12 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         }
         if(IsInputMode() && _gestureInputScrollViewMode) {
             if(ActiveNode != null) {
+                moveByGesture(true);
                 AccessibilityNodeInfo info = FindScrollableRecurs(ActiveNode);
-                if(info != null)
-                    info.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+                //if(info != null)
+                //    info.addAction(AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD);
+
+                    //info.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
             }
             return true;
         }
@@ -382,8 +469,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         if(IsInputMode() && _gestureInputScrollViewMode) {
             if(ActiveNode != null) {
                 AccessibilityNodeInfo info = FindScrollableRecurs(ActiveNode);
-                if(info != null)
-                    info.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
+                moveByGesture(false);
+                //if(info != null)
+                //    info.addAction(AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD);
+                    //info.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
             }
             return true;
         }
