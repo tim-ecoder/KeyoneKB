@@ -201,12 +201,24 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                         && !KeyoneIME.Instance.IsInputMode()
                         && event.getSource() != null) {
 
-                    AccessibilityNodeInfo info = GetFocusedNode(event);
+                    AccessibilityNodeInfo info = GetFocusedNode(event.getSource());
+                    if(info == null) {
+                        info = GetFocusedNode(getRootInActiveWindow());
+                    }
                     if(info == null)
                     {
                         info = FindFocusableRecurs(GetRoot(getRootInActiveWindow()), 0);
-                        if(info != null && !info.performAction(AccessibilityNodeInfo.ACTION_FOCUS))
-                            info = null;
+                        if(info != null) {
+                            Log.d(TAG3, "FindFocusableRecurs(GetRoot(getRootInActiveWindow()) "+info );
+                            boolean clickRes = info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+                            if(clickRes) {
+                                Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) OK");
+                            } else {
+                                Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) FAIL");
+                                info = null;
+                            }
+                        }
+
                     }
 
                     if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
@@ -219,9 +231,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     }
                     if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
                         if (info != null) {
-                            if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                            //if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
                                 ProcessSelectionRectangle(info);
-                            }
+                            //}
                         } else {
                             TryRemoveRectangle();
                         }
@@ -307,7 +319,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     private AccessibilityNodeInfo FindFocusedRecurs(AccessibilityNodeInfo info) {
         if(info == null)
             return null;
-        if(info.isFocused() && info.isFocusable())
+        if(info.isFocused())
             return info;
         for (int i = 0; i < info.getChildCount(); i++)  {
             AccessibilityNodeInfo res = FindFocusedRecurs(info.getChild(i));
@@ -343,19 +355,18 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         return;
     }
 
-    private AccessibilityNodeInfo GetFocusedNode(AccessibilityEvent event) {
-        AccessibilityNodeInfo info = getRootInActiveWindow();
-        if(info.isFocused() && info.isFocusable()) {
-            Log.d(TAG3, "event.getSource().isFocused()");
+    private AccessibilityNodeInfo GetFocusedNode(AccessibilityNodeInfo info) {
+        if(info.isFocused()) {
+            Log.d(TAG3, "GetFocusedNode() .isFocused()");
             return info;
         }
 
         AccessibilityNodeInfo info1 = FindFocusedRecurs(info);
         if(info1 != null) {
-            Log.d(TAG3, "FindSelectedRecurs FOUND "+info1.getContentDescription());
+            Log.d(TAG3, "GetFocusedNode FOUND "+info1.getContentDescription());
             return info1;
         } else {
-            Log.d(TAG3, "FindSelectedRecurs NOT FOUND");
+            Log.d(TAG3, "GetFocusedNode NOT FOUND");
             return null;
         }
     }
@@ -605,13 +616,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     private void LogEventD(AccessibilityEvent event) {
+        Log.v(TAG3, "--------------------LogEventD--------------------");
         Log.v(TAG3, "event.getEventType() " + event.getEventType());
         Log.v(TAG3, "event.getPackageName() " + event.getPackageName());
         Log.v(TAG3, "event.getClassName() " + event.getClassName());
         Log.v(TAG3, "event.getWindowId() " + event.getWindowId());
-        Log.v(TAG3, "event.getSource() " + event.getSource());
         Log.v(TAG3, "event.getText() " + event.getText());
         Log.v(TAG3, "event.getContentDescription() " + event.getContentDescription());
+        Log.v(TAG3, "event.getSource() " + event.getSource());
+        Log.v(TAG3, "getRootInActiveWindow() " + getRootInActiveWindow());
+        Log.v(TAG3, "--------------------LogEventD--------------------");
     }
 
     private boolean ProcessSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchClickPlugin searchClickPlugin) {
