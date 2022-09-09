@@ -201,7 +201,10 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                     return true;
                 }
                 if(keyPressData2.LongPressBeginTime == 0
-                    && eventTime - keyPressData2.KeyDownTime > TIME_LONG_PRESS ) {
+                        /** ВАЖНО! в случе торможения OS eventTime - идет с задержкой и получается SHORT->LONG_PRESS
+                         * ПОЭТОМУ ЭТО ОТСЮДА УБРАНО (НО МОЖЕТ РАБОТЬ ПЛОХО БЕЗ ЭТОГО)*/
+                    //&& eventTime - keyPressData2.KeyDownTime > TIME_LONG_PRESS ) {
+                ) {
                     keyPressData2.LongPressBeginTime = keyDownTime;
                     if(IsSameKeyDownPress(LastShortPressKey1, keyPressData2)
                         && keyDownTime - LastShortPressKey1.KeyUpTime <= TIME_SHORT_2ND_LONG_PRESS) {
@@ -221,9 +224,9 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
                 if (LastShortPressKey1 != null
                     && IsSameKeyDownPress(LastShortPressKey1, keyPressData1)
-                    && (event.getDownTime() - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) ) {
+                    && (keyDownTime - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) ) {
 
-                    keyPressData1.DoublePressTime = event.getDownTime() ;
+                    keyPressData1.DoublePressTime = keyDownTime;
 
                     if(keyPressData1.KeyProcessingMode.OnTriplePress != null
                             && LastDoublePressKey != null

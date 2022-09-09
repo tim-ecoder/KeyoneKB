@@ -380,7 +380,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionChangeKeyboardLayout", InitializeMethod3((Object o) -> ActionChangeKeyboardLayout(), Object.class));
         Methods.put("ActionChangeShiftCapslockState", InitializeMethod3((Object o) -> ActionChangeShiftCapslockState(), Object.class));
         Methods.put("ActionChangeSwipePanelVisibility", InitializeMethod3((Object o) -> ActionChangeSwipePanelVisibility(), Object.class));
-        Methods.put("ActionDeletePreviousSymbol", InitializeMethod3(this::ActionDeletePreviousSymbol, KeyPressData.class));
+        Methods.put("ActionDeletePreviousSymbol", InitializeMethod3((Object o) -> ActionDeletePreviousSymbol(), Object.class));
         Methods.put("ActionDeleteUntilPrevCrLf", InitializeMethod3((Object o) -> ActionDeleteUntilPrevCrLf(), Object.class));
         Methods.put("ActionDisableAndResetGestureMode", InitializeMethod3((Object o) -> ActionDisableAndResetGestureMode(), Object.class));
         Methods.put("ActionDisableAndResetGesturesAtInputMode", InitializeMethod3((Object o) -> ActionDisableAndResetGesturesAtInputMode(), Object.class));
@@ -1056,9 +1056,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     public boolean ActionSendCharToInput(char char1) {
         SendLetterOrSymbol(char1);
-        //InputConnection inputConnection = getCurrentInputConnection();
-        //if (inputConnection != null)
-        //    inputConnection.commitText(String.valueOf(char1), 1);
         return true;
     }
 
@@ -1067,9 +1064,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     }
 
 
-    public boolean ActionDeletePreviousSymbol(KeyPressData keyPressData) {
+    public boolean ActionDeletePreviousSymbol() {
         DeleteLastSymbol();
-        //ActionSetNeedUpdateVisualState();
         return true;
     }
 
@@ -1311,11 +1307,18 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     }
 
     private boolean SendCharDoublePress(KeyPressData keyPressData, boolean isShiftMode) {
+        //TODO: Подумать как сделать эту логику более кастомизиремым через keyboard_mechanics
         int code2send;
+        int letterBeforeCursor = GetLetterBeforeCursor();
+        int letterAlted = keyboardLayoutManager.KeyToCharCode(keyPressData, true, false, false);
+        if(letterBeforeCursor == letterAlted) {
+            DeleteLastSymbol();
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+            SendLetterOrSymbol(code2send);
+            return true;
+        }
 
-        //TODO: Попробовать: по сути это можно поднять в логику выше
         if(IsNotPairedLetter(keyPressData)) {
-            //TODO: Особенно is_double_press
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, isShiftMode, false);
             SendLetterOrSymbol(code2send);
             return true;
@@ -1324,13 +1327,12 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         boolean needShift = false;
         //Определяем была ли первая из сдвоенных букв Заглавной
         int letterShifted = keyboardLayoutManager.KeyToCharCode(keyPressData, false, true, false);
-        int letterBeforeCursor = GetLetterBeforeCursor();
+
         if(letterBeforeCursor == letterShifted)
             needShift = true;
 
 
         DeleteLastSymbol();
-        //DetermineFirstBigCharAndReturnChangedState(getCurrentInputEditorInfo());
         code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, needShift, true);
         SendLetterOrSymbol(code2send);
         return true;
@@ -1362,13 +1364,27 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     public boolean ActionSendCharLongPressAltSymbolNoMeta(KeyPressData keyPressData) {
         int code2send;
-        DeleteLastSymbol();
+
         if(keyPressData.Short2ndLongPress ) {
+            //Сначала обратаываем случай, когда уже случился ввод SYM-символа через SinglePressAltMode+DoublePress
+            int letterBeforeCursor = GetLetterBeforeCursor();
+            int letterAltShifted = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+            if(letterAltShifted == letterBeforeCursor) {
+                code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
+                if (code2send != 0) {
+                    DeleteLastSymbol();
+                    SendLetterOrSymbol(code2send);
+                    return true;
+                }
+                return true;
+            }
+            DeleteLastSymbol();
             if (IsNotPairedLetter(keyPressData))
                 DeleteLastSymbol();
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
 
         } else {
+            DeleteLastSymbol();
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, false, false);
         }
 
@@ -1378,13 +1394,15 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     public boolean ActionSendCharLongPressAltSymbolShiftMode(KeyPressData keyPressData) {
         int code2send;
-        DeleteLastSymbol();
+
         if(keyPressData.Short2ndLongPress ) {
+            DeleteLastSymbol();
             if (IsNotPairedLetter(keyPressData))
                 DeleteLastSymbol();
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
 
         } else {
+            DeleteLastSymbol();
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
         }
 
@@ -1396,7 +1414,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         int code2send;
         DeleteLastSymbol();
         if (keyPressData.Short2ndLongPress) {
-            DeleteLastSymbol();
+            if(!MetaIsAltMode())
+                DeleteLastSymbol();
             code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
             if (code2send == 0) {
                 code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);

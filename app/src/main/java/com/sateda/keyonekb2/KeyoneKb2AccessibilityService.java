@@ -204,8 +204,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     AccessibilityNodeInfo info = GetFocusedNode(event);
                     if(info == null)
                     {
-                        info = FindFocusableRecurs(GetRoot(getRootInActiveWindow()));
-                        info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+                        info = FindFocusableRecurs(GetRoot(getRootInActiveWindow()), 0);
+                        if(info != null && !info.performAction(AccessibilityNodeInfo.ACTION_FOCUS))
+                            info = null;
                     }
 
                     if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
@@ -213,7 +214,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                         if (info != null) {
                             PreparePointerClickHack(info);
                         } else {
-                            PreparePointerClickHack(null);
+                            SetCurrentNodeInfo(null);
                         }
                     }
                     if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
@@ -264,35 +265,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
     }
 
-    private AccessibilityNodeInfo GetFocusedNode(AccessibilityEvent event) {
-        AccessibilityNodeInfo info = getRootInActiveWindow();
-        if(!info.isFocused()) {
-            AccessibilityNodeInfo info1 = FindSelectedRecurs(getRootInActiveWindow());
-            if(info1 != null) {
-                Log.d(TAG3, "FindSelectedRecurs FOUND "+info1.getContentDescription());
-                info = info1;
-            } else {
-                Log.d(TAG3, "FindSelectedRecurs NOT FOUND");
-                return null;
-            }
-        } else {
-            Log.d(TAG3, "event.getSource().isFocused()");
-        }
-        return info;
-    }
 
-    private AccessibilityNodeInfo GetRoot(AccessibilityNodeInfo info) {
-        if(info == null)
-            return null;
-        AccessibilityNodeInfo info1 = info;
-        for (int i = 0; i < 20; i++) {
-            AccessibilityNodeInfo root = info1.getParent();
-            if(root == null)
-                return info1;
-            info1 = root;
-        }
-        return null;
-    }
 
 
     //region DIGITS-PAD
@@ -325,6 +298,79 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 return false;
         }
         return true;
+    }
+
+    //endregion
+
+    //region NODES_SELECTION
+
+    private AccessibilityNodeInfo FindFocusedRecurs(AccessibilityNodeInfo info) {
+        if(info == null)
+            return null;
+        if(info.isFocused() && info.isFocusable())
+            return info;
+        for (int i = 0; i < info.getChildCount(); i++)  {
+            AccessibilityNodeInfo res = FindFocusedRecurs(info.getChild(i));
+            if(res != null)
+                return res;
+        }
+        return null;
+    }
+
+    private AccessibilityNodeInfo FindFocusableRecurs(AccessibilityNodeInfo info, int level) {
+        if(level > 10)
+            return null;
+        if(info == null)
+            return null;
+        if(info.isFocusable())
+            return info;
+        for (int i = 0; i < Math.min(info.getChildCount(), 10); i++)  {
+            AccessibilityNodeInfo res = FindFocusableRecurs(info.getChild(i), level + 1);
+            if(res != null)
+                return res;
+        }
+        return null;
+    }
+
+    private void FindAllSelectedRecurs(AccessibilityNodeInfo info, ArrayList<AccessibilityNodeInfo> array) {
+        if(info == null)
+            return;
+        if(info.isFocused())
+            array.add(info);
+        for (int i = 0; i < info.getChildCount(); i++)  {
+            FindAllSelectedRecurs(info.getChild(i), array);
+        }
+        return;
+    }
+
+    private AccessibilityNodeInfo GetFocusedNode(AccessibilityEvent event) {
+        AccessibilityNodeInfo info = getRootInActiveWindow();
+        if(info.isFocused() && info.isFocusable()) {
+            Log.d(TAG3, "event.getSource().isFocused()");
+            return info;
+        }
+
+        AccessibilityNodeInfo info1 = FindFocusedRecurs(info);
+        if(info1 != null) {
+            Log.d(TAG3, "FindSelectedRecurs FOUND "+info1.getContentDescription());
+            return info1;
+        } else {
+            Log.d(TAG3, "FindSelectedRecurs NOT FOUND");
+            return null;
+        }
+    }
+
+    private AccessibilityNodeInfo GetRoot(AccessibilityNodeInfo info) {
+        if(info == null)
+            return null;
+        AccessibilityNodeInfo info1 = info;
+        for (int i = 0; i < 20; i++) {
+            AccessibilityNodeInfo root = info1.getParent();
+            if(root == null)
+                return info1;
+            info1 = root;
+        }
+        return null;
     }
 
     //endregion
@@ -388,42 +434,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
 
-    private AccessibilityNodeInfo FindSelectedRecurs(AccessibilityNodeInfo info) {
-        if(info == null)
-            return null;
-        if(info.isFocused())
-            return info;
-        for (int i = 0; i < info.getChildCount(); i++)  {
-            AccessibilityNodeInfo res = FindSelectedRecurs(info.getChild(i));
-            if(res != null)
-                return res;
-        }
-        return null;
-    }
 
-    private AccessibilityNodeInfo FindFocusableRecurs(AccessibilityNodeInfo info) {
-        if(info == null)
-            return null;
-        if(info.isFocusable())
-            return info;
-        for (int i = 0; i < info.getChildCount(); i++)  {
-            AccessibilityNodeInfo res = FindFocusableRecurs(info.getChild(i));
-            if(res != null)
-                return res;
-        }
-        return null;
-    }
-
-    private void FindSelectedRecurs2(AccessibilityNodeInfo info, ArrayList<AccessibilityNodeInfo> array) {
-        if(info == null)
-            return;
-        if(info.isFocused())
-            array.add(info);
-        for (int i = 0; i < info.getChildCount(); i++)  {
-            FindSelectedRecurs2(info.getChild(i), array);
-        }
-        return;
-    }
 
 
     class RectView extends View {
