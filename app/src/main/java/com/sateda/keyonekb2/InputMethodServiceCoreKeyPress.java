@@ -137,7 +137,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
     protected boolean ProcessNewStatusModelOnKeyDown(int keyCode, KeyEvent event) {
         int scanCode = event.getScanCode();
         int repeatCount1 = event.getRepeatCount();
-        //long eventTime = event.getEventTime();
+        long eventTime = event.getEventTime();
         long keyDownTime = event.getDownTime();
 
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyCode, scanCode);
@@ -201,7 +201,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                     return true;
                 }
                 if(keyPressData2.LongPressBeginTime == 0
-                    && keyDownTime - keyPressData2.KeyDownTime > TIME_LONG_PRESS ) {
+                    && eventTime - keyPressData2.KeyDownTime > TIME_LONG_PRESS ) {
                     keyPressData2.LongPressBeginTime = keyDownTime;
                     if(IsSameKeyDownPress(LastShortPressKey1, keyPressData2)
                         && keyDownTime - LastShortPressKey1.KeyUpTime <= TIME_SHORT_2ND_LONG_PRESS) {
