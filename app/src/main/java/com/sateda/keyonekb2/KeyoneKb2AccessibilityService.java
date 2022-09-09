@@ -200,17 +200,33 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                         && (KeyoneIME.Instance.GesturePointerMode || KeyoneIME.Instance.IsNavMode())
                         && !KeyoneIME.Instance.IsInputMode()
                         && event.getSource() != null) {
-                    //if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
-                    //        || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-                        if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
-                            //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
-                            PreparePointerClickHack(event);
-                        }
-                        if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
-                            ProcessSelectionRectangle(event);
 
+                    AccessibilityNodeInfo info = GetFocusedNode(event);
+                    if(info == null)
+                    {
+                        info = FindFocusableRecurs(GetRoot(getRootInActiveWindow()));
+                        info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+                    }
+
+                    if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
+                        //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
+                        if (info != null) {
+                            PreparePointerClickHack(info);
+                        } else {
+                            PreparePointerClickHack(null);
                         }
-                    //}
+                    }
+                    if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
+                        if (info != null) {
+                            if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                                ProcessSelectionRectangle(info);
+                            }
+                        } else {
+                            TryRemoveRectangle();
+                        }
+
+                    }
+
                 }
             }
             //if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
@@ -248,6 +264,35 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
     }
 
+    private AccessibilityNodeInfo GetFocusedNode(AccessibilityEvent event) {
+        AccessibilityNodeInfo info = getRootInActiveWindow();
+        if(!info.isFocused()) {
+            AccessibilityNodeInfo info1 = FindSelectedRecurs(getRootInActiveWindow());
+            if(info1 != null) {
+                Log.d(TAG3, "FindSelectedRecurs FOUND "+info1.getContentDescription());
+                info = info1;
+            } else {
+                Log.d(TAG3, "FindSelectedRecurs NOT FOUND");
+                return null;
+            }
+        } else {
+            Log.d(TAG3, "event.getSource().isFocused()");
+        }
+        return info;
+    }
+
+    private AccessibilityNodeInfo GetRoot(AccessibilityNodeInfo info) {
+        if(info == null)
+            return null;
+        AccessibilityNodeInfo info1 = info;
+        for (int i = 0; i < 20; i++) {
+            AccessibilityNodeInfo root = info1.getParent();
+            if(root == null)
+                return info1;
+            info1 = root;
+        }
+        return null;
+    }
 
 
     //region DIGITS-PAD
@@ -286,9 +331,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     //region GESTURE_POINTER
 
-    private void PreparePointerClickHack(AccessibilityEvent event) {
+    private void PreparePointerClickHack(AccessibilityNodeInfo info) {
         Rect rect = new Rect();
-        event.getSource().getBoundsInScreen(rect);
+        info.getBoundsInScreen(rect);
         float x = rect.centerX();
         float y = rect.centerY();
         SetCurrentNodeInfo((boolean isLongClick) -> {
@@ -318,27 +363,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     //region RECT_VIEW
 
-     private void ProcessSelectionRectangle(AccessibilityEvent event) {
+     private void ProcessSelectionRectangle(AccessibilityNodeInfo info) {
 
 
-        if(event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
-            return;
 
-        AccessibilityNodeInfo info = event.getSource();
+
+
         TryRemoveRectangle();
 
-        if(!event.getSource().isFocused()) {
-            AccessibilityNodeInfo info1 = FindSelectedRecurs(getRootInActiveWindow());
-            if(info1 != null) {
-                Log.d(TAG3, "FindSelectedRecurs FOUND "+info1.getContentDescription());
-                info = info1;
-            } else {
-                Log.d(TAG3, "FindSelectedRecurs NOT FOUND");
-                return;
-            }
-        } else {
-            Log.d(TAG3, "event.getSource().isFocused()");
-        }
+
 
         if(SelectionRectView == null) {
             SelectionRectView = CreateRectangleView();
@@ -366,6 +399,30 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 return res;
         }
         return null;
+    }
+
+    private AccessibilityNodeInfo FindFocusableRecurs(AccessibilityNodeInfo info) {
+        if(info == null)
+            return null;
+        if(info.isFocusable())
+            return info;
+        for (int i = 0; i < info.getChildCount(); i++)  {
+            AccessibilityNodeInfo res = FindFocusableRecurs(info.getChild(i));
+            if(res != null)
+                return res;
+        }
+        return null;
+    }
+
+    private void FindSelectedRecurs2(AccessibilityNodeInfo info, ArrayList<AccessibilityNodeInfo> array) {
+        if(info == null)
+            return;
+        if(info.isFocused())
+            array.add(info);
+        for (int i = 0; i < info.getChildCount(); i++)  {
+            FindSelectedRecurs2(info.getChild(i), array);
+        }
+        return;
     }
 
 
