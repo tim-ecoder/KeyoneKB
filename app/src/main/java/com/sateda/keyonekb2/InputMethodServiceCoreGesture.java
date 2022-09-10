@@ -248,12 +248,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
         if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
                 || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)) {
-                //|| CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_UP)) {
             if(modeDoubleClickGesture) {
                 modeDoubleClickGesture = false;
-                //mode_keyboard_gestures = false;
-                // //mode_keyboard_gestures_plus_up_down = false;
-                //UpdateGestureModeVisualization();
                 if(OnGestureSecondClickUp != null) {
                     OnGestureSecondClickUp.Process(null);
                 }
@@ -274,7 +270,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             }
         }
         else if (   CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)) {
-                //|| CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)) {
 
             long curDownTime = motionEvent.getEventTime();
             float curX = motionEvent.getX();
@@ -289,8 +284,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                     && prevUpTime - prevPrevDownTime <= TIME_DOUBLE_PRESS
                     && curDownTime - prevUpTime <= TIME_LONG_PRESS) {
                 Log.d(TAG2, "GESTURE TRIPLE CLICK");
-                //ActionEnableGestureMode();
-                //ActionChangeGestureAtInputModeUpAndDownMode();
                 if(OnGestureTripleClick != null) {
                     OnGestureTripleClick.Process(null);
                 }
@@ -301,7 +294,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                     && prevUpTime - prevDownTime <= TIME_LONG_PRESS
                     && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
                 Log.d(TAG2, "GESTURE DOUBLE CLICK");
-                //ActionEnableGestureMode();
                 if(OnGestureDoubleClick != null) {
                     OnGestureDoubleClick.Process(null);
                 }
@@ -431,14 +423,14 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             return true;
         }
         if(IsInputMode() && _gestureInputScrollViewMode) {
-            if(ActiveNode != null) {
+            //if(ActiveNode != null) {
                 moveByGesture(true);
-                AccessibilityNodeInfo info = FindScrollableRecurs(ActiveNode);
+            //    AccessibilityNodeInfo info = FindScrollableRecurs(ActiveNode);
                 //if(info != null)
                 //    info.addAction(AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD);
 
                     //info.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
-            }
+            //}
             return true;
         }
         if(inputConnection.getSelectedText(0) == null) {
@@ -467,13 +459,13 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             return true;
         }
         if(IsInputMode() && _gestureInputScrollViewMode) {
-            if(ActiveNode != null) {
-                AccessibilityNodeInfo info = FindScrollableRecurs(ActiveNode);
+            //if(ActiveNode != null) {
+                //AccessibilityNodeInfo info = FindScrollableRecurs(ActiveNode);
                 moveByGesture(false);
                 //if(info != null)
                 //    info.addAction(AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD);
                     //info.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
-            }
+            //}
             return true;
         }
         if(inputConnection.getSelectedText(0) == null) {

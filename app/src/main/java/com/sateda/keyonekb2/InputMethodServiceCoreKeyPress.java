@@ -179,20 +179,29 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         }
         if(keyProcessingMode.IsLetterShortDoubleLongPressMode()) {
             if(repeatCount1 == 0) {
-                //AnyHoldPlusButtonSignalTime = eventTime;
 
                 KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
                 KeyDownList1.add(keyPressData1);
 
-                if (LastShortPressKey1 == null || !IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
+                if (LastShortPressKey1 == null
+                        || !IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
                     ProcessShortPress(keyPressData1);
-                } else if (LastShortPressKey1 != null && IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
-                    if (keyDownTime - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) {
+                } else {
+                    if (keyPressData1.KeyProcessingMode.OnTriplePress != null
+                            && LastDoublePressKey != null
+                            && IsSameKeyDownPress(LastDoublePressKey, keyPressData1)
+                            && (keyDownTime - LastDoublePressKey.KeyDownTime <= TIME_TRIPLE_PRESS)) {
+                        ProcessTriplePress(keyPressData1);
+                    } else  if (LastShortPressKey1 != null
+                            && IsSameKeyDownPress(LastShortPressKey1, keyPressData1)
+                            && (keyDownTime - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) ) {
                         keyPressData1.DoublePressTime = keyDownTime;
                         LastDoublePressKey = keyPressData1;
                         ProcessUndoLastShortPress(keyPressData1);
                         ProcessDoublePress(keyPressData1);
-                    } else ProcessShortPress(keyPressData1);
+                    } else {
+                        ProcessShortPress(keyPressData1);
+                    }
                 }
             } else {
                 KeyPressData keyPressData2 = FindAtKeyDownList(keyCode, scanCode);
@@ -206,10 +215,10 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                     //&& eventTime - keyPressData2.KeyDownTime > TIME_LONG_PRESS ) {
                 ) {
                     keyPressData2.LongPressBeginTime = keyDownTime;
-                    if(IsSameKeyDownPress(LastShortPressKey1, keyPressData2)
-                        && keyDownTime - LastShortPressKey1.KeyUpTime <= TIME_SHORT_2ND_LONG_PRESS) {
-                        keyPressData2.Short2ndLongPress = true;
-                    }
+                    //if(IsSameKeyDownPress(LastShortPressKey1, keyPressData2)
+                    //    && keyDownTime - LastShortPressKey1.KeyUpTime <= TIME_SHORT_2ND_LONG_PRESS) {
+                    //    keyPressData2.Short2ndLongPress = true;
+                    //}
                     ProcessUndoLastShortPress(keyPressData2);
                     ProcessLongPress(keyPressData2);
                 }
@@ -222,24 +231,18 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                 KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
                 KeyDownList1.add(keyPressData1);
 
-                if (LastShortPressKey1 != null
-                    && IsSameKeyDownPress(LastShortPressKey1, keyPressData1)
-                    && (keyDownTime - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) ) {
-
+                if (keyPressData1.KeyProcessingMode.OnTriplePress != null
+                        && LastDoublePressKey != null
+                        && IsSameKeyDownPress(LastDoublePressKey, keyPressData1)
+                        && (keyDownTime - LastDoublePressKey.KeyDownTime <= TIME_TRIPLE_PRESS)) {
+                    ProcessTriplePress(keyPressData1);
+                } else  if (LastShortPressKey1 != null
+                        && IsSameKeyDownPress(LastShortPressKey1, keyPressData1)
+                        && (keyDownTime - LastShortPressKey1.KeyDownTime <= TIME_DOUBLE_PRESS) ) {
                     keyPressData1.DoublePressTime = keyDownTime;
-
-                    if(keyPressData1.KeyProcessingMode.OnTriplePress != null
-                            && LastDoublePressKey != null
-                            && IsSameKeyDownPress(LastDoublePressKey, keyPressData1)
-                            && (LastShortPressKey1.KeyDownTime  - LastDoublePressKey.KeyDownTime <= TIME_TRIPLE_PRESS)) {
-                        ProcessTriplePress(keyPressData1);
-                    } else {
-                        keyPressData1.DoublePressTime = keyDownTime;
-                        LastDoublePressKey = keyPressData1;
-                        ProcessUndoLastShortPress(keyPressData1);
-                        ProcessDoublePress(keyPressData1);
-                    }
-
+                    LastDoublePressKey = keyPressData1;
+                    ProcessUndoLastShortPress(keyPressData1);
+                    ProcessDoublePress(keyPressData1);
                 } else {
                     keyPressData1.HoldBeginTime = keyDownTime;
                     ProcessHoldBegin(keyPressData1);
@@ -292,8 +295,9 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                 return false;
             }
             RemoveFromKeyDownList(keyPressData);
-            if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS) {
-                keyPressData.KeyUpTime = eventTime;
+            keyPressData.KeyUpTime = eventTime;
+            if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS
+                && keyPressData.DoublePressTime == 0) {
                 LastShortPressKey1 = keyPressData;
             }
             return true;

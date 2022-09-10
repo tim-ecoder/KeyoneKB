@@ -473,6 +473,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionTryEnableGestureCursorModeOnHoldState", InitializeMethod3((Object o) -> ActionTryEnableGestureCursorModeOnHoldState(), Object.class));
         Methods.put("ActionDeletePrevWord", InitializeMethod3((Object o) -> ActionDeletePrevWord(), Object.class));
         Methods.put("MetaIsKey0Pressed", InitializeMethod3((Object o) -> MetaIsKey0Pressed(), Object.class));
+        Methods.put("ActionSendCharFromAltPopup", InitializeMethod3(this::ActionSendCharFromAltPopup, KeyPressData.class));
+        Methods.put("ActionSendCharFromAltPopupAtSingleAltTriplePress", InitializeMethod3(this::ActionSendCharFromAltPopupAtSingleAltTriplePress, KeyPressData.class));
 
     }
 
@@ -666,7 +668,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             metaFixedModeFirstSymbolAlt = false;
             metaFixedModeAllSymbolsAlt = false;
             DetermineForceFirstUpper(getCurrentInputEditorInfo());
-            //UpdateGestureModeVisualization();
             return true;
         }
         return false;
@@ -678,7 +679,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             keyboardStateFixed_NavModeAndKeyboard = true;
             keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
             keyboardView.SetFnKeyboardMode(false);
-            //UpdateGestureModeVisualization();
             return true;
         }
         return false;
@@ -686,13 +686,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     public boolean ActionSetNavModeHoldOnState() {
         keyboardStateHolding_NavModeAndKeyboard = true;
-        //UpdateGestureModeVisualization();
         return true;
     }
 
     public boolean ActionSetNavModeHoldOffState() {
         keyboardStateHolding_NavModeAndKeyboard = false;
-        //UpdateGestureModeVisualization();
         return true;
     }
 
@@ -1164,6 +1162,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public boolean ActionTryRemoveSelectedNodeRectangle() {
         if(KeyoneKb2AccessibilityService.Instance != null) {
             return KeyoneKb2AccessibilityService.Instance.TryRemoveRectangle();
+            //return true;
         }
         return false;
     }
@@ -1408,6 +1407,33 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
         SendLetterOrSymbol(code2send);
         return true;
+    }
+
+    public boolean ActionSendCharFromAltPopup(KeyPressData keyPressData) {
+        int code2send;
+        DeleteLastSymbol();
+        code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
+        if (code2send == 0) {
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+        }
+        SendLetterOrSymbol(code2send);
+        return true;
+    }
+
+    public boolean ActionSendCharFromAltPopupAtSingleAltTriplePress(KeyPressData keyPressData) {
+        int code2send;
+        int letterBeforeCursor = GetLetterBeforeCursor();
+        int letterAltShifted = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+        if(letterAltShifted == letterBeforeCursor) {
+            code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
+            if (code2send != 0) {
+                DeleteLastSymbol();
+                SendLetterOrSymbol(code2send);
+                return true;
+            }
+            return true;
+        }
+        return false;
     }
 
     public boolean ActionSendCharLongPressAltSymbolAltMode(KeyPressData keyPressData) {

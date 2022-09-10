@@ -88,18 +88,41 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "onServiceConnected()");
         super.onServiceConnected();
 
-        AccessibilityServiceInfo info = getServiceInfo();
-        if(keyoneKb2AccServiceOptions.SearchPluginsEnabled) {
-            //info.packageNames = SearchClickPackages.toArray(new String[SearchClickPackages.size()]);
-            info.packageNames = null;
-            if (!TEMP_ADDED_SEARCH_CLICK_PLUGINS.isEmpty())
-                info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
-        } else {
-            info.packageNames = null;
-            info.flags = 0;
-            info.eventTypes = 0;
-        }
-        setServiceInfo(info);
+        try {
+
+            keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
+            keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJson(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {
+            }, this);
+
+            LoadRetranslationData();
+
+            if (!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
+                return;
+            LoadSearchPluginData();
+
+
+            AccessibilityServiceInfo info = getServiceInfo();
+            if (keyoneKb2AccServiceOptions.SearchPluginsEnabled) {
+                //info.packageNames = SearchClickPackages.toArray(new String[SearchClickPackages.size()]);
+                info.packageNames = null;
+                if (!TEMP_ADDED_SEARCH_CLICK_PLUGINS.isEmpty())
+                    info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
+            } else {
+                info.packageNames = null;
+                info.flags = 0;
+                info.eventTypes = 0;
+            }
+            setServiceInfo(info);
+
+
+
+            } catch(Throwable ex) {
+                Log.e(TAG3, "onServiceConnected Exception: "+ex);
+                new Thread(() -> {
+                    try { Thread.sleep(200); } catch (Throwable ignored) {}
+                    StopService();
+                }).start();
+            }
     }
     @Override
     public synchronized void onDestroy() {
@@ -118,16 +141,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             Instance = this;
             _currentWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
             _layoutParams = InitializeLayoutParams();
-
-            keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
-            keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJson(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, getApplicationContext());
-
-            LoadRetranslationData();
             executorService = Executors.newFixedThreadPool(2);
 
-            if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
-                return;
-            LoadSearchPluginData();
+
+
         } catch(Throwable ex) {
             Log.e(TAG3, "onCreate Exception: "+ex);
             new Thread(() -> {
@@ -143,7 +160,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "onInterrupt()");
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.P)
+    @Override
+    public boolean onGesture(int gestureId) {
+        Log.v(TAG3, "onGesture(): "+gestureId);
+        //super.onGesture(gestureId);
+        return false;
+    }
+
+    //@RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
         //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
@@ -152,11 +176,19 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if(KeyoneIME.Instance == null)
                 return;
 
-            if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                    && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
-                    && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
 
+
+            if (
+                    event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                            && event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
+                            && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                            && event.getEventType() != AccessibilityEvent.TYPE_VIEW_SCROLLED
+                    && event.getEventType() != AccessibilityEvent.TYPE_WINDOWS_CHANGED
+            ) {
+
+                Log.d(TAG3, "------------------ NEW_EVENT ------------------");
                 LogEventD(event);
+                Log.d(TAG3, "------------------ NEW_EVENT ------------------");
                 return;
             }
             if((event.getEventType() & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
@@ -172,7 +204,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if (root == null)
                 return;
 
-            if(!event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
+            if(event.getPackageName() != null && !event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
                 return;
 
             if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
@@ -183,95 +215,26 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_WINDOW_CONTENT_CHANGED");
                 Log.d(TAG3, "TYPE_WINDOW_CONTENT_CHANGED TYPES: " + event.getContentChangeTypes());
             }
+            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED)
+                Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_VIEW_SCROLLED");
+
+            if(event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED)
+                Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_WINDOWS_CHANGED");
+
+            if(event.getEventType() == AccessibilityEvent.TYPE_ANNOUNCEMENT)
+                Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_ANNOUNCEMENT");
 
             LogEventD(event);
 
             if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled)
-            if(event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                    && ContainsAllDigitsButtons(root)) {
-                SetDigitsHack(true);
-                return;
-            } else {
-                //SetDigitsHack(false);
-            }
+                ProcessDigitsPadHack(event, root);
 
-            if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
-                if (KeyoneIME.Instance != null
-                        && (KeyoneIME.Instance.GesturePointerMode || KeyoneIME.Instance.IsNavMode())
-                        && !KeyoneIME.Instance.IsInputMode()
-                        && event.getSource() != null) {
+            if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight)
+                ProcessGesturePointerModeAndNodeSelection(event);
 
-                    AccessibilityNodeInfo info = GetFocusedNode(event.getSource());
-                    if(info == null) {
-                        info = GetFocusedNode(getRootInActiveWindow());
-                    }
-                    if(info == null)
-                    {
-                        info = FindFocusableRecurs(GetRoot(getRootInActiveWindow()), 0);
-                        if(info != null) {
-                            Log.d(TAG3, "FindFocusableRecurs(GetRoot(getRootInActiveWindow()) "+info );
-                            boolean clickRes = info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
-                            if(clickRes) {
-                                Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) OK");
-                            } else {
-                                Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) FAIL");
-                                info = null;
-                            }
-                        }
+            if(keyoneKb2AccServiceOptions.SearchPluginsEnabled)
+                ProcessSearchPlugins(event, root);
 
-                    }
-
-                    if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
-                        //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
-                        if (info != null) {
-                            PreparePointerClickHack(info);
-                        } else {
-                            SetCurrentNodeInfo(null);
-                        }
-                    }
-                    if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
-                        if (info != null) {
-                            //if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-                                ProcessSelectionRectangle(info);
-                            //}
-                        } else {
-                            TryRemoveRectangle();
-                        }
-
-                    }
-
-                }
-            }
-            //if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-                if(KeyoneIME.Instance != null) {
-                    KeyoneIME.Instance.ActiveNode = getRootInActiveWindow();
-                }
-            //}
-
-            if(!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
-                return;
-
-            CharSequence packageNameCs = event.getPackageName();
-            if (packageNameCs == null || packageNameCs.length() == 0)
-                return;
-            String packageName = packageNameCs.toString();
-
-            if(!SearchClickPackages.contains(packageName)) {
-                //LogEventD(event);
-                return;
-            }
-
-            for (SearchClickPlugin plugin : searchClickPlugins) {
-                if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin)) {
-                    return;
-                }
-            }
-
-            if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                    && IsSearchHackSet(packageName)) {
-                SetSearchHack(null);
-                LogEventD(event);
-            }
         } catch (Throwable ex) {
             Log.e(TAG3, "onAccessibilityEvent Exception: "+ex);
         }
@@ -281,6 +244,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
     //region DIGITS-PAD
+
+    private void ProcessDigitsPadHack(AccessibilityEvent event, AccessibilityNodeInfo root) {
+        if(
+                event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                        || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
+        )
+            if(ContainsAllDigitsButtons(root)) {
+                SetDigitsHack(true);
+            }
+    }
 
     private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text, int recursLevel) {
         if(recursLevel > 4)
@@ -315,6 +288,88 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     //endregion
 
     //region NODES_SELECTION
+
+    private void ProcessGesturePointerModeAndNodeSelection(AccessibilityEvent event) {
+        if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
+            if(keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
+                //TryRemoveRectangle();
+            }
+            //return;
+        }
+
+        if(event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
+                && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                && event.getEventType() != AccessibilityEvent.TYPE_WINDOWS_CHANGED
+                && event.getEventType() != AccessibilityEvent.TYPE_VIEW_SCROLLED
+        )
+            return;
+
+        AccessibilityNodeInfo info;
+        if(event.getEventType() != AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
+            info = event.getSource();
+            if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                    && !info.isFocused()
+                    && SelectionRectView != null
+                    && SelectionRectView.IsSameNodeHash(info)
+            ) {
+                Log.d(TAG3, "FOCUS MOVED OUT: HASH: "+info.hashCode());
+                SetCurrentNodeInfo(null);
+                TryRemoveRectangleFast();
+                return;
+            }
+
+        } else {
+            info = null;
+        }
+
+        if (KeyoneIME.Instance != null
+                && (KeyoneIME.Instance.GesturePointerMode || KeyoneIME.Instance.IsNavMode())
+                && !KeyoneIME.Instance.IsInputMode()) {
+
+            info = GetFocusedNode(info);
+            if(info == null) {
+                info = GetFocusedNode(getRootInActiveWindow());
+            }
+            if(info == null)
+            {
+                info = FindFocusableRecurs(GetRoot(getRootInActiveWindow()), 0);
+                if(info != null) {
+                    Log.d(TAG3, "FindFocusableRecurs(GetRoot(getRootInActiveWindow()) HASH: "+info.hashCode() );
+                    boolean clickRes = info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+                    if(clickRes) {
+                        Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) OK");
+                        return;
+                    } else {
+                        Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) FAIL");
+                        info = null;
+                    }
+                }
+
+            }
+
+            if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
+                //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
+                if (info != null) {
+                    PreparePointerClickHack(info);
+                } else {
+                    SetCurrentNodeInfo(null);
+                }
+            }
+            if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
+                if (info != null) {
+                    //if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                    ProcessSelectionRectangle(info);
+                    //}
+                } else {
+                    TryRemoveRectangle();
+                }
+
+            }
+
+
+        }
+    }
 
     private AccessibilityNodeInfo FindFocusedRecurs(AccessibilityNodeInfo info) {
         if(info == null)
@@ -356,6 +411,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     private AccessibilityNodeInfo GetFocusedNode(AccessibilityNodeInfo info) {
+        if(info == null)
+            return null;
         if(info.isFocused()) {
             Log.d(TAG3, "GetFocusedNode() .isFocused()");
             return info;
@@ -363,7 +420,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         AccessibilityNodeInfo info1 = FindFocusedRecurs(info);
         if(info1 != null) {
-            Log.d(TAG3, "GetFocusedNode FOUND "+info1.getContentDescription());
+            Log.d(TAG3, "GetFocusedNode FOUND HASH: "+info1.hashCode());
             return info1;
         } else {
             Log.d(TAG3, "GetFocusedNode NOT FOUND");
@@ -384,64 +441,31 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         return null;
     }
 
-    //endregion
-
-    //region GESTURE_POINTER
-
-    private void PreparePointerClickHack(AccessibilityNodeInfo info) {
-        Rect rect = new Rect();
-        info.getBoundsInScreen(rect);
-        float x = rect.centerX();
-        float y = rect.centerY();
-        SetCurrentNodeInfo((boolean isLongClick) -> {
-            Path clickPath = new Path();
-            GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
-            clickPath.moveTo(x, y);
-            if(!isLongClick)
-                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, 1));
-            else {
-                int longPressTime = ViewConfiguration.getLongPressTimeout();
-                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, longPressTime+longPressTime/2));
-            }
-            dispatchGesture(clickBuilder.build(), null, null);
-        });
-
-    }
-
-
-
-    private void SetCurrentNodeInfo(InputMethodServiceCoreCustomizable.AsNodeClicker info) {
-        if(KeyoneIME.Instance != null) {
-            KeyoneIME.Instance.SetCurrentNodeInfo(info);
-        }
-    }
-
-    //endregion
-
-    //region RECT_VIEW
-
      private void ProcessSelectionRectangle(AccessibilityNodeInfo info) {
-
-
-
-
-
-        TryRemoveRectangle();
-
-
 
         if(SelectionRectView == null) {
             SelectionRectView = CreateRectangleView();
             LestSelectionRectView = SelectionRectView;
-        }
-
-        if(SelectionRectView.IsSameRect(info)) {
-            Log.d(TAG3, "SelectionRectView.IsSameRect(info)");
+            Log.d(TAG3, "DRAW_ASYNC_SIGNAL! HASH: "+info.hashCode());
+            SelectionRectView.SetNodeInfo(info);
+            SelectionRectView.removed = false;
+            SelectionRectView.RemoveRectOnNextDraw = false;
+            _currentWindowManager.addView(SelectionRectView, _layoutParams);
             return;
         }
+
+        if(!SelectionRectView.removed && !SelectionRectView.RemoveRectOnNextDraw &&  SelectionRectView.IsSameNodeAndRect(info)) {
+            Log.d(TAG3, "SelectionRectView.IsSameRect(info) HASH: "+info.hashCode());
+            return;
+        }
+
+        if(!SelectionRectView.removed && !SelectionRectView.RemoveRectOnNextDraw)
+            TryRemoveRectangle();
+        Log.d(TAG3, "DRAW_ASYNC_SIGNAL! HASH: "+info.hashCode());
+        SelectionRectView.RemoveRectOnNextDraw = false;
         SelectionRectView.SetNodeInfo(info);
+        SelectionRectView.setVisibility(View.GONE);
         SelectionRectView.setVisibility(View.VISIBLE);
-        _currentWindowManager.addView(SelectionRectView, _layoutParams);
     }
 
 
@@ -465,7 +489,19 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             SelectedNode = info;
         }
 
-        public boolean IsSameRect(AccessibilityNodeInfo info) {
+        public boolean IsSameNodeAndRect(AccessibilityNodeInfo info) {
+            if(SelectedNode != null && SelectedNode.hashCode() == info.hashCode() && IsSameRect(info))
+                return true;
+            return false;
+        }
+
+        public boolean IsSameNodeHash(AccessibilityNodeInfo info) {
+            if(SelectedNode != null && SelectedNode.hashCode() == info.hashCode())
+                return true;
+            return false;
+        }
+
+        private boolean IsSameRect(AccessibilityNodeInfo info) {
             if(SelectedNodeRect == null)
                 return false;
             Rect rect = new Rect();
@@ -489,14 +525,36 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         @Override
         protected void onDraw(Canvas canvas) {
 
+
             if(SelectedNode == null)
                 return;
+
+            if(RemoveRectOnNextDraw) {
+                Paint paint1 = new Paint();
+                paint1.setAlpha(0);
+                paint1.setStrokeWidth(3);
+                paint1.setStyle(Paint.Style.STROKE);
+
+                SelectedNodeRect = new Rect();
+                SelectedNode.getBoundsInScreen(SelectedNodeRect);
+
+                canvas.drawRect(SelectedNodeRect, paint1);
+                Log.d(TAG3, "OnDraw() HIDE");
+                removed = true;
+                RemoveRectOnNextDraw = false;
+                return;
+            }
+
+            Log.d(TAG3, "OnDraw() SHOW");
+            removed = false;
             SelectedNodeRect = new Rect();
             SelectedNode.getBoundsInScreen(SelectedNodeRect);
-
             canvas.drawRect(SelectedNodeRect, paint);
-
         }
+
+        public boolean RemoveRectOnNextDraw;
+
+        public boolean removed;
 
         Paint paint;
     }
@@ -537,8 +595,25 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     public boolean TryRemoveRectangle() {
         if(SelectionRectView != null) {
+            Log.d(TAG3, "REMOVE_ASYNC_SIGNAL! TryRemoveRectangle() HASH: "+SelectionRectView.SelectedNode.hashCode());
+
+            SelectionRectView.RemoveRectOnNextDraw = true;
             SelectionRectView.setVisibility(View.GONE);
-            _currentWindowManager.removeView(SelectionRectView);
+            SelectionRectView.setVisibility(View.VISIBLE);
+
+            return true;
+        }
+        return false;
+    }
+
+    public boolean TryRemoveRectangleFast() {
+        if(SelectionRectView != null) {
+            Log.d(TAG3, "TryRemoveRectangleFast() HASH: "+SelectionRectView.SelectedNode.hashCode());
+
+            //SelectionRectView.setVisibility(View.INVISIBLE);
+            //SelectionRectView.invalidate();
+
+            _currentWindowManager.removeViewImmediate(SelectionRectView);
             SelectionRectView = null;
             return true;
         }
@@ -547,7 +622,65 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     //endregion
 
+
+    //region GESTURE_POINTER
+
+    private void PreparePointerClickHack(AccessibilityNodeInfo info) {
+        Rect rect = new Rect();
+        info.getBoundsInScreen(rect);
+        float x = rect.centerX();
+        float y = rect.centerY();
+        SetCurrentNodeInfo((boolean isLongClick) -> {
+            Path clickPath = new Path();
+            GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
+            clickPath.moveTo(x, y);
+            if(!isLongClick)
+                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, 1));
+            else {
+                int longPressTime = ViewConfiguration.getLongPressTimeout();
+                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, longPressTime+longPressTime/2));
+            }
+            dispatchGesture(clickBuilder.build(), null, null);
+        });
+
+    }
+
+
+
+    private void SetCurrentNodeInfo(InputMethodServiceCoreCustomizable.AsNodeClicker info) {
+        if(KeyoneIME.Instance != null) {
+            KeyoneIME.Instance.SetCurrentNodeInfo(info);
+        }
+    }
+
+    //endregion
+
+
     //region SEARCH PLUGIN
+
+    private void ProcessSearchPlugins(AccessibilityEvent event, AccessibilityNodeInfo root) {
+        CharSequence packageNameCs = event.getPackageName();
+        if (packageNameCs == null || packageNameCs.length() == 0)
+            return;
+        String packageName = packageNameCs.toString();
+
+        if(!SearchClickPackages.contains(packageName)) {
+            //LogEventD(event);
+            return;
+        }
+
+        for (SearchClickPlugin plugin : searchClickPlugins) {
+            if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin)) {
+                return;
+            }
+        }
+
+        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                && IsSearchHackSet(packageName)) {
+            SetSearchHack(null);
+            //LogEventD(event);
+        }
+    }
 
 
     private void LoadSearchPluginData() {
@@ -623,8 +756,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "event.getWindowId() " + event.getWindowId());
         Log.v(TAG3, "event.getText() " + event.getText());
         Log.v(TAG3, "event.getContentDescription() " + event.getContentDescription());
-        Log.v(TAG3, "event.getSource() " + event.getSource());
-        Log.v(TAG3, "getRootInActiveWindow() " + getRootInActiveWindow());
+        //Log.v(TAG3, "event.getSource() " + event.getSource());
+        //Log.v(TAG3, "getRootInActiveWindow() " + getRootInActiveWindow());
         Log.v(TAG3, "--------------------LogEventD--------------------");
     }
 

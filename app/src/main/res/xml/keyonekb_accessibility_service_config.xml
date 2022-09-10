@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
                        android:description="@string/keyonekb_accessibility_service_description"
-                       android:accessibilityEventTypes="typeViewFocused|typeWindowStateChanged|typeWindowContentChanged"
+                       android:accessibilityEventTypes="typeViewFocused|typeWindowStateChanged|typeWindowContentChanged|typeWindowsChanged"
                        android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents"
                        android:accessibilityFeedbackType="feedbackSpoken"
                        android:notificationTimeout="100"
@@ -9,7 +9,6 @@
                        android:canRetrieveWindowContent="true"
                        android:canPerformGestures="true"
                        android:settingsActivity="com.sateda.keyonekb2.ActivityMain"
-
                        >
 <!--
 typeWindowContentChanged
@@ -19,8 +18,12 @@ typeWindowContentChanged
 android:accessibilityEventTypes="typeAllMask"
 
 android:canRequestTouchExplorationMode="true"
+|flagRequestTouchExplorationMode
 
-|flagIncludeNotImportantViews|flagRequestTouchExplorationMode
+android:canRequestFingerprintGestures="true"
+|flagRequestFingerprintGestures
+
+|flagIncludeNotImportantViews
 
 
 android:packageNames="com.example.android.apis"
