@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.*;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Toast;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -143,8 +144,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             _layoutParams = InitializeLayoutParams();
             executorService = Executors.newFixedThreadPool(2);
 
-
-
         } catch(Throwable ex) {
             Log.e(TAG3, "onCreate Exception: "+ex);
             new Thread(() -> {
@@ -160,14 +159,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "onInterrupt()");
     }
 
-    @Override
-    public boolean onGesture(int gestureId) {
-        Log.v(TAG3, "onGesture(): "+gestureId);
-        //super.onGesture(gestureId);
-        return false;
-    }
-
-    //@RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
         //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
@@ -470,6 +461,20 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
 
+    RectView SelectionRectView;
+    RectView LestSelectionRectView;
+
+    private RectView CreateRectangleView() {
+        RectView rectView = new RectView(this);
+        rectView.setClickable(false);
+        rectView.setFocusable(false);
+        rectView.setFocusableInTouchMode(false);
+        rectView.setLongClickable(false);
+        rectView.setKeepScreenOn(false);
+        //rectView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
+        return rectView;
+    }
 
 
     class RectView extends View {
@@ -479,10 +484,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         public RectView(Context context) {
             super(context);
-            paint = new Paint();
-            paint.setColor(Color.GRAY);
-            paint.setStrokeWidth(3);
-            paint.setStyle(Paint.Style.STROKE);
+            paintMainer = new Paint();
+            paintMainer.setColor(Color.GRAY);
+            paintMainer.setStrokeWidth(3);
+            paintMainer.setStyle(Paint.Style.STROKE);
+
+            paintTransparenter = new Paint();
+            paintTransparenter.setAlpha(0);
+            paintTransparenter.setStrokeWidth(3);
+            paintTransparenter.setStyle(Paint.Style.STROKE);
         }
 
         public void SetNodeInfo(AccessibilityNodeInfo info) {
@@ -525,20 +535,17 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         @Override
         protected void onDraw(Canvas canvas) {
 
-
+            //Toast.makeText(KeyoneKb2AccessibilityService.Instance, "rectView.isHardwareAccelerated(): "+canvas.isHardwareAccelerated(), Toast.LENGTH_SHORT).show();
             if(SelectedNode == null)
                 return;
 
             if(RemoveRectOnNextDraw) {
-                Paint paint1 = new Paint();
-                paint1.setAlpha(0);
-                paint1.setStrokeWidth(3);
-                paint1.setStyle(Paint.Style.STROKE);
+
 
                 SelectedNodeRect = new Rect();
                 SelectedNode.getBoundsInScreen(SelectedNodeRect);
 
-                canvas.drawRect(SelectedNodeRect, paint1);
+                canvas.drawRect(SelectedNodeRect, paintTransparenter);
                 Log.d(TAG3, "OnDraw() HIDE");
                 removed = true;
                 RemoveRectOnNextDraw = false;
@@ -549,31 +556,22 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             removed = false;
             SelectedNodeRect = new Rect();
             SelectedNode.getBoundsInScreen(SelectedNodeRect);
-            canvas.drawRect(SelectedNodeRect, paint);
+            canvas.drawRect(SelectedNodeRect, paintMainer);
         }
 
         public boolean RemoveRectOnNextDraw;
 
         public boolean removed;
 
-        Paint paint;
+        Paint paintMainer;
+
+        Paint paintTransparenter;
     }
 
 
 
 
-    RectView SelectionRectView;
-    RectView LestSelectionRectView;
 
-    private RectView CreateRectangleView() {
-        RectView rectView = new RectView(this);
-        rectView.setClickable(false);
-        rectView.setFocusable(false);
-        rectView.setFocusableInTouchMode(false);
-        rectView.setLongClickable(false);
-        rectView.setKeepScreenOn(false);
-        return rectView;
-    }
 
     private static WindowManager.LayoutParams InitializeLayoutParams() {
         WindowManager.LayoutParams lp1 = new WindowManager.LayoutParams();
