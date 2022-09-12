@@ -310,7 +310,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         if(event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED && event.getWindowId() == -1) {
             SetCurrentNodeInfo(null);
-            TryRemoveRectangle();
+            TryRemoveRectangleFast();
             return;
         }
 

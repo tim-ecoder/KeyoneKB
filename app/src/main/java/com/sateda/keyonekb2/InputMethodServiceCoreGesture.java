@@ -68,7 +68,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     protected abstract boolean IsGestureModeEnabled();
 
     protected boolean ProcessGestureAtMotionEvent(MotionEvent motionEvent) {
-        //LogKeyboardTest("GESTURE ACTION: "+motionEvent.getAction());
+        LogKeyboardTest("GESTURE ACTION: "+motionEvent);
 
         if (IsNoGesturesMode())
             return true;
@@ -87,7 +87,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         }
 
         if (!mode_keyboard_gestures && !GesturePointerMode && KeyHoldPlusGestureEnabled) {
-            ProcessPrepareAtHoldGesture(motionEvent);
+            //ProcessPrepareAtHoldGesture(motionEvent);
         }
 
         //&& !mode_keyboard_gestures_plus_up_down
@@ -97,50 +97,79 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             ProcessDoubleGestureClick(motionEvent);
         }
         //if (mode_keyboard_gestures || (!IsInputMode() && GesturePointerMode)) {
-        if (mode_keyboard_gestures || (!IsInputMode() && GesturePointerMode) || _gestureInputScrollViewMode) {
+        if (mode_keyboard_gestures || (!IsInputMode() && GesturePointerMode) || (IsInputMode() && _gestureInputScrollViewMode)) {
 
-            //TODO: Подумать отдельно обрабатывать жесты по горизонтали и отдельно по вертикали ориентируясь на событие ACTION_UP
-
-            InputConnection inputConnection = getCurrentInputConnection();
-            float motionEventX;
-            float motionEventY;
-
-            if(motionEvent.getPointerCount() == 1) {
-                motionEventX = motionEvent.getX();
-                motionEventY = motionEvent.getY();
-                if(motionEventY > ROW_4_BEGIN_Y)
-                    return true;
-                if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
-                    return true;
-            } else {
-                if (motionEvent.getY(0) > ROW_4_BEGIN_Y) {
-                    motionEventX = motionEvent.getX(1);
-                    motionEventY = motionEvent.getY(1);
-                    if(motionEvent.getActionIndex() == 0) {
-                        if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
-                            return true;
-                    } else {
-                        if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_POINTER_DOWN))
-                            return true;
-                    }
-                } else {
-                    motionEventX = motionEvent.getX(0);
-                    motionEventY = motionEvent.getY(0);
-                    if(motionEvent.getActionIndex() == 0) {
-                        if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_POINTER_DOWN))
-                            return true;
-                    } else {
-                        if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
-                            return true;
-                    }
+            if(CheckMotionAction(motionEvent,  MotionEvent.ACTION_MOVE) &&
+                    motionEvent.getHistorySize() > 1) {
+                //ProcessGestureAtomicMovement(motionEvent, -1);
+                for (int i = 1; i < motionEvent.getHistorySize(); i++) {
+                    ProcessGestureAtomicMovement(motionEvent, i);
                 }
+            } else {
+                ProcessGestureAtomicMovement(motionEvent, -1);
             }
-
-
-
         }
 
         return true;
+    }
+
+    private boolean ProcessGestureAtomicMovement(MotionEvent motionEvent, int historyIndex) {
+        InputConnection inputConnection = getCurrentInputConnection();
+        float motionEventX;
+        float motionEventY;
+
+        if(motionEvent.getPointerCount() == 1) {
+            if(historyIndex == -1) {
+                motionEventX = motionEvent.getX();
+                motionEventY = motionEvent.getY();
+            } else {
+                motionEventX = motionEvent.getHistoricalX(historyIndex);
+                motionEventY = motionEvent.getHistoricalY(historyIndex);
+            }
+            if(motionEventY > ROW_4_BEGIN_Y)
+                return true;
+            if(historyIndex == -1) {
+                if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
+                    return true;
+            }
+            else {
+                if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
+                    return true;
+            }
+        } else {
+            if (motionEvent.getY(0) > ROW_4_BEGIN_Y) {
+                if(historyIndex == -1) {
+                    motionEventX = motionEvent.getX(1);
+                    motionEventY = motionEvent.getY(1);
+                } else {
+                    motionEventX = motionEvent.getHistoricalX(1, historyIndex);
+                    motionEventY = motionEvent.getHistoricalY(1, historyIndex);
+                }
+                if(motionEvent.getActionIndex() == 0) {
+                    if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
+                        return true;
+                } else {
+                    if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_POINTER_DOWN))
+                        return true;
+                }
+            } else {
+                if(historyIndex == -1) {
+                    motionEventX = motionEvent.getX(0);
+                    motionEventY = motionEvent.getY(0);
+                } else {
+                    motionEventX = motionEvent.getHistoricalX(0, historyIndex);
+                    motionEventY = motionEvent.getHistoricalY(0, historyIndex);
+                }
+                if(motionEvent.getActionIndex() == 0) {
+                    if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_POINTER_DOWN))
+                        return true;
+                } else {
+                    if (PerformGestureAction(motionEvent, inputConnection, motionEventX, motionEventY, MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN))
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
     boolean CheckMotionAction(MotionEvent motionEvent, int checkAction) {
@@ -157,7 +186,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             //|| CheckMotionAction(motionEvent, MotionEvent.ACTION_POINTER_DOWN)
             ) {
             //if (debug_gestures)
-            //    Log.d(TAG, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
+            Log.d(TAG2, "onGenericMotionEvent ACTION_DOWN " + motionEvent);
             lastGestureX = motionEventX;
             lastGestureY = motionEventY;
             return true;
@@ -165,6 +194,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
         if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE)) {
 
+            Log.d(TAG2, "LAST_X "+lastGestureX);
+            Log.d(TAG2, "CUR_X "+motionEventX);
+            Log.d(TAG2, "LAST_Y "+lastGestureY);
+            Log.d(TAG2, "CUR_Y "+motionEventY);
             if(lastGestureX > 0 && lastGestureY > 0) {
                 float deltaX = motionEventX - lastGestureX;
                 float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
@@ -189,7 +222,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                         if (MoveCursorLeftSafe(inputConnection))
                             Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
                     }
-                } else if (mode_keyboard_gestures_plus_up_down || (!IsInputMode() && GesturePointerMode) || _gestureInputScrollViewMode) {
+                } else if (mode_keyboard_gestures_plus_up_down || (!IsInputMode() && GesturePointerMode) || (IsInputMode() && _gestureInputScrollViewMode)) {
                     if (absDeltaY < motion_delta_min_y)
                         return true;
                     //int times = Math.round(absDeltaY / motion_delta_min_y);
@@ -229,16 +262,16 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         }
         if (CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE) && enteredGestureMovement) {
             lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
-            lastGestureX = motionEvent.getX();
-            lastGestureY = motionEvent.getY();
+            //lastGestureX = motionEvent.getX();
+            //lastGestureY = motionEvent.getY();
 
         }
         if (CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)
                 || CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN))  {
 
             lastGestureSwipingBeginTime = SystemClock.uptimeMillis();
-            lastGestureX = motionEvent.getX();
-            lastGestureY = motionEvent.getY();
+            //lastGestureX = motionEvent.getX();
+            //lastGestureY = motionEvent.getY();
             enteredGestureMovement = true;
         }
     }
@@ -363,10 +396,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             path.lineTo(middleXValue, bottomSideOfScreen);
             Log.d(TAG2, "GESTURE_SCROLL_BOTTOM");
         }
-
-        //gestureBuilder.addStroke(new GestureDescription.StrokeDescription(path, 0, 150, true));
-        //KeyoneKb2AccessibilityService.Instance.dispatchGesture(gestureBuilder.build(), null, null);
-        //swipeScreenWithDelay(path, 0l, 200l, 250l);
         GestureDescription.StrokeDescription gesture1 = new GestureDescription.StrokeDescription(path, 0, 150, true);
         if(gesture == null) {
             gesture = gesture1;
@@ -454,6 +483,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     private boolean MoveCursorUpSafe(InputConnection inputConnection) {
+        Log.d(TAG2, "MOVE_CURSOR!");
         if(!IsInputMode() && GesturePointerMode) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_UP, inputConnection, 0);
             return true;
