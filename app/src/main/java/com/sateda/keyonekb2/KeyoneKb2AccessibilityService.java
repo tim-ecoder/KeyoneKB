@@ -241,6 +241,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
                         || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
         )
+            if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
+                SetDigitsHack(false);
+                return;
+            }
             if(ContainsAllDigitsButtons(root)) {
                 SetDigitsHack(true);
             }
@@ -281,6 +285,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     //region NODES_SELECTION
 
     private void ProcessGesturePointerModeAndNodeSelection(AccessibilityEvent event) {
+
+        if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
+            SetCurrentNodeInfo(null);
+            TryRemoveRectangle();
+            return;
+        }
+
         if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
             if(keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
                 //TryRemoveRectangle();
@@ -295,6 +306,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 && event.getEventType() != AccessibilityEvent.TYPE_VIEW_SCROLLED
         )
             return;
+
+
+        if(event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED && event.getWindowId() == -1) {
+            SetCurrentNodeInfo(null);
+            TryRemoveRectangle();
+            return;
+        }
 
         AccessibilityNodeInfo info;
         if(event.getEventType() != AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
@@ -592,7 +610,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     public boolean TryRemoveRectangle() {
-        if(SelectionRectView != null) {
+        if(SelectionRectView != null && (!SelectionRectView.RemoveRectOnNextDraw || !SelectionRectView.removed)) {
             Log.d(TAG3, "REMOVE_ASYNC_SIGNAL! TryRemoveRectangle() HASH: "+SelectionRectView.SelectedNode.hashCode());
 
             SelectionRectView.RemoveRectOnNextDraw = true;
@@ -605,7 +623,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     public boolean TryRemoveRectangleFast() {
-        if(SelectionRectView != null) {
+        if(SelectionRectView != null && (!SelectionRectView.RemoveRectOnNextDraw || !SelectionRectView.removed)) {
             Log.d(TAG3, "TryRemoveRectangleFast() HASH: "+SelectionRectView.SelectedNode.hashCode());
 
             //SelectionRectView.setVisibility(View.INVISIBLE);
@@ -657,6 +675,12 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     //region SEARCH PLUGIN
 
     private void ProcessSearchPlugins(AccessibilityEvent event, AccessibilityNodeInfo root) {
+
+        if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
+            SetSearchHack(null);
+            return;
+        }
+
         CharSequence packageNameCs = event.getPackageName();
         if (packageNameCs == null || packageNameCs.length() == 0)
             return;
