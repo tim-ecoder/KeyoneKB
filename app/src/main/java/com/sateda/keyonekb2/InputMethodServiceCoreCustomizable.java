@@ -752,7 +752,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         //    Log.d(TAG2, "GestureMode at key_0_down first time");
         //    return ActionEnableGestureAtInputMode();
         //}
-        if(!mode_keyboard_gestures) {
+        if(!mode_keyboard_gestures && KeyHoldPlusGestureEnabled) {
             gestureCursorAtInputEnabledByHold = true;
             mode_keyboard_gestures = true;
             return true;
@@ -761,7 +761,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     }
 
     public boolean ActionTryDisableGestureCursorModeUnHoldState() {
-        if(gestureCursorAtInputEnabledByHold) {
+        if(gestureCursorAtInputEnabledByHold && KeyHoldPlusGestureEnabled) {
             gestureCursorAtInputEnabledByHold = false;
             mode_keyboard_gestures = false;
             return true;
