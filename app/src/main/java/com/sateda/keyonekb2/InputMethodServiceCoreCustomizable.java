@@ -73,7 +73,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public static class KeyboardMechanics {
 
 
-
         @JsonProperty(index = 20)
         public ArrayList<Action> OnStartInputActions;
         @JsonProperty(index = 30)
@@ -619,8 +618,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if (!IsCalling())
             return false;
 
-        if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
-                || (this.checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED)) {
+        if (this.checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
 
             Log.e(TAG2, "DeclinePhone no permission");
             ShowDebugToast("DeclinePhone no permission");
@@ -633,13 +631,16 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         } else {
 
             try {
+                //telephonyManager = getTelephonyManager();
                 Class<?> classTelephony = Class.forName(telephonyManager.getClass().getName());
                 Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
                 methodGetITelephony.setAccessible(true);
                 ITelephony telephonyService = (ITelephony) methodGetITelephony.invoke(telephonyManager);
                 if (telephonyService != null) {
                     ShowDebugToast("END-CALL (A<=27:REFLECTION)");
-                    return telephonyService.endCall();
+                    boolean ret = telephonyService.endCall();
+                    Log.d(TAG2, "END-CALL (A<=27:REFLECTION) RET: " + ret);
+                    return ret;
                 } else {
                     Log.e(TAG2, "telephonyService == null (reflection)");
                     ShowDebugToast("telephonyService == null (reflection)");
@@ -652,8 +653,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 return false;
             }
         }
-
     }
+
 
 
     //endregion
