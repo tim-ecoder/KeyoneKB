@@ -80,7 +80,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     protected abstract boolean IsGestureModeEnabled();
 
     protected boolean ProcessGestureAtMotionEvent(MotionEvent motionEvent) {
-        LogKeyboardTest("GESTURE ACTION: "+motionEvent);
+        //LogKeyboardTest("GESTURE ACTION: "+motionEvent);
 
         if (IsNoGesturesMode())
             return true;
@@ -220,7 +220,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 /*MAGIC_KEYBOARD_GESTURE_MOTION_CONST=48; pref_gesture_motion_sensitivity=1-положение-слева
                 * K=0.5 ~9 событий */
                 if(!IsInputMode() && GesturePointerMode)
-                    Kpower = 3f;
+                    Kpower = 2.5f;
                 if(IsInputMode() && _gestureInputScrollViewMode)
                     Kpower = 0.75f;
 
@@ -256,13 +256,18 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
             Log.d(TAG2, "lastX: "+lastGestureX+" lastY: "+lastGestureY);
         } else if(CheckMotionAction(motionEvent, ACTION_OR_POINTER_UP)) {
-            lastGestureX = 0;
-            lastGestureY = 0;
-            lastEventTime = 0;
+            ResetGestureMovementCoordsToInitial();
+            //Это тут точно не нужно иначе прокрутка перестенет доплывать/доезжать после окончания действия
             //ResetScrollGestureStateToInitial();
             return true;
         }
         return false;
+    }
+
+    private void ResetGestureMovementCoordsToInitial() {
+        lastGestureX = 0;
+        lastGestureY = 0;
+        lastEventTime = 0;
     }
 
     private void ProcessDoubleGestureClick(MotionEvent motionEvent) {
@@ -618,7 +623,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     //endregion
 
-    //region ACTIONS
+    //region Actions GESTURE (VIEW_MODE) POINTER/SCROLL
 
     protected String _lastPackageName = "";
 
@@ -645,12 +650,14 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             return false;
         _gestureInputScrollViewMode = !_gestureInputScrollViewMode;
         Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _gestureInputScrollViewMode);
+        ResetGestureMovementCoordsToInitial();
         return true;
     }
 
     public boolean ActionDisableGestureInputScrollMode() {
         _gestureInputScrollViewMode = false;
         Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _gestureInputScrollViewMode);
+        ResetGestureMovementCoordsToInitial();
         return true;
     }
 
@@ -659,18 +666,19 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             return false;
         GesturePointerMode = !GesturePointerMode;
         Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ GesturePointerMode);
+        ResetGestureMovementCoordsToInitial();
         return true;
     }
 
     public boolean ActionResetGesturePointerMode() {
         GesturePointerMode = GetGestureDefaultPointerMode();
         Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ GesturePointerMode);
+        ResetGestureMovementCoordsToInitial();
         return true;
     }
 
     protected boolean IsInputMode() {
         if(getCurrentInputEditorInfo() == null) return false;
-        //Log.d(TAG2, "IsInputMode() "+getCurrentInputEditorInfo().inputType);
         return getCurrentInputEditorInfo().inputType > 0;
     }
 
@@ -678,7 +686,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         mode_keyboard_gestures_plus_up_down = false;
         if (mode_keyboard_gestures) {
             mode_keyboard_gestures = false;
-            //UpdateGestureModeVisualization();
             return true;
         }
         return false;

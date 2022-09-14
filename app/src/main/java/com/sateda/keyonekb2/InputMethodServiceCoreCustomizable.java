@@ -724,7 +724,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     //endregion
 
-    //region Actions GESTURE
+    //region Actions GESTURE (INPUT_MODE)
 
     public boolean ActionTryTurnOffGesturesMode() {
         return super.ActionTryTurnOffGesturesMode();
