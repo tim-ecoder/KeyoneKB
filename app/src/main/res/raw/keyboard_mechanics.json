@@ -427,8 +427,10 @@
           "stop-processing-at-success-result": true
         },
         {
+          "comment" : "Пока отключим, проще удалить лишний пробел",
           "meta-mode-method-names": [
-            "MetaStateIsOnCall"
+            "MetaStateIsOnCall",
+            "MetaIsDisabled"
           ],
           "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true
@@ -449,6 +451,16 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
+          "comment" : "Если мы в режиме ввода, то на одиночный пробел (первый клик) ввелся пробел, его надо удалить ",
+          "meta-mode-method-names": [
+            "MetaStateIsOnCall",
+            "InputIsAnyInput"
+          ],
+          "action-method-name": "ActionDeletePreviousSymbol"
+        }, {
+          "meta-mode-method-names": [
+            "MetaStateIsOnCall"
+          ],
           "action-method-name": "ActionTryAcceptCall",
           "stop-processing-at-success-result": true
         }, {
