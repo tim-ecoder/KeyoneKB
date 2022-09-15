@@ -123,9 +123,11 @@ public class ViewSatedaKeyboard extends KeyboardView {
     int[] sym_KeyLabel_x;
     int[] sym_KeyLabel_y;
     String[] sym_KeyLabel;
+    String[] sym_KeyLabelAltPopup;
     int[] alt_KeyLabel_x;
     int[] alt_KeyLabel_y;
     String[] alt_KeyLabel;
+    String[] alt_KeyLabelAltPopup;
 
     boolean modeAlt = false;
 
@@ -145,7 +147,9 @@ public class ViewSatedaKeyboard extends KeyboardView {
             sym_KeyLabel = new String[max_keys];
             sym_KeyLabel_x = new int[max_keys];
             sym_KeyLabel_y = new int[max_keys];
-            LoadExtraKeyScreenData(keyboardLayout, isAltShift, sym_KeyLabel_x, sym_KeyLabel_y, sym_KeyLabel);
+            sym_KeyLabelAltPopup = new String[max_keys];
+
+            LoadExtraKeyScreenData(keyboardLayout, isAltShift, sym_KeyLabel_x, sym_KeyLabel_y, sym_KeyLabel, sym_KeyLabelAltPopup);
             isSymLoaded = true;
         } else {
             modeSym = false;
@@ -159,12 +163,14 @@ public class ViewSatedaKeyboard extends KeyboardView {
             alt_KeyLabel = new String[max_keys];
             alt_KeyLabel_x = new int[max_keys];
             alt_KeyLabel_y = new int[max_keys];
-            LoadExtraKeyScreenData(keyboardLayout, isAltShift, alt_KeyLabel_x, alt_KeyLabel_y, alt_KeyLabel);
+            alt_KeyLabelAltPopup = new String[max_keys];
+
+            LoadExtraKeyScreenData(keyboardLayout, isAltShift, alt_KeyLabel_x, alt_KeyLabel_y, alt_KeyLabel, alt_KeyLabelAltPopup);
             isAltLoaded = true;
         }
     }
 
-    private void LoadExtraKeyScreenData(KeyboardLayout keyboardLayout, boolean isAltShift, int[] _KeyLabel_x, int[] _KeyLabel_y, String[] _KeyLabel) {
+    private void LoadExtraKeyScreenData(KeyboardLayout keyboardLayout, boolean isAltShift, int[] _KeyLabel_x, int[] _KeyLabel_y, String[] _KeyLabel, String[] _KeyLabelAltPopup) {
         alt = true;
         showSymbol = true;
         fnSymbol = false;
@@ -204,9 +210,13 @@ public class ViewSatedaKeyboard extends KeyboardView {
             if((key.label.equals(" "))
                     && isKeyboard(keyVariants.KeyCode)) {
 
-                _KeyLabel_x[arr_inc] = key.x + (key.width - 25);
-                _KeyLabel_y[arr_inc] = key.y + 40;
+                _KeyLabel_x[arr_inc] = key.x + (key.width - 90);
+                _KeyLabel_y[arr_inc] = key.y + 100;
                 _KeyLabel[arr_inc] = keyVariants.SinglePressShiftMode.toString();
+                if(keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
+                    _KeyLabelAltPopup[arr_inc] = Character.toString(keyVariants.AltMoreVariants.charAt(0));
+                } else
+                    _KeyLabelAltPopup[arr_inc] = "";
 
                  if(!isAltShift) {
                     key.codes[0] = keyVariants.SinglePressAltMode;
@@ -232,7 +242,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
     boolean modeNav = false;
 
     public void setNavigationLayer(){
-        max_keys = 11;
+        max_keys = 12;
 
         modeSym = false;
         modeAlt = false;
@@ -250,7 +260,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
         List<Keyboard.Key> keys = getKeyboard().getKeys();
 
         int arr_inc = 0;
-        for(int i = 0; i < MAX_KEY_COUNT; i++){
+        for(int i = 0; i < max_keys; i++){
             nav_KeyLabel[i] = "";
             nav_KeyLabel_x[i] = 0;
             nav_KeyLabel_y[i] = 0;
@@ -363,6 +373,11 @@ public class ViewSatedaKeyboard extends KeyboardView {
         paint_gray.setTextSize(28);
         paint_gray.setColor(Color.GRAY);
 
+        Paint paint_red = new Paint();
+        paint_red.setTextAlign(Paint.Align.CENTER);
+        paint_red.setTextSize(32);
+        paint_red.setColor(Color.CYAN);
+
         Paint paint_blue = new Paint();
         paint_blue.setColor(Color.BLUE);
 
@@ -424,10 +439,14 @@ public class ViewSatedaKeyboard extends KeyboardView {
             else if(modeAlt)
                 for(int i = 0; i < max_keys; i++){
                     canvas.drawText(alt_KeyLabel[i], alt_KeyLabel_x[i], alt_KeyLabel_y[i], paint_gray);
+                    if(alt_KeyLabelAltPopup[i] != "")
+                        canvas.drawText(alt_KeyLabelAltPopup[i], alt_KeyLabel_x[i]+65, alt_KeyLabel_y[i]-65, paint_red);
                 }
             else if(modeSym)
                 for(int i = 0; i < max_keys; i++){
                     canvas.drawText(sym_KeyLabel[i], sym_KeyLabel_x[i], sym_KeyLabel_y[i], paint_gray);
+                    if(sym_KeyLabelAltPopup[i] != "")
+                        canvas.drawText(sym_KeyLabelAltPopup[i], sym_KeyLabel_x[i]+65, sym_KeyLabel_y[i]-65, paint_red);
                 }
         }
 

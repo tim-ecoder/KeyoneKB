@@ -40,8 +40,6 @@ public class KeyboardLayout {
         public Character SinglePressAltShiftMode = null;
         @JsonProperty(index=80)
         public String AltMoreVariants = null;
-        @JsonProperty(index=90)
-        public String AltShiftMoreVariants = null;
     }
 
     public static class KeyboardLayoutOptions {

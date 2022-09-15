@@ -77,9 +77,6 @@ public class KeyboardLayoutManager {
                 if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty() && (curKeyVariants.AltMoreVariants == null || curKeyVariants.AltMoreVariants.isEmpty())) {
                     curKeyVariants.AltMoreVariants = keyVariants.AltMoreVariants;
                 }
-                if (keyVariants.AltShiftMoreVariants != null && !keyVariants.AltShiftMoreVariants.isEmpty() && (curKeyVariants.AltShiftMoreVariants == null || curKeyVariants.AltShiftMoreVariants.isEmpty())) {
-                    curKeyVariants.AltShiftMoreVariants = keyVariants.AltShiftMoreVariants;
-                }
             }
         }
     }
