@@ -14,7 +14,7 @@ import java.util.List;
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 
-public class ViewMoreKeysKeyboard extends KeyboardView {
+public class ViewPopupScreenKeyboard extends KeyboardView {
 
 
     private int countKeys;
@@ -26,14 +26,14 @@ public class ViewMoreKeysKeyboard extends KeyboardView {
 
 
 
-    public ViewMoreKeysKeyboard(Context context, AttributeSet attrs) {
+    public ViewPopupScreenKeyboard(Context context, AttributeSet attrs) {
         super(context, attrs);
         keyWidht = 0;
         totalWidht = 0;
 
     }
 
-    public ViewMoreKeysKeyboard(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ViewPopupScreenKeyboard(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

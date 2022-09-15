@@ -5,7 +5,7 @@
   "key-mapping" : [ {
     "key-code" : 11,
     "single-press" : "$",
-    "single-press-shift-mode" : "€"
+    "single-press-shift-mode" : "$"
   }, {
     "key-code" : 45,
     "single-press" : "q",

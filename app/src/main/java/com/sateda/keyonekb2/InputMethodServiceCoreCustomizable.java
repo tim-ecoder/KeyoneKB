@@ -924,7 +924,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         keyboardStateFixed_NavModeAndKeyboard = false;
         keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
         keyboardView.SetFnKeyboardMode(false);
-        //UpdateGestureModeVisualization();
         return true;
     }
 
@@ -940,8 +939,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 keyboardStateFixed_SymbolOnScreenKeyboard = false;
                 metaFixedModeFirstSymbolAlt = false;
                 metaFixedModeAllSymbolsAlt = false;
-                //TODO: Поубирать
-                //DetermineForceFirstUpper(getCurrentInputEditorInfo());
             }
             //TODO: Много лишних вызовов апдейта нотификаций
             return true;
@@ -1294,7 +1291,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         int code2send;
         code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, false);
         SendLetterOrSymbol(code2send);
-        //keyboardLayoutManager.ScanCodeKeyCodeMapping.put(keyPressData.ScanCode, keyPressData.KeyCode);
         return true;
     }
 
@@ -1310,7 +1306,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         //TODO: Подумать как сделать эту логику более кастомизиремым через keyboard_mechanics
         int code2send;
         int letterBeforeCursor = GetLetterBeforeCursor();
-        /* Для случая SYM символовол по double-press
+        /*
+        // Для случая SYM символовол по double-press
         int letterAlted = keyboardLayoutManager.KeyToCharCode(keyPressData, true, false, false);
         if(letterBeforeCursor == letterAlted) {
             DeleteLastSymbol();
@@ -1319,6 +1316,13 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             return true;
         }
 */
+
+        boolean wasAltSymbol = false;
+        int letterAlted = keyboardLayoutManager.KeyToCharCode(keyPressData, true, false, false);
+        if(letterBeforeCursor == letterAlted) {
+            wasAltSymbol = true;
+        }
+
         if(IsNotPairedLetter(keyPressData)) {
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, isShiftMode, false);
             SendLetterOrSymbol(code2send);
@@ -1328,13 +1332,15 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         boolean needShift = false;
         //Определяем была ли первая из сдвоенных букв Заглавной
         int letterShifted = keyboardLayoutManager.KeyToCharCode(keyPressData, false, true, false);
-
         if(letterBeforeCursor == letterShifted)
             needShift = true;
 
-
-        DeleteLastSymbol();
-        code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, needShift, true);
+        if(!wasAltSymbol) {
+            DeleteLastSymbol();
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, needShift, true);
+        } else {
+            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, needShift, false);
+        }
         SendLetterOrSymbol(code2send);
         return true;
     }
@@ -1367,28 +1373,27 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         int code2send;
 
         if(keyPressData.Short2ndLongPress ) {
-            //Сначала обратаываем случай, когда уже случился ввод SYM-символа через SinglePressAltMode+DoublePress
-            int letterBeforeCursor = GetLetterBeforeCursor();
-            int letterAltShifted = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
-            if(letterAltShifted == letterBeforeCursor) {
-                code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
-                if (code2send != 0) {
-                    DeleteLastSymbol();
-                    SendLetterOrSymbol(code2send);
-                    return true;
-                }
-                return true;
-            }
+            //if (IsNotPairedLetter(keyPressData))
             DeleteLastSymbol();
-            if (IsNotPairedLetter(keyPressData))
-                DeleteLastSymbol();
-            code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+            //Сначала обратаываем случай, когда уже случился ввод ALT-символа через SinglePressAltMode
+            //В этом случае надо переделать этот символ в ALT-POPUP-символ
+            int letterBeforeCursor = GetLetterBeforeCursor();
+            int letterAlted = keyboardLayoutManager.KeyToCharCode(keyPressData, true, false, false);
+            if(letterAlted == letterBeforeCursor) {
+                code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
+                if (code2send == 0) {
+                    code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+                }
+            } else {
+                code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);
+            }
 
         } else {
-            DeleteLastSymbol();
+
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, false, false);
         }
 
+        DeleteLastSymbol();
         SendLetterOrSymbol(code2send);
         return true;
     }

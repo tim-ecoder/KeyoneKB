@@ -21,39 +21,6 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
     private static final int MAX_KEY_COUNT = 50;
 
-    private static final int KEY_Q = 16;
-    private static final int KEY_W = 17;
-    private static final int KEY_E = 18;
-    private static final int KEY_R = 19;
-    private static final int KEY_T = 20;
-    private static final int KEY_Y = 21;
-    private static final int KEY_U = 22;
-    private static final int KEY_I = 23;
-    private static final int KEY_O = 24;
-    private static final int KEY_P = 25;
-
-    private static final int KEY_A = 30;
-    private static final int KEY_S = 31;
-    private static final int KEY_D = 32;
-    private static final int KEY_F = 33;
-    private static final int KEY_G = 34;
-    private static final int KEY_H = 35;
-    private static final int KEY_J = 36;
-    private static final int KEY_K = 37;
-    private static final int KEY_L = 38;
-
-    private static final int KEY_Z = 44;
-    private static final int KEY_X = 45;
-    private static final int KEY_C = 46;
-    private static final int KEY_V = 47;
-    private static final int KEY_B = 48;
-    private static final int KEY_N = 49;
-    private static final int KEY_M = 50;
-    private static final int KEY_DOLLAR = 5;
-
-    private int[] KeyLabel_x;
-    private int[] KeyLabel_y;
-    private String[] KeyLabel;
     private String[] altPopup;
     private String[] altPopupLabel;
     private int indexAltPopup;
@@ -74,16 +41,18 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
     private OverKeyboardPopupWindow mPopupKeyboard;
     private int mPopupLayout;
-    private ViewMoreKeysKeyboard mMiniKeyboard;
+    private ViewPopupScreenKeyboard mMiniKeyboard;
 
     private Context context;
     private AttributeSet attrs;
 
+    private int[] nav_KeyLabel_x;
+    private int[] nav_KeyLabel_y;
+    private String[] nav_KeyLabel;
+
     public ViewSatedaKeyboard(Context context, AttributeSet attrs) {
         super(context, attrs);
-        KeyLabel = new String[MAX_KEY_COUNT];
-        KeyLabel_x = new int[MAX_KEY_COUNT];
-        KeyLabel_y = new int[MAX_KEY_COUNT];
+
         altPopup = new String[MAX_KEY_COUNT];
         altPopupLabel = new String[MAX_KEY_COUNT];
 
@@ -109,7 +78,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
     public void setService(KeyoneIME listener) {
         mService = listener;
-        mMiniKeyboard = new ViewMoreKeysKeyboard(context,attrs);
+        mMiniKeyboard = new ViewPopupScreenKeyboard(context,attrs);
     }
 
     public void showFlag(boolean isShow){
@@ -148,24 +117,72 @@ public class ViewSatedaKeyboard extends KeyboardView {
         return false;
     }
 
-    public void setAltLayer(KeyboardLayout keybordLayout, boolean isAltShift){
+    boolean isSymLoaded = false;
+    boolean isAltLoaded = false;
+
+    int[] sym_KeyLabel_x;
+    int[] sym_KeyLabel_y;
+    String[] sym_KeyLabel;
+    int[] alt_KeyLabel_x;
+    int[] alt_KeyLabel_y;
+    String[] alt_KeyLabel;
+
+    boolean modeAlt = false;
+
+    boolean modeSym = false;
+
+    public void setAltLayer(KeyboardLayout keyboardLayout, boolean isAltShift){
+
+        max_keys = 27;
+        if(isAltShift) {
+            modeSym = true;
+            modeAlt = false;
+            modeNav = false;
+
+            if(isSymLoaded) {
+                return;
+            }
+            sym_KeyLabel = new String[max_keys];
+            sym_KeyLabel_x = new int[max_keys];
+            sym_KeyLabel_y = new int[max_keys];
+            LoadExtraKeyScreenData(keyboardLayout, isAltShift, sym_KeyLabel_x, sym_KeyLabel_y, sym_KeyLabel);
+            isSymLoaded = true;
+        } else {
+            modeSym = false;
+            modeAlt = true;
+            modeNav = false;
+
+            if(isAltLoaded) {
+                return;
+            }
+
+            alt_KeyLabel = new String[max_keys];
+            alt_KeyLabel_x = new int[max_keys];
+            alt_KeyLabel_y = new int[max_keys];
+            LoadExtraKeyScreenData(keyboardLayout, isAltShift, alt_KeyLabel_x, alt_KeyLabel_y, alt_KeyLabel);
+            isAltLoaded = true;
+        }
+    }
+
+    private void LoadExtraKeyScreenData(KeyboardLayout keyboardLayout, boolean isAltShift, int[] _KeyLabel_x, int[] _KeyLabel_y, String[] _KeyLabel) {
         alt = true;
         showSymbol = true;
         fnSymbol = false;
+
         List<Keyboard.Key> keys = getKeyboard().getKeys();
         int arr_inc = 0;
         int i = 0;
-        // TODO: Это все требуется рефакторинга чтобы не перерисовывать каждый раз клавиатуру
-        for(KeyboardLayout.KeyVariants keyVariants : keybordLayout.KeyMapping){
-            KeyLabel[i] = "";
-            KeyLabel_x[i] = 0;
-            KeyLabel_y[i] = 0;
+        // TODO: Это все требует рефакторинга чтобы не перерисовывать каждый раз клавиатуру
+        for(KeyboardLayout.KeyVariants keyVariants : keyboardLayout.KeyMapping){
+            _KeyLabel[i] = "";
+            _KeyLabel_x[i] = 0;
+            _KeyLabel_y[i] = 0;
+            altPopup[i] = keyVariants.AltMoreVariants;
+
             if(!isAltShift) {
-                altPopup[i] = keyVariants.AltMoreVariants;
                 altPopupLabel[i] = String.valueOf((char) keyVariants.SinglePressAltMode);
             }
             else {
-                altPopup[i] = keyVariants.AltShiftMoreVariants;
                 altPopupLabel[i] = String.valueOf((char) keyVariants.SinglePressAltShiftMode);
             }
             i++;
@@ -175,49 +192,23 @@ public class ViewSatedaKeyboard extends KeyboardView {
             if(key == null)
                 continue;
             KeyboardLayout.KeyVariants keyVariants = null;
+            //TODO: Особенно вот эта дичь
             Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d",key.codes[0]));
             if(keyCode == null) {
                 Log.e(TAG2, "SCAN_CODE NOT MAPPED "+key.codes[0]);
                 continue;
             } else {
-                keyVariants = KeyboardLayoutManager.getCurKeyVariants(keybordLayout, keyCode.intValue());
+                keyVariants = KeyboardLayoutManager.getCurKeyVariants(keyboardLayout, keyCode.intValue());
             }
 
-            if(key.label.equals(" ")
-                    && isKeyboard(keyVariants.KeyCode)){
+            if((key.label.equals(" "))
+                    && isKeyboard(keyVariants.KeyCode)) {
 
-                KeyLabel_x[arr_inc] = key.x + (key.width - 25);
-                KeyLabel_y[arr_inc] = key.y + 40;
+                _KeyLabel_x[arr_inc] = key.x + (key.width - 25);
+                _KeyLabel_y[arr_inc] = key.y + 40;
+                _KeyLabel[arr_inc] = keyVariants.SinglePressShiftMode.toString();
 
-                if (key.codes[0] == KEY_Q) { KeyLabel[arr_inc] = "Q"; }
-                else if (key.codes[0] == KEY_W) { KeyLabel[arr_inc] = "W"; }
-                else if (key.codes[0] == KEY_E) { KeyLabel[arr_inc] = "E"; }
-                else if (key.codes[0] == KEY_R) { KeyLabel[arr_inc] = "R"; }
-                else if (key.codes[0] == KEY_T) { KeyLabel[arr_inc] = "T"; }
-                else if (key.codes[0] == KEY_Y) { KeyLabel[arr_inc] = "Y"; }
-                else if (key.codes[0] == KEY_U) { KeyLabel[arr_inc] = "U"; }
-                else if (key.codes[0] == KEY_I) { KeyLabel[arr_inc] = "I"; }
-                else if (key.codes[0] == KEY_O) { KeyLabel[arr_inc] = "O"; }
-                else if (key.codes[0] == KEY_P) { KeyLabel[arr_inc] = "P"; }
-                else if (key.codes[0] == KEY_A) { KeyLabel[arr_inc] = "A"; }
-                else if (key.codes[0] == KEY_S) { KeyLabel[arr_inc] = "S"; }
-                else if (key.codes[0] == KEY_D) { KeyLabel[arr_inc] = "D"; }
-                else if (key.codes[0] == KEY_F) { KeyLabel[arr_inc] = "F"; }
-                else if (key.codes[0] == KEY_G) { KeyLabel[arr_inc] = "G"; }
-                else if (key.codes[0] == KEY_H) { KeyLabel[arr_inc] = "H"; }
-                else if (key.codes[0] == KEY_J) { KeyLabel[arr_inc] = "J"; }
-                else if (key.codes[0] == KEY_K) { KeyLabel[arr_inc] = "K"; }
-                else if (key.codes[0] == KEY_L) { KeyLabel[arr_inc] = "L"; }
-                else if (key.codes[0] == KEY_Z) { KeyLabel[arr_inc] = "Z"; }
-                else if (key.codes[0] == KEY_X) { KeyLabel[arr_inc] = "X"; }
-                else if (key.codes[0] == KEY_C) { KeyLabel[arr_inc] = "C"; }
-                else if (key.codes[0] == KEY_V) { KeyLabel[arr_inc] = "V"; }
-                else if (key.codes[0] == KEY_B) { KeyLabel[arr_inc] = "B"; }
-                else if (key.codes[0] == KEY_N) { KeyLabel[arr_inc] = "N"; }
-                else if (key.codes[0] == KEY_M) { KeyLabel[arr_inc] = "M"; }
-                else if (key.codes[0] == KEY_DOLLAR) { KeyLabel[arr_inc] = "$"; }
-
-                if(!isAltShift) {
+                 if(!isAltShift) {
                     key.codes[0] = keyVariants.SinglePressAltMode;
                     key.label = String.valueOf((char) keyVariants.SinglePressAltMode);
                 }
@@ -237,35 +228,51 @@ public class ViewSatedaKeyboard extends KeyboardView {
         invalidateAllKeys();
     }
 
+    boolean navLayerLoaded = false;
+    boolean modeNav = false;
+
     public void setNavigationLayer(){
+        max_keys = 11;
+
+        modeSym = false;
+        modeAlt = false;
+        modeNav = true;
+
+        if(navLayerLoaded)
+            return;
+
+        nav_KeyLabel = new String[max_keys];
+        nav_KeyLabel_x = new int[max_keys];
+        nav_KeyLabel_y = new int[max_keys];
+
         alt = true;
         showSymbol = true;
         List<Keyboard.Key> keys = getKeyboard().getKeys();
-        max_keys = 11;
+
         int arr_inc = 0;
         for(int i = 0; i < MAX_KEY_COUNT; i++){
-            KeyLabel[i] = "";
-            KeyLabel_x[i] = 0;
-            KeyLabel_y[i] = 0;
+            nav_KeyLabel[i] = "";
+            nav_KeyLabel_x[i] = 0;
+            nav_KeyLabel_y[i] = 0;
         }
 
         for(Keyboard.Key key: keys) {
 
-            if (key.codes[0] == 111) { KeyLabel[arr_inc] = "Q"; } //ESC
-            if (key.codes[0] == 122) { KeyLabel[arr_inc] = "W/Y"; } //HOME
-            if (key.codes[0] == 19)  { KeyLabel[arr_inc] = "E/U"; } //Arrow Up
-            if (key.codes[0] == 123) { KeyLabel[arr_inc] = "R/I"; } //END
-            if (key.codes[0] == 92)  { KeyLabel[arr_inc] = "T/O"; } //Page Up
-            if (key.codes[0] == -7)  { KeyLabel[arr_inc] = "P"; } //FN
+            if (key.codes[0] == 111) { nav_KeyLabel[arr_inc] = "Q"; } //ESC
+            if (key.codes[0] == 122) { nav_KeyLabel[arr_inc] = "W/Y"; } //HOME
+            if (key.codes[0] == 19)  { nav_KeyLabel[arr_inc] = "E/U"; } //Arrow Up
+            if (key.codes[0] == 123) { nav_KeyLabel[arr_inc] = "R/I"; } //END
+            if (key.codes[0] == 92)  { nav_KeyLabel[arr_inc] = "T/O"; } //Page Up
+            if (key.codes[0] == -7)  { nav_KeyLabel[arr_inc] = "P"; } //FN
 
-            if (key.codes[0] == 61)  { KeyLabel[arr_inc] = "A"; } //TAB
-            if (key.codes[0] == 21)  { KeyLabel[arr_inc] = "S/H"; } //Arrow Left
-            if (key.codes[0] == 20)  { KeyLabel[arr_inc] = "D/J"; } //Arrow Down
-            if (key.codes[0] == 22)  { KeyLabel[arr_inc] = "F/K"; } //Arrow Right
-            if (key.codes[0] == 93)  { KeyLabel[arr_inc] = "G/L"; } //Page Down
+            if (key.codes[0] == 61)  { nav_KeyLabel[arr_inc] = "A"; } //TAB
+            if (key.codes[0] == 21)  { nav_KeyLabel[arr_inc] = "S/H"; } //Arrow Left
+            if (key.codes[0] == 20)  { nav_KeyLabel[arr_inc] = "D/J"; } //Arrow Down
+            if (key.codes[0] == 22)  { nav_KeyLabel[arr_inc] = "F/K"; } //Arrow Right
+            if (key.codes[0] == 93)  { nav_KeyLabel[arr_inc] = "G/L"; } //Page Down
 
-            KeyLabel_x[arr_inc] = key.x + (key.width - 25);
-            KeyLabel_y[arr_inc] = key.y + 40;
+            nav_KeyLabel_x[arr_inc] = key.x + (key.width - 25);
+            nav_KeyLabel_y[arr_inc] = key.y + 40;
             arr_inc++;
         }
     }
@@ -410,9 +417,18 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
         // отображение подписи букв, эквивалентных кнопкам
         if (showSymbol){
-            for(int i = 0; i < max_keys; i++){
-                canvas.drawText(KeyLabel[i], KeyLabel_x[i], KeyLabel_y[i], paint_gray);
-            }
+            if(modeNav)
+                for(int i = 0; i < max_keys; i++){
+                    canvas.drawText(nav_KeyLabel[i], nav_KeyLabel_x[i], nav_KeyLabel_y[i], paint_gray);
+                }
+            else if(modeAlt)
+                for(int i = 0; i < max_keys; i++){
+                    canvas.drawText(alt_KeyLabel[i], alt_KeyLabel_x[i], alt_KeyLabel_y[i], paint_gray);
+                }
+            else if(modeSym)
+                for(int i = 0; i < max_keys; i++){
+                    canvas.drawText(sym_KeyLabel[i], sym_KeyLabel_x[i], sym_KeyLabel_y[i], paint_gray);
+                }
         }
 
         //если отображено меню сверху - прикрыть панель темной полоской
