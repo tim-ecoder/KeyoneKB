@@ -1310,6 +1310,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         //TODO: Подумать как сделать эту логику более кастомизиремым через keyboard_mechanics
         int code2send;
         int letterBeforeCursor = GetLetterBeforeCursor();
+        /* Для случая SYM символовол по double-press
         int letterAlted = keyboardLayoutManager.KeyToCharCode(keyPressData, true, false, false);
         if(letterBeforeCursor == letterAlted) {
             DeleteLastSymbol();
@@ -1317,7 +1318,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             SendLetterOrSymbol(code2send);
             return true;
         }
-
+*/
         if(IsNotPairedLetter(keyPressData)) {
             code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, isShiftMode, false);
             SendLetterOrSymbol(code2send);
@@ -1441,8 +1442,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         int code2send;
         DeleteLastSymbol();
         if (keyPressData.Short2ndLongPress) {
-            if(!MetaIsAltMode())
-                DeleteLastSymbol();
+            //if(!MetaIsAltMode()) //для случая с triple-press
+            DeleteLastSymbol();
             code2send = keyboardLayoutManager.KeyToAltPopup(keyPressData);
             if (code2send == 0) {
                 code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, true, true, false);

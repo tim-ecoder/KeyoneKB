@@ -215,10 +215,10 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                     //&& eventTime - keyPressData2.KeyDownTime > TIME_LONG_PRESS ) {
                 ) {
                     keyPressData2.LongPressBeginTime = keyDownTime;
-                    //if(IsSameKeyDownPress(LastShortPressKey1, keyPressData2)
-                    //    && keyDownTime - LastShortPressKey1.KeyUpTime <= TIME_SHORT_2ND_LONG_PRESS) {
-                    //    keyPressData2.Short2ndLongPress = true;
-                    //}
+                    if(IsSameKeyDownPress(LastShortPressKey1, keyPressData2)
+                        && keyDownTime - LastShortPressKey1.KeyUpTime <= TIME_SHORT_2ND_LONG_PRESS) {
+                        keyPressData2.Short2ndLongPress = true;
+                    }
                     ProcessUndoLastShortPress(keyPressData2);
                     ProcessLongPress(keyPressData2);
                 }

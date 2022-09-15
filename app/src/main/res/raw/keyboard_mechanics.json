@@ -271,12 +271,7 @@
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
-          "action-method-name": "ActionDeletePreviousSymbol"
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionSendCharSinglePressSymMode",
+          "action-method-name": "ActionSendCharSinglePressAltMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
         }, {
@@ -326,56 +321,6 @@
             "MetaIsCtrlPressed"
           ],
           "action-method-name": "ActionDoNothing",
-          "stop-processing-at-success-result": true
-        }
-      ],
-      "on-triple-press": [
-        {
-          "meta-mode-method-names": [
-            "MetaIsActionBeforeMeta"
-          ],
-          "action-method-name": "ActionTryVibrate"
-        }, {
-          "meta-mode-method-names": [
-            "InputIsDigitsPad"
-          ],
-          "action-method-name": "ActionSetKeyTransparency",
-          "stop-processing-at-success-result": true
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode", "MetaIsShiftPressed"
-          ],
-          "action-method-name": "ActionSendCharSinglePressSymMode",
-          "method-needs-key-press-parameter": true,
-          "stop-processing-at-success-result": true
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode", "MetaIsSymPadAltShiftMode"
-          ],
-          "action-method-name": "ActionSendCharSinglePressSymMode",
-          "method-needs-key-press-parameter": true,
-          "stop-processing-at-success-result": true
-        },{
-          "meta-mode-method-names": [
-            "MetaIsShiftMode"
-          ],
-          "action-method-name": "ActionSendCharSinglePressShiftMode",
-          "method-needs-key-press-parameter": true,
-          "stop-processing-at-success-result": true
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionSendCharFromAltPopup",
-          "method-needs-key-press-parameter": true,
-          "stop-processing-at-success-result": true
-        }, {
-          "action-method-name": "ActionSendCharFromAltPopupAtSingleAltTriplePress",
-          "method-needs-key-press-parameter": true,
-          "stop-processing-at-success-result": true
-        }, {
-          "action-method-name": "ActionSendCharSinglePressNoMeta",
-          "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
         }
       ]
