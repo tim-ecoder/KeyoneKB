@@ -14,7 +14,6 @@ import android.util.Log;
 import android.view.*;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.Toast;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -343,7 +342,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
 
         if (KeyoneIME.Instance != null
-                && (KeyoneIME.Instance.GesturePointerMode || KeyoneIME.Instance.IsNavMode())
+                && (KeyoneIME.Instance._modeGesturePointerAtViewMode || KeyoneIME.Instance.IsNavMode())
                 && !KeyoneIME.Instance.IsInputMode()) {
 
             info = GetFocusedNode(info);

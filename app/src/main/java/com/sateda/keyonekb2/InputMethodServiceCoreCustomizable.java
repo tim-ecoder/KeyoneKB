@@ -31,7 +31,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected boolean pref_alt_space = true;
     protected boolean pref_manage_call = false;
     protected boolean pref_long_press_key_alt_symbol = false;
-    protected boolean pref_keyboard_gestures_at_views_enable = true;
     protected boolean pref_vibrate_on_key_down = false;
     protected boolean pref_ensure_entered_text = true;
     private boolean metaHoldCtrl; // только первая буква будет большая
@@ -724,107 +723,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     //endregion
 
-    //region Actions GESTURE (INPUT_MODE)
 
-    public boolean ActionTryTurnOffGesturesMode() {
-        return super.ActionTryTurnOffGesturesMode();
-    }
-
-    protected boolean needUpdateGestureNotificationInsideSingleEvent;
-
-    public boolean ActionSetNeedUpdateGestureNotification() {
-        needUpdateGestureNotificationInsideSingleEvent = true;
-        return true;
-    }
-
-    public boolean ActionResetDoubleClickGestureState() {
-        return super.ActionResetDoubleClickGestureState();
-    }
-
-    public boolean ActionEnableGestureAtInputMode() {
-        mode_keyboard_gestures = true;
-        return true;
-    }
-
-    private boolean gestureCursorAtInputEnabledByHold = false;
-
-    public boolean ActionTryEnableGestureCursorModeOnHoldState() {
-        //if (SystemClock.uptimeMillis() - lastGestureSwipingBeginTime < TIME_WAIT_GESTURE_UPON_KEY_0) {
-        //    Log.d(TAG2, "GestureMode at key_0_down first time");
-        //    return ActionEnableGestureAtInputMode();
-        //}
-        if(!mode_keyboard_gestures && KeyHoldPlusGestureEnabled) {
-            gestureCursorAtInputEnabledByHold = true;
-            mode_keyboard_gestures = true;
-            return true;
-        }
-        return false;
-    }
-
-    public boolean ActionTryDisableGestureCursorModeUnHoldState() {
-        if(gestureCursorAtInputEnabledByHold && KeyHoldPlusGestureEnabled) {
-            gestureCursorAtInputEnabledByHold = false;
-            mode_keyboard_gestures = false;
-            return true;
-        }
-        return false;
-    }
-
-    public boolean ActionChangeGestureAtInputModeUpAndDownMode() {
-        mode_keyboard_gestures_plus_up_down = !mode_keyboard_gestures_plus_up_down;
-        //UpdateGestureModeVisualization();
-        return true;
-    }
-
-    public boolean ActionDisableGestureMode() {
-        mode_keyboard_gestures = false;
-        //UpdateGestureModeVisualization();
-        return true;
-    }
-
-    public boolean ActionDisableAndResetGestureMode() {
-        mode_keyboard_gestures = false;
-        mode_keyboard_gestures_plus_up_down = false;
-        //UpdateGestureModeVisualization();
-        return true;
-    }
-
-    public boolean ActionChangeGestureModeEnableState() {
-        pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
-        return true;
-    }
-
-    public boolean ActionTryChangeGestureModeStateAtInputMode() {
-        if (IsInputMode()) {
-            mode_keyboard_gestures = !mode_keyboard_gestures;
-            return true;
-        }
-        return false;
-
-    }
-
-    public boolean ActionEnableGestureAtInputModeAndUpDownMode() {
-        if (IsInputMode()) {
-            mode_keyboard_gestures = true;
-            mode_keyboard_gestures_plus_up_down = true;
-            //UpdateGestureModeVisualization();
-            //TODO: ???
-        }
-
-        return true;
-    }
-
-    public boolean ActionDisableAndResetGesturesAtInputMode() {
-        if (mode_keyboard_gestures && IsInputMode()) {
-            mode_keyboard_gestures = false;
-            mode_keyboard_gestures_plus_up_down = false;
-            //UpdateGestureModeVisualization(true);
-            return true;
-        }
-        return false;
-    }
-
-    //endregion
 
     //region Actions ALT-MODE
     public boolean ActionEnableHoldAltMode() {
@@ -1167,7 +1066,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
 
     public boolean ActionTryPerformClickCurrentNode() {
-        if(GesturePointerMode || IsNavMode()) {
+        if(_modeGesturePointerAtViewMode || IsNavMode()) {
             if (CurrentNodeInfo != null) {
                 CurrentNodeInfo.Click(false);
             }
@@ -1177,7 +1076,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     }
 
     public boolean ActionTryPerformLongClickCurrentNode() {
-        if(GesturePointerMode  || IsNavMode()) {
+        if(_modeGesturePointerAtViewMode || IsNavMode()) {
             if (CurrentNodeInfo != null) {
                 CurrentNodeInfo.Click(true);
             }
@@ -1523,7 +1422,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     //region INPUT_TYPE
 
     public boolean InputIsGestureCursor() {
-        return mode_keyboard_gestures;
+        return mode_gesture_cursor_at_input_mode;
     }
 
     public boolean InputIsDigitsPad() {

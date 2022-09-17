@@ -229,7 +229,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         if (!editorInfo.packageName.equals(_lastPackageName)) {
 
             //TODO: Перенести в keyboard_mechanics с использованием PackageHistory
-            SetGestureDefaultPointerMode(_lastPackageName, GesturePointerMode);
+            SetGestureDefaultPointerMode(_lastPackageName, _modeGesturePointerAtViewMode);
 
             PackageHistory.add(_lastPackageName);
             _lastPackageName = editorInfo.packageName;
@@ -792,11 +792,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
         }
         else if(isInput) {
-            if(_gestureInputScrollViewMode) {
+            if(_modeGestureScrollAtInputMode) {
                 changed = setSmallIcon2(R.mipmap.ic_gesture_icon_view);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_LIST);
-            } else if (mode_keyboard_gestures) {
-                if (mode_keyboard_gestures_plus_up_down) {
+            } else if (mode_gesture_cursor_at_input_mode) {
+                if (mode_gesture_cursor_plus_up_down) {
                     changed = setSmallIcon2(R.mipmap.ic_gesture_icon_input_up_down);
                     changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_INPUT_UP_DOWN);
                 } else {
@@ -811,7 +811,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             if(!pref_keyboard_gestures_at_views_enable) {
                 changed = setSmallIcon2(R.mipmap.ic_gesture_icon_off);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
-            } else if (GesturePointerMode) {
+            } else if (_modeGesturePointerAtViewMode) {
                 changed = setSmallIcon2(R.mipmap.ic_gesture_icon_pointer);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW_POINTER);
             } else {
