@@ -12,7 +12,6 @@
                        >
 <!--
 typeWindowContentChanged
-                       android:accessibilityFeedbackType="feedbackSpoken"
                        android:accessibilityFlags="flagDefault|flagReportViewIds|flagRequestFilterKeyEvents"
 
 android:accessibilityEventTypes="typeAllMask"

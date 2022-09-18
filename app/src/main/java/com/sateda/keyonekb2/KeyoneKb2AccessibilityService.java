@@ -160,7 +160,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
-        //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType());
+        Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType() +" "+event.getPackageName());
 
         try {
             if(KeyoneIME.Instance == null)
@@ -201,8 +201,17 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
 
             AccessibilityNodeInfo root = getRootInActiveWindow();
-            if (root == null)
+
+            if (root == null) {
+                if(false && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                    if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
+                        //TryRemoveRectangleFast();
+                    }
+                }
+
                 return;
+            }
+
 
             if(event.getPackageName() != null && !event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
                 return;
@@ -326,7 +335,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         AccessibilityNodeInfo info;
         if(event.getEventType() != AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
             info = event.getSource();
-            if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+            if(
+                    info != null
+                    && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
                     && !info.isFocused()
                     && SelectionRectView != null
                     && SelectionRectView.IsSameNodeHash(info)
@@ -576,6 +587,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 Log.d(TAG3, "OnDraw() HIDE");
                 removed = true;
                 RemoveRectOnNextDraw = false;
+                SetNodeInfo(null);
                 return;
             }
 
@@ -619,7 +631,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     public boolean TryRemoveRectangle() {
-        if(SelectionRectView != null && (!SelectionRectView.RemoveRectOnNextDraw || !SelectionRectView.removed)) {
+        if(SelectionRectView == null)
+            return false;
+        if(!SelectionRectView.RemoveRectOnNextDraw && !SelectionRectView.removed) {
             Log.d(TAG3, "REMOVE_ASYNC_SIGNAL! TryRemoveRectangle() HASH: "+SelectionRectView.SelectedNode.hashCode());
 
             SelectionRectView.RemoveRectOnNextDraw = true;
@@ -632,7 +646,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     public boolean TryRemoveRectangleFast() {
-        if(SelectionRectView != null && (!SelectionRectView.RemoveRectOnNextDraw || !SelectionRectView.removed)) {
+        if(SelectionRectView == null)
+            return false;
+        if(!SelectionRectView.RemoveRectOnNextDraw && !SelectionRectView.removed) {
             Log.d(TAG3, "TryRemoveRectangleFast() HASH: "+SelectionRectView.SelectedNode.hashCode());
 
             //SelectionRectView.setVisibility(View.INVISIBLE);

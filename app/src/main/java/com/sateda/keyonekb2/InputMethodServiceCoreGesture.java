@@ -71,7 +71,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         middleYValue = displayMetrics.heightPixels / 2;
         middleXValue = displayMetrics.widthPixels / 2;
 
-        K = (displayMetrics.heightPixels) / (450) * 0.85f;
+        K = (displayMetrics.heightPixels) / (450) * 0.80f;
 
     }
 
@@ -99,8 +99,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 return false;
         }
 
-        if ((!mode_gesture_cursor_at_input_mode)
-            || modeDoubleClickGesture) {
+        if (IsInputMode() && (!mode_gesture_cursor_at_input_mode
+            || modeDoubleClickGesture)) {
             //Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
             ProcessDoubleGestureClick(motionEvent);
         }
@@ -364,8 +364,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         Ktime = 1.3f;
         //Log.d(TAG2, "Ktime="+Ktime);
 
-        int coordFrom = Math.min(Math.round((lastGestureY + 75) * K), 1450);
-        int coordTo = Math.min(Math.round((currentGestureY + 75) * K), 1450);
+        int coordFrom = Math.min(Math.round((lastGestureY + 125) * K), 1400);
+        int coordTo = Math.min(Math.round((currentGestureY + 125) * K), 1400);
         long time2 = Math.round(time*Ktime);
         long startTime = 0L;
 
@@ -462,16 +462,17 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                         null);
             } else {
                 Log.d(TAG2, "STOP_GESTURE");
-
+                if(directionTop == null)
+                    return;
                 Path path = new Path();
                 path.moveTo(middleXValue, nextFrom);
                 if(directionTop)
-                    path.lineTo(middleXValue, nextFrom+65);
+                    path.lineTo(middleXValue, nextFrom+50);
                 else
-                    path.lineTo(middleXValue, nextFrom-65);
+                    path.lineTo(middleXValue, nextFrom-50);
 
 
-                GestureDescription.StrokeDescription stroke = lastStroke.continueStroke(path, 0, 350, false);
+                GestureDescription.StrokeDescription stroke = lastStroke.continueStroke(path, 0, 250, false);
                 GestureDescription.Builder builder = new GestureDescription.Builder();
                 builder = builder.addStroke(stroke);
                 GestureDescription  gesture = builder.build();
@@ -777,11 +778,14 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return true;
     }
 
-    public boolean ActionDisableGestureInputScrollMode() {
-        _modeGestureScrollAtInputMode = false;
-        Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _modeGestureScrollAtInputMode);
-        ResetGestureMovementCoordsToInitial();
-        return true;
+    public boolean ActionTryDisableGestureInputScrollMode() {
+        if(_modeGestureScrollAtInputMode) {
+            _modeGestureScrollAtInputMode = false;
+            Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _modeGestureScrollAtInputMode);
+            ResetGestureMovementCoordsToInitial();
+            return true;
+        }
+        return false;
     }
 
     public boolean ActionTryChangeGesturePointerModeAtViewMode() {

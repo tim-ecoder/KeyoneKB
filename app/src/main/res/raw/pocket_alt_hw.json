@@ -36,7 +36,7 @@
   "key-code" : 43,
   "single-press-alt-shift-mode" : "^",
   "single-press-alt-mode" : "/",
-  "alt-shift-more-variants" : "→←↓↑"
+  "alt-more-variants" : "→←↓↑"
 }, {
   "key-code" : 44,
   "single-press-alt-shift-mode" : "%",
@@ -111,6 +111,5 @@
   "key-code" : 11,
   "single-press-alt-shift-mode" : "€",
   "single-press-alt-mode" : "$",
-  "alt-more-variants" : "₽₴₩£₪¥$€",
-  "alt-shift-more-variants" : "₽₴₩£₪¥$€"
+  "alt-more-variants" : "₽₴₩£₪¥$€"
 } ]

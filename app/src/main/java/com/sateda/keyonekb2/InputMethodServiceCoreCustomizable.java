@@ -460,7 +460,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionTryChangeGestureModeStateAtInputMode", InitializeMethod3((Object o) -> ActionTryChangeGestureModeStateAtInputMode(), Object.class));
         Methods.put("ActionResetGesturePointerMode", InitializeMethod3((Object o) -> ActionResetGesturePointerMode(), Object.class));
         Methods.put("ActionTryChangeGestureInputScrollMode", InitializeMethod3((Object o) -> ActionTryChangeGestureInputScrollMode(), Object.class));
-        Methods.put("ActionDisableGestureInputScrollMode", InitializeMethod3((Object o) -> ActionDisableGestureInputScrollMode(), Object.class));
+        Methods.put("ActionTryDisableGestureInputScrollMode", InitializeMethod3((Object o) -> ActionTryDisableGestureInputScrollMode(), Object.class));
         Methods.put("MetaIsViewMode", InitializeMethod3((Object o) -> MetaIsViewMode(), Object.class));
         Methods.put("ActionTryPerformClickCurrentNode", InitializeMethod3((Object o) -> ActionTryPerformClickCurrentNode(), Object.class));
         Methods.put("ActionTryPerformLongClickCurrentNode", InitializeMethod3((Object o) -> ActionTryPerformLongClickCurrentNode(), Object.class));
