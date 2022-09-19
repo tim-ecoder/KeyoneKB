@@ -203,11 +203,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             AccessibilityNodeInfo root = getRootInActiveWindow();
 
             if (root == null) {
-                if(false && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-                    if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
-                        //TryRemoveRectangleFast();
-                    }
-                }
+
+                //if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight)
+
 
                 return;
             }
@@ -324,7 +322,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 && event.getEventType() != AccessibilityEvent.TYPE_VIEW_SCROLLED
         )
             return;
-
 
         if(event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED && event.getWindowId() == -1) {
             SetCurrentNodeInfo(null);
@@ -475,7 +472,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if(SelectionRectView == null) {
             SelectionRectView = CreateRectangleView();
             LestSelectionRectView = SelectionRectView;
-            Log.d(TAG3, "DRAW_ASYNC_SIGNAL! HASH: "+info.hashCode());
+            Log.d(TAG3, "DRAW [ASYNC] FIRST-TIME HASH: "+info.hashCode());
             SelectionRectView.SetNodeInfo(info);
             SelectionRectView.removed = false;
             SelectionRectView.RemoveRectOnNextDraw = false;
@@ -483,14 +480,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             return;
         }
 
-        if(!SelectionRectView.removed && !SelectionRectView.RemoveRectOnNextDraw &&  SelectionRectView.IsSameNodeAndRect(info)) {
+        if(!SelectionRectView.removed && !SelectionRectView.RemoveRectOnNextDraw && SelectionRectView.IsSameNodeAndRect(info)) {
             Log.d(TAG3, "SelectionRectView.IsSameRect(info) HASH: "+info.hashCode());
             return;
         }
 
         if(!SelectionRectView.removed && !SelectionRectView.RemoveRectOnNextDraw)
             TryRemoveRectangle();
-        Log.d(TAG3, "DRAW_ASYNC_SIGNAL! HASH: "+info.hashCode());
+        Log.d(TAG3, "DRAW [ASYNC] REDRAW HASH: "+info.hashCode());
         SelectionRectView.RemoveRectOnNextDraw = false;
         SelectionRectView.SetNodeInfo(info);
         SelectionRectView.setVisibility(View.GONE);
@@ -551,7 +548,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         private boolean IsSameRect(AccessibilityNodeInfo info) {
             if(SelectedNodeRect == null)
-                return false;
+                return true;
             Rect rect = new Rect();
             info.getBoundsInScreen(rect);
             if(rect.top == SelectedNodeRect.top
@@ -803,8 +800,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "event.getWindowId() " + event.getWindowId());
         Log.v(TAG3, "event.getText() " + event.getText());
         Log.v(TAG3, "event.getContentDescription() " + event.getContentDescription());
-        //Log.v(TAG3, "event.getSource() " + event.getSource());
-        //Log.v(TAG3, "getRootInActiveWindow() " + getRootInActiveWindow());
+        AccessibilityNodeInfo info = event.getSource();
+        Log.v(TAG3, "event.getSource() HASH " + (info != null ? info.hashCode() : "@NULL"));
+        Log.v(TAG3, "getRootInActiveWindow() HASH " + (getRootInActiveWindow() != null ? getRootInActiveWindow().hashCode() : "@NULL"));
         Log.v(TAG3, "--------------------LogEventD--------------------");
     }
 
