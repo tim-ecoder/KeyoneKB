@@ -462,6 +462,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                         null);
             } else {
                 Log.d(TAG2, "STOP_GESTURE");
+                /*
                 if(directionTop == null)
                     return;
                 Path path = new Path();
@@ -471,7 +472,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 else
                     path.lineTo(middleXValue, nextFrom-50);
 
-
                 GestureDescription.StrokeDescription stroke = lastStroke.continueStroke(path, 0, 250, false);
                 GestureDescription.Builder builder = new GestureDescription.Builder();
                 builder = builder.addStroke(stroke);
@@ -480,6 +480,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                         gesture,
                         null,
                         null);
+                 */
                 ResetScrollGestureStateToInitial();
             }
         }
