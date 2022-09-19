@@ -203,10 +203,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             AccessibilityNodeInfo root = getRootInActiveWindow();
 
             if (root == null) {
-
-                //if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight)
-
-
                 return;
             }
 
@@ -236,7 +232,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled)
                 ProcessDigitsPadHack(event, root);
 
-            if(keyoneKb2AccServiceOptions.SelectedNodeClickHack || keyoneKb2AccServiceOptions.SelectedNodeHighlight)
+            if( KeyoneIME.Instance.pref_keyboard_gestures_at_views_enable && (
+                    keyoneKb2AccServiceOptions.SelectedNodeClickHack
+                            || keyoneKb2AccServiceOptions.SelectedNodeHighlight
+            ))
                 ProcessGesturePointerModeAndNodeSelection(event);
 
             if(keyoneKb2AccServiceOptions.SearchPluginsEnabled)

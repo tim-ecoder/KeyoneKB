@@ -52,7 +52,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     protected KeyoneKb2Settings keyoneKb2Settings;
 
-    protected boolean pref_keyboard_gestures_at_views_enable = true;
+    public boolean pref_keyboard_gestures_at_views_enable = true;
 
     //GestureDescription.Builder builder;
 
