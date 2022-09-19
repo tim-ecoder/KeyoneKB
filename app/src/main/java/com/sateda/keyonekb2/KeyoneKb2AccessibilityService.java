@@ -250,53 +250,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
 
-    //region DIGITS-PAD
 
-    private void ProcessDigitsPadHack(AccessibilityEvent event, AccessibilityNodeInfo root) {
-        if(
-                event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
-                        || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
-        )
-            if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
-                SetDigitsHack(false);
-                return;
-            }
-            if(ContainsAllDigitsButtons(root)) {
-                SetDigitsHack(true);
-            }
-    }
-
-    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text, int recursLevel) {
-        if(recursLevel > 4)
-            return null;
-        if (node == null)
-            return null;
-        if(node.getViewIdResourceName() != null)
-            Log.d(TAG3, node.getViewIdResourceName());
-        if (node.getText() != null) {
-            if (node.getText().toString().startsWith(text))
-                return node;
-            //else Log.d(TAG, "TEXT: "+node.getText());
-        }
-        for (int i = 0; i < node.getChildCount() && i < 15; i++) {
-            AccessibilityNodeInfo child = node.getChild(i);
-            AccessibilityNodeInfo result = FindFirstByTextRecursive(child, text, recursLevel+1);
-            if (result != null)
-                return result;
-        }
-        return null;
-    }
-
-    private boolean ContainsAllDigitsButtons(AccessibilityNodeInfo node) {
-        for(int i = 0; i < 10; i++) {
-            AccessibilityNodeInfo info3 = FindFirstByTextRecursive(node, Integer.toString(i), 0);
-            if(info3 == null)
-                return false;
-        }
-        return true;
-    }
-
-    //endregion
 
     //region NODES_SELECTION
 
@@ -362,7 +316,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 info = FindFocusableRecurs(GetRoot(getRootInActiveWindow()), 0);
                 if(info != null) {
                     Log.d(TAG3, "FindFocusableRecurs(GetRoot(getRootInActiveWindow()) HASH: "+info.hashCode() );
-                    boolean clickRes = info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+                    boolean clickRes = false;
+                    clickRes = info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
                     if(clickRes) {
                         Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) OK");
                         return;
@@ -371,7 +326,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                         info = null;
                     }
                 }
-
             }
 
             if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
@@ -440,16 +394,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if(info == null)
             return null;
         if(info.isFocused()) {
-            Log.d(TAG3, "GetFocusedNode() .isFocused()");
+            Log.d(TAG3, "GetFocusedNode .isFocused() HASH "+info.hashCode());
             return info;
         }
 
         AccessibilityNodeInfo info1 = FindFocusedRecurs(info);
         if(info1 != null) {
-            Log.d(TAG3, "GetFocusedNode FOUND HASH: "+info1.hashCode());
+            Log.d(TAG3, "FindFocusedRecurs FOUND HASH: "+info1.hashCode());
             return info1;
         } else {
-            Log.d(TAG3, "GetFocusedNode NOT FOUND");
+            Log.d(TAG3, "FindFocusedRecurs NOT FOUND");
             return null;
         }
     }
@@ -897,6 +851,54 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
 
+
+    //endregion
+
+    //region DIGITS-PAD
+
+    private void ProcessDigitsPadHack(AccessibilityEvent event, AccessibilityNodeInfo root) {
+        if(
+                event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                        || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
+        )
+            if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
+                SetDigitsHack(false);
+                return;
+            }
+        if(ContainsAllDigitsButtons(root)) {
+            SetDigitsHack(true);
+        }
+    }
+
+    private static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text, int recursLevel) {
+        if(recursLevel > 4)
+            return null;
+        if (node == null)
+            return null;
+        if(node.getViewIdResourceName() != null)
+            Log.d(TAG3, node.getViewIdResourceName());
+        if (node.getText() != null) {
+            if (node.getText().toString().startsWith(text))
+                return node;
+            //else Log.d(TAG, "TEXT: "+node.getText());
+        }
+        for (int i = 0; i < node.getChildCount() && i < 15; i++) {
+            AccessibilityNodeInfo child = node.getChild(i);
+            AccessibilityNodeInfo result = FindFirstByTextRecursive(child, text, recursLevel+1);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
+
+    private boolean ContainsAllDigitsButtons(AccessibilityNodeInfo node) {
+        for(int i = 0; i < 10; i++) {
+            AccessibilityNodeInfo info3 = FindFirstByTextRecursive(node, Integer.toString(i), 0);
+            if(info3 == null)
+                return false;
+        }
+        return true;
+    }
 
     //endregion
 
