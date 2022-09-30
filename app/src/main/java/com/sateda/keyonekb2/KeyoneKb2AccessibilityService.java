@@ -65,6 +65,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             public int KeyKeyCodeInt;
         }
 
+        public static class DigitsPadHackOptionsAppMarker {
+            @JsonProperty(index=10)
+            String PackageName;
+            @JsonProperty(index=20)
+            String DigitsPadMarkerNodeId;
+        }
+
         @JsonProperty(index=10)
         public boolean SearchPluginsEnabled;
         @JsonProperty(index=20)
@@ -76,12 +83,17 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         @JsonProperty(index=40)
         public boolean DigitsPadPluginEnabled;
 
+        @JsonProperty(index=41)
+        public DigitsPadHackOptionsAppMarker[] DigitsPadPluginAppMarkers;
+
         @JsonProperty(index=50)
         public boolean SelectedNodeClickHack;
 
         @JsonProperty(index=60)
         public boolean SelectedNodeHighlight;
     }
+
+
 
     @Override
     protected void onServiceConnected() {
@@ -95,6 +107,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }, this);
 
             LoadRetranslationData();
+
+            if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled) {
+                DigitsPadHackOptionsAppMarkers = keyoneKb2AccServiceOptions.DigitsPadPluginAppMarkers;
+            }
 
             if (!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
                 return;
@@ -200,11 +216,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     }
             }
 
-            AccessibilityNodeInfo root = getRootInActiveWindow();
 
-            if (root == null) {
-                return;
-            }
+
+            //AccessibilityNodeInfo root1 = getRootInActiveWindow();
+
+            //if (root1 == null) {
+            //    return;
+            //}
 
 
             if(event.getPackageName() != null && !event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
@@ -227,10 +245,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if(event.getEventType() == AccessibilityEvent.TYPE_ANNOUNCEMENT)
                 Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_ANNOUNCEMENT");
 
+
+
             LogEventD(event);
 
+
+
             if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled)
-                ProcessDigitsPadHack(event, root);
+                ProcessDigitsPadHack(event);
 
             if( KeyoneIME.Instance.pref_keyboard_gestures_at_views_enable && (
                     keyoneKb2AccServiceOptions.SelectedNodeClickHack
@@ -239,7 +261,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 ProcessGesturePointerModeAndNodeSelection(event);
 
             if(keyoneKb2AccServiceOptions.SearchPluginsEnabled)
-                ProcessSearchPlugins(event, root);
+                ProcessSearchPlugins(event);
 
         } catch (Throwable ex) {
             Log.e(TAG3, "onAccessibilityEvent Exception: "+ex);
@@ -256,10 +278,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     private void ProcessGesturePointerModeAndNodeSelection(AccessibilityEvent event) {
 
         if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
+            Log.d(TAG3,"ProcessGesturePointerModeAndNodeSelection:KeyoneIME.Instance.IsInputMode()");
             SetCurrentNodeInfo(null);
             TryRemoveRectangle();
             return;
         }
+
+        Log.d(TAG3,"ProcessGesturePointerModeAndNodeSelection:LOGIC");
 
         if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
             if(keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
@@ -649,9 +674,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     //region SEARCH PLUGIN
 
-    private void ProcessSearchPlugins(AccessibilityEvent event, AccessibilityNodeInfo root) {
+    private void ProcessSearchPlugins(AccessibilityEvent event) {
 
         if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
+            Log.d(TAG3, "ProcessSearchPlugins:KeyoneIME.Instance.IsInputMode()");
             SetSearchHack(null);
             return;
         }
@@ -665,7 +691,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             //LogEventD(event);
             return;
         }
-
+        Log.d(TAG3, "ProcessSearchPlugins:LOGIC");
+        AccessibilityNodeInfo root = getRootInActiveWindow();
         for (SearchClickPlugin plugin : searchClickPlugins) {
             if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin)) {
                 return;
@@ -855,17 +882,25 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     //region DIGITS-PAD
 
-    private void ProcessDigitsPadHack(AccessibilityEvent event, AccessibilityNodeInfo root) {
+    KeyoneKb2AccServiceOptions.DigitsPadHackOptionsAppMarker[] DigitsPadHackOptionsAppMarkers;
+
+
+    private void ProcessDigitsPadHack(AccessibilityEvent event) {
+
         if(
                 event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
                         || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
-        )
-            if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
+        ) {
+            if (KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
+                Log.d(TAG3, " ProcessDigitsPadHack:KeyoneIME.Instance.IsInputMode()");
                 SetDigitsHack(false);
                 return;
             }
-        if(ContainsAllDigitsButtons(root)) {
-            SetDigitsHack(true);
+            Log.d(TAG3, " ProcessDigitsPadHack:LOGIC");
+            if (ContainsAllDigitsButtons2()) {
+                //ContainsAllDigitsButtons(root);
+                SetDigitsHack(true);
+            }
         }
     }
 
@@ -899,6 +934,21 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         return true;
     }
 
+    private boolean ContainsAllDigitsButtons2() {
+        AccessibilityNodeInfo node = getRootInActiveWindow();
+        for (int i = 0; i < DigitsPadHackOptionsAppMarkers.length; i++) {
+            KeyoneKb2AccServiceOptions.DigitsPadHackOptionsAppMarker marker = DigitsPadHackOptionsAppMarkers[i];
+            if(!marker.PackageName.equalsIgnoreCase(node.getPackageName().toString()))
+                continue;
+            if(marker.DigitsPadMarkerNodeId == null)
+                return true;
+            List<AccessibilityNodeInfo> nodeMarkers = node.findAccessibilityNodeInfosByViewId(marker.DigitsPadMarkerNodeId);
+            if(nodeMarkers != null && nodeMarkers.size() > 0 && nodeMarkers.get(0).isVisibleToUser())
+                return true;
+        }
+        return false;
+    }
+
     //endregion
 
     //region KEY RETRANSLATION
@@ -926,6 +976,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @Override
     public synchronized boolean onKeyEvent(KeyEvent event) {
         Log.v(TAG3, "onKeyEvent()");
+
         if (KeyoneIME.Instance == null)
             return false;
         if(keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes == null || keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty())

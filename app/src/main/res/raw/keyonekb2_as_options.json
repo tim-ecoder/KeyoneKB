@@ -23,6 +23,14 @@
     }
   ],
   "digits-pad-plugin-enabled" : true,
+  "digits-pad-plugin-app-markers" : [
+    {
+      "package-name" : "com.android.dialer",
+      "digits-pad-marker-node-id" : "com.android.dialer:id/dialpad_view"
+    }, {
+      "package-name" : "com.tct.calculator.bb"
+    }
+  ],
   "selected-node-click-hack" : true,
   "selected-node-highlight" : true
 }
