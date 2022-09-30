@@ -216,8 +216,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     }
             }
 
-
-
             /** NOTE: Это затормаживает некоторые Web-приложения */
             //AccessibilityNodeInfo root1 = getRootInActiveWindow();
             //if (root1 == null) {
@@ -246,11 +244,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_ANNOUNCEMENT");
 
 
-
             /** NOTE: Это затормаживает некоторые Web-приложения */
             //LogEventD(event);
-
-
 
             if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled)
                 ProcessDigitsPadHack(event);
