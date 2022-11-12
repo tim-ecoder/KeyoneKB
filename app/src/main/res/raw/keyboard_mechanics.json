@@ -490,7 +490,13 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
+          "comment" : "Пока отключим, т.к. в некоторых приложениях не срабатывает. Вместо этого будет явная отправка ENTER",
+          "meta-mode-method-names": [
+            "MetaIsDisabled"
+          ],
           "action-method-name": "ActionSetKeyTransparency"
+        }, {
+          "action-method-name": "ActionSendEnterOrCustomButton"
         }, {
           "action-method-name": "ActionTryTurnOffGesturesMode"
         }, {

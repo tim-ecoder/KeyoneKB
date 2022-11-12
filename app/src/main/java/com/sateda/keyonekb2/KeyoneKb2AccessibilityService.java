@@ -971,7 +971,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             RetranslateKeyCodes = new int[keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.size()];
             int i = 0;
             for (String keyCode: keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes) {
-                RetranslateKeyCodes[i] = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCode);
+                int keyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCode);
+
+                //Не перехватываем HOME, BACK если не включена настройка защиты текста
+                //Т.к. этот перехват лишний раз может повлиять на отзывчивость этих функций
+                if(KeyoneIME.Instance != null && !KeyoneIME.Instance.pref_ensure_entered_text
+                    && (keyCodeInt == 3 || keyCodeInt == 4))
+                    continue;
+                RetranslateKeyCodes[i] = keyCodeInt;
                 i++;
             }
         }

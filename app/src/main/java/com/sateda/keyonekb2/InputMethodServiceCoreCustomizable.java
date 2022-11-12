@@ -478,6 +478,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionSendCharFromAltPopup", InitializeMethod3(this::ActionSendCharFromAltPopup, KeyPressData.class));
         Methods.put("ActionSendCharFromAltPopupAtSingleAltTriplePress", InitializeMethod3(this::ActionSendCharFromAltPopupAtSingleAltTriplePress, KeyPressData.class));
 
+        Methods.put("ActionSendEnterOrCustomButton", InitializeMethod3((Object o) -> ActionSendEnterOrCustomButton(), Object.class));
     }
 
     //endregion
@@ -952,6 +953,32 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
 
     //region Actions Misc. InputMode
+
+    public boolean ActionSendEnterOrCustomButton() {
+        EditorInfo ei = getCurrentInputEditorInfo();
+        InputConnection ic = getCurrentInputConnection();
+        ei.makeCompatible(27);
+
+        switch (ei.imeOptions & (EditorInfo.IME_MASK_ACTION | EditorInfo.IME_FLAG_NO_ENTER_ACTION))
+        {
+            case EditorInfo.IME_ACTION_SEND:
+                ic.performEditorAction(EditorInfo.IME_ACTION_SEND);
+                break;
+            case EditorInfo.IME_ACTION_GO:
+                ic.performEditorAction(EditorInfo.IME_ACTION_GO);
+                break;
+            case EditorInfo.IME_ACTION_NEXT:
+                ic.performEditorAction(EditorInfo.IME_ACTION_NEXT);
+                break;
+            case EditorInfo.IME_ACTION_SEARCH:
+                ic.performEditorAction(EditorInfo.IME_ACTION_SEARCH);
+                break;
+        }
+
+
+        _isKeyTransparencyInsideUpDownEvent = true;
+        return true;
+    }
 
     public boolean ActionSendCharToInput(char char1) {
         SendLetterOrSymbol(char1);

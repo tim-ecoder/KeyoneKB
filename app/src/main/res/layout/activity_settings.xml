@@ -315,13 +315,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/text_help_p13"
-            android:text="@string/pref_p_14_name" />
+            android:text="@string/pref_p_13a_name" />
     <TextView
             android:id="@+id/text_help_p14"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/button_pointer_mode_rect_color_picker"
-            android:text="@string/pref_p_14_hint" />
+            android:text="@string/pref_p_13a_hint" />
     <View
             android:id="@+id/divider16"
             android:layout_width="match_parent"
