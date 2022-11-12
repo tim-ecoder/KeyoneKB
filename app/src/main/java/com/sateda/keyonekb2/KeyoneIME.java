@@ -1121,6 +1121,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         pref_vibrate_on_key_down = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN);
         pref_ensure_entered_text = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT);
         pref_pointer_mode_rect_and_autofocus = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS);
+        pref_pointer_mode_rect_color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR);
 
         allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts = new ArrayList<>();

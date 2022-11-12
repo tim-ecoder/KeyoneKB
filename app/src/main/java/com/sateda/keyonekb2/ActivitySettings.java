@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.*;
 import android.widget.*;
+import com.pes.androidmaterialcolorpickerdialog.ColorPicker;
 
 import java.util.ArrayList;
 
@@ -268,6 +270,30 @@ public class ActivitySettings extends AppCompatActivity {
                 keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS, isChecked);
             }
         });
+
+        int color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR);
+        final ColorPicker cp = new ColorPicker(this, Color.red(color), Color.green(color), Color.blue(color));
+
+        Button btSave = (Button)findViewById(R.id.button_pointer_mode_rect_color_picker);
+        btSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cp.show();
+
+                /* On Click listener for the dialog, when the user select the color */
+                Button okColor = (Button)cp.findViewById(R.id.okColorButton);
+
+                okColor.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR, cp.getColor());
+                        cp.dismiss();
+                    }
+                });
+            }
+        });
+
+
 
     }
 

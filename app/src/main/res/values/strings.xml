@@ -57,6 +57,8 @@
     <string name="pref_p_13_hint">\tЭто нужно когда "родная" подсветка выделенного элемента интерфейса не очень видна.\n
         \tКроме того, без этого иногда совсем не понятно, где именно сейчас фокус.\n
         \tВ дополнение, эта опция при переключении приложений АВТОМАТИЧЕСКИ ставит ФОКУС на элемент интефейса по умолчанию.</string>
+    <string name="pref_p_14_name">14. Выбор цвета рамки из п.13</string>
+    <string name="pref_p_14_hint">Чтобы настройки цвета применились надо передернуть Спец.сервис KeyoneKB2</string>
     <string name="pref_manual_name">Инструкция</string>
     <string name="pref_manual_link">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
     <string name="notification_kb_state_nav_mode">Навигация</string>

@@ -24,8 +24,8 @@ android {
         minSdkVersion 25
         targetSdkVersion 27
         //TODO: ---- Меняем каждый раз! ----
-        versionCode 2438
-        versionName "v2.4-build3.8"
+        versionCode 2440
+        versionName "v2.4-build4.0"
         //TODO: ----------------------------
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -69,5 +69,6 @@ dependencies {
     //implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.google.code.gson:gson:2.8.7'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
+    compile 'com.pes.materialcolorpicker:library:1.2.5'
 
 }

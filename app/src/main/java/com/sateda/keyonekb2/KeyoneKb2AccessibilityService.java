@@ -504,8 +504,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         public RectView(Context context) {
             super(context);
+            int color = 0x86888A;
+            if(KeyoneIME.Instance != null)
+                color = KeyoneIME.Instance.pref_pointer_mode_rect_color;
             paintMainer = new Paint();
-            paintMainer.setColor(Color.GRAY);
+            paintMainer.setColor(color);
             paintMainer.setStrokeWidth(3);
             paintMainer.setStyle(Paint.Style.STROKE);
 

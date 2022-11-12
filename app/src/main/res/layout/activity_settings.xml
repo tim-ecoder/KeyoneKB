@@ -311,11 +311,22 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/switch_pointer_mode_rect"
             android:text="@string/pref_p_13_hint" />
+    <Button android:id="@+id/button_pointer_mode_rect_color_picker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/text_help_p13"
+            android:text="@string/pref_p_14_name" />
+    <TextView
+            android:id="@+id/text_help_p14"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/button_pointer_mode_rect_color_picker"
+            android:text="@string/pref_p_14_hint" />
     <View
             android:id="@+id/divider16"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_below="@id/text_help_p13"
+            android:layout_below="@id/text_help_p14"
             android:background="?android:attr/listDivider" />
 
     <TextView
