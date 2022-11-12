@@ -6,10 +6,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class KeyoneKb2Settings {
 
     public static final String APP_PREFERENCES = "kbsettings";
+
+    public final String APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS = "pointer_mode_rect_and_autofocus";
     public final String APP_PREFERENCES_12_ENSURE_ENTERED_TEXT = "ensure_entered_text";
     public final String APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN = "vibrate_on_key_down";
     public final String APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM = "notification_icon_system";
-    public final String APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED = "keyboard_gestures_at_views_enabled";
+    public final String APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE = "gesture_mode_at_view_mode";
     public final String APP_PREFERENCES_8_SHOW_SWIPE_PANEL = "show_default_onscreen_keyboard";
     public final String APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR = "height_bottom_bar";
     public final String APP_PREFERENCES_6_MANAGE_CALL = "manage_call";
@@ -18,8 +20,6 @@ public class KeyoneKb2Settings {
     public final String APP_PREFERENCES_3_ALT_SPACE = "alt_space";
     public final String APP_PREFERENCES_2_SHOW_TOAST = "show_toast";
     public final String APP_PREFERENCES_1_SENS_BOTTOM_BAR = "sens_bottom_bar";
-
-
 
     public final boolean KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT = true;
     private static KeyoneKb2Settings _instance;
@@ -66,10 +66,11 @@ public class KeyoneKb2Settings {
         CheckSettingOrSetDefault(APP_PREFERENCES_6_MANAGE_CALL, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR, 10);
         CheckSettingOrSetDefault(APP_PREFERENCES_8_SHOW_SWIPE_PANEL, false);
-        CheckSettingOrSetDefault(APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, true);
+        CheckSettingOrSetDefault(APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE, 2);
         CheckSettingOrSetDefault(APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN, false);
         CheckSettingOrSetDefault(APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, true);
+        CheckSettingOrSetDefault(APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS, true);
     }
 
     public boolean GetBooleanValue(String name) {

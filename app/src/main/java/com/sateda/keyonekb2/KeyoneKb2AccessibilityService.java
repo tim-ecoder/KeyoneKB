@@ -250,7 +250,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled)
                 ProcessDigitsPadHack(event);
 
-            if( KeyoneIME.Instance.pref_keyboard_gestures_at_views_enable && (
+            if(
+                    KeyoneIME.Instance._modeGestureAtViewMode == InputMethodServiceCoreGesture.GestureAtViewMode.Pointer
+                    && (
                     keyoneKb2AccServiceOptions.SelectedNodeClickHack
                             || keyoneKb2AccServiceOptions.SelectedNodeHighlight
             ))
@@ -280,8 +282,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             return;
         }
 
+        if(KeyoneIME.Instance != null && !KeyoneIME.Instance.pref_pointer_mode_rect_and_autofocus) {
+            TryRemoveRectangle();
+        }
+
         Log.d(TAG3,"ProcessGesturePointerModeAndNodeSelection:LOGIC");
 
+        //TODO: Удалить какой-то атавизм от экспериментов
         if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
             if(keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
                 //TryRemoveRectangle();
@@ -324,26 +331,29 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
 
         if (KeyoneIME.Instance != null
-                && (KeyoneIME.Instance._modeGesturePointerAtViewMode || KeyoneIME.Instance.IsNavMode())
-                && !KeyoneIME.Instance.IsInputMode()) {
+                && (KeyoneIME.Instance._modeGestureAtViewMode == InputMethodServiceCoreGesture.GestureAtViewMode.Pointer || KeyoneIME.Instance.IsNavMode())
+                && !KeyoneIME.Instance.IsInputMode())
+        {
 
             info = GetFocusedNode(info);
-            if(info == null) {
-                info = GetFocusedNode(getRootInActiveWindow());
-            }
-            if(info == null)
-            {
-                info = FindFocusableRecurs(GetRoot(getRootInActiveWindow()), 0);
-                if(info != null) {
-                    Log.d(TAG3, "FindFocusableRecurs(GetRoot(getRootInActiveWindow()) HASH: "+info.hashCode() );
-                    boolean clickRes = false;
-                    clickRes = info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
-                    if(clickRes) {
-                        Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) OK");
-                        return;
-                    } else {
-                        Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) FAIL");
-                        info = null;
+
+            if(KeyoneIME.Instance != null && KeyoneIME.Instance.pref_pointer_mode_rect_and_autofocus) {
+                if (info == null) {
+                    info = GetFocusedNode(getRootInActiveWindow());
+                }
+                if (info == null) {
+                    info = FindFocusableRecurs(GetRoot(getRootInActiveWindow()), 0);
+                    if (info != null) {
+                        Log.d(TAG3, "FindFocusableRecurs(GetRoot(getRootInActiveWindow()) HASH: " + info.hashCode());
+                        boolean clickRes = false;
+                        clickRes = info.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+                        if (clickRes) {
+                            Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) OK");
+                            return;
+                        } else {
+                            Log.d(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_FOCUS) FAIL");
+                            info = null;
+                        }
                     }
                 }
             }
@@ -356,7 +366,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     SetCurrentNodeInfo(null);
                 }
             }
-            if (keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
+            if (keyoneKb2AccServiceOptions.SelectedNodeHighlight
+                    && KeyoneIME.Instance != null && KeyoneIME.Instance.pref_pointer_mode_rect_and_autofocus) {
                 if (info != null) {
                     //if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
                     ProcessSelectionRectangle(info);

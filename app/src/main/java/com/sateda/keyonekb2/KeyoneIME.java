@@ -229,7 +229,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         if (!editorInfo.packageName.equals(_lastPackageName)) {
 
             //TODO: Перенести в keyboard_mechanics с использованием PackageHistory
-            SetGestureDefaultPointerMode(_lastPackageName, _modeGesturePointerAtViewMode);
+            SetGestureDefaultPointerMode(_lastPackageName, _modeGestureAtViewMode);
 
             PackageHistory.add(_lastPackageName);
             _lastPackageName = editorInfo.packageName;
@@ -808,10 +808,10 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                     changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
             }
         } else { //!isIsInput
-            if(!pref_keyboard_gestures_at_views_enable) {
+            if(_modeGestureAtViewMode == GestureAtViewMode.Disabled) {
                 changed = setSmallIcon2(R.mipmap.ic_gesture_icon_off);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_OFF);
-            } else if (_modeGesturePointerAtViewMode) {
+            } else if (_modeGestureAtViewMode == GestureAtViewMode.Pointer) {
                 changed = setSmallIcon2(R.mipmap.ic_gesture_icon_pointer);
                 changed |= notificationProcessor.SetContentTitleGestureMode(TITLE_GESTURE_VIEW_POINTER);
             } else {
@@ -1107,18 +1107,20 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     private void LoadSettingsAndKeyboards(){
 
-        pref_show_default_onscreen_keyboard = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
-        pref_keyboard_gestures_at_views_enable = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED);
         pref_gesture_motion_sensitivity = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
         pref_show_toast = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_2_SHOW_TOAST);
-        pref_manage_call = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_6_MANAGE_CALL);
         pref_alt_space = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_3_ALT_SPACE);
-        pref_long_press_key_alt_symbol = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_5_LONG_PRESS_ALT);
         pref_flag = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_4_FLAG);
+        pref_long_press_key_alt_symbol = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_5_LONG_PRESS_ALT);
+        pref_manage_call = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_6_MANAGE_CALL);
         pref_height_bottom_bar = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
+        pref_show_default_onscreen_keyboard = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
+        pref_gesture_mode_at_view_mode = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE);
+        SetGestureModeAtViewModeDefault();
         pref_system_icon_no_notification_text = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
         pref_vibrate_on_key_down = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN);
         pref_ensure_entered_text = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT);
+        pref_pointer_mode_rect_and_autofocus = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS);
 
         allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts = new ArrayList<>();
@@ -1147,6 +1149,35 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         keyboardLayoutManager.Initialize(activeLayouts, getResources(), getApplicationContext());
     }
 
+    private void SetGestureModeAtViewModeDefault() {
+        switch (pref_gesture_mode_at_view_mode) {
+            case 0:
+                _modeGestureAtViewModeDisabledPermanently = true;
+                GESTURE_MODE_AT_VIEW_MODE_DEFAULT = GestureAtViewMode.Disabled;
+                break;
+            case 1:
+                _modeGestureAtViewModeDisabledPermanently = false;
+                _modeGestureAtViewModePointerAfterEnable = false;
+                GESTURE_MODE_AT_VIEW_MODE_DEFAULT = GestureAtViewMode.Disabled;
+                break;
+            case 2:
+                _modeGestureAtViewModeDisabledPermanently = false;
+                _modeGestureAtViewModePointerAfterEnable = true;
+                GESTURE_MODE_AT_VIEW_MODE_DEFAULT = GestureAtViewMode.Disabled;
+                break;
+            case 3:
+                _modeGestureAtViewModeDisabledPermanently = false;
+                GESTURE_MODE_AT_VIEW_MODE_DEFAULT = GestureAtViewMode.Scroll;
+                break;
+            case 4:
+                _modeGestureAtViewModeDisabledPermanently = false;
+                GESTURE_MODE_AT_VIEW_MODE_DEFAULT = GestureAtViewMode.Pointer;
+                break;
+            default:
+                _modeGestureAtViewModeDisabledPermanently = false;
+                GESTURE_MODE_AT_VIEW_MODE_DEFAULT = GestureAtViewMode.Scroll;
+        }
+    }
 
 
     //endregion
@@ -1179,8 +1210,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     }
 
     @Override
-    protected boolean IsGestureModeEnabled() {
-        return pref_keyboard_gestures_at_views_enable;
+    protected boolean IsGestureModeAtViewEnabled() {
+        return _modeGestureAtViewMode != GestureAtViewMode.Disabled;
     }
 
     //endregion

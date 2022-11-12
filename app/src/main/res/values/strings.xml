@@ -33,12 +33,30 @@
     <string name="pref_p_7_value">Меньше | Больше</string>
     <string name="pref_p_8_name">8. Показывать нижнюю наэкранную свайп-панель</string>
     <string name="pref_p_8_hint">На которой стрелки и язык (с флажком) и которая появляется в полях ввода.\n Открывание наэкранной SYM, NAV клавиатуры в любом случае будет работать.\n Открыть/закрыть панель при любой настройке можно Shift+Ctrl.</string>
-    <string name="pref_p_9_name">9. Режим жестов (по клавиатуре) в режиме просмотра всегда включен</string>
-    <string name="pref_p_9_hint">Для выключения режима жестов нажать 2xCTRL (K1: R_SHIFT).\n Для режима жестов по полю ввода нажать 2хCTRL.\n Больше полезностей для работы с жестами и с текстом см. инструкцию п.Ж</string>
+    <string name="pref_p9_gesture_modes_title">9. Настройка сенсора клавиатуры (жестов по клавиатуре) в режиме просмотра</string>
+    <string-array name="pref_p9_gesture_modes_array">
+        <item>Disabled</item>
+        <item>Default Off—>Swipe</item>
+        <item>Default Off—>Pointer</item>
+        <item>Default Swipe</item>
+        <item>Default Pointer</item>
+    </string-array>
+    <string name="pref_p9_gesture_modes_comment">\tDisabled — сенсор в режиме просмотра выключен совсем;\n
+        \tDefault Off—>Xxx — по умолчанию сенсор выключен для приложения. Включить/выключить через 3xCTRL (K1: 3xR_SHIFT);\n
+        \t\tOff—>Swipe — после выхода из выключенного режима, будет режим Swipe;\n
+        \t\tOff—>Pointer — после выхода из выключенного режима, будет режим Cursor;\n
+        \tDefault Swipe — сенсор клавиатуры по умолчанию режиме листания. Переключить через 2xCTRL (K1: 2xR_SHIFT)\n
+        \tDefault Pointer — сенсор клавиатуры по умолчанию режиме указателя (перемещения фокуса/выделения по иконкам, контролам). Переключить через 2xCTRL (K1: 2xR_SHIFT).\n
+        \tБольше полезностей для работы с жестами и с текстом см. инструкцию п.Ж</string>
+    <string name="pref_p_9_hint"></string>
     <string name="pref_p_10_name">10. Иконка раскладки справа (без текста в нотификациях)</string>
     <string name="pref_p_11_name">11. Вибро-отклик при нажатии на кнопки хардварной клавиатуры</string>
     <string name="pref_p_12_name">12. Если введен текст, то BACK/HOME надо нажать 2 раза</string>
     <string name="pref_p_12_hint">Это нужно, чтобы защатиться от случайного нажатия на BACK и HOME и потери введенного текста. Настройка срабатывает только, если в поле ввода введен какой-то текст. Если текста нет и поле пустое, то BACK и HOME работают как обычно.</string>
+    <string name="pref_p_13_name">13. Показывать рамочку вокруг выделенного элемента в режиме Курсора в режиме просмотра</string>
+    <string name="pref_p_13_hint">\tЭто нужно когда "родная" подсветка выделенного элемента интерфейса не очень видна.\n
+        \tКроме того, без этого иногда совсем не понятно, где именно сейчас фокус.\n
+        \tВ дополнение, эта опция при переключении приложений АВТОМАТИЧЕСКИ ставит ФОКУС на элемент интефейса по умолчанию.</string>
     <string name="pref_manual_name">Инструкция</string>
     <string name="pref_manual_link">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
     <string name="notification_kb_state_nav_mode">Навигация</string>
@@ -68,4 +86,5 @@
     <string name="pref_more_tv_search_plugins_comment_not_active">\nДля работы поисковых плагинов необходимо активировать спец. возможности в главном меню.</string>
     <string name="gesture_mode_notification_text">Режимы жестов (на полях ввода, на просмотре выключен)</string>
     <string name="keyboard_layout_mode_notification_text">Раскладка клавиатуры (языки, символы и пр.)</string>
+
 </resources>

@@ -203,13 +203,27 @@ public class ActivitySettings extends AppCompatActivity {
             }
         });
 
-        Switch switch_keyboard_gestures_at_views_enabled = (Switch) findViewById(R.id.switch_keyboard_gestures_at_views_enabled);
-        SetSwitchStateOrDefault(switch_keyboard_gestures_at_views_enabled, keyoneKb2Settings.APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED);
+        Spinner staticSpinner = (Spinner) findViewById(R.id.static_spinner_p9);
 
-        switch_keyboard_gestures_at_views_enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
+                .createFromResource(this, R.array.pref_p9_gesture_modes_array, android.R.layout.simple_spinner_item);
+
+        staticAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        staticSpinner.setAdapter(staticAdapter);
+
+        int spinner_p9_from_pref =  keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE);
+        staticSpinner.setSelection(spinner_p9_from_pref);
+
+        staticSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_9_KEYBOARD_GESTURES_AT_VIEWS_ENABLED, isChecked);
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE, position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                staticSpinner.setSelection(spinner_p9_from_pref);
             }
         });
 
@@ -241,6 +255,17 @@ public class ActivitySettings extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, isChecked);
+            }
+        });
+
+
+        Switch switch_pointer_mode_rect = (Switch) findViewById(R.id.switch_pointer_mode_rect);
+        SetSwitchStateOrDefault(switch_pointer_mode_rect, keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS);
+
+        switch_pointer_mode_rect.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS, isChecked);
             }
         });
 

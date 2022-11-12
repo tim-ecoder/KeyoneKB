@@ -52,7 +52,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     protected KeyoneKb2Settings keyoneKb2Settings;
 
-    public boolean pref_keyboard_gestures_at_views_enable = true;
+    //public boolean pref_keyboard_gestures_at_views_enable = true;
 
     //GestureDescription.Builder builder;
 
@@ -80,7 +80,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     float K;
     float Ktime = 1.25f;
 
-    protected abstract boolean IsGestureModeEnabled();
+    protected abstract boolean IsGestureModeAtViewEnabled();
 
     protected boolean ProcessGestureAtMotionEvent(MotionEvent motionEvent) {
         //LogKeyboardTest("GESTURE ACTION: "+motionEvent);
@@ -93,9 +93,9 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 return true;
         } else { //!IsInputMode()
 
-            if (!IsGestureModeEnabled())
+            if (!IsGestureModeAtViewEnabled())
                 return true;
-            if(!_modeGesturePointerAtViewMode)
+            if(_modeGestureAtViewMode == GestureAtViewMode.Scroll)
                 return false;
         }
 
@@ -117,7 +117,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             return true;
         }
         if ( (IsInputMode() && mode_gesture_cursor_at_input_mode)
-                || (!IsInputMode() && _modeGesturePointerAtViewMode)) {
+                || IsAnyGestureAtViewMode()) {
             ProcessGesturePointersAndPerformAction(motionEvent, -1);
         }
 
@@ -224,7 +224,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 K=1 ~6 событий MoveCursor*/
                 /*MAGIC_KEYBOARD_GESTURE_MOTION_CONST=48; pref_gesture_motion_sensitivity=1-положение-слева
                 * K=0.5 ~9 событий */
-                if(!IsInputMode() && _modeGesturePointerAtViewMode)
+                if(IsAnyGestureAtViewMode())
                     Kpower = 2.5f;
                 if(IsInputMode() && _modeGestureScrollAtInputMode)
                     Kpower = 0f;
@@ -242,7 +242,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                         if (MoveCursorLeftSafe(inputConnection))
                             Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
                     }
-                } else if (mode_gesture_cursor_plus_up_down || (!IsInputMode() && _modeGesturePointerAtViewMode) || (IsInputMode() && _modeGestureScrollAtInputMode)) {
+                } else if (mode_gesture_cursor_plus_up_down || IsAnyGestureAtViewMode() || (IsInputMode() && _modeGestureScrollAtInputMode)) {
                     if (absDeltaY < motion_delta_min_y)
                         return true;
                     //int times = Math.round(absDeltaY / motion_delta_min_y);
@@ -267,6 +267,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             return true;
         }
         return false;
+    }
+
+    private boolean IsAnyGestureAtViewMode() {
+        return !IsInputMode() && _modeGestureAtViewMode != GestureAtViewMode.Disabled;
     }
 
     private void ResetGestureMovementCoordsToInitial() {
@@ -525,7 +529,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
 
     private boolean MoveCursorDownSafe(InputConnection inputConnection, float lastGestureY, float currentGestureY, long time) {
-        if(!IsInputMode() && _modeGesturePointerAtViewMode) {
+        if(IsAnyGestureAtViewMode()) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection, 0);
             return true;
         }
@@ -561,7 +565,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     private boolean MoveCursorUpSafe(InputConnection inputConnection, float lastGestureY, float currentGestureY, long time) {
-        if(!IsInputMode() && _modeGesturePointerAtViewMode) {
+        if(IsAnyGestureAtViewMode()) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_UP, inputConnection, 0);
             return true;
         }
@@ -596,7 +600,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     protected boolean MoveCursorLeftSafe(InputConnection inputConnection) {
-        if(!IsInputMode() && _modeGesturePointerAtViewMode) {
+        if(IsAnyGestureAtViewMode()) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection, 0);
             return true;
         }
@@ -624,7 +628,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     protected boolean MoveCursorRightSafe(InputConnection inputConnection) {
-        if(!IsInputMode() && _modeGesturePointerAtViewMode) {
+        if(IsAnyGestureAtViewMode()) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection, 0);
             return true;
         }
@@ -714,11 +718,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return true;
     }
 
-    public boolean ActionChangeGestureModeEnableState() {
-        pref_keyboard_gestures_at_views_enable = !pref_keyboard_gestures_at_views_enable;
-        return true;
-    }
-
     public boolean ActionTryChangeGestureModeStateAtInputMode() {
         if (IsInputMode()) {
             mode_gesture_cursor_at_input_mode = !mode_gesture_cursor_at_input_mode;
@@ -726,6 +725,16 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         }
         return false;
 
+    }
+
+    public boolean ActionTryDisableGestureInputScrollMode() {
+        if(_modeGestureScrollAtInputMode) {
+            _modeGestureScrollAtInputMode = false;
+            Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _modeGestureScrollAtInputMode);
+            ResetGestureMovementCoordsToInitial();
+            return true;
+        }
+        return false;
     }
 
     public boolean ActionEnableGestureAtInputModeAndUpDownMode() {
@@ -750,25 +759,34 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     //region Actions GESTURE POINTER/SCROLL (VIEW_MODE)
 
+    boolean _modeGestureAtViewModeDisabledPermanently = false;
+    boolean _modeGestureAtViewModePointerAfterEnable = false;
+
+    public enum GestureAtViewMode {
+        Disabled,
+        Scroll,
+        Pointer
+    }
+
     protected String _lastPackageName = "";
 
-    String GESTURE_POINTER_MODE_PREFIX = "GESTURE_POINTER_MODE_";
+    String GESTURE_AT_VIEW_MODE_PREFIX = "GESTURE_AT_VIEW_MODE_";
 
-    boolean GESTURE_POINTER_MODE_DEFAULT = true;
+    GestureAtViewMode GESTURE_MODE_AT_VIEW_MODE_DEFAULT = GestureAtViewMode.Disabled;
 
-    boolean GetGestureDefaultPointerMode() {
+    GestureAtViewMode GetGestureStoredOrDefaultPointerMode() {
         if(_lastPackageName == null || _lastPackageName.equals(""))
-            return GESTURE_POINTER_MODE_DEFAULT;
-        String prefName = GESTURE_POINTER_MODE_PREFIX+_lastPackageName;
-        keyoneKb2Settings.CheckSettingOrSetDefault(prefName, GESTURE_POINTER_MODE_DEFAULT);
-        return keyoneKb2Settings.GetBooleanValue(prefName);
+            return GESTURE_MODE_AT_VIEW_MODE_DEFAULT;
+        String prefName = GESTURE_AT_VIEW_MODE_PREFIX +_lastPackageName;
+        keyoneKb2Settings.CheckSettingOrSetDefault(prefName, GESTURE_MODE_AT_VIEW_MODE_DEFAULT.name());
+        return GestureAtViewMode.valueOf(keyoneKb2Settings.GetStringValue(prefName));
     }
 
-    protected void SetGestureDefaultPointerMode(String packageName, boolean value) {
-        keyoneKb2Settings.SetBooleanValue(GESTURE_POINTER_MODE_PREFIX+packageName, value);
+    protected void SetGestureDefaultPointerMode(String packageName, GestureAtViewMode value) {
+        keyoneKb2Settings.SetStringValue(GESTURE_AT_VIEW_MODE_PREFIX +packageName, value.name());
     }
 
-    public boolean _modeGesturePointerAtViewMode = GESTURE_POINTER_MODE_DEFAULT;
+    public GestureAtViewMode _modeGestureAtViewMode = GESTURE_MODE_AT_VIEW_MODE_DEFAULT;
     protected boolean _modeGestureScrollAtInputMode = false;
     public boolean ActionTryChangeGestureInputScrollMode() {
         if(!IsInputMode())
@@ -779,28 +797,56 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return true;
     }
 
-    public boolean ActionTryDisableGestureInputScrollMode() {
-        if(_modeGestureScrollAtInputMode) {
-            _modeGestureScrollAtInputMode = false;
-            Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _modeGestureScrollAtInputMode);
-            ResetGestureMovementCoordsToInitial();
+    public boolean ActionChangeGestureModeEnableState() {
+        if(_modeGestureAtViewModeDisabledPermanently) {
+            _modeGestureAtViewMode = GestureAtViewMode.Disabled;
             return true;
         }
-        return false;
+        if(_modeGestureAtViewMode != GestureAtViewMode.Disabled)
+            _modeGestureAtViewMode = GestureAtViewMode.Disabled;
+        else {
+            ResetGestureModeAtViewModeToDefaultAfterEnable();
+            _modeGestureAtViewMode = GetGestureStoredOrDefaultPointerMode();
+        }
+
+        return true;
     }
+
+
 
     public boolean ActionTryChangeGesturePointerModeAtViewMode() {
         if(IsInputMode())
             return false;
-        _modeGesturePointerAtViewMode = !_modeGesturePointerAtViewMode;
-        Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ _modeGesturePointerAtViewMode);
+        if(_modeGestureAtViewModeDisabledPermanently) {
+            _modeGestureAtViewMode = GestureAtViewMode.Disabled;
+            return false;
+        }
+        if(_modeGestureAtViewMode == GestureAtViewMode.Disabled) {
+            return false;
+        }
+        else if(_modeGestureAtViewMode == GestureAtViewMode.Pointer)
+            _modeGestureAtViewMode = GestureAtViewMode.Scroll;
+        else if(_modeGestureAtViewMode == GestureAtViewMode.Scroll)
+            _modeGestureAtViewMode = GestureAtViewMode.Pointer;
+        Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ _modeGestureAtViewMode);
         ResetGestureMovementCoordsToInitial();
         return true;
     }
 
+    private void ResetGestureModeAtViewModeToDefaultAfterEnable() {
+        if(_modeGestureAtViewModePointerAfterEnable)
+            SetGestureDefaultPointerMode(_lastPackageName, GestureAtViewMode.Pointer);
+        else
+            SetGestureDefaultPointerMode(_lastPackageName, GestureAtViewMode.Scroll);
+    }
+
     public boolean ActionResetGesturePointerMode() {
-        _modeGesturePointerAtViewMode = GetGestureDefaultPointerMode();
-        Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ _modeGesturePointerAtViewMode);
+        if(_modeGestureAtViewModeDisabledPermanently) {
+            _modeGestureAtViewMode = GestureAtViewMode.Disabled;
+            return true;
+        }
+        _modeGestureAtViewMode = GetGestureStoredOrDefaultPointerMode();
+        Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ _modeGestureAtViewMode);
         ResetGestureMovementCoordsToInitial();
         return true;
     }
