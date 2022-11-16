@@ -797,6 +797,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return true;
     }
 
+
     public boolean ActionChangeGestureModeEnableState() {
         if(_modeGestureAtViewModeDisabledPermanently) {
             _modeGestureAtViewMode = GestureAtViewMode.Disabled;

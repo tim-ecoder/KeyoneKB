@@ -975,7 +975,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 break;
         }
 
-
         _isKeyTransparencyInsideUpDownEvent = true;
         return true;
     }

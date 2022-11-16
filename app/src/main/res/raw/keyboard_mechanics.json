@@ -140,6 +140,9 @@
   "before-send-char-actions": [
     {
       "action-method-name": "ActionTrySearchInputActivateOnLetterHack"
+    }, {
+      "action-method-name": "ActionTryDisableGestureInputScrollMode",
+      "need-update-gesture-visual-state": true
     }
   ],
   "after-send-char-actions": [
@@ -449,6 +452,12 @@
           ],
           "action-method-name": "ActionTrySearchInputActivateOnLetterHack"
         }, {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryDisableGestureInputScrollMode",
+          "need-update-gesture-visual-state": true
+        }, {
           "action-method-name": "ActionSetKeyTransparency",
           "need-update-visual-state": true
         }, {
@@ -488,6 +497,12 @@
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryDisableGestureInputScrollMode",
+          "need-update-gesture-visual-state": true
         },
         {
           "comment" : "Пока отключим, т.к. в некоторых приложениях не срабатывает. Вместо этого будет явная отправка ENTER",
