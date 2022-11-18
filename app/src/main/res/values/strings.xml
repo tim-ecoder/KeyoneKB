@@ -1,14 +1,14 @@
 <resources>
     <string name="app_name">KeyoneKB2</string>
-    <string name="main_btn_settings">Настройки</string>
-    <string name="main_btn_power_manager_activated">Энергосбережение требует настройки</string>
+    <string name="main_btn_settings">A. Настройки</string>
+    <string name="main_btn_power_manager_activated">E. Энергосбережение требует настройки</string>
     <string name="main_btn_power_manager_deactivated">Энергосбережение настроено</string>
-    <string name="main_btn_sys_kb_setting_enabled">Активировать клавиатуру</string>
+    <string name="main_btn_sys_kb_setting_enabled">B. Активировать клавиатуру</string>
     <string name="main_btn_sys_kb_setting_disabled">Клавиатура активирована</string>
-    <string name="main_btn_sys_phone_permission_activated">Внимание! Требуется разрешение</string>
+    <string name="main_btn_sys_phone_permission_activated">D. Внимание! Требуется разрешение</string>
     <string name="main_btn_sys_phone_permission_deactivated">Действий с разрешениями не требуется</string>
     <string name="main_btn_test_keyboard">Проверка работы</string>
-    <string name="main_btn_sys_kb_accessibility_setting_enabled">Активировать спец. возможности</string>
+    <string name="main_btn_sys_kb_accessibility_setting_enabled">C. Активировать спец. возможности</string>
     <string name="main_btn_sys_kb_accessibility_setting_disabled">Cпец. возможности активированы</string>
     <string name="main_btn_more_settings">Расширенные настройки</string>
     <string name="main_manual_text">ИНСТРУКЦИЯ</string>
@@ -51,14 +51,17 @@
     <string name="pref_p_9_hint"></string>
     <string name="pref_p_10_name">10. Иконка раскладки справа (без текста в нотификациях)</string>
     <string name="pref_p_11_name">11. Вибро-отклик при нажатии на кнопки хардварной клавиатуры</string>
-    <string name="pref_p_12_name">12. Если введен текст, то BACK/HOME надо нажать 2 раза</string>
-    <string name="pref_p_12_hint">Это нужно, чтобы защатиться от случайного нажатия на BACK и HOME и потери введенного текста. Настройка срабатывает только, если в поле ввода введен какой-то текст. Если текста нет и поле пустое, то BACK и HOME работают как обычно.</string>
-    <string name="pref_p_13_name">13. Показывать рамочку вокруг выделенного элемента в режиме Курсора в режиме просмотра</string>
+    <string name="pref_p_12_name">12. (Параноидально) Если введен текст, то BACK/HOME надо нажать 2 раза</string>
+    <string name="pref_p_12_hint">Это нужно, чтобы защатиться от случайного нажатия на BACK и HOME и потери введенного текста. Настройка срабатывает только, если в поле ввода введен какой-то текст. Если текста нет и поле пустое, то BACK и HOME работают как обычно.\n
+    \tЭто реально нужно, если вы много текста вводите в браузерных приложениях, где случайное нажатие BACK отбросит на предыдущую страницу и обнулит форму ввода</string>
+    <string name="pref_p_13_name">13. (Экспериментально) Показывать рамочку вокруг выделенного элемента в режиме Курсора в режиме просмотра</string>
     <string name="pref_p_13_hint">\tЭто нужно когда "родная" подсветка выделенного элемента интерфейса не очень видна.\n
         \tКроме того, без этого иногда совсем не понятно, где именно сейчас фокус.\n
         \tВ дополнение, эта опция при переключении приложений АВТОМАТИЧЕСКИ ставит ФОКУС на элемент интефейса по умолчанию.</string>
     <string name="pref_p_13a_name">13A. Выбор цвета рамки из п.13</string>
     <string name="pref_p_13a_hint">\tЧтобы настройки цвета применились надо передернуть Спец.сервис KeyoneKB2</string>
+    <string name="pref_first_install">\tПервичная инициализация после установки в строгой последовательности: A, B, C, D, E.\n
+    \tВ Настройках (п.А) отключить ненужные раскладки (т.к. клавиатура из коробки поставляется для нескольких устройств). (Остальные) Настройки (значения по умолчанию) расчитаны так, чтобы можно было удобно пользоваться как есть.</string>
     <string name="pref_manual_name">Инструкция</string>
     <string name="pref_manual_link">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
     <string name="notification_kb_state_nav_mode">Навигация</string>

@@ -43,7 +43,7 @@ public class ActivityMain extends Activity {
         tv_version = (TextView) findViewById(R.id.tv_version);
         Button btn_more_settings = (Button) findViewById(R.id.btn_more_settings);
 
-        String text = String.format("\n\nApp: %s\nVersion: %s\nBuild type: %s", BuildConfig.APPLICATION_ID, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
+        String text = String.format("\nApp: %s\nVersion: %s\nBuild type: %s", BuildConfig.APPLICATION_ID, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
         tv_version.setText(text);
 
         btn_settings.setOnClickListener(new View.OnClickListener() {

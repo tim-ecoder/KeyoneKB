@@ -330,7 +330,12 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             if (inputConnection != null && navigationKeyCode != 0) {
                 //Удаляем из meta состояния SYM т.к. он мешает некоторым приложениям воспринимать NAV символы с зажатием SYM
                 int meta = event.getMetaState() & ~KeyEvent.META_SYM_ON;
-                keyDownUpMeta(navigationKeyCode, inputConnection, meta);
+
+                /** Это (Флаги KeepTouch) нужно чтобы в Telegram не выбивало курсор при движении курсора
+                 * С другой стороны надо передавать мета состояние чтобы работало сочетания Shift+Tab(SYM+A)
+                 */
+                keyDownUpKeepTouch(navigationKeyCode, inputConnection, meta);
+                //keyDownUpMeta(navigationKeyCode, inputConnection, meta);
                 //keyDownUpDefaultFlags(navigationKeyCode, inputConnection);
             }
             return true;

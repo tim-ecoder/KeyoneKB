@@ -67,11 +67,11 @@ public class KeyoneKb2Settings {
         CheckSettingOrSetDefault(APP_PREFERENCES_6_MANAGE_CALL, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR, 10);
         CheckSettingOrSetDefault(APP_PREFERENCES_8_SHOW_SWIPE_PANEL, false);
-        CheckSettingOrSetDefault(APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE, 2);
+        CheckSettingOrSetDefault(APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE, 3);
         CheckSettingOrSetDefault(APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN, false);
-        CheckSettingOrSetDefault(APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, true);
-        CheckSettingOrSetDefault(APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS, true);
+        CheckSettingOrSetDefault(APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, false);
+        CheckSettingOrSetDefault(APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS, false);
         CheckSettingOrSetDefault(APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR, 0x86888A);
     }
 

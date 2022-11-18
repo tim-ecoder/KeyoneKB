@@ -59,10 +59,22 @@
         android:background="?android:attr/listDivider" />
 
     <TextView
+            android:id="@+id/tv_initial_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/divider12"
+            android:text="@string/pref_first_install"  />
+    <View
+            android:id="@+id/divider15"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/tv_initial_hint"
+            android:background="?android:attr/listDivider" />
+    <TextView
         android:id="@+id/manual_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/divider12"
+        android:layout_below="@id/divider15"
         android:text="@string/main_manual_text"
         android:textAlignment="center"
         android:textSize="24sp"

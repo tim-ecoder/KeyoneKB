@@ -118,6 +118,12 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                         flag, 0x101));
     }
 
+    /**
+     * Это (Флаги KeepTouch) нужно чтобы в Telegram не выбивало курсор при движении курсора
+     * @param keyEventCode
+     * @param ic
+     * @param meta
+     */
     protected static void keyDownUpKeepTouch(int keyEventCode, InputConnection ic, int meta) {
         keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
     }
