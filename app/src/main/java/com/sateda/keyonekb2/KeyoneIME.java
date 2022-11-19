@@ -317,8 +317,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         InputConnection inputConnection = getCurrentInputConnection();
         if (IsNavMode() && IsNavKeyCode(keyCode)) {
             AnyButtonPressTimeForHoldPlusButtonState = event.getEventTime();
-            int scanCode = event.getScanCode();
-            navigationKeyCode = getNavigationCode(scanCode);
+            navigationKeyCode = getNavigationCode(event.getKeyCode());
 
             Log.d(TAG2, "navigationKeyCode " + navigationKeyCode);
             if (navigationKeyCode == -7) {
@@ -425,89 +424,89 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
     }
 
-    //TODO: Вынести в XML
-    public int getNavigationCode(int scanCode) {
+    //TODO: Вынести в XML/JSON
+    public int getNavigationCode(int keyCode) {
         int keyEventCode = 0;
-        switch (scanCode) {
-            case 16: //Q
-                keyEventCode = 111; //ESC
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_Q: //Q
+                keyEventCode = KeyEvent.KEYCODE_ESCAPE; //ESC
                 break;
-            case 17: //W (1)
+            case KeyEvent.KEYCODE_W: //W (1)
                 if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = 131; //F1
+                    keyEventCode = KeyEvent.KEYCODE_F1; //F1
                     break;
                 }
-            case 21: //Y
-                keyEventCode = 122; //Home
+            case KeyEvent.KEYCODE_Y: //Y
+                keyEventCode = KeyEvent.KEYCODE_MOVE_HOME; //Home
                 break;
-            case 18: //E (2)
+            case KeyEvent.KEYCODE_E: //E (2)
                 if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = 132; //F2
+                    keyEventCode = KeyEvent.KEYCODE_F2; //F2
                     break;
                 }
-            case 22: //U
-                keyEventCode = 19; //Arrow Up
+            case KeyEvent.KEYCODE_U: //U
+                keyEventCode = KeyEvent.KEYCODE_DPAD_UP; //Arrow Up
                 break;
-            case 19: //R (3)
+            case KeyEvent.KEYCODE_R: //R (3)
                 if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = 133; //F3
+                    keyEventCode = KeyEvent.KEYCODE_F3; //F3
                     break;
                 }
-            case 23: //I
-                keyEventCode = 123; //END
+            case KeyEvent.KEYCODE_I: //I
+                keyEventCode = KeyEvent.KEYCODE_MOVE_END; //END
                 break;
-            case 20: //T
-            case 24: //O
-                keyEventCode = 92; //Page Up
+            case KeyEvent.KEYCODE_T: //T
+            case KeyEvent.KEYCODE_O: //O
+                keyEventCode = KeyEvent.KEYCODE_PAGE_UP; //Page Up
                 break;
-            case 25: //P
+            case KeyEvent.KEYCODE_P: //P
                 keyEventCode = -7; //FN
                 break;
 
-            case 30: //A
-                keyEventCode = 61; //Tab
+            case KeyEvent.KEYCODE_A: //A
+                keyEventCode = KeyEvent.KEYCODE_TAB; //Tab
                 break;
-            case 31: //S
+            case KeyEvent.KEYCODE_S: //S
                 if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = 134; //F4
+                    keyEventCode = KeyEvent.KEYCODE_F4; //F4
                     break;
                 }
-            case 35: //H
-                keyEventCode = 21; //Arrow Left
+            case KeyEvent.KEYCODE_H: //H
+                keyEventCode = KeyEvent.KEYCODE_DPAD_LEFT; //Arrow Left
                 break;
-            case 32: //D
+            case KeyEvent.KEYCODE_D: //D
                 if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = 135; //F5
+                    keyEventCode = KeyEvent.KEYCODE_F5; //F5
                     break;
                 }
-            case 36: //J
-                keyEventCode = 20; //Arrow Down
+            case KeyEvent.KEYCODE_J: //J
+                keyEventCode = KeyEvent.KEYCODE_DPAD_DOWN; //Arrow Down
                 break;
-            case 33: //F
+            case KeyEvent.KEYCODE_F: //F
                 if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = 135; //F5
+                    keyEventCode = KeyEvent.KEYCODE_F6; //F6
                     break;
                 }
-            case 37: //K
-                keyEventCode = 22; //Arrow Right
+            case KeyEvent.KEYCODE_K: //K
+                keyEventCode = KeyEvent.KEYCODE_DPAD_RIGHT; //Arrow Right
                 break;
-            case 34: //G
-            case 38: //L
-                keyEventCode = 93; //Page down
+            case KeyEvent.KEYCODE_G: //G
+            case KeyEvent.KEYCODE_L: //L
+                keyEventCode = KeyEvent.KEYCODE_PAGE_DOWN; //Page down
                 break;
 
-            case 44: //Z (7)
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = 137; //F7
+            case KeyEvent.KEYCODE_Z: //Z (7)
+                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = KeyEvent.KEYCODE_F7; //F7
                 break;
-            case 45: //X (8)
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = 138; //F8
+            case KeyEvent.KEYCODE_X: //X (8)
+                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = KeyEvent.KEYCODE_F8; //F8
                 break;
-            case 46: //C (9)
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = 139; //F9
+            case KeyEvent.KEYCODE_C: //C (9)
+                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = KeyEvent.KEYCODE_F9; //F9
                 break;
 
-            case 11: //0
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = 140; //F10
+            case KeyEvent.KEYCODE_0: //0
+                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = KeyEvent.KEYCODE_F10; //F10
                 break;
 
             default:
