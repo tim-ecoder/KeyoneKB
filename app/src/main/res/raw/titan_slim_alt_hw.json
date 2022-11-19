@@ -1,0 +1,127 @@
+[
+
+
+  {
+  "key-code" : 45,
+  "single-press-alt-shift-mode" : "~",
+  "single-press-alt-mode" : "0"
+}, {
+  "key-code" : 51,
+  "single-press-alt-shift-mode" : "ˋ",
+  "single-press-alt-mode" : "1"
+}, {
+  "key-code" : 33,
+  "single-press-alt-shift-mode" : "{",
+  "single-press-alt-mode" : "2"
+}, {
+  "key-code" : 46,
+  "single-press-alt-shift-mode" : "}",
+  "single-press-alt-mode" : "3"
+}, {
+  "key-code" : 48,
+  "single-press-alt-shift-mode" : "[",
+  "single-press-alt-mode" : "(",
+  "alt-more-variants" : "{[(<«"
+}, {
+  "key-code" : 53,
+  "single-press-alt-shift-mode" : "]",
+  "single-press-alt-mode" : ")",
+  "alt-more-variants" : "}])>»"
+}, {
+  "key-code" : 49,
+  "single-press-alt-shift-mode" : "<",
+  "single-press-alt-mode" : "-"
+}, {
+  "key-code" : 37,
+  "single-press-alt-shift-mode" : ">",
+  "single-press-alt-mode" : "_"
+}, {
+  "key-code" : 43,
+  "single-press-alt-shift-mode" : "^",
+  "single-press-alt-mode" : "/",
+  "alt-more-variants" : "→←↓↑"
+}, {
+  "key-code" : 44,
+  "single-press-alt-shift-mode" : "%",
+  "single-press-alt-mode" : ":"
+},
+
+
+  {
+  "key-code" : 29,
+  "single-press-alt-shift-mode" : "=",
+  "single-press-alt-mode" : "@"
+}, {
+  "key-code" : 47,
+  "single-press-alt-shift-mode" : "÷",
+  "single-press-alt-mode" : "4"
+}, {
+  "key-code" : 32,
+  "single-press-alt-shift-mode" : "±",
+  "single-press-alt-mode" : "5"
+}, {
+  "key-code" : 34,
+  "single-press-alt-shift-mode" : "•",
+  "single-press-alt-mode" : "6"
+}, {
+  "key-code" : 35,
+  "single-press-alt-shift-mode" : "\\",
+  "single-press-alt-mode" : "*"
+}, {
+  "key-code" : 36,
+  "single-press-alt-shift-mode" : "|",
+  "single-press-alt-mode" : "#"
+}, {
+  "key-code" : 38,
+  "single-press-alt-shift-mode" : "&",
+  "single-press-alt-mode" : "+",
+  "alt-more-variants" : "+±"
+}, {
+  "key-code" : 39,
+  "single-press-alt-shift-mode" : "©",
+  "single-press-alt-mode" : "\""
+}, {
+  "key-code" : 40,
+  "single-press-alt-shift-mode" : "˽",
+  "single-press-alt-mode" : "'"
+},
+
+
+  {
+  "key-code" : 54,
+  "single-press-alt-shift-mode" : "«",
+  "single-press-alt-mode" : "!"
+}, {
+  "key-code" : 52,
+  "single-press-alt-shift-mode" : "»",
+  "single-press-alt-mode" : "7"
+}, {
+  "key-code" : 31,
+  "single-press-alt-shift-mode" : "™",
+  "single-press-alt-mode" : "8"
+}, {
+  "key-code" : 50,
+  "single-press-alt-shift-mode" : "¿",
+  "single-press-alt-mode" : "9",
+  "alt-more-variants" : "¿?"
+}, {
+  "key-code" : 30,
+  "single-press-alt-shift-mode" : "¡",
+  "single-press-alt-mode" : "."
+}, {
+  "key-code" : 42,
+  "single-press-alt-shift-mode" : "Ʃ",
+  "single-press-alt-mode" : ","
+}, {
+  "key-code" : 41,
+  "single-press-alt-shift-mode" : "§",
+  "single-press-alt-mode" : "?"
+}, {
+  "key-code" : 11,
+  "single-press-alt-shift-mode" : "€",
+  "single-press-alt-mode" : "$",
+  "alt-more-variants" : "₽₴₩£₪¥$€"
+}
+
+
+]

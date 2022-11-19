@@ -188,7 +188,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
             if(!isAltShift) {
                 altPopupLabel[i] = String.valueOf((char) keyVariants.SinglePressAltMode);
             }
-            else {
+            else if (altPopupLabel != null) {
                 altPopupLabel[i] = String.valueOf((char) keyVariants.SinglePressAltShiftMode);
             }
             i++;
@@ -208,12 +208,16 @@ public class ViewSatedaKeyboard extends KeyboardView {
             }
 
             if((key.label.equals(" "))
-                    && isKeyboard(keyVariants.KeyCode)) {
+                    && _KeyLabel != null
+                    && isKeyboard(keyVariants.KeyCode)
+                    && keyVariants.SinglePressShiftMode != null
+            ) {
 
                 _KeyLabel_x[arr_inc] = key.x + (key.width - 90);
                 _KeyLabel_y[arr_inc] = key.y + 100;
                 _KeyLabel[arr_inc] = keyVariants.SinglePressShiftMode.toString();
-                if(keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
+
+                if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
                     _KeyLabelAltPopup[arr_inc] = Character.toString(keyVariants.AltMoreVariants.charAt(0));
                 } else
                     _KeyLabelAltPopup[arr_inc] = "";
@@ -228,7 +232,6 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 }
 
                 arr_inc++;
-
             }
         }
     }
@@ -445,7 +448,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
             else if(modeSym)
                 for(int i = 0; i < max_keys; i++){
                     canvas.drawText(sym_KeyLabel[i], sym_KeyLabel_x[i], sym_KeyLabel_y[i], paint_gray);
-                    if(sym_KeyLabelAltPopup[i] != "")
+                    if(sym_KeyLabelAltPopup != null && sym_KeyLabelAltPopup[i] != "")
                         canvas.drawText(sym_KeyLabelAltPopup[i], sym_KeyLabel_x[i]+65, sym_KeyLabel_y[i]-65, paint_red);
                 }
         }

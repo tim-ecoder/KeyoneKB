@@ -1,8 +1,11 @@
 {
   "keyboard-name" : "Русский",
-  "alt-mode-layout" : "pocket_alt_hw",
+  "alt-mode-layout" : "titan_slim_alt_hw",
   "sym-mode-layout" : "pocket_symbol",
-  "key-mapping" : [ { }, {
+  "key-mapping" : [
+
+
+    {
     "key-code" : 45,
     "single-press" : "й",
     "single-press-shift-mode" : "Й"
@@ -46,7 +49,10 @@
     "single-press-shift-mode" : "Х",
     "double-press" : "э",
     "double-press-shift-mode" : "Э"
-  }, {
+  },
+
+
+    {
     "key-code" : 29,
     "single-press" : "ф",
     "single-press-shift-mode" : "Ф"
@@ -84,7 +90,10 @@
     "single-press-shift-mode" : "Д",
     "double-press" : "ж",
     "double-press-shift-mode" : "Ж"
-  }, {
+  },
+
+
+    {
     "key-code" : 54,
     "single-press" : "я",
     "single-press-shift-mode" : "Я",
@@ -118,5 +127,8 @@
     "single-press-shift-mode" : "Ю",
     "double-press" : "ъ",
     "double-press-shift-mode" : "Ъ"
-  } ]
+  }
+
+
+  ]
 }

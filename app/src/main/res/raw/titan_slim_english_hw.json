@@ -1,12 +1,11 @@
 {
   "keyboard-name" : "English",
-  "alt-mode-layout" : "pocket_alt_hw",
+  "alt-mode-layout" : "titan_slim_alt_hw",
   "sym-mode-layout" : "pocket_symbol",
-  "key-mapping" : [ {
-    "key-code" : 11,
-    "single-press" : "$",
-    "single-press-shift-mode" : "€"
-  }, {
+  "key-mapping" : [
+
+
+    {
     "key-code" : 45,
     "single-press" : "q",
     "single-press-shift-mode" : "Q"
@@ -46,7 +45,10 @@
     "key-code" : 44,
     "single-press" : "p",
     "single-press-shift-mode" : "P"
-  }, {
+  },
+
+
+    {
     "key-code" : 29,
     "single-press" : "a",
     "single-press-shift-mode" : "A"
@@ -82,7 +84,10 @@
     "key-code" : 40,
     "single-press" : "l",
     "single-press-shift-mode" : "L"
-  }, {
+  },
+
+
+    {
     "key-code" : 54,
     "single-press" : "z",
     "single-press-shift-mode" : "Z"
@@ -110,5 +115,8 @@
     "key-code" : 41,
     "single-press" : "m",
     "single-press-shift-mode" : "M"
-  } ]
+  }
+
+
+  ]
 }
