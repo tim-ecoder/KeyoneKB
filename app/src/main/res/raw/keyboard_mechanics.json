@@ -367,6 +367,14 @@
           "action-method-name" : "ActionTryPerformLongClickCurrentNode",
           "stop-processing-at-success-result": true
         }, {
+          "comment" : "Если идет звонок в режиме просмотра надо досрочно выйти, чтобы не сработал клик на выделенный элемент (следующая опция)",
+          "meta-mode-method-names": [
+            "MetaStateIsOnCall",
+            "MetaIsViewMode"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }, {
           "meta-mode-method-names": [
             "MetaIsViewMode"
           ],
