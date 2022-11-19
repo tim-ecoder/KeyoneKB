@@ -251,7 +251,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 ProcessDigitsPadHack(event);
 
             if(
-                    KeyoneIME.Instance._modeGestureAtViewMode == InputMethodServiceCoreGesture.GestureAtViewMode.Pointer
+                    (KeyoneIME.Instance._modeGestureAtViewMode == InputMethodServiceCoreGesture.GestureAtViewMode.Pointer
+                    || KeyoneIME.Instance.IsNavMode())
                     && (
                     keyoneKb2AccServiceOptions.SelectedNodeClickHack
                             || keyoneKb2AccServiceOptions.SelectedNodeHighlight

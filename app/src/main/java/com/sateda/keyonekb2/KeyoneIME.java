@@ -334,9 +334,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 /** Это (Флаги KeepTouch) нужно чтобы в Telegram не выбивало курсор при движении курсора
                  * С другой стороны надо передавать мета состояние чтобы работало сочетания Shift+Tab(SYM+A)
                  */
-                keyDownUpKeepTouch(navigationKeyCode, inputConnection, meta);
+                keyDownUpKeepTouch2(navigationKeyCode, inputConnection, meta);
                 //keyDownUpMeta(navigationKeyCode, inputConnection, meta);
-                //keyDownUpDefaultFlags(navigationKeyCode, inputConnection);
             }
             return true;
         }
@@ -361,6 +360,20 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
         //Это нужно чтобы работал "чужой"/встроенный механизм выделения с Shift-ом
         return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
+    }
+
+    /**
+     * Особенность в том, что NAV режим не работал для движения в режиме курсора по BB Launcher (чтобы работал flag должен быть 0)
+     * Но в режиме ввода текста чтобы фокус не выбивало при NAV-навигации в Telegram flag должен быть KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE
+     * @param keyEventCode
+     * @param ic
+     * @param meta
+     */
+    protected void keyDownUpKeepTouch2(int keyEventCode, InputConnection ic, int meta) {
+        if(IsInputMode())
+            keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
+        else
+            keyDownUp(keyEventCode, ic, meta,0);
     }
 
     @Override

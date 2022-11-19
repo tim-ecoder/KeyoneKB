@@ -128,6 +128,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
     }
 
+
+
     protected static void keyDownUpMeta(int keyEventCode, InputConnection ic, int meta) {
         keyDownUp(keyEventCode, ic, meta,0);
     }
