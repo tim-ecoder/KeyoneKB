@@ -72,7 +72,7 @@ public class KeyoneKb2Settings {
         CheckSettingOrSetDefault(APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN, false);
         CheckSettingOrSetDefault(APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, false);
         CheckSettingOrSetDefault(APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS, false);
-        CheckSettingOrSetDefault(APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR, 0x86888A);
+        CheckSettingOrSetDefault(APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR, 0xFF86888A);
     }
 
     public boolean GetBooleanValue(String name) {
