@@ -130,6 +130,8 @@ public class ActivitySettingsMore extends Activity {
         if(packageName == null || packageName.isEmpty())
             return;
         boolean isAdded = false;
+        if(KeyoneKb2AccessibilityService.Instance == null)
+            return;
         for(SearchClickPlugin searchClickPlugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
             if(searchClickPlugin.getPackageName().equals(packageName)) {
                 isAdded = true;
