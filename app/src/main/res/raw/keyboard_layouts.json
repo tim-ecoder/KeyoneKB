@@ -42,13 +42,13 @@
   "icon-lowercase" : "ic_eng_small",
   "icon-first-shift" : "ic_eng_shift_first",
   "icon-capslock" : "ic_eng_shift_all",
-  "custom-keyboard-mechanics": "titan_slim_keyboard_mechanics"
+  "custom-keyboard-mechanics": "keyboard_mechanics"
 }, {
   "options-name" : "Titan Slim Русский (v1)",
   "keyboard-mapping" : "titan_slim_russian_hw",
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
   "icon-capslock" : "ic_rus_shift_all",
-  "custom-keyboard-mechanics": "titan_slim_keyboard_mechanics"
+  "custom-keyboard-mechanics": "keyboard_mechanics"
 }
 ]

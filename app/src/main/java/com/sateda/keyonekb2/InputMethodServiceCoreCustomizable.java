@@ -496,7 +496,9 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                     if (action.MetaModeMethods != null && !action.MetaModeMethods.isEmpty()) {
                         boolean metaResult = true;
                         for (IActionMethod metaMethod : action.MetaModeMethods) {
-                            metaResult &= metaMethod.invoke(Keyboard);
+                            metaResult &= metaMethod.invoke(Keyboard);;
+                            if(!metaResult)
+                                break;
                         }
 
                         if (metaResult) {
@@ -1466,9 +1468,9 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         InputConnection ic = super.getCurrentInputConnection();
         if(ic == null) return false;
         CharSequence c = ic.getTextBeforeCursor(1, 0);
-        if(c.length() > 0) return true;
+        if(c != null && c.length() > 0) return true;
         c = ic.getTextAfterCursor(1, 0);
-        if(c.length() > 0) return true;
+        if(c != null && c.length() > 0) return true;
         return false;
     }
 

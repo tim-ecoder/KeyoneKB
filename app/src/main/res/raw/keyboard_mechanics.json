@@ -162,6 +162,7 @@
     "KEYCODE_CTRL_LEFT",
     "KEYCODE_SHIFT_RIGHT",
     "KEYCODE_FUNCTION",
+    "289",
     "KEYCODE_SPACE",
     "KEYCODE_SYM",
     "KEYCODE_0",
@@ -300,14 +301,14 @@
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
-            "PrefLongPressAltSymbol", "MetaIsAltMode"
+            "MetaIsAltMode","PrefLongPressAltSymbol"
           ],
           "action-method-name": "ActionSendCharLongPressAltSymbolAltMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
-            "PrefLongPressAltSymbol", "MetaIsShiftMode"
+            "MetaIsShiftMode", "PrefLongPressAltSymbol"
           ],
           "action-method-name": "ActionSendCharLongPressAltSymbolShiftMode",
           "method-needs-key-press-parameter": true,
@@ -591,7 +592,7 @@
     },
     {
       "key-codes": [
-        "KEYCODE_CTRL_LEFT", "KEYCODE_CTRL_RIGHT", "KEYCODE_SHIFT_RIGHT", "KEYCODE_FUNCTION"
+        "KEYCODE_CTRL_LEFT", "KEYCODE_CTRL_RIGHT", "KEYCODE_SHIFT_RIGHT", "KEYCODE_FUNCTION", "289"
       ],
       "on-short-press": [
         {
@@ -959,6 +960,7 @@
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
+            "InputIsAnyInput",
             "PrefEnsureEnteredText",
             "InputIsInputFieldAndEnteredText"
           ],
@@ -993,6 +995,7 @@
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
+            "InputIsAnyInput",
             "PrefEnsureEnteredText",
             "InputIsInputFieldAndEnteredText"
           ],
