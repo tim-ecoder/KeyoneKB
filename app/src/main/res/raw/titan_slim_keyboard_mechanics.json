@@ -161,7 +161,7 @@
   "view-mode-key-transparency-exclude-key-codes": [
     "KEYCODE_CTRL_LEFT",
     "KEYCODE_SHIFT_RIGHT",
-    "KEYCODE_FUNCTION",
+    "289",
     "KEYCODE_SPACE",
     "KEYCODE_SYM",
     "KEYCODE_0",
@@ -367,14 +367,22 @@
           "action-method-name" : "ActionTryPerformLongClickCurrentNode",
           "stop-processing-at-success-result": true
         }, {
+          "comment" : "Если идет звонок в режиме просмотра надо досрочно выйти, чтобы не сработал клик на выделенный элемент (следующая опция)",
+          "meta-mode-method-names": [
+            "MetaStateIsOnCall",
+            "MetaIsViewMode"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }, {
           "meta-mode-method-names": [
             "MetaIsViewMode"
           ],
           "action-method-name": "ActionTryPerformClickCurrentNode",
           "stop-processing-at-success-result": true
         }, {
-        "meta-mode-method-names": [
-          "MetaIsAltPressed"
+          "meta-mode-method-names": [
+            "MetaIsAltPressed"
           ],
           "action-method-name": "ActionSendCharToInput",
           "custom-char": "\t",
@@ -583,7 +591,7 @@
     },
     {
       "key-codes": [
-        "KEYCODE_CTRL_LEFT", "KEYCODE_CTRL_RIGHT", "KEYCODE_SHIFT_RIGHT", "KEYCODE_FUNCTION"
+        "KEYCODE_CTRL_LEFT", "KEYCODE_CTRL_RIGHT", "KEYCODE_SHIFT_RIGHT", "289"
       ],
       "on-short-press": [
         {
