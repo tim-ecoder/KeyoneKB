@@ -688,6 +688,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         if(!mode_gesture_cursor_at_input_mode && KeyHoldPlusGestureEnabled) {
             gestureCursorAtInputEnabledByHold = true;
             mode_gesture_cursor_at_input_mode = true;
+            ResetGestureMovementCoordsToInitial();
             return true;
         }
         return false;
@@ -697,6 +698,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         if(gestureCursorAtInputEnabledByHold && KeyHoldPlusGestureEnabled) {
             gestureCursorAtInputEnabledByHold = false;
             mode_gesture_cursor_at_input_mode = false;
+            ResetGestureMovementCoordsToInitial();
             return true;
         }
         return false;
