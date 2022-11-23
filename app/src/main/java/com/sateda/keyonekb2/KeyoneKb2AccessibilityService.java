@@ -1021,7 +1021,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     if(!IsMeta(event, pair.MetaKeyCodeInt))
                         continue;
                     if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                        //KeyoneIME.Instance.onKeyDown(event.getKeyCode(), event);
+
+                        KeyEvent event1 = GetCopy(event);
+                        return KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+
+                        /* Раньше работало только так, теперь заработало и по-нормальному
                         executorService.execute(
                                 () -> {
                                     try {
@@ -1033,11 +1037,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                                     }
                                 });
                         return true;
+
+                         */
                     } else if (event.getAction() == KeyEvent.ACTION_UP) {
                         //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
                         KeyEvent event1 = GetCopy(event);
-                        KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
-                        return true;
+                        return KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+
                     }
                 }
             }

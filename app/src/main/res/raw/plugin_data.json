@@ -30,10 +30,12 @@
   }, {
     "package-name" : "com.android.dialer",
     "custom-click-adapter-click-parent" : true,
-    "search-field-id" : "com.android.dialer:id/search_box_start_search"
+    "search-field-id" : "com.android.dialer:id/search_box_start_search",
+    "wait-before-send-char-ms" : 50
   }, {
     "package-name" : "com.blackberry.contacts",
-    "search-field-id" : "com.blackberry.contacts:id/menu_search"
+    "search-field-id" : "com.blackberry.contacts:id/menu_search",
+    "wait-before-send-char-ms" : 50
   }, {
     "package-name" : "com.oasisfeng.island",
     "additional-event-type-type-window-content-changed" : true,

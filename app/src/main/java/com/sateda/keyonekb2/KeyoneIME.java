@@ -379,7 +379,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     public synchronized boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.v(TAG2, "onKeyUp " + event);
 
-        //TODO: Hack 4 pocket
+        //TODO: Hack 4 pocket (проверить вроде как и без этого стало работать нормально
         //if (keyCode == KeyEvent.KEYCODE_BACK) {
         //    return false;
         //}
