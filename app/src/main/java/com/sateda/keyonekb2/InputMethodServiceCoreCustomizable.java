@@ -1464,7 +1464,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public boolean InputIsInputFieldAndEnteredText() {
         EditorInfo editorInfo = getCurrentInputEditorInfo();
         if(editorInfo == null) return false;
-        if(editorInfo.inputType == 0) return false;
+        if(editorInfo.inputType <= 0) return false;
         InputConnection ic = super.getCurrentInputConnection();
         if(ic == null) return false;
         CharSequence c = ic.getTextBeforeCursor(1, 0);
