@@ -4,7 +4,11 @@ import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.accessibilityservice.GestureDescription;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.graphics.*;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
@@ -18,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,7 +43,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     KeyoneKb2Settings keyoneKb2Settings;
 
-    ExecutorService executorService;
+    //ExecutorService executorService;
 
     ArrayList<String> DefaultSearchWords;
 
@@ -157,7 +162,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             Instance = this;
             _currentWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
             _layoutParams = InitializeLayoutParams();
-            executorService = Executors.newFixedThreadPool(2);
+            //executorService = Executors.newFixedThreadPool(2);
+
+
 
         } catch(Throwable ex) {
             Log.e(TAG3, "onCreate Exception: "+ex);
@@ -1077,5 +1084,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
     //endregion
+
+
+    public void IntentQuickSettings() {
+        performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS);
+    }
+
+    public void IntentNotifications() {
+        performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS);
+    }
 
 }

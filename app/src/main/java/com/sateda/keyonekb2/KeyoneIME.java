@@ -2,7 +2,11 @@ package com.sateda.keyonekb2;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
+import android.graphics.drawable.Icon;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
@@ -24,7 +28,6 @@ import android.widget.Toast;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import java.util.*;
-
 
 @Keep
 public class KeyoneIME extends InputMethodServiceCoreCustomizable implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -79,6 +82,9 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     KeyboardLayout.KeyboardLayoutOptions.IconRes navIconRes;
     KeyboardLayout.KeyboardLayoutOptions.IconRes navFnIconRes;
     KeyboardLayout.KeyboardLayoutOptions.IconRes digitsPadIconRes;
+
+
+
 
 
 
@@ -191,13 +197,37 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
             UpdateGestureModeVisualization(false);
             UpdateKeyboardModeVisualization();
+
+            ShortcutInfo dsQuickSettings = new ShortcutInfo.Builder(this, "QuickSettings")
+                    .setShortLabel("QuickSettings")
+                    .setLongLabel("QuickSettings")
+                    .setIcon(Icon.createWithResource(this, R.drawable.ic_rus_shift_all))
+                    .setIntents(
+                            new Intent[]{
+                                    new Intent(IntentQuickSettings.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            })
+                    .setRank(1)
+                    .build();
+
+            ShortcutInfo dsNotifications = new ShortcutInfo.Builder(this, "Notifications")
+                    .setShortLabel("Notifications")
+                    .setLongLabel("Notifications")
+                    .setIcon(Icon.createWithResource(this, R.drawable.ic_rus_shift_all))
+                    .setIntents(
+                            new Intent[]{
+                                    new Intent(IntentNotifications.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            })
+                    .setRank(1)
+                    .build();
+
+            final ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
+            shortcutManager.setDynamicShortcuts(Arrays.asList(dsQuickSettings, dsNotifications));
+
         } catch(Throwable ex) {
             Log.e(TAG2, "onCreate Exception: "+ex);
             throw ex;
         }
     }
-
-
 
     @Override
     public void onDestroy() {
