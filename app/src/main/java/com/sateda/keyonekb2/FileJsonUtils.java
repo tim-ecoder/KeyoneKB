@@ -2,6 +2,7 @@ package com.sateda.keyonekb2;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -22,8 +23,11 @@ public class FileJsonUtils {
 
     public static String PATH;
     public static String PATH_DEF;
+
+    public static String APP_FILES_DIR = "KeyoneKb2";
     public static void Initialize(String packageName, Context context) {
-        PATH = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/Android/data/" + packageName + "/files/";
+
+        PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/"+APP_FILES_DIR+"/";
         PATH_DEF = PATH +"default/";
         LoadMappingFile(context);
     }
@@ -134,7 +138,7 @@ public class FileJsonUtils {
     private static String SaveResToFile(String resName, String fileExtensionName, Context context){
         Resources resources = context.getResources();
 
-        String pathDef = PATH +"default/";
+        String pathDef = PATH_DEF;
         CheckFoldersAndCreate(pathDef);
         String fileName = pathDef+ resName+fileExtensionName;
         int resId = resources.getIdentifier(resName, "raw", context.getPackageName());
@@ -153,7 +157,7 @@ public class FileJsonUtils {
                 Log.e(TAG2, "Save file error: "+e.toString());
             }
         } else {
-            Log.e(TAG2, "Save file error: Can not find Resouкce: "+resName);
+            Log.e(TAG2, "Save file error: Can not find Resource: "+resName);
         }
         return pathDef;
     }
