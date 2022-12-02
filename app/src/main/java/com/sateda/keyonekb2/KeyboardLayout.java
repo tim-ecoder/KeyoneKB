@@ -72,6 +72,9 @@ public class KeyboardLayout {
         @JsonProperty(index=60)
         String CustomKeyboardMechanics;
 
+        @JsonProperty(index=70)
+        String DeviceModelRegexp;
+
         int id = 0;
 
         public KeyboardLayoutOptions() {

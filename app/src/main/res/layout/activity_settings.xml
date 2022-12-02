@@ -12,12 +12,19 @@
     android:layout_height="wrap_content"
     tools:context=".ActivitySettings">
 
+    <TextView
+            android:id="@+id/text_keyboard_layouts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/pref_keyboard_layouts" />
+
     <Switch
         android:id="@+id/default_keyboard_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text=""
         android:textSize="24sp"
+        android:layout_below="@id/text_keyboard_layouts"
         tools:checked="false" />
 
     <View

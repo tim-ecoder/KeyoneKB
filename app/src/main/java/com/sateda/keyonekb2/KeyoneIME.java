@@ -28,6 +28,10 @@ import android.widget.Toast;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import java.util.*;
+import java.util.regex.Pattern;
+
+import static com.sateda.keyonekb2.KeyboardLayoutManager.IsCurrentDevice;
+import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
 
 @Keep
 public class KeyoneIME extends InputMethodServiceCoreCustomizable implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -92,6 +96,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     //region FixedSizeSet
 
     public FixedSizeSet<String> PackageHistory = new FixedSizeSet<>(4);
+    private String deviceFullMODEL;
 
 
     public class FixedSizeSet<E> extends AbstractSet<E> {
@@ -176,7 +181,9 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
             TIME_VIBRATE = CoreKeyboardSettings.TimeVibrate;
 
-            LoadSettingsAndKeyboards();
+            deviceFullMODEL = getDeviceFullMODEL();
+
+            LoadSettingsAndKeyboards(deviceFullMODEL);
             LoadKeyProcessingMechanics(this);
 
             onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
@@ -195,38 +202,47 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
             vibratorService = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-            UpdateGestureModeVisualization(false);
-            UpdateKeyboardModeVisualization();
-
-            ShortcutInfo dsQuickSettings = new ShortcutInfo.Builder(this, "QuickSettings")
-                    .setShortLabel("QuickSettings")
-                    .setLongLabel("QuickSettings")
-                    .setIcon(Icon.createWithResource(this, R.drawable.ic_rus_shift_all))
-                    .setIntents(
-                            new Intent[]{
-                                    new Intent(IntentQuickSettings.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                            })
-                    .setRank(1)
-                    .build();
-
-            ShortcutInfo dsNotifications = new ShortcutInfo.Builder(this, "Notifications")
-                    .setShortLabel("Notifications")
-                    .setLongLabel("Notifications")
-                    .setIcon(Icon.createWithResource(this, R.drawable.ic_rus_shift_all))
-                    .setIntents(
-                            new Intent[]{
-                                    new Intent(IntentNotifications.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                            })
-                    .setRank(1)
-                    .build();
-
-            final ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
-            shortcutManager.setDynamicShortcuts(Arrays.asList(dsQuickSettings, dsNotifications));
+            LoadShortcuts();
 
         } catch(Throwable ex) {
             Log.e(TAG2, "onCreate Exception: "+ex);
             throw ex;
         }
+    }
+
+
+
+
+
+
+    private void LoadShortcuts() {
+        UpdateGestureModeVisualization(false);
+        UpdateKeyboardModeVisualization();
+
+        ShortcutInfo dsQuickSettings = new ShortcutInfo.Builder(this, "QuickSettings")
+                .setShortLabel("QuickSettings")
+                .setLongLabel("QuickSettings")
+                .setIcon(Icon.createWithResource(this, R.drawable.ic_rus_shift_all))
+                .setIntents(
+                        new Intent[]{
+                                new Intent(IntentQuickSettings.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        })
+                .setRank(1)
+                .build();
+
+        ShortcutInfo dsNotifications = new ShortcutInfo.Builder(this, "Notifications")
+                .setShortLabel("Notifications")
+                .setLongLabel("Notifications")
+                .setIcon(Icon.createWithResource(this, R.drawable.ic_rus_shift_all))
+                .setIntents(
+                        new Intent[]{
+                                new Intent(IntentNotifications.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        })
+                .setRank(1)
+                .build();
+
+        final ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
+        shortcutManager.setDynamicShortcuts(Arrays.asList(dsQuickSettings, dsNotifications));
     }
 
     @Override
@@ -306,7 +322,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             UpdateGestureModeVisualization();
         needUpdateGestureNotificationInsideSingleEvent = false;
         //TODO: Проверить как это работает
-        if (_lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards();
+        if (_lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards(deviceFullMODEL);
 
         //TODO: Подумать, чтобы не надо было инициализировать свайп-клавиаутуру по настройке pref_show_default_onscreen_keyboard
         keyboardView.showFlag(pref_flag);
@@ -1152,7 +1168,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     public static ArrayList<KeyboardLayout.KeyboardLayoutOptions> allLayouts;
 
-    private void LoadSettingsAndKeyboards(){
+    private void LoadSettingsAndKeyboards(String deviceFullMODEL){
 
         pref_gesture_motion_sensitivity = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
         pref_show_toast = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_2_SHOW_TOAST);
@@ -1176,6 +1192,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         boolean isFirst = true;
         //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
         for(KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : allLayouts) {
+            if(keyboardLayoutOptions.DeviceModelRegexp != null && keyboardLayoutOptions.DeviceModelRegexp != "") {
+                boolean isDevice = IsCurrentDevice(deviceFullMODEL, keyboardLayoutOptions);
+                if(!isDevice)
+                    continue;
+            }
             keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
             boolean enabled = keyoneKb2Settings.GetBooleanValue(keyboardLayoutOptions.getPreferenceName());
             if(enabled) {
@@ -1196,6 +1217,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         }
         keyboardLayoutManager.Initialize(activeLayouts, getResources(), getApplicationContext());
     }
+
+
 
     private void SetGestureModeAtViewModeDefault() {
         switch (pref_gesture_mode_at_view_mode) {

@@ -3,52 +3,60 @@
   "keyboard-mapping" : "english_hw",
   "icon-lowercase" : "ic_eng_small",
   "icon-first-shift" : "ic_eng_shift_first",
-  "icon-capslock" : "ic_eng_shift_all"
+  "icon-capslock" : "ic_eng_shift_all",
+  "device-model-regexp" : "Blackberry (BBB|BBF|BBE).*"
 }, {
   "options-name" : "Key1/2 Русский",
   "keyboard-mapping" : "russian_hw",
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
-  "icon-capslock" : "ic_rus_shift_all"
+  "icon-capslock" : "ic_rus_shift_all",
+  "device-model-regexp" : "Blackberry (BBB|BBF|BBE).*"
 }, {
   "options-name" : "Key1/2 Русский (Транслит)",
   "keyboard-mapping" : "russian_translit_hw",
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
-  "icon-capslock" : "ic_rus_shift_all"
+  "icon-capslock" : "ic_rus_shift_all",
+  "device-model-regexp" : "Blackberry (BBB|BBF|BBE).*"
 }, {
   "options-name" : "Key1/2 Украинский",
   "keyboard-mapping" : "ukraine_hw",
   "icon-lowercase" : "ic_ukr_small",
   "icon-first-shift" : "ic_ukr_shift_first",
-  "icon-capslock" : "ic_ukr_shift_all"
+  "icon-capslock" : "ic_ukr_shift_all",
+  "device-model-regexp" : "Blackberry (BBB|BBF|BBE).*"
 }, {
   "options-name" : "Pocket English",
   "keyboard-mapping" : "pocket_english_hw",
   "icon-lowercase" : "ic_eng_small",
   "icon-first-shift" : "ic_eng_shift_first",
   "icon-capslock" : "ic_eng_shift_all",
-  "custom-keyboard-mechanics": "keyboard_mechanics"
+  "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
+  "device-model-regexp" : "Unihertz Titan Pocket"
 }, {
   "options-name" : "Pocket Русский",
   "keyboard-mapping" : "pocket_russian_hw",
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
   "icon-capslock" : "ic_rus_shift_all",
-  "custom-keyboard-mechanics": "keyboard_mechanics"
+  "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
+  "device-model-regexp" : "Unihertz Titan Pocket"
 }, {
   "options-name" : "Titan Slim English (v1)",
   "keyboard-mapping" : "titan_slim_english_hw",
   "icon-lowercase" : "ic_eng_small",
   "icon-first-shift" : "ic_eng_shift_first",
   "icon-capslock" : "ic_eng_shift_all",
-  "custom-keyboard-mechanics": "keyboard_mechanics"
+  "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
+  "device-model-regexp" : "Unihertz Titan Slim"
 }, {
   "options-name" : "Titan Slim Русский (v1)",
   "keyboard-mapping" : "titan_slim_russian_hw",
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
   "icon-capslock" : "ic_rus_shift_all",
-  "custom-keyboard-mechanics": "keyboard_mechanics"
+  "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
+  "device-model-regexp" : "Unihertz Titan Slim"
 }
 ]

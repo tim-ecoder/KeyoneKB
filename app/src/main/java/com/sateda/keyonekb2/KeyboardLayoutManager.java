@@ -3,6 +3,7 @@ package com.sateda.keyonekb2;
 import android.content.Context;
 import android.content.res.Resources;
 import android.inputmethodservice.Keyboard;
+import android.os.Build;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 import static com.sateda.keyonekb2.FileJsonUtils.DeserializeFromJson;
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
@@ -180,5 +182,20 @@ public class KeyboardLayoutManager {
         return keyboardLayoutOptionsArray;
 
 
+    }
+
+    public static boolean IsCurrentDevice(String deviceFullMODEL, KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions) {
+        Pattern regexp = Pattern.compile(keyboardLayoutOptions.DeviceModelRegexp.toUpperCase());
+        return regexp.matcher(deviceFullMODEL).matches();
+    }
+
+    public static String getDeviceFullMODEL() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.toLowerCase().startsWith(manufacturer.toLowerCase())) {
+            return model.toUpperCase();
+        } else {
+            return String.format("%s %s",manufacturer,model).toUpperCase();
+        }
     }
 }

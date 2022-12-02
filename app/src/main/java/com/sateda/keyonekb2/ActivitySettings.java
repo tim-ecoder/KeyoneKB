@@ -16,6 +16,9 @@ import com.pes.androidmaterialcolorpickerdialog.ColorPicker;
 
 import java.util.ArrayList;
 
+import static com.sateda.keyonekb2.KeyboardLayoutManager.IsCurrentDevice;
+import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
+
 public class ActivitySettings extends AppCompatActivity {
 
     public static final int REQUEST_PERMISSION_CODE = 101;
@@ -36,6 +39,8 @@ public class ActivitySettings extends AppCompatActivity {
         seekBar.setProgress(keyoneKb2Settings.GetIntValue(settingName));
     }
 
+    private String deviceFullMODEL;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +54,13 @@ public class ActivitySettings extends AppCompatActivity {
         Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_keyboard_layout);
         int prevId = 0;
         int enableCount = 0;
+        deviceFullMODEL = getDeviceFullMODEL();
         for (KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayouts) {
+
+            boolean isDevice = IsCurrentDevice(deviceFullMODEL, keyboardLayoutOptions);
+            if(!isDevice)
+                continue;
+
             Switch currentKeyboardLayoutSwitch;
             //Первый язык будет по умолчанию всегда активирован
             //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки

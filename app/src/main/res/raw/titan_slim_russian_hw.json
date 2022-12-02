@@ -8,7 +8,9 @@
     {
     "key-code" : 45,
     "single-press" : "й",
-    "single-press-shift-mode" : "Й"
+    "single-press-shift-mode" : "Й",
+    "double-press" : "ё",
+    "double-press-shift-mode" : "Ё"
   }, {
     "key-code" : 51,
     "single-press" : "ц",

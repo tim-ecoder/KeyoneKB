@@ -91,5 +91,6 @@
     <string name="pref_more_tv_search_plugins_comment_not_active">\nДля работы поисковых плагинов необходимо активировать спец. возможности в главном меню.</string>
     <string name="gesture_mode_notification_text">Режимы жестов (на полях ввода, на просмотре выключен)</string>
     <string name="keyboard_layout_mode_notification_text">Раскладка клавиатуры (языки, символы и пр.)</string>
+    <string name="pref_keyboard_layouts">Расладки клавиатуры</string>
 
 </resources>

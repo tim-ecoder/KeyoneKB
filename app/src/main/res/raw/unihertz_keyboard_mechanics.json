@@ -1,0 +1,1043 @@
+{
+  "on-start-input-actions": [
+    {
+      "meta-mode-method-names": [
+        "MetaIsActionBeforeMeta"
+      ],
+      "action-method-name": "ActionTryResetSearchPlugin"
+    },
+    {
+      "action-method-name": "ActionTryDisableFirstSymbolAltMode"
+    }, {
+      "action-method-name": "ActionTryDisableFixedAltModeState"
+    }, {
+      "action-method-name": "ActionTryDisableFirstLetterShiftMode"
+    }, {
+      "action-method-name": "ActionTryDisableCapslockShiftMode"
+    }, {
+      "action-method-name": "ActionTryDisableGestureInputScrollMode",
+      "need-update-gesture-visual-state": true
+    }, {
+      "action-method-name": "ActionDisableAndResetGestureMode",
+      "need-update-gesture-visual-state": true
+    }, {
+      "action-method-name": "ActionTryCapitalizeFirstLetter"
+    }, {
+      "action-method-name": "ActionSetNeedUpdateVisualState"
+    }, {
+      "meta-mode-method-names": [
+        "MetaIsPackageChanged"
+      ],
+      "action-method-name": "ActionDisableNavSymFnKeyboard",
+      "need-update-gesture-visual-state": true
+    }, {
+      "meta-mode-method-names": [
+        "MetaIsPackageChanged"
+      ],
+      "action-method-name": "ActionResetGesturePointerMode",
+      "need-update-gesture-visual-state": true
+    },
+    {
+      "meta-mode-method-names": [
+        "InputIsAnyInput"
+      ],
+      "action-method-name": "ActionDisableAndResetGestureMode",
+      "need-update-gesture-visual-state": true
+    }, {
+      "meta-mode-method-names": [
+        "InputIsNumber"
+      ],
+      "action-method-name": "ActionTryDisableFirstLetterShiftMode"
+    }, {
+      "meta-mode-method-names": [
+        "InputIsNumber"
+      ],
+      "action-method-name": "ActionTryDisableCapslockShiftMode"
+    }, {
+      "meta-mode-method-names": [
+        "InputIsNumber"
+      ],
+      "action-method-name": "ActionEnableFixedAltModeState",
+      "need-update-visual-state": true,
+      "stop-processing-at-success-result": true
+    }, {
+      "meta-mode-method-names": [
+        "InputIsPhone"
+      ],
+      "action-method-name": "ActionEnableFixedAltModeState",
+      "stop-processing-at-success-result": true
+    }, {
+      "meta-mode-method-names": [
+        "InputIsPhone"
+      ],
+      "action-method-name": "ActionTryDisableFirstLetterShiftMode",
+      "stop-processing-at-success-result": false
+    }, {
+      "meta-mode-method-names": [
+        "InputIsPhone"
+      ],
+      "action-method-name": "ActionTryDisableCapslockShiftMode",
+      "need-update-visual-state": true,
+      "stop-processing-at-success-result": true
+    }, {
+      "meta-mode-method-names": [
+        "InputIsDate"
+      ],
+      "action-method-name": "ActionEnableFixedAltModeState",
+      "stop-processing-at-success-result": true
+    }, {
+      "meta-mode-method-names": [
+        "InputIsDate"
+      ],
+      "action-method-name": "ActionTryDisableFirstLetterShiftMode",
+      "stop-processing-at-success-result": false
+    }, {
+      "meta-mode-method-names": [
+        "InputIsDate"
+      ],
+      "action-method-name": "ActionTryDisableCapslockShiftMode",
+      "need-update-visual-state": true,
+      "stop-processing-at-success-result": true
+    }, {
+      "meta-mode-method-names": [
+        "InputIsText"
+      ],
+      "action-method-name": "ActionTryDisableFixedAltModeState",
+      "stop-processing-at-success-result": false
+    }, {
+      "meta-mode-method-names": [
+        "InputIsText"
+      ],
+      "action-method-name": "ActionTryDisableFirstSymbolAltMode",
+      "stop-processing-at-success-result": false
+    }, {
+      "meta-mode-method-names": [
+        "InputIsText"
+      ],
+      "action-method-name": "ActionTryCapitalizeFirstLetter",
+      "need-update-visual-state": true,
+      "stop-processing-at-success-result": true
+    }
+  ],
+  "on-finish-input-actions": [
+    {
+      "action-method-name": "ActionTryDisableSymPad"
+    }, {
+      "action-method-name": "ActionResetDigitsHack",
+      "need-update-visual-state": true
+    }, {
+      "action-method-name": "ActionDisableAndResetGestureMode",
+      "need-update-gesture-visual-state": true
+    }, {
+      "action-method-name": "ActionTryDisableFirstSymbolAltMode"
+    }, {
+      "action-method-name": "ActionTryDisableFixedAltModeState",
+      "need-update-visual-state": true
+    }, {
+      "action-method-name": "ActionTryRemoveSelectedNodeRectangle"
+    }
+  ],
+  "before-send-char-actions": [
+    {
+      "action-method-name": "ActionTrySearchInputActivateOnLetterHack"
+    }, {
+      "action-method-name": "ActionTryDisableGestureInputScrollMode",
+      "need-update-gesture-visual-state": true
+    }
+  ],
+  "after-send-char-actions": [
+    {
+      "action-method-name": "ActionTryDisableFirstSymbolAltMode"
+    }, {
+      "action-method-name": "ActionTryDisableFirstLetterShiftMode"
+    }, {
+      "action-method-name": "ActionTryTurnOffGesturesMode"
+    }, {
+      "action-method-name": "ActionResetDoubleClickGestureState",
+      "need-update-visual-state": true,
+      "need-update-gesture-visual-state": true
+    }
+  ],
+  "view-mode-key-transparency-exclude-key-codes": [
+    "KEYCODE_CTRL_LEFT",
+    "KEYCODE_SHIFT_RIGHT",
+    "KEYCODE_FUNCTION",
+    "289",
+    "KEYCODE_SPACE",
+    "KEYCODE_SYM",
+    "KEYCODE_0",
+    "KEYCODE_BACK",
+    "KEYCODE_HOME",
+    "KEYCODE_SHIFT_LEFT",
+    "KEYCODE_ALT_LEFT"
+  ],
+  "key-group-processors": [
+    {
+      "key-codes": [
+        "KEYCODE_A", "KEYCODE_B", "KEYCODE_C", "KEYCODE_D", "KEYCODE_E", "KEYCODE_F", "KEYCODE_G", "KEYCODE_H",
+        "KEYCODE_I", "KEYCODE_J", "KEYCODE_K", "KEYCODE_L", "KEYCODE_M", "KEYCODE_N", "KEYCODE_O", "KEYCODE_P",
+        "KEYCODE_Q", "KEYCODE_R", "KEYCODE_S", "KEYCODE_T", "KEYCODE_U", "KEYCODE_V", "KEYCODE_W", "KEYCODE_X",
+        "KEYCODE_Y", "KEYCODE_Z", "KEYCODE_4"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionSendCharSinglePressNoMeta",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsCtrlPressed"
+          ],
+          "action-method-name": "ActionTrySearchInputActivateOnLetterHack"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsCtrlPressed"
+          ],
+          "action-method-name": "ActionSendCtrlPlusKey",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode", "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionSendCharSinglePressSymMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode", "MetaIsSymPadAltShiftMode"
+          ],
+          "action-method-name": "ActionSendCharSinglePressSymMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionSendCharSinglePressAltMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftMode"
+          ],
+          "action-method-name": "ActionSendCharSinglePressShiftMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionSendCharDoublePressNoMeta",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsCtrlPressed"
+          ],
+          "action-method-name": "ActionSendCtrlPlusKey",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode", "MetaIsShiftMode"
+          ],
+          "action-method-name": "ActionSendCharSinglePressSymMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode", "MetaIsSymPadAltShiftMode"
+          ],
+          "action-method-name": "ActionSendCharSinglePressSymMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionSendCharSinglePressAltMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftMode"
+          ],
+          "action-method-name": "ActionSendCharDoublePressShiftMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-long-press": [
+        {
+          "action-method-name": "ActionSendCharLongPressCapitalize",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode","PrefLongPressAltSymbol"
+          ],
+          "action-method-name": "ActionSendCharLongPressAltSymbolAltMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftMode", "PrefLongPressAltSymbol"
+          ],
+          "action-method-name": "ActionSendCharLongPressAltSymbolShiftMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "PrefLongPressAltSymbol"
+          ],
+          "action-method-name": "ActionSendCharLongPressAltSymbolNoMeta",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionSendCharLongPressCapitalizeAltMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsCtrlPressed"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_SPACE"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionTryChangeKeyboardLayoutAtBaseMetaShift",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryTurnOffGesturesMode",
+          "need-update-gesture-visual-state": true
+        }, {
+          "action-method-name": "ActionTryDisableAltModeUponSpace"
+        }, {
+          "action-method-name": "ActionSendCharToInput",
+          "custom-char": " ",
+          "need-update-visual-state": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltPressed",
+            "MetaIsViewMode"
+          ],
+          "action-method-name" : "ActionTryPerformLongClickCurrentNode",
+          "stop-processing-at-success-result": true
+        }, {
+          "comment" : "Если идет звонок в режиме просмотра надо досрочно выйти, чтобы не сработал клик на выделенный элемент (следующая опция)",
+          "meta-mode-method-names": [
+            "MetaStateIsOnCall",
+            "MetaIsViewMode"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsViewMode"
+          ],
+          "action-method-name": "ActionTryPerformClickCurrentNode",
+          "stop-processing-at-success-result": true
+        }, {
+        "meta-mode-method-names": [
+          "MetaIsAltPressed"
+          ],
+          "action-method-name": "ActionSendCharToInput",
+          "custom-char": "\t",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "comment" : "Пока отключим, проще удалить лишний пробел",
+          "meta-mode-method-names": [
+            "MetaStateIsOnCall",
+            "MetaIsDisabled"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionChangeKeyboardLayout",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "comment" : "Если мы в режиме ввода, то на одиночный пробел (первый клик) ввелся пробел, его надо удалить ",
+          "meta-mode-method-names": [
+            "MetaStateIsOnCall",
+            "InputIsAnyInput"
+          ],
+          "action-method-name": "ActionDeletePreviousSymbol"
+        }, {
+          "meta-mode-method-names": [
+            "MetaStateIsOnCall"
+          ],
+          "action-method-name": "ActionTryAcceptCall",
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryDoubleSpaceDotSpaceConversion",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionSendCharToInput",
+          "custom-char": " ",
+          "need-update-visual-state": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftMode"
+          ],
+          "action-method-name": "ActionSendCharSinglePressShiftMode",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_DEL"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTrySearchInputActivateOnLetterHack"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryDisableGestureInputScrollMode",
+          "need-update-gesture-visual-state": true
+        }, {
+          "action-method-name": "ActionSetKeyTransparency",
+          "need-update-visual-state": true
+        }, {
+          "action-method-name": "ActionTryTurnOffGesturesMode"
+        }, {
+          "action-method-name": "ActionResetDoubleClickGestureState",
+          "need-update-gesture-visual-state": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltPressed"
+          ],
+          "action-method-name": "ActionDeleteUntilPrevCrLf",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionKeyDownUpDefaultFlags",
+          "stop-processing-at-success-result": true,
+          "custom-key-code": "KEYCODE_FORWARD_DEL"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsKey0Pressed"
+          ],
+          "action-method-name": "ActionDeletePrevWord",
+          "stop-processing-at-success-result": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_ENTER"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryDisableGestureInputScrollMode",
+          "need-update-gesture-visual-state": true
+        },
+        {
+          "comment" : "Пока отключим, т.к. в некоторых приложениях не срабатывает. Вместо этого будет явная отправка ENTER",
+          "meta-mode-method-names": [
+            "MetaIsDisabled"
+          ],
+          "action-method-name": "ActionSetKeyTransparency"
+        }, {
+          "action-method-name": "ActionSendEnterOrCustomButton"
+        }, {
+          "action-method-name": "ActionTryTurnOffGesturesMode"
+        }, {
+          "action-method-name": "ActionResetDoubleClickGestureState",
+          "need-update-gesture-visual-state": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionUnCrLf",
+          "stop-processing-at-success-result": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_ALT_LEFT", "KEYCODE_ALT_RIGHT"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionTryChangeSymPadLayout",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryDisableFixedAltModeState",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionChangeFirstSymbolAltMode",
+          "need-update-visual-state": true
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionChangeFixedAltModeState",
+          "need-update-visual-state": true
+        }
+      ],
+      "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionEnableHoldAltMode",
+          "need-update-visual-state": true
+        }
+      ],
+      "on-hold-off": [
+        {
+          "action-method-name": "ActionDisableHoldAltMode",
+          "need-update-visual-state": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_CTRL_LEFT", "KEYCODE_CTRL_RIGHT", "KEYCODE_SHIFT_RIGHT", "KEYCODE_FUNCTION", "289"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionDisableAndResetGesturesAtInputMode",
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionChangeSwipePanelVisibility",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "meta-mode-method-names": [
+            "InputIsAnyInput"
+          ],
+          "action-method-name": "ActionTryChangeGestureInputScrollMode",
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "action-method-name": "ActionTryChangeGesturePointerModeAtViewMode",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true
+        }, {
+          "action-method-name": "ActionTryRemoveSelectedNodeRectangle"
+        }
+      ],
+      "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionEnableHoldCtrlMode",
+          "method-needs-key-press-parameter": true
+        }
+      ],
+      "on-hold-off": [
+        {
+          "action-method-name": "ActionDisableHoldCtrlMode",
+          "method-needs-key-press-parameter": true
+        }
+      ],
+      "on-triple-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionChangeGestureModeEnableState",
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryRemoveSelectedNodeRectangle"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_SHIFT_LEFT"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionTryChangeSymPadLayout",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryDisableCapslockShiftMode",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionChangeFirstLetterShiftMode",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionChangeShiftCapslockState",
+          "need-update-visual-state": true
+        }
+      ],
+      "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionEnableHoldShiftMode",
+          "need-update-visual-state": true
+        }
+      ],
+      "on-hold-off": [
+        {
+          "action-method-name": "ActionDisableHoldShiftMode",
+          "need-update-visual-state": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_0"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionChangeKeyboardLayout",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionKeyDownUpDefaultFlags",
+          "custom-key-code": "KEYCODE_0",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionSendCharToInput",
+          "stop-processing-at-success-result": true,
+          "custom-char": "0"
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionChangeKeyboardLayout",
+          "need-update-visual-state": true
+        },
+        {
+          "action-method-name": "ActionTryChangeGestureModeStateAtInputMode",
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionSendCharToInput",
+          "stop-processing-at-success-result": true,
+          "custom-char": "0"
+        }
+      ],
+      "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionTryEnableGestureCursorModeOnHoldState",
+          "need-update-gesture-visual-state": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-hold-off": [
+        {
+          "action-method-name": "ActionTryDisableGestureCursorModeUnHoldState",
+          "need-update-gesture-visual-state": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-triple-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "meta-mode-method-names": [
+            "InputIsDigitsPad"
+          ],
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true
+        },
+        {
+          "comment": "Это хак чтобы если НЕ выключился режим курсора, то ничего не делать",
+          "meta-mode-method-names": [
+            "InputIsGestureCursor"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        },
+        {
+          "comment": "А вот если вы прошли предыдущий шаг, значит мы были не в режиме курсора и его надо включить",
+          "action-method-name": "ActionEnableGestureAtInputMode",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionSendCharToInput",
+          "stop-processing-at-success-result": true,
+          "custom-char": "0"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_SYM"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionTryDisableNavModeAndKeyboard",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryChangeSymPadVisibilityAtInputMode",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsAltPressed"
+          ],
+          "action-method-name": "ActionKeyDown",
+          "stop-processing-at-success-result": true,
+          "custom-key-code": "KEYCODE_MENU"
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionTryDeclineCall",
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryEnableNavModeAndKeyboard",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true
+        }
+      ],
+      "on-hold-on": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionSetNavModeHoldOnState",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-hold-off": [
+        {
+          "action-method-name": "ActionSetNavModeHoldOffState",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_BACK"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "InputIsAnyInput",
+            "PrefEnsureEnteredText",
+            "InputIsInputFieldAndEnteredText"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_HOME"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "InputIsAnyInput",
+            "PrefEnsureEnteredText",
+            "InputIsInputFieldAndEnteredText"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-double-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryVibrate"
+        }, {
+          "action-method-name": "ActionSetKeyTransparency",
+          "stop-processing-at-success-result": true
+        }
+      ]
+    }
+  ],
+  "gesture-processor" : {
+    "keyboard-gestures-at-input-mode-enabled" : true,
+    "key-hold-plus-gesture-enabled" : true,
+    "on-gesture-double-click" : [
+      {
+        "action-method-name": "ActionEnableGestureAtInputMode",
+        "need-update-gesture-visual-state": true
+      }
+    ],
+    "on-gesture-triple-click" : [
+      {
+        "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode"
+      }, {
+        "action-method-name": "ActionEnableGestureAtInputMode",
+        "need-update-gesture-visual-state": true
+      }
+    ],
+    "on-gesture-second-click-up" : [
+      {
+        "action-method-name": "ActionDisableGestureMode",
+        "need-update-gesture-visual-state": true
+      }
+    ]
+  }
+}

@@ -29,6 +29,9 @@
       "digits-pad-marker-node-id" : "com.android.dialer:id/dialpad_view"
     }, {
       "package-name" : "com.tct.calculator.bb"
+    }, {
+      "package-name" : "com.hb.dialer.free",
+      "digits-pad-marker-node-id" : "com.hb.dialer.free:id/dialpad_frame"
     }
   ],
   "selected-node-click-hack" : true,
