@@ -865,6 +865,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if (keyboardStateFixed_SymbolOnScreenKeyboard) {
             keyboardStateFixed_SymbolOnScreenKeyboard = false;
             symPadAltShift = false;
+            metaFixedModeFirstSymbolAlt = false;
+            metaFixedModeAllSymbolsAlt = false;
             return true;
         }
         return false;

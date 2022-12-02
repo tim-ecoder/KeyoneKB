@@ -9,6 +9,7 @@ import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.*;
 import android.widget.PopupWindow;
@@ -49,12 +50,26 @@ public class ViewSatedaKeyboard extends KeyboardView {
     private int[] nav_KeyLabel_x;
     private int[] nav_KeyLabel_y;
     private String[] nav_KeyLabel;
+    private final int screenHeightY;
+    private final int screenWidthX;
+    private final float scaleHeightY;
+    private final float scaleWidthX;
+    private int alt3deltaX;
+    private int alt3deltaY;
 
     public ViewSatedaKeyboard(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         altPopup = new String[MAX_KEY_COUNT];
         altPopupLabel = new String[MAX_KEY_COUNT];
+
+        DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
+        screenHeightY = dm.heightPixels;
+        screenWidthX = dm.widthPixels;
+        scaleHeightY = screenHeightY / 1620f;
+        scaleWidthX = screenWidthX / 1080f;
+        alt3deltaX = Math.round(65*scaleWidthX);
+        alt3deltaY = Math.round(65*scaleHeightY);
 
         this.context = context;
         this.attrs = attrs;
@@ -199,6 +214,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 continue;
             KeyboardLayout.KeyVariants keyVariants = null;
             //TODO: Особенно вот эта дичь
+            //Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d",key.codes[0]));
             Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d",key.codes[0]));
             if(keyCode == null) {
                 Log.e(TAG2, "SCAN_CODE NOT MAPPED "+key.codes[0]);
@@ -213,8 +229,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
                     && keyVariants.SinglePressShiftMode != null
             ) {
 
-                _KeyLabel_x[arr_inc] = key.x + (key.width - 90);
-                _KeyLabel_y[arr_inc] = key.y + 100;
+                _KeyLabel_x[arr_inc] = key.x + (key.width - Math.round(90*scaleWidthX));//key:90//pocket:60
+                _KeyLabel_y[arr_inc] = key.y + Math.round(100*scaleHeightY);//100//55
                 _KeyLabel[arr_inc] = keyVariants.SinglePressShiftMode.toString();
 
                 if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
@@ -366,19 +382,21 @@ public class ViewSatedaKeyboard extends KeyboardView {
         float startDrawLine, finishDrawLine;
         int height = getKeyboard().getHeight();
 
+
+
         Paint paint_white = new Paint();
         paint_white.setTextAlign(Paint.Align.CENTER);
-        paint_white.setTextSize(40);
+        paint_white.setTextSize(Math.round(scaleHeightY*40));
         paint_white.setColor(Color.WHITE);
 
         Paint paint_gray = new Paint();
         paint_gray.setTextAlign(Paint.Align.CENTER);
-        paint_gray.setTextSize(28);
+        paint_gray.setTextSize(Math.round(scaleHeightY*28));
         paint_gray.setColor(Color.GRAY);
 
         Paint paint_red = new Paint();
         paint_red.setTextAlign(Paint.Align.CENTER);
-        paint_red.setTextSize(32);
+        paint_red.setTextSize(Math.round(scaleHeightY*32));
         paint_red.setColor(Color.CYAN);
 
         Paint paint_blue = new Paint();
@@ -433,6 +451,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
             }
         }
 
+
+
         // отображение подписи букв, эквивалентных кнопкам
         if (showSymbol){
             if(modeNav)
@@ -442,8 +462,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
             else if(modeAlt)
                 for(int i = 0; i < max_keys; i++){
                     canvas.drawText(alt_KeyLabel[i], alt_KeyLabel_x[i], alt_KeyLabel_y[i], paint_gray);
-                    if(alt_KeyLabelAltPopup[i] != "")
-                        canvas.drawText(alt_KeyLabelAltPopup[i], alt_KeyLabel_x[i]+65, alt_KeyLabel_y[i]-65, paint_red);
+                    if(alt_KeyLabelAltPopup[i] != null && alt_KeyLabelAltPopup[i] != "")
+                        canvas.drawText(alt_KeyLabelAltPopup[i], alt_KeyLabel_x[i]+ alt3deltaX, alt_KeyLabel_y[i]- alt3deltaY, paint_red);
                 }
             else if(modeSym)
                 for(int i = 0; i < max_keys; i++){
@@ -451,9 +471,11 @@ public class ViewSatedaKeyboard extends KeyboardView {
                     if(sym_KeyLabelAltPopup != null
                             && sym_KeyLabelAltPopup[i] != null
                             && sym_KeyLabelAltPopup[i] != "")
-                        canvas.drawText(sym_KeyLabelAltPopup[i], sym_KeyLabel_x[i]+65, sym_KeyLabel_y[i]-65, paint_red);
+                        canvas.drawText(sym_KeyLabelAltPopup[i], sym_KeyLabel_x[i]+ alt3deltaX, sym_KeyLabel_y[i]- alt3deltaY, paint_red);
                 }
         }
+
+
 
         //если отображено меню сверху - прикрыть панель темной полоской
         if(mPopupKeyboard.isShowing()) {

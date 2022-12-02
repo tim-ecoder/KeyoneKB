@@ -624,7 +624,7 @@
           "meta-mode-method-names": [
             "InputIsAnyInput"
           ],
-          "action-method-name": "ActionTryChangeGestureInputScrollMode",
+          "action-method-name": "ActionTryChangeGestureModeStateAtInputMode",
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
         },
@@ -876,22 +876,30 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
+          "action-method-name": "ActionTryDisableSymPad",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
+        },
+        {
           "action-method-name": "ActionTryDisableNavModeAndKeyboard",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
-          "action-method-name": "ActionTryChangeSymPadVisibilityAtInputMode",
+        },
+        {
+          "action-method-name": "ActionChangeKeyboardLayout",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
         },
+
         {
           "meta-mode-method-names": [
-            "MetaIsAltPressed"
+            "MetaIsCtrlPressed"
           ],
-          "action-method-name": "ActionKeyDown",
-          "stop-processing-at-success-result": true,
-          "custom-key-code": "KEYCODE_MENU"
+          "action-method-name": "ActionTryChangeSymPadVisibilityAtInputMode",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
         }
       ],
       "on-double-press": [
@@ -900,6 +908,10 @@
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionChangeKeyboardLayout",
+          "need-update-visual-state": true
         },
         {
           "action-method-name": "ActionTryDeclineCall",
