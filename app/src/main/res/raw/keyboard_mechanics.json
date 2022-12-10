@@ -36,6 +36,11 @@
       ],
       "action-method-name": "ActionResetGesturePointerMode",
       "need-update-gesture-visual-state": true
+    }, {
+      "meta-mode-method-names": [
+        "MetaIsPackageChanged"
+      ],
+      "action-method-name": "ActionTryResetHoldCtrlMode"
     },
     {
       "meta-mode-method-names": [

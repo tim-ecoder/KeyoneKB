@@ -477,8 +477,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("MetaIsKey0Pressed", InitializeMethod3((Object o) -> MetaIsKey0Pressed(), Object.class));
         Methods.put("ActionSendCharFromAltPopup", InitializeMethod3(this::ActionSendCharFromAltPopup, KeyPressData.class));
         Methods.put("ActionSendCharFromAltPopupAtSingleAltTriplePress", InitializeMethod3(this::ActionSendCharFromAltPopupAtSingleAltTriplePress, KeyPressData.class));
-
         Methods.put("ActionSendEnterOrCustomButton", InitializeMethod3((Object o) -> ActionSendEnterOrCustomButton(), Object.class));
+        //2.5
+        Methods.put("ActionTryResetHoldCtrlMode", InitializeMethod3((Object o) -> ActionTryResetHoldCtrlMode(), Object.class));
+
     }
 
     //endregion
@@ -886,6 +888,14 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                         keyPressData.BaseKeyEvent.getEventTime(),
                         KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CTRL_LEFT, 0, meta));
         return true;
+    }
+
+    public boolean ActionTryResetHoldCtrlMode() {
+        if(metaHoldCtrl) {
+            metaHoldCtrl = false;
+            return true;
+        }
+        return false;
     }
 
     public boolean ActionDisableHoldCtrlMode(KeyPressData keyPressData) {
