@@ -15,6 +15,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import static com.sateda.keyonekb2.ActivitySettings.*;
+import static com.sateda.keyonekb2.BuildConfig.*;
+import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
 
 public class ActivityMain extends Activity {
 
@@ -43,7 +45,10 @@ public class ActivityMain extends Activity {
         tv_version = (TextView) findViewById(R.id.tv_version);
         Button btn_more_settings = (Button) findViewById(R.id.btn_more_settings);
 
-        String text = String.format("\nApp: %s\nVersion: %s\nBuild type: %s", BuildConfig.APPLICATION_ID, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
+        Button btn_keyboard_reload = (Button) findViewById(R.id.btn_keyboard_reload);
+        Button btn_accessibility_reload = (Button) findViewById(R.id.btn_accessibility_reload);
+
+        String text = String.format("\nDevice: %s\nApp: %s\nVersion: %s\nBuild type: %s", getDeviceFullMODEL(), APPLICATION_ID, VERSION_NAME, BUILD_TYPE);
         tv_version.setText(text);
 
         btn_settings.setOnClickListener(new View.OnClickListener() {
@@ -103,6 +108,32 @@ public class ActivityMain extends Activity {
                 CheckPermissionState(true);
             }
         });
+
+        btn_keyboard_reload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if(imm != null) {
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.postDelayed(imm::showInputMethodPicker, 200);
+                }
+
+            }
+        });
+
+        btn_accessibility_reload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                getApplicationContext().startActivity(intent);
+
+            }
+        });
+
+
 
         CheckPermissionState(false);
         CheckPowerState(this, false);

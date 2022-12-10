@@ -10,6 +10,8 @@
     <string name="main_btn_test_keyboard">Проверка работы</string>
     <string name="main_btn_sys_kb_accessibility_setting_enabled">C. Активировать спец. возможности</string>
     <string name="main_btn_sys_kb_accessibility_setting_disabled">Cпец. возможности активированы</string>
+    <string name="main_btn_keyboard_reload">Передернуть клавиатуру</string>
+    <string name="main_btn_accessibility_reload">Передернуть спец. сервис</string>
     <string name="main_btn_more_settings">Расширенные настройки</string>
     <string name="main_manual_text">ИНСТРУКЦИЯ</string>
     <string name="main_manual_link">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
