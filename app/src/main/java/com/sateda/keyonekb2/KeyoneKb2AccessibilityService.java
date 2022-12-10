@@ -276,7 +276,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
 
-
+    /** Наглый (или дерзкий) фокус (если видит что фокус не установлен в хост приложении - ставит его принудительно на первый попавшийс элемент)*/
+    public static final boolean BrashFocuser = false;
 
 
     //region NODES_SELECTION
@@ -345,7 +346,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
             info = GetFocusedNode(info);
 
-            if(KeyoneIME.Instance != null && KeyoneIME.Instance.pref_pointer_mode_rect_and_autofocus) {
+            if(KeyoneIME.Instance != null && KeyoneIME.Instance.pref_pointer_mode_rect_and_autofocus && BrashFocuser) {
                 if (info == null) {
                     info = GetFocusedNode(getRootInActiveWindow());
                 }
