@@ -633,20 +633,20 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             switch (primaryCode) {
 
                 case 19: //UP
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_UP, inputConnection);
+                    keyDownUpKeepTouch2(KeyEvent.KEYCODE_DPAD_UP, inputConnection, 0);
                     ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
                 case 20: //DOWN
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection);
+                    keyDownUpKeepTouch2(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection, 0);
                     ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
                 case 21: //LEFT
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                    keyDownUpKeepTouch2(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection, 0);
                     ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                    keyDownUpKeepTouch2(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection, 0);
                     ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
@@ -656,11 +656,14 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
                 case 111: //ESC
                 case 61:  //TAB
+                    keyDownUpKeepTouch2(primaryCode, inputConnection, 0);
+                    break;
                 case 122: //HOME
                 case 123: //END
                 case 92:  //Page UP
                 case 93:  //Page DOWN
-                    keyDownUpNoMetaKeepTouch(primaryCode, inputConnection);
+                    keyDownUpKeepTouch2(primaryCode, inputConnection, 0);
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
                 case -7:  //Switch F1-F12
@@ -675,7 +678,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, inputConnection);
+                    keyDownUpKeepTouch2(KeyEvent.KEYCODE_ENTER, inputConnection, 0);
                     ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
@@ -689,11 +692,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 case 32: //SPACE
                     break;
                 case 21: //LEFT
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection);
+                    keyDownUpKeepTouch2(KeyEvent.KEYCODE_DPAD_LEFT, inputConnection, 0);
                     ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
                 case 22: //RIGHT
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection);
+                    keyDownUpKeepTouch2(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection, 0);
                     ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
 
@@ -703,7 +706,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                     break;
 
                 case Keyboard.KEYCODE_DONE:
-                    keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_ENTER, inputConnection);
+                    keyDownUpKeepTouch2(KeyEvent.KEYCODE_ENTER, inputConnection, 0);
                     ProcessOnCursorMovement(getCurrentInputEditorInfo());
                     break;
                 default:
