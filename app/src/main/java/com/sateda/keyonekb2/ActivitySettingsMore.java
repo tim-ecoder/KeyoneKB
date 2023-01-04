@@ -30,7 +30,7 @@ public class ActivitySettingsMore extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        FileJsonUtils.Initialize(this.getPackageName(), getApplicationContext());
+        FileJsonUtils.Initialize(getApplicationContext());
 
         setContentView(R.layout.activity_more_settings);
 

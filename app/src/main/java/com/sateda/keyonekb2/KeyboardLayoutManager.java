@@ -34,7 +34,7 @@ public class KeyboardLayoutManager {
     public synchronized void Initialize(ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts, Resources resources, Context context) {
 
         Instance = this;
-        FileJsonUtils.Initialize(context.getPackageName(), context);
+        FileJsonUtils.Initialize(context);
         KeyboardLayout currentLayout = null;
 
         for (KeyboardLayout.KeyboardLayoutOptions layout : activeLayouts) {
@@ -160,7 +160,7 @@ public class KeyboardLayoutManager {
     public static ArrayList<KeyboardLayout.KeyboardLayoutOptions> LoadKeyboardLayoutsRes(Resources resources, Context context) {
         // Load keyboard layouts
         //Открывает R.xml.keyboard_layouts и загружает все настройки клавиатуры
-        FileJsonUtils.Initialize(context.getPackageName(), context);
+        FileJsonUtils.Initialize(context);
 
         String resName = context.getResources().getResourceEntryName(R.raw.keyboard_layouts);
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayoutOptionsArray =  FileJsonUtils.DeserializeFromJson(resName, new TypeReference<ArrayList<KeyboardLayout.KeyboardLayoutOptions>>() {}, context);

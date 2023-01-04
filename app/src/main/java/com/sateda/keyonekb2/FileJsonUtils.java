@@ -25,11 +25,13 @@ public class FileJsonUtils {
     public static String PATH_DEF;
 
     public static String APP_FILES_DIR = "KeyoneKb2";
-    public static void Initialize(String packageName, Context context) {
+    public static void Initialize(Context context) {
 
-        PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/"+APP_FILES_DIR+"/";
-        PATH_DEF = PATH +"default/";
-        LoadMappingFile(context);
+        if(PATH == null || PATH.isEmpty()) {
+            PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + APP_FILES_DIR + "/";
+            PATH_DEF = PATH + "default/";
+            LoadMappingFile(context);
+        }
     }
 
     private static void CheckFoldersAndCreate() {

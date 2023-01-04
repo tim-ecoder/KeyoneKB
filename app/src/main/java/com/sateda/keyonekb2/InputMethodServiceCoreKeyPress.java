@@ -74,7 +74,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
     @Override
     public void onCreate() {
         super.onCreate();
-        FileJsonUtils.Initialize(this.getPackageName(), this);
+        FileJsonUtils.Initialize(this);
         CoreKeyboardSettings = FileJsonUtils.DeserializeFromJson(KeyoneKb2Settings.CoreKeyboardSettingsResFileName, new TypeReference<KeyoneKb2Settings.CoreKeyboardSettings>() {}, this);
         TIME_TRIPLE_PRESS = CoreKeyboardSettings.TimeTriplePress;
         TIME_DOUBLE_PRESS = CoreKeyboardSettings.TimeDoublePress;
