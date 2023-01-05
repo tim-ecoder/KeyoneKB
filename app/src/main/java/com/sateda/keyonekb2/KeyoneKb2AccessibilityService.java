@@ -147,6 +147,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
     @Override
     public synchronized void onDestroy() {
+        Log.v(TAG3, "onDestroy()");
         Instance = null;
         super.onDestroy();
     }
@@ -1001,7 +1002,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public synchronized boolean onKeyEvent(KeyEvent event) {
-        Log.v(TAG3, "onKeyEvent()");
+        Log.v(TAG3, "onKeyEvent() "+event);
 
         if (KeyoneIME.Instance == null)
             return false;

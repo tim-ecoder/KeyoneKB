@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.annotation.RequiresApi;
@@ -1521,10 +1522,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     //endregion
 
     private void SendLetterOrSymbol(int code2send) {
-        Log.v(TAG2, "KEY SEND: "+String.format("%c", code2send));
+
 
         BeforeSendChar.Process(null);
 
+        Log.v(TAG2, SystemClock.uptimeMillis()+" KEY SEND: "+String.format("%c", code2send));
         sendKeyChar((char) code2send);
 
         AfterSendChar.Process(null);

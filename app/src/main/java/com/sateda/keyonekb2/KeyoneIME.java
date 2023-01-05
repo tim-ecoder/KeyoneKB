@@ -425,11 +425,6 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     public synchronized boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.v(TAG2, "onKeyUp " + event);
 
-        //TODO: Hack 4 pocket (проверить вроде как и без этого стало работать нормально
-        //if (keyCode == KeyEvent.KEYCODE_BACK) {
-        //    return false;
-        //}
-
         //region Блок навигационной клавиатуры
 
         if (IsNavMode() && IsNavKeyCode(keyCode)) {
@@ -629,7 +624,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         Log.d(TAG2, "onKey " + primaryCode);
         InputConnection inputConnection = getCurrentInputConnection();
         playClick(primaryCode);
-        if (keyboardStateFixed_NavModeAndKeyboard) {
+        if (keyboardStateFixed_NavModeAndKeyboard || keyboardStateHolding_NavModeAndKeyboard) {
             switch (primaryCode) {
 
                 case 19: //UP
