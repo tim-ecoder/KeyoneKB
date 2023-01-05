@@ -66,5 +66,13 @@
   "icon-capslock" : "ic_rus_shift_all",
   "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
   "device-model-regexp" : "Unihertz Titan Slim"
+}, {
+  "options-name" : "Titan Slim Translit",
+  "keyboard-mapping" : "titan_slim_russian_translit_hw",
+  "icon-lowercase" : "ic_rus_small",
+  "icon-first-shift" : "ic_rus_shift_first",
+  "icon-capslock" : "ic_rus_shift_all",
+  "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
+  "device-model-regexp" : "Unihertz Titan Slim"
 }
 ]
