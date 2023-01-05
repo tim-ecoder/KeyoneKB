@@ -590,6 +590,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             removed = false;
             SelectedNodeRect = new Rect();
             SelectedNode.getBoundsInScreen(SelectedNodeRect);
+            /** deltaY нужен чтобы делать смещение рамки на величину пустого черного поля в Unihertz Titan Slim,
+             * в Key1-2 delta=0 и все работает и без этого хака*/
+            int[] locationOnScreen = new int[2];
+            getLocationOnScreen(locationOnScreen);
+            int dx = locationOnScreen[0];
+            int dy = locationOnScreen[1];
+            SelectedNodeRect = new Rect(SelectedNodeRect.left, SelectedNodeRect.top - dy, SelectedNodeRect.right, SelectedNodeRect.bottom - dy);
             canvas.drawRect(SelectedNodeRect, paintMainer);
         }
 
