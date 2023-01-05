@@ -340,12 +340,6 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         keyboardView.hidePopup(false);
         Log.v(TAG2, "onKeyDown " + event);
 
-        //TODO: Hack 4 pocket
-        //TODO: Временно не поддерживается
-        //if (keyCode == KeyEvent.KEYCODE_BACK) {
-        //    return false;
-        //}
-
         if(
             !IsInputMode()
             && IsViewModeKeyCode(keyCode, event.getMetaState())
