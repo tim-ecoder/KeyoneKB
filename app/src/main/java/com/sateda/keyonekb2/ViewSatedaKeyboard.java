@@ -225,7 +225,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
             if((key.label.equals(" "))
                     && _KeyLabel != null
-                    && isKeyboard(keyVariants.KeyCode)
+                    && isKeyboard(keyVariants.KeyCodeInt)
                     && keyVariants.SinglePressShiftMode != null
             ) {
 

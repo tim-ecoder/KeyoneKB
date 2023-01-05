@@ -41,8 +41,17 @@ public class KeyboardLayoutManager {
             LangListCount++;
             currentLayout = DeserializeFromJson(layout.KeyboardMapping, new TypeReference<KeyboardLayout>() {}, context);
             if(currentLayout == null) {
-                Log.e(TAG2, "Can not find Keyboard_layout neither in file, nor in resource "+layout.KeyboardMapping);
+                Log.e(TAG2, "Can not find correct Keyboard_layout neither in file, nor in resource "+layout.KeyboardMapping);
                 continue;
+            }
+            for (KeyboardLayout.KeyVariants kv: currentLayout.KeyMapping) {
+                if(kv.KeyCodeInt == 0 && kv.KeyCode != null && !kv.KeyCode.isEmpty()) {
+                    try {
+                        kv.KeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(kv.KeyCode);
+                    } catch (Throwable e) {
+                        Log.e(TAG2, String.format("Can not map KEYCODE %s EX: %s", kv.KeyCode, e.toString()));
+                    }
+                }
             }
             currentLayout.SymXmlId = resources.getIdentifier(currentLayout.SymModeLayout, "xml", context.getPackageName());
             LoadAltLayout(resources, context, currentLayout);
@@ -59,13 +68,22 @@ public class KeyboardLayoutManager {
         if(list == null) {
             Log.e(TAG2, "Can not find ALT_Keyboard_layout neither in file, nor in resource "+currentLayout.AltModeLayout);
         } else {
+            for (KeyboardLayout.KeyVariants kv: list) {
+                if(kv.KeyCodeInt == 0 && kv.KeyCode != null && !kv.KeyCode.isEmpty()) {
+                    try {
+                        kv.KeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(kv.KeyCode);
+                    } catch (Throwable e) {
+                        Log.e(TAG2, String.format("Can not map KEYCODE %s EX: %s", kv.KeyCode, e.toString()));
+                    }
+                }
+            }
             FillAltVariantsToCurrentLayout(currentLayout, list);
         }
     }
 
     private void FillAltVariantsToCurrentLayout(KeyboardLayout currentLayout, Collection<KeyboardLayout.KeyVariants> list) {
         for (KeyboardLayout.KeyVariants keyVariants : list) {
-            KeyboardLayout.KeyVariants curKeyVariants = getCurKeyVariants(currentLayout, keyVariants.KeyCode);
+            KeyboardLayout.KeyVariants curKeyVariants = getCurKeyVariants(currentLayout, keyVariants.KeyCodeInt);
             if(curKeyVariants == null) {
                 currentLayout.KeyMapping.add(keyVariants);
             } else {
@@ -85,7 +103,7 @@ public class KeyboardLayoutManager {
 
     public static KeyboardLayout.KeyVariants getCurKeyVariants(KeyboardLayout currentLayout, int keyCode) {
         for (KeyboardLayout.KeyVariants baseKeyVariants : currentLayout.KeyMapping) {
-            if(baseKeyVariants.KeyCode == keyCode) {
+            if(baseKeyVariants.KeyCodeInt == keyCode) {
                 return baseKeyVariants;
             }
         }
@@ -131,18 +149,47 @@ public class KeyboardLayoutManager {
         KeyboardLayout.KeyVariants keyVariants = getCurKeyVariants(KeyboardLayoutList.get(CurrentLanguageListIndex), keyPressData.KeyCode);
         if(keyVariants == null)
             return 0;
-        if (alt_press && shift_press && keyVariants.SinglePressAltShiftMode != null) {
-            result = keyVariants.SinglePressAltShiftMode;
-        } else if (alt_press && keyVariants.SinglePressAltMode != null) {
-            result = keyVariants.SinglePressAltMode;
-        } else if (is_double_press && shift_press && keyVariants.DoublePressShiftMode != null) {
-            result = keyVariants.DoublePressShiftMode;
-        } else if (is_double_press && keyVariants.DoublePress != null) {
-            result = keyVariants.DoublePress;
-        } else if (shift_press && keyVariants.SinglePressShiftMode != null) {
-            result = keyVariants.SinglePressShiftMode;
+        if(!alt_press && !shift_press && !is_double_press) {
+            return keyVariants.SinglePress;
+        }
+        if (alt_press && shift_press) {
+            if(keyVariants.SinglePressAltShiftMode != null) {
+                result = keyVariants.SinglePressAltShiftMode;
+            }
+            else {
+                Log.e(TAG2, "NO SinglePressAltShiftMode MAPPING FOR "+keyPressData.KeyCode);
+                result = 0;
+            }
+        } else if (alt_press) {
+            if(keyVariants.SinglePressAltMode != null)
+                result = keyVariants.SinglePressAltMode;
+            else {
+                Log.e(TAG2, "NO SinglePressAltMode MAPPING FOR "+keyPressData.KeyCode);
+                result = 0;
+            }
+        } else if (is_double_press && shift_press) {
+            if(keyVariants.DoublePressShiftMode != null)
+                result = keyVariants.DoublePressShiftMode;
+            else {
+                Log.e(TAG2, "NO DoublePressShiftMode MAPPING FOR "+keyPressData.KeyCode);
+                result = 0;
+            }
+        } else if (is_double_press) {
+            if(keyVariants.DoublePress != null)
+                result = keyVariants.DoublePress;
+            else {
+                Log.e(TAG2, "NO DoublePress MAPPING FOR "+keyPressData.KeyCode);
+                result = 0;
+            }
+        } else if (shift_press) {
+            if(keyVariants.SinglePressShiftMode != null)
+                result = keyVariants.SinglePressShiftMode;
+            else {
+                Log.e(TAG2, "NO SinglePressShiftMode MAPPING FOR "+keyPressData.KeyCode);
+                result = 0;
+            }
         } else {
-            result = keyVariants.SinglePress;
+            result = 0;
         }
 
         return result;

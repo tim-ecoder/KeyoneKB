@@ -117,7 +117,7 @@ public class FileJsonUtils {
             }
             return object;
         } catch(Throwable ex) {
-            Log.e(TAG2, "LOAD FROM JSON ERROR: "+ex.toString());
+            Log.e(TAG2, String.format("LOAD FROM JSON %s ERROR: %s", resName, ex.toString()));
             return null;
         }
     }

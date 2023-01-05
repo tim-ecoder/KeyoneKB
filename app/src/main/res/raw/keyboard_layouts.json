@@ -51,8 +51,16 @@
   "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
   "device-model-regexp" : "Unihertz Titan Slim"
 }, {
-  "options-name" : "Titan Slim Русский (v1)",
+  "options-name" : "Titan Slim Русский (fidel)",
   "keyboard-mapping" : "titan_slim_russian_hw",
+  "icon-lowercase" : "ic_rus_small",
+  "icon-first-shift" : "ic_rus_shift_first",
+  "icon-capslock" : "ic_rus_shift_all",
+  "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
+  "device-model-regexp" : "Unihertz Titan Slim"
+}, {
+  "options-name" : "Titan Slim Русский (key2)",
+  "keyboard-mapping" : "titan_slim_russian_key2_hw",
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
   "icon-capslock" : "ic_rus_shift_all",

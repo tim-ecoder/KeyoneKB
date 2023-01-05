@@ -25,7 +25,8 @@ public class KeyboardLayout {
 
     public static class KeyVariants {
         @JsonProperty(index=10)
-        public int KeyCode = 0;
+        public String KeyCode = null;
+        public int KeyCodeInt = 0;
         @JsonProperty(index=20)
         public Character SinglePress = null;
         @JsonProperty(index=30)

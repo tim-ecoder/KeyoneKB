@@ -6,47 +6,47 @@
 
 
     {
-    "key-code" : 45,
+    "key-code" : "KEYCODE_Q",
     "single-press" : "й",
     "single-press-shift-mode" : "Й",
     "double-press" : "ё",
     "double-press-shift-mode" : "Ё"
   }, {
-    "key-code" : 51,
+    "key-code" : "KEYCODE_W",
     "single-press" : "ц",
     "single-press-shift-mode" : "Ц"
   }, {
-    "key-code" : 33,
+    "key-code" : "KEYCODE_E",
     "single-press" : "у",
     "single-press-shift-mode" : "У"
   }, {
-    "key-code" : 46,
+    "key-code" : "KEYCODE_R",
     "single-press" : "к",
     "single-press-shift-mode" : "К"
   }, {
-    "key-code" : 48,
+    "key-code" : "KEYCODE_T",
     "single-press" : "е",
     "single-press-shift-mode" : "Е"
   }, {
-    "key-code" : 53,
+    "key-code" : "KEYCODE_Y",
     "single-press" : "н",
     "single-press-shift-mode" : "Н"
   }, {
-    "key-code" : 49,
+    "key-code" : "KEYCODE_U",
     "single-press" : "г",
     "single-press-shift-mode" : "Г"
   }, {
-    "key-code" : 37,
+    "key-code" : "KEYCODE_I",
     "single-press" : "ш",
     "single-press-shift-mode" : "Ш",
     "double-press" : "щ",
     "double-press-shift-mode" : "Щ"
   }, {
-    "key-code" : 43,
+    "key-code" : "KEYCODE_O",
     "single-press" : "з",
     "single-press-shift-mode" : "З"
   }, {
-    "key-code" : 44,
+    "key-code" : "KEYCODE_P",
     "single-press" : "х",
     "single-press-shift-mode" : "Х",
     "double-press" : "э",
@@ -55,39 +55,39 @@
 
 
     {
-    "key-code" : 29,
+    "key-code" : "KEYCODE_A",
     "single-press" : "ф",
     "single-press-shift-mode" : "Ф"
   }, {
-    "key-code" : 47,
+    "key-code" : "KEYCODE_S",
     "single-press" : "ы",
     "single-press-shift-mode" : "Ы"
   }, {
-    "key-code" : 32,
+    "key-code" : "KEYCODE_D",
     "single-press" : "в",
     "single-press-shift-mode" : "В"
   }, {
-    "key-code" : 34,
+    "key-code" : "KEYCODE_F",
     "single-press" : "а",
     "single-press-shift-mode" : "А"
   }, {
-    "key-code" : 35,
+    "key-code" : "KEYCODE_G",
     "single-press" : "п",
     "single-press-shift-mode" : "П"
   }, {
-    "key-code" : 36,
+    "key-code" : "KEYCODE_H",
     "single-press" : "р",
     "single-press-shift-mode" : "Р"
   }, {
-    "key-code" : 38,
+    "key-code" : "KEYCODE_J",
     "single-press" : "о",
     "single-press-shift-mode" : "О"
   }, {
-    "key-code" : 39,
+    "key-code" : "KEYCODE_K",
     "single-press" : "л",
     "single-press-shift-mode" : "Л"
   }, {
-    "key-code" : 40,
+    "key-code" : "KEYCODE_L",
     "single-press" : "д",
     "single-press-shift-mode" : "Д",
     "double-press" : "ж",
@@ -96,35 +96,35 @@
 
 
     {
-    "key-code" : 54,
+    "key-code" : "KEYCODE_Z",
     "single-press" : "я",
     "single-press-shift-mode" : "Я",
     "double-press" : "ч",
     "double-press-shift-mode" : "Ч"
   }, {
-    "key-code" : 52,
+    "key-code" : "KEYCODE_X",
     "single-press" : "с",
     "single-press-shift-mode" : "С"
   }, {
-    "key-code" : 31,
+    "key-code" : "KEYCODE_C",
     "single-press" : "м",
     "single-press-shift-mode" : "М"
   }, {
-    "key-code" : 50,
+    "key-code" : "KEYCODE_V",
     "single-press" : "и",
     "single-press-shift-mode" : "И"
   }, {
-    "key-code" : 30,
+    "key-code" : "KEYCODE_B",
     "single-press" : "т",
     "single-press-shift-mode" : "Т"
   }, {
-    "key-code" : 42,
+    "key-code" : "KEYCODE_N",
     "single-press" : "б",
     "single-press-shift-mode" : "Б",
     "double-press" : "ь",
     "double-press-shift-mode" : "Ь"
   }, {
-    "key-code" : 41,
+    "key-code" : "KEYCODE_M",
     "single-press" : "ю",
     "single-press-shift-mode" : "Ю",
     "double-press" : "ъ",

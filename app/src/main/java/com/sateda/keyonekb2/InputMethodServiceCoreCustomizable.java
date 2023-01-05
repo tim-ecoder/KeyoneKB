@@ -1317,8 +1317,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         int code2send;
 
         if(keyPressData.Short2ndLongPress ) {
-            //if (IsNotPairedLetter(keyPressData))
-            DeleteLastSymbol();
+            if (IsNotPairedLetter(keyPressData))
+                DeleteLastSymbol();
             //Сначала обратаываем случай, когда уже случился ввод ALT-символа через SinglePressAltMode
             //В этом случае надо переделать этот символ в ALT-POPUP-символ
             int letterBeforeCursor = GetLetterBeforeCursor();
@@ -1583,6 +1583,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     private boolean IsNotPairedLetter(KeyPressData keyPressData) {
         //TODO: По сути - это определение сдвоенная буква или нет, наверное можно как-то оптимальнее сделать потом
         int code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, true);
+        if(code2send == 0)
+            return true;
         int code2sendNoDoublePress = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, false);
         return code2send == code2sendNoDoublePress;
     }
