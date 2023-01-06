@@ -99,6 +99,31 @@ public class ActivitySettings extends AppCompatActivity {
 
         }
 
+        if(prevId == 0) {
+            Switch currentKeyboardLayoutSwitch;
+            currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
+            RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams) defaultKeyboardLayoutSwitch.getLayoutParams();
+            RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
+            currentKeyboardLayoutSwitch.setLayoutParams(llp2);
+            prevId = currentKeyboardLayoutSwitch.getId();
+
+            KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions = keyboardLayouts.get(0);
+
+            currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
+            keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
+            boolean enabled = SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
+            if(enabled)
+                enableCount++;
+
+            currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    keyoneKb2Settings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
+                }
+            });
+
+        }
+
         if(enableCount == 0) {
             KeyboardLayout.KeyboardLayoutOptions defLayout = keyboardLayouts.get(0);
             keyoneKb2Settings.SetBooleanValue(defLayout.getPreferenceName(), true);
