@@ -169,7 +169,8 @@
     "KEYCODE_BACK",
     "KEYCODE_HOME",
     "KEYCODE_SHIFT_LEFT",
-    "KEYCODE_ALT_LEFT"
+    "KEYCODE_ALT_LEFT",
+    "KEYCODE_ALT_RIGHT"
   ],
   "key-group-processors": [
     {
@@ -415,19 +416,6 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
-          "comment" : "Если мы в режиме ввода, то на одиночный пробел (первый клик) ввелся пробел, его надо удалить ",
-          "meta-mode-method-names": [
-            "MetaStateIsOnCall",
-            "InputIsAnyInput"
-          ],
-          "action-method-name": "ActionDeletePreviousSymbol"
-        }, {
-          "meta-mode-method-names": [
-            "MetaStateIsOnCall"
-          ],
-          "action-method-name": "ActionTryAcceptCall",
-          "stop-processing-at-success-result": true
-        }, {
           "action-method-name": "ActionTryDoubleSpaceDotSpaceConversion",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
@@ -545,6 +533,10 @@
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionTryDeclineCall",
+          "stop-processing-at-success-result": true
         },
         {
           "action-method-name": "ActionTryChangeSymPadLayout",
@@ -680,6 +672,10 @@
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
+        },
+        {
+          "action-method-name": "ActionTryAcceptCall",
+          "stop-processing-at-success-result": true
         },
         {
           "action-method-name": "ActionTryChangeSymPadLayout",
@@ -912,10 +908,6 @@
         {
           "action-method-name": "ActionChangeKeyboardLayout",
           "need-update-visual-state": true
-        },
-        {
-          "action-method-name": "ActionTryDeclineCall",
-          "stop-processing-at-success-result": true
         }, {
           "action-method-name": "ActionTryEnableNavModeAndKeyboard",
           "need-update-visual-state": true,
