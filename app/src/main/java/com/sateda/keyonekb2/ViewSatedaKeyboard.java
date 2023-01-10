@@ -31,6 +31,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
     private String lang = "";
     private String draw_lang = "";
+
+    private int flagResId = 0;
     private boolean alt = false;
     private boolean shiftFirst = false;
     private boolean showSymbol = false;
@@ -119,9 +121,10 @@ public class ViewSatedaKeyboard extends KeyboardView {
         draw_lang = lang;
     }
 
-    public void setLang(String lang){
+    public void setLang(String lang, int flagResId){
         this.lang = lang;
         draw_lang = lang;
+        this.flagResId = flagResId;
     }
 
     private boolean isKeyboard(int keyCode1) {
@@ -424,15 +427,19 @@ public class ViewSatedaKeyboard extends KeyboardView {
                     if(pref_flag) {
                         // Show flag icon
                         try {
-                            /// TODO Use enums for current language
+
+                            /*
                             Drawable langIcon = getResources().getDrawable(lang.compareTo("English") == 0
                                     ? R.drawable.ic_flag_gb_col
                                     : lang.compareTo("Русский") == 0
                                     ? R.drawable.ic_flag_russia_col
                                     : R.drawable.ic_flag_ukraine_col);
                             //Log.d("Tlt", "lang: " + lang + "; draw_lang: " + draw_lang);
+
+                             */
+                            Drawable langIcon = getResources().getDrawable(flagResId == 0 ? R.drawable.ic_flag_gb_col : flagResId);
                             canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), key.x + (key.width / 2) - 210, key.y + (height/2 - 28), paint_white);
-                        } catch (Exception ex) {
+                        } catch (Throwable ex) {
                             Log.d("Tlt", "!ex: " + ex);
                         }
                     }

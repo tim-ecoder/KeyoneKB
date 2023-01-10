@@ -70,6 +70,9 @@ public class KeyboardLayout {
         @JsonProperty(index=50)
         String IconCapslock;
         IconRes IconCapsRes;
+        @JsonProperty(index=55)
+        String Flag;
+        int FlagResId;
         @JsonProperty(index=60)
         String CustomKeyboardMechanics;
 

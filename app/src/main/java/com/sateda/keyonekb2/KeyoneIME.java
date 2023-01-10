@@ -2,11 +2,7 @@ package com.sateda.keyonekb2;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ShortcutInfo;
-import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
-import android.graphics.drawable.Icon;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
@@ -28,7 +24,6 @@ import android.widget.Toast;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static com.sateda.keyonekb2.KeyboardLayoutManager.IsCurrentDevice;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
@@ -934,24 +929,24 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             } else {
                 changed = UpdateNotification(AltAllIconRes, TITLE_SYM2_TEXT);
             }
-            UpdateKeyboardViewAltMode(updateSwipePanelData);
+            UpdateKeyboardViewAltMode(updateSwipePanelData, keyboardLayout.Resources.FlagResId);
         } else if (metaFixedModeFirstSymbolAlt) {
             if (IsSym2Mode()) {
                 changed = UpdateNotification(SymOneIconRes, TITLE_SYM2_TEXT);
             } else {
                 changed = UpdateNotification(AltOneIconRes, TITLE_SYM_TEXT);
             }
-            UpdateKeyboardViewAltMode(updateSwipePanelData);
+            UpdateKeyboardViewAltMode(updateSwipePanelData, keyboardLayout.Resources.FlagResId);
         } else if (metaFixedModeCapslock || metaHoldShift) {
             changed = UpdateNotification(keyboardLayout.Resources.IconCapsRes, languageOnScreenNaming);
-            UpdateKeyboardViewShiftMode(updateSwipePanelData, languageOnScreenNaming);
+            UpdateKeyboardViewShiftMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId);
         } else if (metaFixedModeFirstLetterUpper) {
             changed = UpdateNotification(keyboardLayout.Resources.IconFirstShiftRes, languageOnScreenNaming);
-            UpdateKeyboardViewShiftOneMode(updateSwipePanelData, languageOnScreenNaming);
+            UpdateKeyboardViewShiftOneMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId);
         } else {
             // Случай со строными буквами
             changed = UpdateNotification(keyboardLayout.Resources.IconLowercaseRes, languageOnScreenNaming);
-            UpdateKeyboardViewLetterMode(updateSwipePanelData, languageOnScreenNaming);
+            UpdateKeyboardViewLetterMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId);
         }
 
         if (needUsefulKeyboard)
@@ -966,40 +961,40 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             notificationProcessor.UpdateNotificationLayoutMode();
     }
 
-    private void UpdateKeyboardViewShiftOneMode(boolean updateSwipePanelData, String languageOnScreenNaming) {
+    private void UpdateKeyboardViewShiftOneMode(boolean updateSwipePanelData, String languageOnScreenNaming, int flagResId) {
         keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
         if (updateSwipePanelData) {
-            keyboardView.setLang(languageOnScreenNaming);
+            keyboardView.setLang(languageOnScreenNaming, flagResId);
             keyboardView.setShiftFirst();
             keyboardView.setLetterKB();
         }
     }
 
-    private void UpdateKeyboardViewLetterMode(boolean updateSwipePanelData, String languageOnScreenNaming) {
+    private void UpdateKeyboardViewLetterMode(boolean updateSwipePanelData, String languageOnScreenNaming, int flagResId) {
         keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
         if (updateSwipePanelData) {
             keyboardView.notShift();
-            keyboardView.setLang(languageOnScreenNaming);
+            keyboardView.setLang(languageOnScreenNaming, flagResId);
             keyboardView.setLetterKB();
         }
     }
 
-    private void UpdateKeyboardViewShiftMode(boolean updateSwipePanelData, String languageOnScreenNaming) {
+    private void UpdateKeyboardViewShiftMode(boolean updateSwipePanelData, String languageOnScreenNaming, int flagResId) {
         keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
         if (updateSwipePanelData) {
-            keyboardView.setLang(languageOnScreenNaming);
+            keyboardView.setLang(languageOnScreenNaming, flagResId);
             keyboardView.setShiftAll();
             keyboardView.setLetterKB();
         }
     }
 
-    private void UpdateKeyboardViewAltMode(boolean updateSwipePanelData) {
+    private void UpdateKeyboardViewAltMode(boolean updateSwipePanelData, int flagResId) {
         keyboardView.setKeyboard(onScreenSwipePanelAndLanguage);
         if (updateSwipePanelData) {
             if (IsSym2Mode()) {
-                keyboardView.setLang(TITLE_SYM2_TEXT);
+                keyboardView.setLang(TITLE_SYM2_TEXT, flagResId);
             } else {
-                keyboardView.setLang(TITLE_SYM_TEXT);
+                keyboardView.setLang(TITLE_SYM_TEXT, flagResId);
             }
             keyboardView.setAlt();
         }
