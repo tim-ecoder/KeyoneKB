@@ -4,6 +4,7 @@
   "icon-lowercase" : "ic_eng_small",
   "icon-first-shift" : "ic_eng_shift_first",
   "icon-capslock" : "ic_eng_shift_all",
+  "flag" : "ic_flag_gb_col",
   "device-model-regexp" : "Blackberry (BBB|BBF|BBE).*"
 }, {
   "options-name" : "Key1|2 Русский",
@@ -11,6 +12,7 @@
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
   "icon-capslock" : "ic_rus_shift_all",
+  "flag" : "ic_flag_russia_col",
   "device-model-regexp" : "Blackberry (BBB|BBF|BBE).*"
 }, {
   "options-name" : "Key1|2 Русский (Транслит)",
@@ -18,6 +20,7 @@
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
   "icon-capslock" : "ic_rus_shift_all",
+  "flag" : "ic_flag_russia_col",
   "device-model-regexp" : "Blackberry (BBB|BBF|BBE).*"
 }, {
   "options-name" : "Key1|2 Украинский",
@@ -25,6 +28,7 @@
   "icon-lowercase" : "ic_ukr_small",
   "icon-first-shift" : "ic_ukr_shift_first",
   "icon-capslock" : "ic_ukr_shift_all",
+  "flag" : "ic_flag_ukraine_col",
   "device-model-regexp" : "Blackberry (BBB|BBF|BBE).*"
 }, {
   "options-name" : "Unihertz Titan xxx English (v1)",
@@ -32,6 +36,7 @@
   "icon-lowercase" : "ic_eng_small",
   "icon-first-shift" : "ic_eng_shift_first",
   "icon-capslock" : "ic_eng_shift_all",
+  "flag" : "ic_flag_gb_col",
   "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
   "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
 }, {
@@ -40,6 +45,7 @@
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
   "icon-capslock" : "ic_rus_shift_all",
+  "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
   "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
 }, {
@@ -48,6 +54,7 @@
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
   "icon-capslock" : "ic_rus_shift_all",
+  "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
   "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
 }, {
@@ -56,6 +63,7 @@
   "icon-lowercase" : "ic_rus_small",
   "icon-first-shift" : "ic_rus_shift_first",
   "icon-capslock" : "ic_rus_shift_all",
+  "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
   "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
 }

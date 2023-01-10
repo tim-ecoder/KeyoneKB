@@ -224,6 +224,9 @@ public class KeyboardLayoutManager {
             keyboardLayoutOptions.IconCapsRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconCapslock, "mipmap", context.getPackageName());
             keyboardLayoutOptions.IconFirstShiftRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconFirstShift, "mipmap", context.getPackageName());
             keyboardLayoutOptions.IconLowercaseRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconLowercase, "mipmap", context.getPackageName());
+
+            keyboardLayoutOptions.FlagResId = resources.getIdentifier(keyboardLayoutOptions.Flag, "drawable", context.getPackageName());
+
         }
 
         return keyboardLayoutOptionsArray;
