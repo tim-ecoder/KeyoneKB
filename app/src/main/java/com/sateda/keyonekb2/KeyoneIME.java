@@ -177,7 +177,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_CALL_STATE);
             }
 
-            keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
+            Context psc = createDeviceProtectedStorageContext();
+            keyoneKb2Settings = KeyoneKb2Settings.Get(psc.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
 
             TIME_VIBRATE = CoreKeyboardSettings.TimeVibrate;
 
@@ -202,7 +203,9 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
             vibratorService = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-            LoadShortcuts();
+            UpdateGestureModeVisualization(false);
+            UpdateKeyboardModeVisualization();
+            //LoadShortcuts();
 
         } catch(Throwable ex) {
             Log.e(TAG2, "onCreate Exception: "+ex);
@@ -215,35 +218,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
 
 
-    private void LoadShortcuts() {
-        UpdateGestureModeVisualization(false);
-        UpdateKeyboardModeVisualization();
 
-        ShortcutInfo dsQuickSettings = new ShortcutInfo.Builder(this, "QuickSettings")
-                .setShortLabel("QuickSettings")
-                .setLongLabel("QuickSettings")
-                .setIcon(Icon.createWithResource(this, R.drawable.ic_rus_shift_all))
-                .setIntents(
-                        new Intent[]{
-                                new Intent(IntentQuickSettings.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        })
-                .setRank(1)
-                .build();
-
-        ShortcutInfo dsNotifications = new ShortcutInfo.Builder(this, "Notifications")
-                .setShortLabel("Notifications")
-                .setLongLabel("Notifications")
-                .setIcon(Icon.createWithResource(this, R.drawable.ic_rus_shift_all))
-                .setIntents(
-                        new Intent[]{
-                                new Intent(IntentNotifications.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        })
-                .setRank(1)
-                .build();
-
-        final ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
-        shortcutManager.setDynamicShortcuts(Arrays.asList(dsQuickSettings, dsNotifications));
-    }
 
     @Override
     public void onDestroy() {
