@@ -1,7 +1,7 @@
 {
   "keyboard-name" : "Русский",
-  "alt-mode-layout" : "alt_hw",
-  "sym-mode-layout" : "symbol",
+  "alt-mode-layout" : "titan_slim_alt_hw",
+  "sym-mode-layout" : "pocket_symbol",
   "key-mapping" : [ {
     "key-code" : 11,
     "single-press" : "ь",
