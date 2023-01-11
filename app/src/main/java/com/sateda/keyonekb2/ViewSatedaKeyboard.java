@@ -56,8 +56,6 @@ public class ViewSatedaKeyboard extends KeyboardView {
     private final int screenWidthX;
     private final float scaleHeightY;
     private final float scaleWidthX;
-    private int alt3deltaX;
-    private int alt3deltaY;
 
     public ViewSatedaKeyboard(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -70,8 +68,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
         screenWidthX = dm.widthPixels;
         scaleHeightY = screenHeightY / 1620f;
         scaleWidthX = screenWidthX / 1080f;
-        alt3deltaX = Math.round(65*scaleWidthX);
-        alt3deltaY = Math.round(65*scaleHeightY);
+
 
         this.context = context;
         this.attrs = attrs;
@@ -232,8 +229,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
                     && keyVariants.SinglePressShiftMode != null
             ) {
 
-                _KeyLabel_x[arr_inc] = key.x + (key.width - Math.round(90*scaleWidthX));//key:90//pocket:60
-                _KeyLabel_y[arr_inc] = key.y + Math.round(100*scaleHeightY);//100//55
+                _KeyLabel_x[arr_inc] = key.x + (key.width - scaleX(90));//key:90//pocket:60
+                _KeyLabel_y[arr_inc] = key.y + scaleY(100);//100//55
                 _KeyLabel[arr_inc] = keyVariants.SinglePressShiftMode.toString();
 
                 if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
@@ -291,22 +288,30 @@ public class ViewSatedaKeyboard extends KeyboardView {
         for(Keyboard.Key key: keys) {
 
             if (key.codes[0] == 111) { nav_KeyLabel[arr_inc] = "Q"; } //ESC
-            if (key.codes[0] == 122) { nav_KeyLabel[arr_inc] = "W/Y"; } //HOME
-            if (key.codes[0] == 19)  { nav_KeyLabel[arr_inc] = "E/U"; } //Arrow Up
-            if (key.codes[0] == 123) { nav_KeyLabel[arr_inc] = "R/I"; } //END
-            if (key.codes[0] == 92)  { nav_KeyLabel[arr_inc] = "T/O"; } //Page Up
+            if (key.codes[0] == 122) { nav_KeyLabel[arr_inc] = "W|Y"; } //HOME
+            if (key.codes[0] == 19)  { nav_KeyLabel[arr_inc] = "E|U"; } //Arrow Up
+            if (key.codes[0] == 123) { nav_KeyLabel[arr_inc] = "R|I"; } //END
+            if (key.codes[0] == 92)  { nav_KeyLabel[arr_inc] = "T|O"; } //Page Up
             if (key.codes[0] == -7)  { nav_KeyLabel[arr_inc] = "P"; } //FN
 
             if (key.codes[0] == 61)  { nav_KeyLabel[arr_inc] = "A"; } //TAB
-            if (key.codes[0] == 21)  { nav_KeyLabel[arr_inc] = "S/H"; } //Arrow Left
-            if (key.codes[0] == 20)  { nav_KeyLabel[arr_inc] = "D/J"; } //Arrow Down
-            if (key.codes[0] == 22)  { nav_KeyLabel[arr_inc] = "F/K"; } //Arrow Right
-            if (key.codes[0] == 93)  { nav_KeyLabel[arr_inc] = "G/L"; } //Page Down
+            if (key.codes[0] == 21)  { nav_KeyLabel[arr_inc] = "S|H"; } //Arrow Left
+            if (key.codes[0] == 20)  { nav_KeyLabel[arr_inc] = "D|J"; } //Arrow Down
+            if (key.codes[0] == 22)  { nav_KeyLabel[arr_inc] = "F|K"; } //Arrow Right
+            if (key.codes[0] == 93)  { nav_KeyLabel[arr_inc] = "G|L"; } //Page Down
 
-            nav_KeyLabel_x[arr_inc] = key.x + (key.width - 25);
-            nav_KeyLabel_y[arr_inc] = key.y + 40;
+            nav_KeyLabel_x[arr_inc] = key.x + scaleX(32);
+            nav_KeyLabel_y[arr_inc] = key.y + scaleY(32);
             arr_inc++;
         }
+    }
+    
+    private int scaleX(int x) {
+        return Math.round(x*scaleHeightY);
+    }
+    
+    private int scaleY(int y) {
+        return Math.round(y * scaleHeightY);
     }
 
     @Override
@@ -411,7 +416,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
         for(Keyboard.Key key: keys) {
             if(key.label != null) {
                 if (!alt && key.codes[0] == 32){
-                    canvas.drawText(draw_lang, key.x + (key.width/2), key.y + (height/2 + 20), paint_white);
+                    canvas.drawText(draw_lang, key.x + (key.width/2), key.y + (height/2 + scaleY(20)), paint_white);
 
                     float[] measuredWidth = new float[1];
                     paint_white.breakText(draw_lang, true, 800, measuredWidth);
@@ -422,28 +427,30 @@ public class ViewSatedaKeyboard extends KeyboardView {
                         finishDrawLine = startDrawLine+measuredWidth[0];
                     }
 
-                    if(shiftFirst) canvas.drawRect(startDrawLine, key.y + (height/2 + 25), finishDrawLine, key.y + (height/2 + 28), paint_white);
+                    if(shiftFirst) canvas.drawRect(startDrawLine, key.y + (height/2 + scaleY(25)), finishDrawLine, key.y + (height/2 + scaleY(28)), paint_white);
 
                     if(pref_flag) {
                         // Show flag icon
                         try {
 
                             Drawable langIcon = getResources().getDrawable(flagResId == 0 ? R.drawable.ic_flag_gb_col : flagResId);
-                            canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), key.x + (key.width / 2) - 210, key.y + (height/2 - 28), paint_white);
+                            canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), key.x + (key.width / 2) - scaleX(210), key.y + (height/2 - scaleY(28)), paint_white);
                         } catch (Throwable ex) {
                             Log.d("Tlt", "!ex: " + ex);
                         }
                     }
                 }else if (alt && key.codes[0] == 32){
-                    canvas.drawText(lang, key.x + (key.width/2), key.y + (height/2 + 20), paint_white);
+                    canvas.drawText(lang, key.x + (key.width/2), key.y + (height/2 + scaleY(20)), paint_white);
                 }
                 if(showSymbol && key.codes[0] == -7){
                     startDrawLine = key.x + (key.width / 3);
                     finishDrawLine = key.x + (key.width / 3 * 2);
+                    int ydelta1 = Math.round(83 * scaleHeightY);
+                    int ydelta2 = Math.round(88 * scaleHeightY);
                     if(fnSymbol) {
-                        canvas.drawRect(startDrawLine, key.y + 83, finishDrawLine, key.y + 88, paint_blue);
+                        canvas.drawRect(startDrawLine, key.y + ydelta1, finishDrawLine, key.y + ydelta2, paint_blue);
                     }else{
-                        canvas.drawRect(startDrawLine, key.y + 83, finishDrawLine, key.y + 88, paint_gray);
+                        canvas.drawRect(startDrawLine, key.y + ydelta1, finishDrawLine, key.y + ydelta2, paint_gray);
                     }
                 }
             }
@@ -453,6 +460,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
         // отображение подписи букв, эквивалентных кнопкам
         if (showSymbol){
+            int alt3deltaX = scaleX(65);
+            int alt3deltaY = scaleY(65);
             if(modeNav)
                 for(int i = 0; i < max_keys; i++){
                     canvas.drawText(nav_KeyLabel[i], nav_KeyLabel_x[i], nav_KeyLabel_y[i], paint_gray);
