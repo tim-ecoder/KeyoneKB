@@ -184,6 +184,9 @@ public class SearchClickPlugin {
         @JsonProperty(index=10)
         public ArrayList<SearchPluginData>  SearchPlugins = new ArrayList<>();
 
+        @JsonProperty(index=20)
+        public ArrayList<SearchPluginData>  ClickerPlugins = new ArrayList<>();
+
         public static class SearchPluginData {
 
             @JsonProperty(index=10)

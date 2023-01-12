@@ -41,6 +41,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     public final ArrayList<SearchClickPlugin> searchClickPlugins = new ArrayList<>();
 
+    public final ArrayList<SearchClickPlugin> clickerPlugins = new ArrayList<>();
+
     KeyoneKb2Settings keyoneKb2Settings;
 
     //ExecutorService executorService;
@@ -725,7 +727,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 return;
             }
         }
-
+        for (SearchClickPlugin plugin : clickerPlugins) {
+            if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin)) {
+                return;
+            }
+        }
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                 && IsSearchHackSet(packageName)) {
             SetSearchHack(null);
@@ -745,7 +751,24 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             DefaultSearchWords.add("Search");
             Log.e(TAG3, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
         }
-        for (SearchClickPlugin.SearchClickPluginData.SearchPluginData data : data2.SearchPlugins) {
+        LoadSearchPlugins(data2.SearchPlugins, searchClickPlugins);
+        LoadSearchPlugins(data2.ClickerPlugins, clickerPlugins);
+
+        for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
+            if(SearchClickPackages.contains(shp2.getPackageName()))
+                continue;
+            if(searchClickPlugins.stream().anyMatch((SearchClickPlugin shp3) -> shp3._packageName.equals(shp2._packageName)))
+                continue;
+            SearchClickPackages.add(shp2.getPackageName());
+            searchClickPlugins.add(shp2);
+        }
+
+
+
+    }
+
+    private void LoadSearchPlugins(ArrayList<SearchClickPlugin.SearchClickPluginData.SearchPluginData> clickPluginData, ArrayList<SearchClickPlugin> _clickPlugins) {
+        for (SearchClickPlugin.SearchClickPluginData.SearchPluginData data : clickPluginData) {
             SearchClickPlugin shp = new SearchClickPlugin(data.PackageName);
             SearchClickPackages.add(data.PackageName);
             if (data.SearchFieldId != null && !data.SearchFieldId.isEmpty())
@@ -762,20 +785,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
             shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
 
-            searchClickPlugins.add(shp);
+            _clickPlugins.add(shp);
         }
 
-        for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
-            if(SearchClickPackages.contains(shp2.getPackageName()))
-                continue;
-            if(searchClickPlugins.stream().anyMatch((SearchClickPlugin shp3) -> shp3._packageName.equals(shp2._packageName)))
-                continue;
-            SearchClickPackages.add(shp2.getPackageName());
-            searchClickPlugins.add(shp2);
-        }
-
-
-        for (SearchClickPlugin plugin : searchClickPlugins) {
+        for (SearchClickPlugin plugin : _clickPlugins) {
             if (plugin.getId() == null || plugin.getId().isEmpty()) {
                 String value = GetFromSetting(plugin);
                 if (value != null && value.length() > 0) {
@@ -834,13 +847,13 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             Log.d(TAG3, "SetSearchHack=SET getClassName: " + event.getClassName());
             SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData = new SearchClickPlugin.SearchPluginLauncher(searchClickPlugin.getPackageName(), info, searchClickPlugin.WaitBeforeSendChar);
             SetSearchHack(searchPluginLaunchData);
+            return true;
         } else {
             Log.d(TAG3, "SetSearchHack=NULL package: "+ searchClickPlugin.getPackageName());
             Log.d(TAG3, "SetSearchHack=NULL: getClassName: " + event.getClassName());
             SetSearchHack(null);
+            return false;
         }
-        return true;
-
     }
 
     private AccessibilityNodeInfo FindOrGetFromCache(AccessibilityNodeInfo root, SearchClickPlugin searchClickPlugin) {

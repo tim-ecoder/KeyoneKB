@@ -23,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text=""
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:layout_below="@id/text_keyboard_layouts"
         tools:checked="false" />
 
@@ -40,7 +40,7 @@
         android:layout_below="@id/divider2"
         android:text="@string/pref_p_1_name"
         android:textColor="@color/black"
-        android:textSize="24sp" />
+        android:textSize="20sp" />
 
     <SeekBar
         android:id="@+id/seekBar"
@@ -72,7 +72,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/divider4"
         android:text="@string/pref_p_2_name"
-        android:textSize="24sp" />
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/text_toast_show_lang"
@@ -94,7 +94,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/divider5"
         android:text="@string/pref_p_3_name"
-        android:textSize="24sp"
+        android:textSize="20sp"
         tools:checked="true" />
 
     <TextView
@@ -117,7 +117,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/divider6"
         android:text="@string/pref_p_4_name"
-        android:textSize="24sp"
+        android:textSize="20sp"
         tools:checked="false" />
 
     <View
@@ -133,7 +133,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/divider7"
         android:text="@string/pref_p_5_name"
-        android:textSize="24sp"
+        android:textSize="20sp"
         tools:checked="true" />
     <TextView
         android:id="@+id/help_switch_long_press_alt"
@@ -155,7 +155,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/divider8"
         android:text="@string/pref_p_6_name"
-        android:textSize="24sp"
+        android:textSize="20sp"
         tools:checked="true" />
     <TextView
         android:id="@+id/text_manage_call_hint"
@@ -178,7 +178,7 @@
         android:layout_below="@id/divider9"
         android:text="@string/pref_p_7_name"
         android:textColor="@color/black"
-        android:textSize="24sp" />
+        android:textSize="20sp" />
 
 
     <SeekBar
@@ -211,7 +211,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/divider10"
         android:text="@string/pref_p_8_name"
-        android:textSize="24sp"
+        android:textSize="20sp"
         tools:checked="true" />
 
     <TextView
@@ -231,7 +231,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/divider11"
-            android:textSize="24sp"
+            android:textSize="20sp"
             android:text="@string/pref_p9_gesture_modes_title" />
     <Spinner
             android:id="@+id/static_spinner_p9"
@@ -259,7 +259,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/divider12"
             android:text="@string/pref_p_10_name"
-            android:textSize="24sp"
+            android:textSize="20sp"
             tools:checked="true" />
     <View
         android:id="@+id/divider13"
@@ -273,7 +273,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/divider13"
             android:text="@string/pref_p_11_name"
-            android:textSize="24sp"
+            android:textSize="20sp"
             tools:checked="true" />
     <View
             android:id="@+id/divider14"
@@ -287,7 +287,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/divider14"
             android:text="@string/pref_p_12_name"
-            android:textSize="24sp"
+            android:textSize="20sp"
             tools:checked="true" />
     <TextView
             android:id="@+id/text_help_p12"
@@ -310,7 +310,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/divider15"
             android:text="@string/pref_p_13_name"
-            android:textSize="24sp"
+            android:textSize="20sp"
             tools:checked="true" />
     <TextView
             android:id="@+id/text_help_p13"
@@ -342,7 +342,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/divider16"
         android:text="@string/pref_manual_name"
-        android:textSize="24sp"
+        android:textSize="20sp"
         tools:checked="true" />
     <TextView
         android:id="@+id/text_manual_link"

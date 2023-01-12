@@ -24,6 +24,10 @@
       "contains-string" : "Search"
     } ]
   }, {
+    "package-name" : "com.google.android.dialer",
+    "additional-event-type-type-window-content-changed" : true,
+    "search-field-id" : "com.google.android.dialer:id/open_search_bar"
+  }, {
     "package-name" : "com.android.dialer.variant2",
     "custom-click-adapter-click-parent" : true,
     "search-field-id" : "com.android.dialer:id/voice_search_button"
@@ -81,12 +85,19 @@
     "wait-before-send-char-ms" : 300
   }, {
     "package-name" : "com.android.settings",
-    "additional-event-type-type-window-content-changed" : true ,
+    "additional-event-type-type-window-content-changed" : true,
     "custom-click-adapter-click-parent" : true,
     "dynamic-search-method" : [ {
       "dynamic-search-method-function" : "FindAccessibilityNodeInfosByText",
       "contains-string" : "Настройки поиска"
     } ],
     "wait-before-send-char-ms" : 50
-  } ]
+  } ],
+  "clicker-plugins" : [
+    {
+      "package-name" : "com.google.android.dialer",
+      "search-field-id" : "com.google.android.dialer:id/digits",
+      "additional-event-type-type-window-content-changed" : true
+    }
+  ]
 }

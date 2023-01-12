@@ -184,54 +184,59 @@ public class ActivitySettingsMore extends Activity {
 
             data.DefaultSearchWords = KeyoneKb2AccessibilityService.Instance.DefaultSearchWords;
 
-            for (SearchClickPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
-                SearchClickPlugin.SearchClickPluginData.SearchPluginData pluginData = new SearchClickPlugin.SearchClickPluginData.SearchPluginData();
-                pluginData.PackageName = plugin.getPackageName();
-                pluginData.SearchFieldId = plugin.getId();
+            SaveSearchClickPluginData(KeyoneKb2AccessibilityService.Instance.DefaultSearchWords, KeyoneKb2AccessibilityService.Instance.searchClickPlugins, data.SearchPlugins);
+            SaveSearchClickPluginData(KeyoneKb2AccessibilityService.Instance.DefaultSearchWords, KeyoneKb2AccessibilityService.Instance.clickerPlugins, data.ClickerPlugins);
 
-                if(pluginData.SearchFieldId == null || pluginData.SearchFieldId.isEmpty()) {
-
-
-                    if(plugin.DynamicSearchMethod != null && !plugin.DynamicSearchMethod.isEmpty()) {
-                        pluginData.DynamicSearchMethod = plugin.DynamicSearchMethod;
-                    } else {
-
-                        pluginData.DynamicSearchMethod = new ArrayList<>();
-                        for (String searchWord : data.DefaultSearchWords) {
-
-                            SearchClickPlugin.SearchClickPluginData.DynamicSearchMethod d1 = new SearchClickPlugin.SearchClickPluginData.DynamicSearchMethod();
-                            d1.DynamicSearchMethodFunction = SearchClickPlugin.SearchClickPluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
-                            d1.ContainsString = searchWord;
-                            pluginData.DynamicSearchMethod.add(d1);
-
-                            d1 = new SearchClickPlugin.SearchClickPluginData.DynamicSearchMethod();
-                            d1.DynamicSearchMethodFunction = SearchClickPlugin.SearchClickPluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
-                            d1.ContainsString = searchWord;
-                            pluginData.DynamicSearchMethod.add(d1);
-                        }
-                    }
-                }
-
-
-
-                if (plugin._converter != null) {
-                    pluginData.CustomClickAdapterClickParent = true;
-                }
-
-                if ((plugin._events & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-                    pluginData.AdditionalEventTypeTypeWindowContentChanged = true;
-                }
-
-                pluginData.WaitBeforeSendCharMs = plugin.WaitBeforeSendChar;
-
-                data.SearchPlugins.add(pluginData);
-            }
-
-                FileJsonUtils.SerializeToFile(data, "plugin_data.json");
+            FileJsonUtils.SerializeToFile(data, "plugin_data.json");
                 btSavePluginData.setText(FileJsonUtils.PATH_DEF);
 
         }
 
+    }
+
+    private void SaveSearchClickPluginData(ArrayList<String> defaultSearchWords, ArrayList<SearchClickPlugin> _searchClickPlugins, ArrayList<SearchClickPlugin.SearchClickPluginData.SearchPluginData> clickerPluginDataArray) {
+        for (SearchClickPlugin plugin : _searchClickPlugins) {
+            SearchClickPlugin.SearchClickPluginData.SearchPluginData pluginData = new SearchClickPlugin.SearchClickPluginData.SearchPluginData();
+            pluginData.PackageName = plugin.getPackageName();
+            pluginData.SearchFieldId = plugin.getId();
+
+            if(pluginData.SearchFieldId == null || pluginData.SearchFieldId.isEmpty()) {
+
+
+                if(plugin.DynamicSearchMethod != null && !plugin.DynamicSearchMethod.isEmpty()) {
+                    pluginData.DynamicSearchMethod = plugin.DynamicSearchMethod;
+                } else {
+
+                    pluginData.DynamicSearchMethod = new ArrayList<>();
+                    for (String searchWord : defaultSearchWords) {
+
+                        SearchClickPlugin.SearchClickPluginData.DynamicSearchMethod d1 = new SearchClickPlugin.SearchClickPluginData.DynamicSearchMethod();
+                        d1.DynamicSearchMethodFunction = SearchClickPlugin.SearchClickPluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive;
+                        d1.ContainsString = searchWord;
+                        pluginData.DynamicSearchMethod.add(d1);
+
+                        d1 = new SearchClickPlugin.SearchClickPluginData.DynamicSearchMethod();
+                        d1.DynamicSearchMethodFunction = SearchClickPlugin.SearchClickPluginData.DynamicSearchMethodFunction.FindAccessibilityNodeInfosByText;
+                        d1.ContainsString = searchWord;
+                        pluginData.DynamicSearchMethod.add(d1);
+                    }
+                }
+            }
+
+
+
+            if (plugin._converter != null) {
+                pluginData.CustomClickAdapterClickParent = true;
+            }
+
+            if ((plugin._events & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                pluginData.AdditionalEventTypeTypeWindowContentChanged = true;
+            }
+
+            pluginData.WaitBeforeSendCharMs = plugin.WaitBeforeSendChar;
+
+            clickerPluginDataArray.add(pluginData);
+        }
     }
 
     private void SetTextPluginData() {
