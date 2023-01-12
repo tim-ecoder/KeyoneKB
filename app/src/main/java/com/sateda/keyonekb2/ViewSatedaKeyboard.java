@@ -319,7 +319,10 @@ public class ViewSatedaKeyboard extends KeyboardView {
         //super.onLongPress(popupKey);
         Log.d(TAG2, "onLongPress "+popupKey.label);
 
+        //Не работает TODO: ВЕСЬ КЛАСС ПОДЛЕЖИТ РЕФАКТОРИНГУ
         if(!showSymbol) return false;
+        //Работает
+        if(!modeSym && !modeAlt) return false;
 
         int popupX = 0;
 
