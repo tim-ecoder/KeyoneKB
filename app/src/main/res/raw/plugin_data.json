@@ -28,18 +28,13 @@
     "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "com.google.android.dialer:id/open_search_bar"
   }, {
-    "package-name" : "com.android.dialer.variant2",
-    "custom-click-adapter-click-parent" : true,
-    "search-field-id" : "com.android.dialer:id/voice_search_button"
-  }, {
     "package-name" : "com.android.dialer",
-    "custom-click-adapter-click-parent" : true,
-    "search-field-id" : "com.android.dialer:id/search_box_start_search",
-    "wait-before-send-char-ms" : 50
+    "search-field-id" : "com.android.dialer:id/search_box_collapsed",
+    "wait-before-send-char-ms" : 25
   }, {
     "package-name" : "com.blackberry.contacts",
     "search-field-id" : "com.blackberry.contacts:id/menu_search",
-    "wait-before-send-char-ms" : 50
+    "wait-before-send-char-ms" : 25
   }, {
     "package-name" : "com.oasisfeng.island",
     "additional-event-type-type-window-content-changed" : true,

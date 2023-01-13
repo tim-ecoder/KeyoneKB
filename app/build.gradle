@@ -23,9 +23,11 @@ android {
         applicationId "com.sateda.keyonekb2"
         minSdkVersion 25
         targetSdkVersion 27
-        //TODO: ---- Меняем каждый раз! ----
-        versionCode 2519
-        versionName "v2.5-build1.9"
+        //TODO: ---- Меняем versionCode, versionName каждый публичный выкат даже для тестеров ----
+        // В номере билда build X.Y X<10 Y<10
+        // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает отказывать
+        versionCode 2520
+        versionName "v2.5-build2.0"
         //TODO: ----------------------------
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
