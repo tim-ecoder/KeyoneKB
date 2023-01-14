@@ -298,16 +298,16 @@ public class ActivitySettings extends AppCompatActivity {
 
 
         Switch switch_pointer_mode_rect = (Switch) findViewById(R.id.switch_pointer_mode_rect);
-        SetSwitchStateOrDefault(switch_pointer_mode_rect, keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS);
+        SetSwitchStateOrDefault(switch_pointer_mode_rect, keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT);
 
         switch_pointer_mode_rect.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS, isChecked);
+                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT, isChecked);
             }
         });
 
-        int color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR);
+        int color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
         final ColorPicker cp = new ColorPicker(this, Color.red(color), Color.green(color), Color.blue(color));
 
         Button btSave = (Button)findViewById(R.id.button_pointer_mode_rect_color_picker);
@@ -322,10 +322,22 @@ public class ActivitySettings extends AppCompatActivity {
                 okColor.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR, cp.getColor());
+                        keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR, cp.getColor());
                         cp.dismiss();
                     }
                 });
+            }
+        });
+
+
+
+        Switch switch_p14 = (Switch) findViewById(R.id.switch_p14_nav_pad_on_hold);
+        SetSwitchStateOrDefault(switch_p14, keyoneKb2Settings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD);
+
+        switch_p14.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD, isChecked);
             }
         });
 

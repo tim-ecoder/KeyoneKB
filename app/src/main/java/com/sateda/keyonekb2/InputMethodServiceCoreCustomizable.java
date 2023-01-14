@@ -36,8 +36,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected boolean pref_ensure_entered_text = true;
     protected int pref_gesture_mode_at_view_mode = 0;
     protected boolean pref_pointer_mode_rect_and_autofocus = true;
-
     protected int pref_pointer_mode_rect_color = 0;
+    protected boolean pref_nav_pad_on_hold = true;
+
+
     private boolean metaHoldCtrl; // только первая буква будет большая
     protected boolean metaFixedModeFirstLetterUpper; // только первая буква будет большая
     protected boolean metaFixedModeCapslock; //все следующий буквы будут большие

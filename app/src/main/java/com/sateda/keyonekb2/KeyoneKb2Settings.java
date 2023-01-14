@@ -7,8 +7,9 @@ public class KeyoneKb2Settings {
 
     public static final String APP_PREFERENCES = "kbsettings";
 
-    public final String APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR = "pointer_mode_rect_color";
-    public final String APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS = "pointer_mode_rect_and_autofocus";
+    public final String APP_PREFERENCES_14_NAV_PAD_ON_HOLD = "nav_pad_on_hold";
+    public final String APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR = "pointer_mode_rect_color";
+    public final String APP_PREFERENCES_13_POINTER_MODE_RECT = "pointer_mode_rect";
     public final String APP_PREFERENCES_12_ENSURE_ENTERED_TEXT = "ensure_entered_text";
     public final String APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN = "vibrate_on_key_down";
     public final String APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM = "notification_icon_system";
@@ -71,8 +72,9 @@ public class KeyoneKb2Settings {
         CheckSettingOrSetDefault(APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN, false);
         CheckSettingOrSetDefault(APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, false);
-        CheckSettingOrSetDefault(APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS, false);
-        CheckSettingOrSetDefault(APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR, 0xFF86888A);
+        CheckSettingOrSetDefault(APP_PREFERENCES_13_POINTER_MODE_RECT, false);
+        CheckSettingOrSetDefault(APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR, 0xFF86888A);
+        CheckSettingOrSetDefault(APP_PREFERENCES_14_NAV_PAD_ON_HOLD, true);
     }
 
     public boolean GetBooleanValue(String name) {

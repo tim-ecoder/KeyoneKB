@@ -901,10 +901,12 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             } else {
                 changed = UpdateNotification(navFnIconRes, TITLE_NAV_FV_TEXT);
             }
-            //onScreenKeyboardSymbols = keyboardNavigation;
-            keyboardView.setKeyboard(keyboardNavigation);
-            keyboardView.setNavigationLayer();
-            needUsefulKeyboard = true;
+            if(pref_nav_pad_on_hold
+            || keyboardStateFixed_NavModeAndKeyboard) {
+                keyboardView.setKeyboard(keyboardNavigation);
+                keyboardView.setNavigationLayer();
+                needUsefulKeyboard = true;
+            }
         } else if (keyboardStateFixed_SymbolOnScreenKeyboard) {
 
             if (IsSym2Mode()) {
@@ -1145,8 +1147,10 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         pref_system_icon_no_notification_text = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
         pref_vibrate_on_key_down = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN);
         pref_ensure_entered_text = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT);
-        pref_pointer_mode_rect_and_autofocus = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT_AND_AUTOFOCUS);
-        pref_pointer_mode_rect_color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_14_POINTER_MODE_RECT_COLOR);
+        pref_pointer_mode_rect_and_autofocus = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT);
+        pref_pointer_mode_rect_color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
+        pref_nav_pad_on_hold = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD);
+
 
         allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts = new ArrayList<>();
