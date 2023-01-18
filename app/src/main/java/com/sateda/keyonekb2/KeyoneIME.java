@@ -588,7 +588,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         Log.d(TAG2, "onKey " + primaryCode);
         InputConnection inputConnection = getCurrentInputConnection();
         playClick(primaryCode);
-        if (keyboardStateFixed_NavModeAndKeyboard || keyboardStateHolding_NavModeAndKeyboard) {
+        if (IsNavMode()) {
             switch (primaryCode) {
 
                 case 19: //UP
@@ -901,8 +901,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             } else {
                 changed = UpdateNotification(navFnIconRes, TITLE_NAV_FV_TEXT);
             }
-            if(pref_nav_pad_on_hold
-            || keyboardStateFixed_NavModeAndKeyboard) {
+            if( (pref_nav_pad_on_hold && keyboardStateHolding_NavModeAndKeyboard)
+                    || keyboardStateFixed_NavModeAndKeyboard) {
                 keyboardView.setKeyboard(keyboardNavigation);
                 keyboardView.setNavigationLayer();
                 needUsefulKeyboard = true;
@@ -915,8 +915,10 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 changed = UpdateNotification(AltAllIconRes, TITLE_SYM_TEXT);
             }
 
-            keyboardView.setKeyboard(keyboardLayoutManager.GetSymKeyboard(symPadAltShift));
-            keyboardView.setAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), symPadAltShift);
+            //Keyboard k1 = keyboardLayoutManager.GetSymKeyboard(symPadAltShift);
+            Keyboard k1 = new Keyboard(this, keyboardLayoutManager.GetCurrentKeyboardLayout().SymXmlId);
+            keyboardView.setKeyboard(k1);
+            keyboardView.loadAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), symPadAltShift);
 
             needUsefulKeyboard = true;
 

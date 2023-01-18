@@ -60,9 +60,6 @@ public class ViewSatedaKeyboard extends KeyboardView {
     public ViewSatedaKeyboard(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        altPopup = new String[MAX_KEY_COUNT];
-        altPopupLabel = new String[MAX_KEY_COUNT];
-
         DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
         screenHeightY = dm.heightPixels;
         screenWidthX = dm.widthPixels;
@@ -139,65 +136,41 @@ public class ViewSatedaKeyboard extends KeyboardView {
     int[] sym_KeyLabel_y;
     String[] sym_KeyLabel;
     String[] sym_KeyLabelAltPopup;
-    int[] alt_KeyLabel_x;
-    int[] alt_KeyLabel_y;
-    String[] alt_KeyLabel;
-    String[] alt_KeyLabelAltPopup;
-
-    boolean modeAlt = false;
 
     boolean modeSym = false;
 
-    public void setAltLayer(KeyboardLayout keyboardLayout, boolean isAltShift){
+    public void loadAltLayer(KeyboardLayout keyboardLayout, boolean isAltShift){
 
         max_keys = 27;
-        if(isAltShift) {
-            modeSym = true;
-            modeAlt = false;
-            modeNav = false;
-
-            if(isSymLoaded) {
-                return;
-            }
-            sym_KeyLabel = new String[max_keys];
-            sym_KeyLabel_x = new int[max_keys];
-            sym_KeyLabel_y = new int[max_keys];
-            sym_KeyLabelAltPopup = new String[max_keys];
-
-            LoadExtraKeyScreenData(keyboardLayout, isAltShift, sym_KeyLabel_x, sym_KeyLabel_y, sym_KeyLabel, sym_KeyLabelAltPopup);
-            isSymLoaded = true;
-        } else {
-            modeSym = false;
-            modeAlt = true;
-            modeNav = false;
-
-            if(isAltLoaded) {
-                return;
-            }
-
-            alt_KeyLabel = new String[max_keys];
-            alt_KeyLabel_x = new int[max_keys];
-            alt_KeyLabel_y = new int[max_keys];
-            alt_KeyLabelAltPopup = new String[max_keys];
-
-            LoadExtraKeyScreenData(keyboardLayout, isAltShift, alt_KeyLabel_x, alt_KeyLabel_y, alt_KeyLabel, alt_KeyLabelAltPopup);
-            isAltLoaded = true;
-        }
-    }
-
-    private void LoadExtraKeyScreenData(KeyboardLayout keyboardLayout, boolean isAltShift, int[] _KeyLabel_x, int[] _KeyLabel_y, String[] _KeyLabel, String[] _KeyLabelAltPopup) {
         alt = true;
         showSymbol = true;
         fnSymbol = false;
+        modeSym = true;
+        modeNav = false;
+
+        /** кешировать не будем пока т.к. клавиатура дает возможность делать разные альт символы в привязке к разной раскладке
+         * если закешировать то запомнится только первая раскладка и ее альт-символы
+         * Если уж делать кеширование какое-то то в рамках полного переписывания кода SatedaKeyboard */
+
+        //if(isSymLoaded) {
+        //    return;
+        //}
+        sym_KeyLabel = new String[max_keys];
+        sym_KeyLabel_x = new int[max_keys];
+        sym_KeyLabel_y = new int[max_keys];
+        sym_KeyLabelAltPopup = new String[max_keys];
+        altPopup = new String[max_keys];
+        altPopupLabel = new String[max_keys];
+
 
         List<Keyboard.Key> keys = getKeyboard().getKeys();
         int arr_inc = 0;
         int i = 0;
-        // TODO: Это все требует рефакторинга чтобы не перерисовывать каждый раз клавиатуру
+
         for(KeyboardLayout.KeyVariants keyVariants : keyboardLayout.KeyMapping){
-            _KeyLabel[i] = "";
-            _KeyLabel_x[i] = 0;
-            _KeyLabel_y[i] = 0;
+            sym_KeyLabel[i] = "";
+            sym_KeyLabel_x[i] = 0;
+            sym_KeyLabel_y[i] = 0;
             altPopup[i] = keyVariants.AltMoreVariants;
 
             if(!isAltShift) {
@@ -223,20 +196,20 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 keyVariants = KeyboardLayoutManager.getCurKeyVariants(keyboardLayout, keyCode.intValue());
             }
 
-            if((key.label.equals(" "))
-                    && _KeyLabel != null
+            if(key.label.equals(" ")
+                    && sym_KeyLabel != null
                     && isKeyboard(keyVariants.KeyCodeInt)
                     && keyVariants.SinglePressShiftMode != null
             ) {
 
-                _KeyLabel_x[arr_inc] = key.x + (key.width - scaleX(90));//key:90//pocket:60
-                _KeyLabel_y[arr_inc] = key.y + scaleY(100);//100//55
-                _KeyLabel[arr_inc] = keyVariants.SinglePressShiftMode.toString();
+                sym_KeyLabel_x[arr_inc] = key.x + (key.width - scaleX(90));//key:90//pocket:60
+                sym_KeyLabel_y[arr_inc] = key.y + scaleY(100);//100//55
+                sym_KeyLabel[arr_inc] = keyVariants.SinglePressShiftMode.toString();
 
                 if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
-                    _KeyLabelAltPopup[arr_inc] = Character.toString(keyVariants.AltMoreVariants.charAt(0));
+                    sym_KeyLabelAltPopup[arr_inc] = Character.toString(keyVariants.AltMoreVariants.charAt(0));
                 } else
-                    _KeyLabelAltPopup[arr_inc] = "";
+                    sym_KeyLabelAltPopup[arr_inc] = "";
 
                  if(!isAltShift) {
                     key.codes[0] = keyVariants.SinglePressAltMode;
@@ -250,6 +223,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 arr_inc++;
             }
         }
+        //isSymLoaded = true;
+
     }
 
     public void SetFnKeyboardMode(boolean isEnabled){
@@ -264,7 +239,6 @@ public class ViewSatedaKeyboard extends KeyboardView {
         max_keys = 12;
 
         modeSym = false;
-        modeAlt = false;
         modeNav = true;
 
         if(navLayerLoaded)
@@ -322,7 +296,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
         //Не работает TODO: ВЕСЬ КЛАСС ПОДЛЕЖИТ РЕФАКТОРИНГУ
         if(!showSymbol) return false;
         //Работает
-        if(!modeSym && !modeAlt) return false;
+        if(!modeSym) return false;
 
         int popupX = 0;
 
@@ -414,6 +388,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
         paint_blue.setColor(Color.BLUE);
 
 
+        // TODO: Это все требует рефакторинга чтобы не перерисовывать каждый раз клавиатуру
         // название текущего языка
         List<Keyboard.Key> keys = getKeyboard().getKeys();
         for(Keyboard.Key key: keys) {
@@ -468,12 +443,6 @@ public class ViewSatedaKeyboard extends KeyboardView {
             if(modeNav)
                 for(int i = 0; i < max_keys; i++){
                     canvas.drawText(nav_KeyLabel[i], nav_KeyLabel_x[i], nav_KeyLabel_y[i], paint_gray);
-                }
-            else if(modeAlt)
-                for(int i = 0; i < max_keys; i++){
-                    canvas.drawText(alt_KeyLabel[i], alt_KeyLabel_x[i], alt_KeyLabel_y[i], paint_gray);
-                    if(alt_KeyLabelAltPopup[i] != null && alt_KeyLabelAltPopup[i] != "")
-                        canvas.drawText(alt_KeyLabelAltPopup[i], alt_KeyLabel_x[i]+ alt3deltaX, alt_KeyLabel_y[i]- alt3deltaY, paint_red);
                 }
             else if(modeSym)
                 for(int i = 0; i < max_keys; i++){
