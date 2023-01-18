@@ -313,7 +313,7 @@
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
-            "MetaIsShiftMode", "PrefLongPressAltSymbol"
+            "MetaIsShiftPressed", "PrefLongPressAltSymbol"
           ],
           "action-method-name": "ActionSendCharLongPressAltSymbolShiftMode",
           "method-needs-key-press-parameter": true,
