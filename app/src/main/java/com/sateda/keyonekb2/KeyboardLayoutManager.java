@@ -58,7 +58,7 @@ public class KeyboardLayoutManager {
 
             currentLayout.Resources = layout;
             KeyboardLayoutList.add(currentLayout);
-            AddSymKeyboard(currentLayout.SymXmlId, context);
+            //AddSymKeyboard(currentLayout.SymXmlId, context);
         }
     }
 
@@ -141,6 +141,10 @@ public class KeyboardLayoutManager {
 
     public synchronized KeyboardLayout GetCurrentKeyboardLayout(){
         return KeyboardLayoutList.get(CurrentLanguageListIndex);
+    }
+
+    public synchronized KeyboardLayout GetDefaultKeyboardLayout(){
+        return KeyboardLayoutList.get(0);
     }
 
     public synchronized int KeyToCharCode(InputMethodServiceCoreKeyPress.KeyPressData keyPressData, boolean alt_press, boolean shift_press, boolean is_double_press)
