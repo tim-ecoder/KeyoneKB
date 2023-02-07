@@ -483,6 +483,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionSendEnterOrCustomButton", InitializeMethod3((Object o) -> ActionSendEnterOrCustomButton(), Object.class));
         //2.5
         Methods.put("ActionTryResetHoldCtrlMode", InitializeMethod3((Object o) -> ActionTryResetHoldCtrlMode(), Object.class));
+        //2.6
+        Methods.put("ActionDisableFirstSymbolAltMode", InitializeMethod3((Object o) -> ActionDisableFirstSymbolAltMode(), Object.class));
 
     }
 
@@ -759,6 +761,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             return true;
         }
         return false;
+    }
+
+    public boolean ActionDisableFirstSymbolAltMode() {
+        metaFixedModeFirstSymbolAlt = false;
+        return true;
     }
 
     public boolean ActionChangeFixedAltModeState() {

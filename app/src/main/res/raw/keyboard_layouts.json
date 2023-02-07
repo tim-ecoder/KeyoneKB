@@ -49,6 +49,15 @@
   "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
   "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
 }, {
+  "options-name" : "Unihertz Pocket|Slim Русский (kika)",
+  "keyboard-mapping" : "titan_slim_russian_kika_hw",
+  "icon-lowercase" : "ic_rus_small",
+  "icon-first-shift" : "ic_rus_shift_first",
+  "icon-capslock" : "ic_rus_shift_all",
+  "flag" : "ic_flag_russia_col",
+  "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
+  "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+}, {
   "options-name" : "Unihertz Pocket|Slim Русский (key2)",
   "keyboard-mapping" : "titan_slim_russian_key2_hw",
   "icon-lowercase" : "ic_rus_small",
