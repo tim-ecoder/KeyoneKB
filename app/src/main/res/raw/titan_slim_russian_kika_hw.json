@@ -1,0 +1,136 @@
+{
+  "keyboard-name" : "Русский-kika",
+  "alt-mode-layout" : "titan_slim_alt_hw",
+  "sym-mode-layout" : "pocket_symbol",
+  "key-mapping" : [
+
+
+    {
+    "key-code" : "KEYCODE_Q",
+    "single-press" : "й",
+    "single-press-shift-mode" : "Й",
+    "double-press" : "ц",
+    "double-press-shift-mode" : "Ц"
+  }, {
+    "key-code" : "KEYCODE_W",
+    "single-press" : "у",
+    "single-press-shift-mode" : "У"
+  }, {
+    "key-code" : "KEYCODE_E",
+    "single-press" : "к",
+    "single-press-shift-mode" : "К"
+  }, {
+    "key-code" : "KEYCODE_R",
+    "single-press" : "е",
+    "single-press-shift-mode" : "Е",
+    "double-press" : "ё",
+    "double-press-shift-mode" : "Ё"
+  }, {
+    "key-code" : "KEYCODE_T",
+    "single-press" : "н",
+    "single-press-shift-mode" : "Н"
+  }, {
+    "key-code" : "KEYCODE_Y",
+    "single-press" : "г",
+    "single-press-shift-mode" : "Г"
+  }, {
+    "key-code" : "KEYCODE_U",
+    "single-press" : "ш",
+    "single-press-shift-mode" : "Ш",
+     "double-press" : "щ",
+    "double-press-shift-mode" : "Щ"
+  }, {
+    "key-code" : "KEYCODE_I",
+    "single-press" : "з",
+    "single-press-shift-mode" : "З"  
+  }, {
+    "key-code" : "KEYCODE_O",
+    "single-press" : "х",
+    "single-press-shift-mode" : "Х",
+     "double-press" : "ъ",
+    "double-press-shift-mode" : "Ъ"
+  }, {
+    "key-code" : "KEYCODE_P",
+    "single-press" : "ю",
+    "single-press-shift-mode" : "Ю"
+  },
+
+
+    {
+    "key-code" : "KEYCODE_A",
+    "single-press" : "ф",
+    "single-press-shift-mode" : "Ф",
+     "double-press" : "ы",
+    "double-press-shift-mode" : "Ы"
+  }, {
+    "key-code" : "KEYCODE_S",
+    "single-press" : "в",
+    "single-press-shift-mode" : "В"
+  }, {
+    "key-code" : "KEYCODE_D",
+    "single-press" : "а",
+    "single-press-shift-mode" : "А"
+  }, {
+    "key-code" : "KEYCODE_F",
+    "single-press" : "п",
+    "single-press-shift-mode" : "П"
+  }, {
+    "key-code" : "KEYCODE_G",
+    "single-press" : "р",
+    "single-press-shift-mode" : "Р"
+  }, {
+    "key-code" : "KEYCODE_H",
+    "single-press" : "о",
+    "single-press-shift-mode" : "О"
+  }, {
+    "key-code" : "KEYCODE_J",
+    "single-press" : "л",
+    "single-press-shift-mode" : "Л"
+  }, {
+    "key-code" : "KEYCODE_K",
+    "single-press" : "д",
+    "single-press-shift-mode" : "Д"
+  }, {
+    "key-code" : "KEYCODE_L",
+    "single-press" : "ж",
+    "single-press-shift-mode" : "Ж",
+    "double-press" : "э",
+    "double-press-shift-mode" : "Э"
+  },
+
+
+    {
+    "key-code" : "KEYCODE_Z",
+    "single-press" : "я",
+    "single-press-shift-mode" : "Я",
+    "double-press" : "ч",
+    "double-press-shift-mode" : "Ч"
+  }, {
+    "key-code" : "KEYCODE_X",
+    "single-press" : "с",
+    "single-press-shift-mode" : "С"
+  }, {
+    "key-code" : "KEYCODE_C",
+    "single-press" : "м",
+    "single-press-shift-mode" : "М"
+  }, {
+    "key-code" : "KEYCODE_V",
+    "single-press" : "и",
+    "single-press-shift-mode" : "И"
+  }, {
+    "key-code" : "KEYCODE_B",
+    "single-press" : "т",
+    "single-press-shift-mode" : "Т"
+  }, {
+    "key-code" : "KEYCODE_N",
+    "single-press" : "ь",
+    "single-press-shift-mode" : "Ь"
+  }, {
+    "key-code" : "KEYCODE_M",
+    "single-press" : "б",
+    "single-press-shift-mode" : "Б"
+  }
+
+
+  ]
+}
