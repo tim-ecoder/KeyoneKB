@@ -220,7 +220,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                 if(keyPressData2.LongPressBeginTime == 0
                         /** ВАЖНО! в случе торможения OS eventTime - идет с задержкой и получается SHORT->LONG_PRESS
                          * ПОЭТОМУ ЭТО ОТСЮДА УБРАНО (НО МОЖЕТ РАБОТЬ ПЛОХО БЕЗ ЭТОГО)*/
-                    //&& eventTime - keyPressData2.KeyDownTime > TIME_LONG_PRESS ) {
+                    && eventTime - keyPressData2.KeyDownTime > TIME_LONG_PRESS
                 ) {
                     keyPressData2.LongPressBeginTime = keyDownTime;
                     if(IsSameKeyDownPress(LastShortPressKey1, keyPressData2)

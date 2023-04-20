@@ -186,7 +186,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
-        Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType() +" "+event.getPackageName());
+        //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType() +" "+event.getPackageName());
 
         try {
             if(KeyoneIME.Instance == null)

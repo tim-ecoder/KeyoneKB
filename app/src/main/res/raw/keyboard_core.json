@@ -2,7 +2,7 @@
   "time-short-press" : 175,
   "time-double-press" : 225,
   "time-triple-press" : 275,
-  "time-long-press" : 300,
+  "time-long-press" : 600,
   "time-long-after-short-press" : 600,
   "time-wait-gesture-upon-key0-hold" : 1000,
   "gesture-finger-press-radius" : 45,
