@@ -87,12 +87,15 @@
       "contains-string" : "Настройки поиска"
     } ],
     "wait-before-send-char-ms" : 50
+  }, {
+    "package-name" : "org.thunderdog.challegram",
+    "additional-event-type-type-window-content-changed" : true,
+    "search-field-id" : "org.thunderdog.challegram:id/menu_btn_search",
+    "wait-before-send-char-ms" : 230
   } ],
-  "clicker-plugins" : [
-    {
-      "package-name" : "com.google.android.dialer",
-      "search-field-id" : "com.google.android.dialer:id/digits",
-      "additional-event-type-type-window-content-changed" : true
-    }
-  ]
+"clicker-plugins" : [ {
+"package-name" : "com.google.android.dialer",
+"additional-event-type-type-window-content-changed" : true,
+"search-field-id" : "com.google.android.dialer:id/digits"
+} ]
 }
