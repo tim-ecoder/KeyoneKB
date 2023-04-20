@@ -1,5 +1,5 @@
 {
-  "keyboard-name" : "Русский-T-kika",
+  "keyboard-name" : "Транслит kika",
   "alt-mode-layout" : "titan_slim_alt_hw",
   "sym-mode-layout" : "pocket_symbol",
   "key-mapping" : [ { }, {
@@ -92,10 +92,10 @@
     "single-press-shift-mode" : "Л"
   }, {
     "key-code" : "KEYCODE_Z",
-    "single-press" : "з",
-    "single-press-shift-mode" : "З",
-    "double-press" : "ж",
-    "double-press-shift-mode" : "Ж"
+    "single-press" : "ж",
+    "single-press-shift-mode" : "Ж",
+    "double-press" : "з",
+    "double-press-shift-mode" : "З"
   }, {
     "key-code" : "KEYCODE_X",
     "single-press" : "х",
