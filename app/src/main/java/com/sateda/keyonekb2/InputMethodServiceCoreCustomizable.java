@@ -987,16 +987,16 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         {
             case EditorInfo.IME_ACTION_SEND:
                 ic.performEditorAction(EditorInfo.IME_ACTION_SEND);
-                break;
+                return true;
             case EditorInfo.IME_ACTION_GO:
                 ic.performEditorAction(EditorInfo.IME_ACTION_GO);
-                break;
+                return true;
             case EditorInfo.IME_ACTION_NEXT:
                 ic.performEditorAction(EditorInfo.IME_ACTION_NEXT);
-                break;
+                return true;
             case EditorInfo.IME_ACTION_SEARCH:
                 ic.performEditorAction(EditorInfo.IME_ACTION_SEARCH);
-                break;
+                return true;
         }
 
         _isKeyTransparencyInsideUpDownEvent = true;
