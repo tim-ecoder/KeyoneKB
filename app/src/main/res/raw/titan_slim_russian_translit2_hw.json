@@ -2,7 +2,8 @@
   "keyboard-name" : "Транслит kika",
   "alt-mode-layout" : "titan_slim_alt_hw",
   "sym-mode-layout" : "pocket_symbol",
-  "key-mapping" : [ { }, {
+  "key-mapping" : [
+    {
     "key-code" : "KEYCODE_Q",
     "single-press" : "я",
     "single-press-shift-mode" : "Я"
