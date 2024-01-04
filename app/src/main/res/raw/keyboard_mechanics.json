@@ -1026,7 +1026,7 @@
     "key-hold-plus-gesture-enabled" : true,
     "on-gesture-double-click" : [
       {
-        "action-method-name": "ActionEnableGestureAtInputMode",
+        "action-method-name": "ActionDoNothing",
         "need-update-gesture-visual-state": true
       }
     ],

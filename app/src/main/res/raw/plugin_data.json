@@ -92,10 +92,14 @@
     "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "org.thunderdog.challegram:id/menu_btn_search",
     "wait-before-send-char-ms" : 230
+  }, {
+    "package-name" : "net.typeblog.shelter",
+    "additional-event-type-type-window-content-changed" : true,
+    "search-field-id" : "net.typeblog.shelter:id/main_menu_search"
   } ],
-"clicker-plugins" : [ {
-"package-name" : "com.google.android.dialer",
-"additional-event-type-type-window-content-changed" : true,
-"search-field-id" : "com.google.android.dialer:id/digits"
-} ]
+  "clicker-plugins" : [ {
+    "package-name" : "com.google.android.dialer",
+    "additional-event-type-type-window-content-changed" : true,
+    "search-field-id" : "com.google.android.dialer:id/digits"
+  } ]
 }
