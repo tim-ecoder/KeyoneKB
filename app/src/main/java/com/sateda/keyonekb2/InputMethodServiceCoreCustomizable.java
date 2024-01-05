@@ -3,10 +3,7 @@ package com.sateda.keyonekb2;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.SystemClock;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
+import android.os.*;
 import android.support.annotation.RequiresApi;
 import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
@@ -15,16 +12,20 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputMethodInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import com.android.internal.telephony.ITelephony;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public abstract class InputMethodServiceCoreCustomizable extends InputMethodServiceCoreGesture {
     protected boolean pref_show_toast = false;
@@ -485,6 +486,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionTryResetHoldCtrlMode", InitializeMethod3((Object o) -> ActionTryResetHoldCtrlMode(), Object.class));
         //2.6
         Methods.put("ActionDisableFirstSymbolAltMode", InitializeMethod3((Object o) -> ActionDisableFirstSymbolAltMode(), Object.class));
+        //2.7
+        Methods.put("ActionStartVoiceListening", InitializeMethod3((Object o) -> ActionStartVoiceListening(), Object.class));
 
     }
 
@@ -1523,6 +1526,30 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public boolean InputIsText() {
         EditorInfo editorInfo = getCurrentInputEditorInfo();
         return (editorInfo.inputType & InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_TEXT;
+    }
+
+    //endregion
+
+    //region Voice Recognition
+
+    protected VoiceRecognitionTrigger mVoiceRecognitionTrigger;
+
+    public boolean ActionStartVoiceListening() {
+        if(!IsInputMode())
+            return false;
+        if(
+               mVoiceRecognitionTrigger != null
+           && mVoiceRecognitionTrigger.isInstalled()
+           && mVoiceRecognitionTrigger.isEnabled()) {
+
+            //mVoiceRecognitionTrigger.onStartInputView();
+            mVoiceRecognitionTrigger.startVoiceRecognition();
+            return true;
+        }
+        return false;
+    }
+
+    protected void updateVoiceImeStatus() {
     }
 
     //endregion

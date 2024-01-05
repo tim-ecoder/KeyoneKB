@@ -25,6 +25,7 @@ import android.view.textservice.SpellCheckerSession;
 import android.view.textservice.SuggestionsInfo;
 
 import android.widget.Toast;
+import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
 import java.util.*;
@@ -206,6 +207,16 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             UpdateKeyboardModeVisualization();
             LoadShortcuts();
 
+            mVoiceRecognitionTrigger = new VoiceRecognitionTrigger(this);
+            mVoiceRecognitionTrigger.register(new VoiceRecognitionTrigger.Listener() {
+
+                @Override
+                public void onVoiceImeEnabledStatusChange() {
+                    // The call back is done on the main thread.
+                    updateVoiceImeStatus();
+                }
+            });
+
         } catch(Throwable ex) {
             Log.e(TAG2, "onCreate Exception: "+ex);
             throw ex;
@@ -252,6 +263,10 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         notificationProcessor.CancelAll();
         if (telephonyManager != null) {
             telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_NONE);
+        }
+        if(mVoiceRecognitionTrigger != null
+                && mVoiceRecognitionTrigger.isInstalled()) {
+            mVoiceRecognitionTrigger.unregister(this);
         }
         super.onDestroy();
     }

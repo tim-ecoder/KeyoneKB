@@ -760,6 +760,12 @@
           "action-method-name": "ActionSendCharToInput",
           "stop-processing-at-success-result": true,
           "custom-char": "0"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsCtrlPressed"
+          ],
+          "action-method-name": "ActionStartVoiceListening",
+          "stop-processing-at-success-result": true
         }
       ],
       "on-double-press": [

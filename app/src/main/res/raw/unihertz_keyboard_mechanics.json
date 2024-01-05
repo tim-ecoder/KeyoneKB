@@ -533,6 +533,12 @@
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsCtrlPressed"
+          ],
+          "action-method-name": "ActionStartVoiceListening",
+          "stop-processing-at-success-result": true
         },
         {
           "action-method-name": "ActionTryDeclineCall",

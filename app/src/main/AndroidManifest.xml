@@ -12,6 +12,8 @@
     <uses-permission android:name="android.Manifest.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
     <uses-permission android:name="android.permission.VIBRATE"/>
     <application
         android:allowBackup="true"
@@ -81,6 +83,15 @@
             </intent-filter>
         </activity>
 
+
+        <service android:name="com.google.android.voiceime.ServiceHelper" />
+        <activity
+                android:name="com.google.android.voiceime.ActivityHelper"
+                android:theme="@android:style/Theme.Translucent.NoTitleBar"
+                android:excludeFromRecents="true"
+                android:windowSoftInputMode="stateAlwaysHidden"
+                android:finishOnTaskLaunch="true"
+                android:configChanges="keyboard|keyboardHidden|navigation|orientation"/>
     </application>
 
 </manifest>
