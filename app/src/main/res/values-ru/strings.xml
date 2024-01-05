@@ -85,5 +85,11 @@
     <string name="gesture_mode_notification_text">Режимы жестов (на полях ввода, на просмотре выключен)</string>
     <string name="keyboard_layout_mode_notification_text">Раскладка клавиатуры (языки, символы и пр.)</string>
     <string name="pref_keyboard_layouts">Расладки клавиатуры</string>
+    <string name="main_btn_file_permissions_needed">F. Требуется разрешение на доступ к файлам (найдены json
+        кастомизации)
+    </string>
+    <string name="main_btn_file_permissions_not_need">Доступ к файлам не требуется</string>
+    <string name="main_btn_file_permissions_activated">Доступ к файлам разрешен</string>
+    <string name="main_btn_keyboard_reload_need">G. Перезапустить клавиатуру</string>
 
 </resources>

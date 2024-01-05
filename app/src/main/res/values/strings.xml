@@ -2,6 +2,9 @@
     <string name="app_name" translatable="false">KeyoneKB2</string>
     <string name="main_btn_settings">A. Settings</string>
     <string name="main_btn_power_manager_activated">E. Power saving requires configuration</string>
+    <string name="main_btn_file_permissions_needed">F. Grant file access (json-s found)</string>
+    <string name="main_btn_file_permissions_not_need">File access is not needed</string>
+    <string name="main_btn_file_permissions_activated">File access (for json) granted</string>
     <string name="main_btn_power_manager_deactivated">Power saving is configured</string>
     <string name="main_btn_sys_kb_setting_enabled">B. Activate keyboard</string>
     <string name="main_btn_sys_kb_setting_disabled">Keyboard is activated</string>
@@ -11,6 +14,7 @@
     <string name="main_btn_sys_kb_accessibility_setting_enabled">C. Activate accessibility service</string>
     <string name="main_btn_sys_kb_accessibility_setting_disabled">Accessibility service activated</string>
     <string name="main_btn_keyboard_reload">Reload keyboard</string>
+    <string name="main_btn_keyboard_reload_need">G. Reload keyboard (json-s reload)</string>
     <string name="main_btn_accessibility_reload">Reload accessibility service</string>
     <string name="main_btn_more_settings">Advanced Settings</string>
     <string name="main_manual_text">MANUAL</string>

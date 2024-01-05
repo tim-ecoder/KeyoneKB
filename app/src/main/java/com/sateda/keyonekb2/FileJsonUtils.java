@@ -1,9 +1,11 @@
 package com.sateda.keyonekb2;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.os.Build;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -48,6 +50,13 @@ public class FileJsonUtils {
         CheckFoldersAndCreate();
         String fullFileName = PATH + fileName;
         return (new File(fullFileName)).exists();
+    }
+
+    public static boolean JsonsExist(String res_name)
+    {
+        CheckFoldersAndCreate();
+        if(FileJsonUtils.FileExists(res_name + ".json")) return true;
+        return false;
     }
 
     public static JsonMapper PrepareMapper() {
@@ -108,7 +117,7 @@ public class FileJsonUtils {
         T object = null;
         Resources resources = context.getResources();
         try {
-            if (FileJsonUtils.FileExists(resName + ".json")) {
+            if (FileJsonUtils.FileExists(resName + ".json") && ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 object = FileJsonUtils.DeserializeFromFile(resName + ".json", typeReference);
             } else if (resources.getIdentifier(resName, "raw", context.getPackageName()) != 0) {
                 InputStream is = resources.openRawResource(resources.getIdentifier(resName, "raw", context.getPackageName()));

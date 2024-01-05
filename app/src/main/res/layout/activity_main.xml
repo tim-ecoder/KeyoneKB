@@ -44,10 +44,16 @@
             android:layout_below="@id/btn_sys_phone_permission"
             android:text="@string/main_btn_power_manager_activated" />
     <Button
-            android:id="@+id/btn_keyboard_reload"
+            android:id="@+id/btn_file_permissions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/btn_power_manager"
+            android:text="@string/main_btn_file_permissions_not_need" />
+    <Button
+            android:id="@+id/btn_keyboard_reload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btn_file_permissions"
             android:text="@string/main_btn_keyboard_reload" />
     <Button
             android:id="@+id/btn_accessibility_reload"
