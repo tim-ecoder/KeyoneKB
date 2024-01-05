@@ -2,7 +2,11 @@ package com.sateda.keyonekb2;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
+import android.graphics.drawable.Icon;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
@@ -200,7 +204,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
             UpdateGestureModeVisualization(false);
             UpdateKeyboardModeVisualization();
-            //LoadShortcuts();
+            LoadShortcuts();
 
         } catch(Throwable ex) {
             Log.e(TAG2, "onCreate Exception: "+ex);
@@ -209,11 +213,38 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     }
 
 
+    //region LoadShortcuts
+
+    private void LoadShortcuts() {
+
+        Context c = KeyoneIME.Instance;
+
+        ShortcutInfo dsQuickSettings = new ShortcutInfo.Builder(c, "shct_id_QuickSettings")
+                .setShortLabel("Show quick settings")
+                .setIcon(Icon.createWithResource(c, R.drawable.ic_rus_shift_all))
+                .setIntents(
+                        new Intent[]{
+                                new Intent(IntentQuickSettings.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        })
+                .setRank(1)
+                .build();
+
+        ShortcutInfo dsNotifications = new ShortcutInfo.Builder(c, "shct_id_Notifications")
+                .setShortLabel("Show notifications")
+                .setIcon(Icon.createWithResource(c, R.drawable.ic_rus_shift_all))
+                .setIntents(
+                        new Intent[]{
+                                new Intent(IntentNotifications.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        })
+                .setRank(1)
+                .build();
+
+        final ShortcutManager shortcutManager = c.getSystemService(ShortcutManager.class);
+        shortcutManager.setDynamicShortcuts(Arrays.asList(dsQuickSettings, dsNotifications));
+    }
 
 
-
-
-
+    //endregion
 
     @Override
     public void onDestroy() {
