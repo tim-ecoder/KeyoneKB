@@ -18,7 +18,7 @@
     "search-field-id" : "com.blackberry.blackberrylauncher:id/search_box_collapsed"
   }, {
     "package-name" : "org.telegram.messenger",
-    "additional-event-type-type-window-content-changed" : false,
+    "additional-event-type-type-window-content-changed" : true,
     "dynamic-search-method" : [ {
       "dynamic-search-method-function" : "FindAccessibilityNodeInfosByText",
       "contains-string" : "Search"

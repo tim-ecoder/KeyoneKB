@@ -1115,10 +1115,12 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
     public void IntentQuickSettings() {
+        Log.d(TAG3, "performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS)");
         performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS);
     }
 
     public void IntentNotifications() {
+        Log.d(TAG3, "performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)");
         performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS);
     }
 

@@ -143,8 +143,9 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     @Override
     public synchronized void onCreate() {
+        super.onCreate();
         try {
-            super.onCreate();
+
             Instance = this;
 
             TITLE_NAV_TEXT = getString(R.string.notification_kb_state_nav_mode);
@@ -276,6 +277,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     @Override
     public View onCreateInputView() {
         Log.d(TAG2, "onCreateInputView");
+        super.onCreateInputView();
         keyboardView.setOnKeyboardActionListener(this);
         return keyboardView;
     }
@@ -330,6 +332,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     @Override
     public void onFinishInput() {
+        Log.d(TAG2, "onFinishInput ");
+        super.onFinishInput();
 
         OnFinishInput.Process(null);
         if (needUpdateVisualInsideSingleEvent)
@@ -346,7 +350,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         if (onScreenSwipePanelAndLanguage.getHeight() != 70 + pref_height_bottom_bar * 5)
             onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
 
-        Log.d(TAG2, "onFinishInput ");
+
     }
 
 
