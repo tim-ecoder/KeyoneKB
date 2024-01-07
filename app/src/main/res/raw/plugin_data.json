@@ -18,7 +18,7 @@
     "search-field-id" : "com.blackberry.blackberrylauncher:id/search_box_collapsed"
   }, {
     "package-name" : "org.telegram.messenger",
-    "additional-event-type-type-window-content-changed" : true,
+    "additional-event-type-type-window-content-changed" : false,
     "dynamic-search-method" : [ {
       "dynamic-search-method-function" : "FindAccessibilityNodeInfosByText",
       "contains-string" : "Search"
@@ -71,8 +71,11 @@
     "search-field-id" : "com.synology.dsmail:id/menu_item_search"
   }, {
     "package-name" : "com.avito.android",
-    "additional-event-type-type-window-content-changed" : true,
-    "search-field-id" : "com.avito.android:id/search_current_query"
+    "additional-event-type-type-window-content-changed" : false,
+    "dynamic-search-method" : [ {
+      "dynamic-search-method-function" : "FindFirstByTextRecursive",
+      "contains-string" : "Найти"
+    } ]
   }, {
     "package-name" : "com.blackberry.calendar",
     "additional-event-type-type-window-content-changed" : true,
@@ -97,9 +100,15 @@
     "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "net.typeblog.shelter:id/main_menu_search"
   } ],
-  "clicker-plugins" : [ {
+  "clicker-plugins" : [
+    {
     "package-name" : "com.google.android.dialer",
     "additional-event-type-type-window-content-changed" : true,
     "search-field-id" : "com.google.android.dialer:id/digits"
-  } ]
+    }, {
+    "package-name" : "com.perm.kate",
+    "additional-event-type-type-window-content-changed" : true,
+    "search-field-id" : "com.perm.kate:id/et_new_message"
+    }
+  ]
 }

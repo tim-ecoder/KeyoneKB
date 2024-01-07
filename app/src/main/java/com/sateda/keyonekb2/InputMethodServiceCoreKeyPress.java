@@ -55,7 +55,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
     List<KeyPressData> KeyDownList1 = new ArrayList<>();
 
-    protected long AnyButtonPressTimeForHoldPlusButtonState = 0;
+    protected long AnyButtonPressOnHoldPlusButtonTime = 0;
 
     public static final String TAG2 = "KeyoneKb2-IME";
 
@@ -152,21 +152,17 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         if (keyProcessingMode == null)
             return false;
 
-        AnyButtonPressTimeForHoldPlusButtonState = keyDownTime;
-
         //Только короткое нажатие - делаем действие сразу FAST_TRACK
         if (keyProcessingMode.IsShortPressOnly()) {
             //AnyHoldPlusButtonSignalTime = eventTime;
 
             KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
+            KeyDownList1.add(keyPressData1);
             ProcessShortPress(keyPressData1);
 
 
-            return true;
-        }
-
-        if(keyProcessingMode.IsShortDoublePressMode()) {
-            //AnyHoldPlusButtonSignalTime = eventTime;
+            //return true;
+        } else if(keyProcessingMode.IsShortDoublePressMode()) {
 
             KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
             if(repeatCount1 == 0)
@@ -183,9 +179,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                 }
                 else ProcessShortPress(keyPressData1);
             }
-            return true;
-        }
-        if(keyProcessingMode.IsLetterShortDoubleLongPressMode()) {
+            //return true;
+        } else if(keyProcessingMode.IsLetterShortDoubleLongPressMode()) {
             if(repeatCount1 == 0) {
 
                 KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
@@ -232,9 +227,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                 }
 
             }
-            return true;
-        }
-        if(keyProcessingMode.IsMetaShortDoubleHoldPlusButtonPressMode()) {
+            //return true;
+        } else if(keyProcessingMode.IsMetaShortDoubleHoldPlusButtonPressMode()) {
             if(repeatCount1 == 0) {
                 KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
                 KeyDownList1.add(keyPressData1);
@@ -252,24 +246,32 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                     ProcessUndoLastShortPress(keyPressData1);
                     ProcessDoublePress(keyPressData1);
                 } else {
-                    keyPressData1.HoldBeginTime = keyDownTime;
+                    LastShortPressKey1 = keyPressData1;
+                    ProcessShortPress(keyPressData1);
                     ProcessHoldBegin(keyPressData1);
                 }
-            }
-            return true;
-        }
-        return true;
-    }
+                //return true;
+            } else { // Count > 0
+                KeyPressData keyPressData1 = FindAtKeyDownList(keyCode, scanCode);
+                if (eventTime - keyDownTime > TIME_SHORT_PRESS) {
 
-    private KeyPressData CreateKeyPressData(int keyCode, int scanCode, long keyDownTime, KeyProcessingMode keyProcessingMode, int meta, KeyEvent event) {
-        KeyPressData keyPressData1 = new KeyPressData();
-        keyPressData1.BaseKeyEvent = event;
-        keyPressData1.KeyDownTime = keyDownTime;
-        keyPressData1.KeyCode = keyCode;
-        keyPressData1.ScanCode = scanCode;
-        keyPressData1.KeyProcessingMode = keyProcessingMode;
-        keyPressData1.MetaBase = meta;
-        return keyPressData1;
+                    if (keyPressData1.HoldBeginTime == 0) {
+                        ProcessUndoLastShortPress(keyPressData1);
+                        keyPressData1.HoldBeginTime = keyDownTime;
+                    } else {
+                        if (keyPressData1.KeyDownTime < AnyButtonPressOnHoldPlusButtonTime
+                                && eventTime > AnyButtonPressOnHoldPlusButtonTime) {
+                            //ProcessUndoLastShortPress(keyPressData1);
+                            keyPressData1.HoldBeginTime = keyDownTime;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        AnyButtonPressOnHoldPlusButtonTime = keyDownTime;
+        return true;
     }
 
     protected boolean ProcessNewStatusModelOnKeyUp(int keyCode, KeyEvent event) {
@@ -280,6 +282,9 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         if(keyProcessingMode == null)
             return false;
         if (keyProcessingMode.IsShortPressOnly()) {
+            KeyPressData keyPressData = FindAtKeyDownList(keyCode, scanCode);
+            keyPressData.KeyUpTime = eventTime;
+            LastShortPressKey1 = keyPressData;
             return true;
         }
         if(keyProcessingMode.IsShortDoublePressMode()) {
@@ -318,20 +323,34 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             }
 
             RemoveFromKeyDownList(keyPressData);
-            keyPressData.KeyUpTime = eventTime;
-            if(eventTime - keyPressData.KeyDownTime <= TIME_SHORT_PRESS
-                && !(AnyButtonPressTimeForHoldPlusButtonState > keyPressData.KeyDownTime)
-                && keyPressData.DoublePressTime == 0) {
-                ProcessKeyUnhold(keyPressData);
-                ProcessShortPress(keyPressData);
-                LastShortPressKey1 = keyPressData;
-            } else if (keyPressData.HoldBeginTime != 0) {
-                ProcessKeyUnhold(keyPressData);
+            ProcessKeyUnhold(keyPressData);
+
+            if (!IsSameKeyDownPress(LastShortPressKey1, keyPressData) && keyPressData.HoldBeginTime == 0) {
+                ProcessUndoLastShortPress(keyPressData);
+            } else if (keyPressData.KeyDownTime < AnyButtonPressOnHoldPlusButtonTime
+                    && eventTime > AnyButtonPressOnHoldPlusButtonTime
+            && keyPressData.HoldBeginTime == 0) {
+                ProcessUndoLastShortPress(keyPressData);
             }
+
+            //if (keyPressData.HoldBeginTime != 0) {
+                //ProcessKeyUnhold(keyPressData);
+            //}
             return true;
         }
 
         return true;
+    }
+
+    private KeyPressData CreateKeyPressData(int keyCode, int scanCode, long keyDownTime, KeyProcessingMode keyProcessingMode, int meta, KeyEvent event) {
+        KeyPressData keyPressData1 = new KeyPressData();
+        keyPressData1.BaseKeyEvent = event;
+        keyPressData1.KeyDownTime = keyDownTime;
+        keyPressData1.KeyCode = keyCode;
+        keyPressData1.ScanCode = scanCode;
+        keyPressData1.KeyProcessingMode = keyProcessingMode;
+        keyPressData1.MetaBase = meta;
+        return keyPressData1;
     }
 
     private void RemoveFromKeyDownList(KeyPressData keyPressData) {
@@ -521,7 +540,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             if(OnHoldOff != null) return false;
 
             return OnShortPress != null
-                    && OnUndoShortPress != null
+                    //&& OnUndoShortPress != null
                     && OnDoublePress != null
                     && OnLongPress != null;
         }
@@ -531,7 +550,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             if(OnLongPress != null) return false;
             return
                        OnShortPress != null
-                    && OnUndoShortPress != null
+                    //&& OnUndoShortPress != null
                     && OnDoublePress != null
                     && OnHoldOn != null
                     && OnHoldOff != null;
@@ -542,7 +561,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             if(OnLongPress != null) return false;
             if(OnHoldOn != null) return false;
             if(OnHoldOff != null) return false;
-            return OnShortPress != null && OnDoublePress != null && OnUndoShortPress != null;
+            return OnShortPress != null && OnDoublePress != null;// && OnUndoShortPress != null;
         }
     }
 

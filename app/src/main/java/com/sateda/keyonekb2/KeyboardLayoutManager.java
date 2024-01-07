@@ -139,6 +139,13 @@ public class KeyboardLayoutManager {
         if(CurrentLanguageListIndex > LangListCount - 1) CurrentLanguageListIndex = 0;
     }
 
+    public synchronized void ChangeLayoutBack() {
+        if(CurrentLanguageListIndex == 0)
+            CurrentLanguageListIndex = LangListCount - 1;
+        else
+            CurrentLanguageListIndex--;
+    }
+
     public synchronized KeyboardLayout GetCurrentKeyboardLayout(){
         return KeyboardLayoutList.get(CurrentLanguageListIndex);
     }

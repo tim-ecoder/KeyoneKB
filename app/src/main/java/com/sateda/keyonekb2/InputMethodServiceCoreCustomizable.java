@@ -10,6 +10,7 @@ import android.telephony.TelephonyManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodInfo;
@@ -26,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
+import static com.sateda.keyonekb2.KeyoneKb2AccessibilityService.TAG3;
 
 public abstract class InputMethodServiceCoreCustomizable extends InputMethodServiceCoreGesture {
     protected boolean pref_show_toast = false;
@@ -128,6 +131,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             public ArrayList<Action> OnHoldOff;
             @JsonProperty(index = 70)
             public ArrayList<Action> OnTriplePress;
+            @JsonProperty(index = 80)
+            public ArrayList<Action> OnUndoShortPress;
         }
 
         public static class Action {
@@ -205,7 +210,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 keyAction.KeyCodeArray = Arrays.stream(kgp.KeyCodeList.toArray(new Integer[0])).mapToInt(Integer::intValue).toArray();
 
                 keyAction.OnShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress);
-                keyAction.OnUndoShortPress = this::DoNothingAndMakeUndoAtSubsequentKeyAction;
+                keyAction.OnUndoShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress);
                 keyAction.OnDoublePress = ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress);
                 keyAction.OnLongPress = ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress);
                 keyAction.OnHoldOn = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn);
@@ -488,7 +493,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionDisableFirstSymbolAltMode", InitializeMethod3((Object o) -> ActionDisableFirstSymbolAltMode(), Object.class));
         //2.7
         Methods.put("ActionStartVoiceListening", InitializeMethod3((Object o) -> ActionStartVoiceListening(), Object.class));
+        Methods.put("ActionChangeBackKeyboardLayout", InitializeMethod3((Object o) -> ActionChangeBackKeyboardLayout(), Object.class));
+        Methods.put("ActionWait300", InitializeMethod3((Object o) -> ActionWait300(), Object.class));
 
+        //
     }
 
     //endregion
@@ -789,6 +797,14 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             metaFixedModeFirstSymbolAlt = false;
             //TODO: NEW! Разобраться с обращениями к этому ресурсоемкому методу!
             DetermineForceFirstUpper(getCurrentInputEditorInfo());
+            return true;
+        }
+        return false;
+    }
+
+    public boolean ActionTryDisableAltModeUponSpace() {
+        if(metaFixedModeFirstSymbolAlt && pref_alt_space) {
+            metaFixedModeFirstSymbolAlt = false;
             return true;
         }
         return false;
@@ -1168,6 +1184,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return ActionChangeKeyboardLayout();
     }
 
+
+
     public boolean ActionChangeSwipePanelVisibility() {
         if (keyboardView.isShown()) {
             pref_show_default_onscreen_keyboard = false;
@@ -1185,6 +1203,14 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
+    public boolean ActionWait300() {
+        try {
+            Thread.sleep(300);
+        } catch (Throwable ignore) {
+        }
+        return true;
+    }
+
 
 
     public boolean ActionChangeKeyboardLayout() {
@@ -1192,13 +1218,12 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
-    public boolean ActionTryDisableAltModeUponSpace() {
-        if(metaFixedModeFirstSymbolAlt && pref_alt_space) {
-            metaFixedModeFirstSymbolAlt = false;
-            return true;
-        }
-        return false;
+    public boolean ActionChangeBackKeyboardLayout() {
+        ChangeLanguageBack();
+        return true;
     }
+
+
 
     //endregion
 
@@ -1537,6 +1562,21 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public boolean ActionStartVoiceListening() {
         if(!IsInputMode())
             return false;
+        if(KeyoneKb2AccessibilityService.Instance != null && KeyoneKb2AccessibilityService.Instance.CurFocus != null) {
+            int _wait = 0;
+            boolean answer = KeyoneKb2AccessibilityService.Instance.CurFocus.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            //Для случая уезжающего окна поиска как в Яндекс.Навигаторе плагин хватает поле, которое уже не существует
+            if (!answer) {
+                Log.e(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
+            }
+
+            if (_wait > 0) {
+                try {
+                    Thread.sleep(_wait);
+                } catch (Throwable ignore) {
+                }
+            }
+        }
         if(
                mVoiceRecognitionTrigger != null
            && mVoiceRecognitionTrigger.isInstalled()
@@ -1575,6 +1615,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected abstract void UpdateKeyboardModeVisualization();
 
     protected abstract void ChangeLanguage();
+    protected abstract void ChangeLanguageBack();
 
     protected abstract void UpdateKeyboardVisibilityOnPrefChange();
 

@@ -593,6 +593,12 @@
           "action-method-name": "ActionDisableHoldAltMode",
           "need-update-visual-state": true
         }
+      ],
+      "on-undo-short-press" : [
+        {
+          "action-method-name": "ActionDisableFirstSymbolAltMode",
+          "need-update-visual-state": true
+        }
       ]
     },
     {
@@ -729,6 +735,12 @@
           "action-method-name": "ActionDisableHoldShiftMode",
           "need-update-visual-state": true
         }
+      ],
+      "on-undo-short-press" : [
+        {
+          "action-method-name": "ActionTryDisableFirstLetterShiftMode",
+          "need-update-visual-state": true
+        }
       ]
     },
     {
@@ -760,12 +772,6 @@
           "action-method-name": "ActionSendCharToInput",
           "stop-processing-at-success-result": true,
           "custom-char": "0"
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsCtrlPressed"
-          ],
-          "action-method-name": "ActionStartVoiceListening",
-          "stop-processing-at-success-result": true
         }
       ],
       "on-double-press": [
@@ -774,10 +780,6 @@
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
-        },
-        {
-          "action-method-name": "ActionChangeKeyboardLayout",
-          "need-update-visual-state": true
         },
         {
           "action-method-name": "ActionTryChangeGestureModeStateAtInputMode",
@@ -873,6 +875,19 @@
           "stop-processing-at-success-result": true,
           "custom-char": "0"
         }
+      ],
+      "on-undo-short-press" : [
+        {
+          "action-method-name": "ActionChangeBackKeyboardLayout",
+          "need-update-visual-state": true
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsAltMode"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
       ]
     },
     {
@@ -903,6 +918,12 @@
           "action-method-name": "ActionKeyDown",
           "stop-processing-at-success-result": true,
           "custom-key-code": "KEYCODE_MENU"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsCtrlPressed"
+          ],
+          "action-method-name": "ActionStartVoiceListening",
+          "stop-processing-at-success-result": true
         }
       ],
       "on-double-press": [
@@ -953,6 +974,12 @@
           ],
           "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true
+        }
+      ],
+      "on-undo-short-press" : [
+        {
+          "action-method-name": "ActionTryDisableSymPad",
+          "need-update-visual-state": true
         }
       ]
     },

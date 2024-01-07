@@ -10,6 +10,7 @@ import android.graphics.drawable.Icon;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
+import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
@@ -372,7 +373,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         int navigationKeyCode;
         InputConnection inputConnection = getCurrentInputConnection();
         if (IsNavMode() && IsNavKeyCode(keyCode)) {
-            AnyButtonPressTimeForHoldPlusButtonState = event.getEventTime();
+            AnyButtonPressOnHoldPlusButtonTime = event.getEventTime();
             navigationKeyCode = getNavigationCode(event.getKeyCode());
 
             Log.d(TAG2, "navigationKeyCode " + navigationKeyCode);
@@ -838,6 +839,15 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         }
     }
 
+    @Override
+    protected void ChangeLanguageBack() {
+        keyboardLayoutManager.ChangeLayoutBack();
+        if(pref_show_toast) {
+            Toast toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+
     protected void UpdateKeyboardVisibilityOnPrefChange() {
         if (pref_show_default_onscreen_keyboard) {
             UpdateKeyboardModeVisualization(true);
@@ -1135,6 +1145,9 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     @Override
     protected boolean ProcessOnCursorMovement(EditorInfo editorInfo)
     {
+        //SystemClock.uptimeMillis();
+        //System.currentTimeMillis();
+        AnyButtonPressOnHoldPlusButtonTime = SystemClock.uptimeMillis();
         return DetermineFirstBigCharStateAndUpdateVisualization1(editorInfo);
     }
 

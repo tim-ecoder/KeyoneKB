@@ -586,6 +586,12 @@
           "action-method-name": "ActionDisableHoldAltMode",
           "need-update-visual-state": true
         }
+      ],
+      "on-undo-short-press" : [
+        {
+          "action-method-name": "ActionDisableFirstSymbolAltMode",
+          "need-update-visual-state": true
+        }
       ]
     },
     {
@@ -724,6 +730,12 @@
       "on-hold-off": [
         {
           "action-method-name": "ActionDisableHoldShiftMode",
+          "need-update-visual-state": true
+        }
+      ],
+      "on-undo-short-press" : [
+        {
+          "action-method-name": "ActionTryDisableFirstLetterShiftMode",
           "need-update-visual-state": true
         }
       ]
@@ -910,10 +922,6 @@
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryVibrate"
-        },
-        {
-          "action-method-name": "ActionChangeKeyboardLayout",
-          "need-update-visual-state": true
         }, {
           "action-method-name": "ActionTryEnableNavModeAndKeyboard",
           "need-update-visual-state": true,
@@ -952,6 +960,14 @@
           ],
           "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true
+        }
+      ],
+      "on-undo-short-press" : [
+        {
+          "action-method-name": "ActionChangeBackKeyboardLayout"
+        }, {
+          "action-method-name": "ActionTryDisableSymPad",
+          "need-update-visual-state": true
         }
       ]
     },

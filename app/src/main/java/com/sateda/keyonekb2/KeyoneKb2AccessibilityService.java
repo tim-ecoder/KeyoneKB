@@ -4,11 +4,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.accessibilityservice.GestureDescription;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ShortcutInfo;
-import android.content.pm.ShortcutManager;
 import android.graphics.*;
-import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
@@ -22,10 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
@@ -184,6 +177,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "onInterrupt()");
     }
 
+    public AccessibilityNodeInfo CurFocus;
+
     @Override
     public synchronized void onAccessibilityEvent(AccessibilityEvent event) {
         //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType() +" "+event.getPackageName());
@@ -207,6 +202,18 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 Log.d(TAG3, "------------------ NEW_EVENT ------------------");
                 return;
             }
+            if(event.getPackageName() != null && !event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
+                return;
+            if(KeyoneIME.Instance.IsInputMode()) {
+                CurFocus = GetFocusedNode(event.getSource());
+                if (CurFocus == null) {
+                    CurFocus = GetFocusedNode(getRootInActiveWindow());
+                }
+            } else {
+                CurFocus = null;
+            }
+
+
             if((event.getEventType() & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
 
                 if(event.getContentChangeTypes() == (AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT | AccessibilityEvent.CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION)) {
@@ -233,8 +240,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             //}
 
 
-            if(event.getPackageName() != null && !event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
-                return;
+
 
             if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
                 Log.v(TAG3, "onAccessibilityEvent() eventType: TYPE_WINDOW_STATE_CHANGED");
