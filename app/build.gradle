@@ -27,7 +27,7 @@ android {
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
         versionCode 2607
-        versionName "v2.6-build0.7-sr4-ckp11v22"
+        versionName "v2.6-build0.7-sr4-ckp11v22-gm20"
         //TODO: ----------------------------
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

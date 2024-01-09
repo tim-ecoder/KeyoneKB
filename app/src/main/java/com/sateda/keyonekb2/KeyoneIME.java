@@ -282,6 +282,23 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         return keyboardView;
     }
 
+
+    @Override
+    public void onStartInputView(EditorInfo info, boolean restarting) {
+        Log.d(TAG2, "onStartInputView");
+        super.onStartInputView(info, restarting);
+        IsVisualKeyboardOpen = true;
+    }
+
+    @Override
+    public void onFinishInputView(boolean finishingInput) {
+        Log.d(TAG2, "onFinishInputView");
+        super.onFinishInputView(finishingInput);
+        IsVisualKeyboardOpen = false;
+    }
+
+
+
     @Override
     public synchronized void onStartInput(EditorInfo editorInfo, boolean restarting) {
         super.onStartInput(editorInfo, restarting);

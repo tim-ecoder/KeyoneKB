@@ -81,6 +81,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     float Ktime = 1.25f;
 
     protected abstract boolean IsGestureModeAtViewEnabled();
+    public boolean IsVisualKeyboardOpen = false;
 
     protected boolean ProcessGestureAtMotionEvent(MotionEvent motionEvent) {
         //LogKeyboardTest("GESTURE ACTION: "+motionEvent);
@@ -91,6 +92,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         if(IsInputMode()) {
             if(!KeyboardGesturesAtInputModeEnabled)
                 return true;
+            if(_modeGestureScrollAtInputMode)
+                return false;
         } else { //!IsInputMode()
 
             if (!IsGestureModeAtViewEnabled())
@@ -208,7 +211,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             lastGestureX = motionEventX;
             lastGestureY = motionEventY;
             lastEventTime = eventTime;
-            ResetScrollGestureStateToInitial();
             return true;
         }
 
@@ -262,8 +264,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             Log.d(TAG2, "lastX: "+lastGestureX+" lastY: "+lastGestureY);
         } else if(CheckMotionAction(motionEvent, ACTION_OR_POINTER_UP)) {
             ResetGestureMovementCoordsToInitial();
-            //Это тут точно не нужно иначе прокрутка перестенет доплывать/доезжать после окончания действия
-            //ResetScrollGestureStateToInitial();
             return true;
         }
         return false;
@@ -359,189 +359,11 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
 
-    //region IMITATE SCREEN GESTURE
-
-    Boolean directionTop;
-
-    private void ImitateScreenGesture(boolean isToTop, float lastGestureY, float currentGestureY, long time) {
-        //Log.d(TAG2, "K="+K);
-        Ktime = 1.3f;
-        //Log.d(TAG2, "Ktime="+Ktime);
-
-        int coordFrom = Math.min(Math.round((lastGestureY + 125) * K), 1400);
-        int coordTo = Math.min(Math.round((currentGestureY + 125) * K), 1400);
-        long time2 = Math.round(time*Ktime);
-        long startTime = 0L;
-
-        //Log.d(TAG2, "coordFrom="+coordFrom);
-        //Log.d(TAG2, "coordTo="+coordTo);
-        //Log.d(TAG2, "time="+time2);
-
-
-        if (isToTop) {
-            Log.d(TAG2, "GESTURE_SCROLL_UP");
-        } else {
-            Log.d(TAG2, "GESTURE_SCROLL_DOWN");
-        }
-
-        if(directionTop != null && directionTop != isToTop) {
-            Log.d(TAG2, "GESTURE_CHANGE_DIRECTION");
-            MovementsInQueue.clear();
-            TimesInQueue.clear();
-            //ResetScrollGestureStateToInitial();
-        }
-
-        directionTop = isToTop;
-
-        if(lastStroke == null) {
-            ResetScrollGestureStateToInitial();
-
-            Path path = new Path();
-            path.moveTo(middleXValue, coordFrom);
-            path.lineTo(middleXValue, coordTo);
-            GestureDescription.Builder builder = new GestureDescription.Builder();
-            GestureDescription.StrokeDescription strokeDescription = new GestureDescription.StrokeDescription(path, startTime, 25, true);
-            lastStroke = strokeDescription;
-            nextFrom = coordTo;
-            builder = builder.addStroke(strokeDescription);
-            GestureDescription gesture = builder.build();
-            Log.d(TAG2, "FIRING_FIRST_GESTURE_IN_RANGE");
-            KeyoneKb2AccessibilityService.Instance.dispatchGesture(
-                    gesture,
-                    new GestureCompletedCallback(), null
-            );
-        } else {
-            //Log.d(TAG2, "ADDING_GESTURE_TO_RANGE");
-            MovementsInQueue.add(coordTo - coordFrom);
-            TimesInQueue.add(time2);
-        }
-    }
-
-    private void ResetScrollGestureStateToInitial() {
-        Log.d(TAG2, "RESET_SCROLL_GESTURE");
-        lastStroke = null;
-        nextFrom = 0;
-        MovementsInQueue.clear();
-        TimesInQueue.clear();
-        directionTop = null;
-    }
-
-    ArrayList<Integer> MovementsInQueue = new ArrayList<>();
-    ArrayList<Long> TimesInQueue = new ArrayList<>();
-    GestureDescription.StrokeDescription lastStroke;
-
-    int nextFrom = 0;
-
-    class GestureCompletedCallback extends AccessibilityService.GestureResultCallback {
-        @Override
-        public void onCompleted(GestureDescription gestureDescription) {
-            super.onCompleted(gestureDescription);
-
-            if(MovementsInQueue.size() > 0) {
-                Path path = new Path();
-                path.moveTo(middleXValue, nextFrom);
-                Log.d(TAG2, "FROM "+nextFrom);
-                int lineTo = nextFrom;
-                long time2 = 0;
-                for(int i = 0; i < MovementsInQueue.size(); i++) {
-                    lineTo += MovementsInQueue.get(i);
-                    //Log.d(TAG2, "ADD: "+MovementsInQueue.get(i));
-                    time2 += TimesInQueue.get(i);
-                }
-                MovementsInQueue.clear();
-                TimesInQueue.clear();
-                path.lineTo(middleXValue, lineTo);
-                Log.d(TAG2, "TO "+lineTo);
-                nextFrom = lineTo;
-                Log.d(TAG2, "TIME "+time2);
-                GestureDescription.StrokeDescription stroke = lastStroke.continueStroke(path, 0, time2, true);
-                GestureDescription.Builder builder = new GestureDescription.Builder();
-                builder = builder.addStroke(stroke);
-                GestureDescription  gesture = builder.build();
-                lastStroke = stroke;
-                Log.d(TAG2, "FIRING_GESTURE_FROM_RANGE");
-                KeyoneKb2AccessibilityService.Instance.dispatchGesture(
-                        gesture,
-                        new GestureCompletedCallback(),
-                        null);
-            } else {
-                Log.d(TAG2, "STOP_GESTURE");
-                /*
-                if(directionTop == null)
-                    return;
-                Path path = new Path();
-                path.moveTo(middleXValue, nextFrom);
-                if(directionTop)
-                    path.lineTo(middleXValue, nextFrom+50);
-                else
-                    path.lineTo(middleXValue, nextFrom-50);
-
-                GestureDescription.StrokeDescription stroke = lastStroke.continueStroke(path, 0, 250, false);
-                GestureDescription.Builder builder = new GestureDescription.Builder();
-                builder = builder.addStroke(stroke);
-                GestureDescription  gesture = builder.build();
-                KeyoneKb2AccessibilityService.Instance.dispatchGesture(
-                        gesture,
-                        null,
-                        null);
-                 */
-                ResetScrollGestureStateToInitial();
-            }
-        }
-
-        @Override
-        public void onCancelled(GestureDescription gestureDescription) {
-            super.onCancelled(gestureDescription);
-            Log.d(TAG2, "CANCELLED_GESTURE");
-            ResetScrollGestureStateToInitial();
-        }
-    }
-
-    //endregion
-
-
     //region CURSOR MOVE
-
-    public AccessibilityNodeInfo ActiveNode;
-
-    private AccessibilityNodeInfo FindScrollableRecurs(AccessibilityNodeInfo info) {
-        if(info == null)
-            return null;
-        for (int j = 0; j < info.getActionList().size(); j++) {
-            if(info.getActionList().get(j) == AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD)
-                return info;
-            if(info.getActionList().get(j) == AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD)
-                return info;
-            if(info.getActionList().get(j) == AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN)
-                return info;
-            if(info.getActionList().get(j) == AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP)
-                return info;
-        }
-        for (int i = 0; i < info.getChildCount(); i++)  {
-            AccessibilityNodeInfo res = FindScrollableRecurs(info.getChild(i));
-            if(res != null)
-                return res;
-        }
-        return null;
-    }
-
-
-
 
     private boolean MoveCursorDownSafe(InputConnection inputConnection, float lastGestureY, float currentGestureY, long time) {
         if(IsAnyGestureAtViewMode()) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_DOWN, inputConnection, 0);
-            return true;
-        }
-        if(IsInputMode() && _modeGestureScrollAtInputMode) {
-            //if(ActiveNode != null) {
-                ImitateScreenGesture(true, lastGestureY, currentGestureY, time);
-            //    AccessibilityNodeInfo info = FindScrollableRecurs(ActiveNode);
-                //if(info != null)
-                //    info.addAction(AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD);
-
-                    //info.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
-            //}
             return true;
         }
         if(inputConnection.getSelectedText(0) == null) {
@@ -567,16 +389,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     private boolean MoveCursorUpSafe(InputConnection inputConnection, float lastGestureY, float currentGestureY, long time) {
         if(IsAnyGestureAtViewMode()) {
             keyDownUpMeta(KeyEvent.KEYCODE_DPAD_UP, inputConnection, 0);
-            return true;
-        }
-        if(IsInputMode() && _modeGestureScrollAtInputMode) {
-            //if(ActiveNode != null) {
-                //AccessibilityNodeInfo info = FindScrollableRecurs(ActiveNode);
-                ImitateScreenGesture(false, lastGestureY, currentGestureY, time);
-                //if(info != null)
-                //    info.addAction(AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD);
-                    //info.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
-            //}
             return true;
         }
         if(inputConnection.getSelectedText(0) == null) {
@@ -732,7 +544,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     public boolean ActionTryDisableGestureInputScrollMode() {
         if(_modeGestureScrollAtInputMode) {
             _modeGestureScrollAtInputMode = false;
-            Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _modeGestureScrollAtInputMode);
+            Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET=false");
             ResetGestureMovementCoordsToInitial();
             return true;
         }
@@ -749,6 +561,12 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     public boolean ActionDisableAndResetGesturesAtInputMode() {
+        if(_modeGestureScrollAtInputMode) {
+            Log.d(TAG2, "_modeGestureScrollAtInputMode=false");
+            _modeGestureScrollAtInputMode = false;
+            return true;
+        }
+
         if (mode_gesture_cursor_at_input_mode && IsInputMode()) {
             mode_gesture_cursor_at_input_mode = false;
             mode_gesture_cursor_plus_up_down = false;
@@ -793,9 +611,23 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     public boolean ActionTryChangeGestureInputScrollMode() {
         if(!IsInputMode())
             return false;
+        if(!KeyboardGesturesAtInputModeEnabled)
+            return false;
         _modeGestureScrollAtInputMode = !_modeGestureScrollAtInputMode;
         Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET="+ _modeGestureScrollAtInputMode);
         ResetGestureMovementCoordsToInitial();
+        return true;
+    }
+
+    public boolean ActionTryEnableGestureInputScrollMode() {
+        if(!IsInputMode())
+            return false;
+        if(!KeyboardGesturesAtInputModeEnabled)
+            return false;
+        if(_modeGestureAtViewMode == GestureAtViewMode.Disabled)
+            return false;
+        _modeGestureScrollAtInputMode = true;
+        Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET=true");
         return true;
     }
 

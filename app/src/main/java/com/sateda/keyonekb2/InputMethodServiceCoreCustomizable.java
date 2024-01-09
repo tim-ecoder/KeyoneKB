@@ -497,7 +497,9 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionWait300", InitializeMethod3((Object o) -> ActionWait300(), Object.class));
         Methods.put("ActionDeleteFwdWord", InitializeMethod3((Object o) -> ActionDeleteFwdWord(), Object.class));
         Methods.put("ActionDeleteUntilFwdCrLf", InitializeMethod3((Object o) -> ActionDeleteUntilFwdCrLf(), Object.class));
-        //ActionDeleteUntilFwdCrLf
+        Methods.put("ActionTryEnableGestureInputScrollMode", InitializeMethod3((Object o) -> ActionTryEnableGestureInputScrollMode(), Object.class));
+
+        //ActionEnableGestureInputScrollMode
     }
 
     //endregion
