@@ -495,8 +495,9 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionStartVoiceListening", InitializeMethod3((Object o) -> ActionStartVoiceListening(), Object.class));
         Methods.put("ActionChangeBackKeyboardLayout", InitializeMethod3((Object o) -> ActionChangeBackKeyboardLayout(), Object.class));
         Methods.put("ActionWait300", InitializeMethod3((Object o) -> ActionWait300(), Object.class));
-
-        //
+        Methods.put("ActionDeleteFwdWord", InitializeMethod3((Object o) -> ActionDeleteFwdWord(), Object.class));
+        Methods.put("ActionDeleteUntilFwdCrLf", InitializeMethod3((Object o) -> ActionDeleteUntilFwdCrLf(), Object.class));
+        //ActionDeleteUntilFwdCrLf
     }
 
     //endregion
@@ -1051,6 +1052,20 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
+    public boolean ActionDeleteUntilFwdCrLf() {
+        InputConnection inputConnection = getCurrentInputConnection();
+        CharSequence c = inputConnection.getTextAfterCursor(Byte.MAX_VALUE, 0);
+        int dist = findFwdEnterDistance(c);
+        if (dist == 0 && c.length() > 0) {
+            //Это последний абзац в тексте
+            dist = c.length();
+        }
+        if (dist > 0) {
+            inputConnection.deleteSurroundingText(0, dist);
+        }
+        return true;
+    }
+
     public boolean ActionDeletePrevWord() {
         InputConnection inputConnection = getCurrentInputConnection();
         CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
@@ -1065,6 +1080,20 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
         if (dist > 0) {
             inputConnection.deleteSurroundingText(dist, 0);
+        }
+        return true;
+    }
+
+    public boolean ActionDeleteFwdWord() {
+        InputConnection inputConnection = getCurrentInputConnection();
+        CharSequence c = inputConnection.getTextAfterCursor(Byte.MAX_VALUE, 0);
+        int dist1 = findFwdEnterDistance(c);
+        int dist2 = findFwdCharDistance(c, ' ');
+        int dist3 = findFwdCharDistance(c, '\t');
+        int dist = FindMinGreater0(dist1, dist2, dist3);
+
+        if (dist > 0) {
+            inputConnection.deleteSurroundingText(0, dist);
         }
         return true;
     }
@@ -1722,12 +1751,26 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if(c == null || c.length() == 0) {
             return 0;
         }
-        int len = c.length();
-        for(int i = len; i > 0; i--) {
-            if(c.charAt(i - 1) == '\r' || c.charAt(i - 1) == '\n')
-                return len - i + 1;
+        int r_dist = findPrevCharDistance(c, '\r');
+        int n_dist = findPrevCharDistance(c, '\n');
+        if(r_dist == 0 && n_dist == 0) return 0;
+        if(r_dist > 0 && n_dist == 0) return r_dist;
+        if(r_dist == 0 && n_dist > 0) return n_dist;
+        if(r_dist > n_dist) return n_dist;
+        return r_dist;
+    }
+
+    int findFwdEnterDistance(CharSequence c) {
+        if(c == null || c.length() == 0) {
+            return 0;
         }
-        return 0;
+        int r_dist = findFwdCharDistance(c, '\r');
+        int n_dist = findFwdCharDistance(c, '\n');
+        if(r_dist == 0 && n_dist == 0) return c.length();
+        if(r_dist > 0 && n_dist == 0) return r_dist;
+        if(r_dist == 0 && n_dist > 0) return n_dist;
+        if(r_dist > n_dist) return n_dist;
+        return r_dist;
     }
 
     int findPrevCharDistance(CharSequence c, char c1) {
@@ -1740,6 +1783,18 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 return len - i + 1;
         }
         return 0;
+    }
+
+    int findFwdCharDistance(CharSequence c, char c1) {
+        if(c == null || c.length() == 0) {
+            return 0;
+        }
+        int len = c.length();
+        for(int i = 0; i < len ; i++) {
+            if(c.charAt(i) == c1)
+                return i + 1; //Включая сам символ
+        }
+        return len;
     }
 
     private void DeleteLastSymbol() {

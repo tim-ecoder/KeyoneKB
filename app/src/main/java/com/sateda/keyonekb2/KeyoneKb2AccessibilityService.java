@@ -202,23 +202,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 Log.d(TAG3, "------------------ NEW_EVENT ------------------");
                 return;
             }
-            if(event.getPackageName() != null && !event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
-                return;
-            if(KeyoneIME.Instance.IsInputMode()) {
-                CurFocus = GetFocusedNode(event.getSource());
-                if (CurFocus == null) {
-                    CurFocus = GetFocusedNode(getRootInActiveWindow());
-                }
-            } else {
-                CurFocus = null;
-            }
+
 
 
             if((event.getEventType() & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
 
                 if(event.getContentChangeTypes() == (AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT | AccessibilityEvent.CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION)) {
                     //Этот хак нужен потому что Blackberry.Dialer жестко спамит эвентами (вроде как никому эти эвенты больше не нужны)
-                    Log.d(TAG3, "IGNORING TYPE_WINDOW_CONTENT_CHANGED TYPES: " + event.getContentChangeTypes());
+                    //Log.d(TAG3, "IGNORING TYPE_WINDOW_CONTENT_CHANGED TYPES: " + event.getContentChangeTypes());
                     return;
                 }
                 //Этот хак нужен чтобы не было никакой работы плагинов, когда пользователь набирает большие тексты, которые генерят как раз эти события
@@ -239,7 +230,22 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             //    return;
             //}
 
-
+            if(event.getPackageName() != null && !event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
+                return;
+            if(KeyoneIME.Instance.IsInputMode()) {
+                if(CurFocus == null) {
+                    CurFocus = GetFocusedNode(event.getSource());
+                    if (CurFocus == null) {
+                        CurFocus = GetFocusedNode(getRootInActiveWindow());
+                        Log.v(TAG3, "CurFocus: GetFocusedNode(getRootInActiveWindow())");
+                    } else {
+                        Log.v(TAG3, "CurFocus: GetFocusedNode(event.getSource())");
+                    }
+                }
+            } else {
+                Log.v(TAG3, "CurFocus: CurFocus = null");
+                CurFocus = null;
+            }
 
 
             if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)

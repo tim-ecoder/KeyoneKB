@@ -481,9 +481,23 @@
           "need-update-gesture-visual-state": true
         }, {
           "meta-mode-method-names": [
+            "MetaIsShiftPressed",
+            "MetaIsAltPressed"
+          ],
+          "action-method-name": "ActionDeleteUntilFwdCrLf",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
             "MetaIsAltPressed"
           ],
           "action-method-name": "ActionDeleteUntilPrevCrLf",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed",
+            "MetaIsKey0Pressed"
+          ],
+          "action-method-name": "ActionDeleteFwdWord",
           "stop-processing-at-success-result": true
         }, {
           "meta-mode-method-names": [
@@ -1065,8 +1079,6 @@
     ],
     "on-gesture-triple-click" : [
       {
-        "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode"
-      }, {
         "action-method-name": "ActionEnableGestureAtInputMode",
         "need-update-gesture-visual-state": true
       }
