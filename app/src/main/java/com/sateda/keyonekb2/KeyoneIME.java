@@ -303,7 +303,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     public synchronized void onStartInput(EditorInfo editorInfo, boolean restarting) {
         super.onStartInput(editorInfo, restarting);
         //TODO: Минорно. Если надо знать какие флаги их надо расшифровывать
-        Log.d(TAG2, "onStartInput package: " + editorInfo.packageName
+        Log.d(TAG2, "onStartInput restarting="+restarting+
+                " package: " + editorInfo.packageName
                 + " editorInfo.inputType: "+Integer.toBinaryString(editorInfo.inputType)
                 +" editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions));
         isPackageChangedInsideSingleEvent = false;

@@ -541,16 +541,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     }
 
-    public boolean ActionTryDisableGestureInputScrollMode() {
-        if(_modeGestureScrollAtInputMode) {
-            _modeGestureScrollAtInputMode = false;
-            Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET=false");
-            ResetGestureMovementCoordsToInitial();
-            return true;
-        }
-        return false;
-    }
-
     public boolean ActionEnableGestureAtInputModeAndUpDownMode() {
         if (IsInputMode()) {
             mode_gesture_cursor_at_input_mode = true;
@@ -631,6 +621,15 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         return true;
     }
 
+    public boolean ActionTryDisableGestureInputScrollMode() {
+        if(_modeGestureScrollAtInputMode) {
+            _modeGestureScrollAtInputMode = false;
+            Log.d(TAG2, "GESTURE_INPUT_SCROLL_MODE SET=false");
+            ResetGestureMovementCoordsToInitial();
+            return true;
+        }
+        return false;
+    }
 
     public boolean ActionChangeGestureModeEnableState() {
         if(_modeGestureAtViewModeDisabledPermanently) {

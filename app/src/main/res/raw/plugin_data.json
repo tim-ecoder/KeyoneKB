@@ -47,7 +47,7 @@
   }, {
     "package-name" : "ru.yandex.yandexnavi",
     "additional-event-type-type-window-content-changed" : true,
-    "search-field-id" : "ru.yandex.yandexnavi:id/edittext_searchbar"
+    "search-field-id" : "ru.yandex.yandexnavi:id/search_line_edit_text"
   }, {
     "package-name" : "com.blackberry.notes",
     "search-field-id" : "com.blackberry.notes:id/menu_search"

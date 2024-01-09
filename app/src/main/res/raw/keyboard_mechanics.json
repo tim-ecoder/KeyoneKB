@@ -15,8 +15,7 @@
     }, {
       "action-method-name": "ActionTryDisableCapslockShiftMode"
     }, {
-      "action-method-name": "ActionTryEnableGestureInputScrollMode",
-      "need-update-gesture-visual-state": true
+      "action-method-name": "ActionTryEnableGestureInputScrollMode"
     }, {
       "action-method-name": "ActionDisableAndResetGestureMode",
       "need-update-gesture-visual-state": true
@@ -115,6 +114,11 @@
       ],
       "action-method-name": "ActionDisableFirstSymbolAltMode",
       "stop-processing-at-success-result": false
+    }, {
+      "meta-mode-method-names": [
+        "InputIsText"
+      ],
+      "action-method-name": "ActionTryEnableGestureInputScrollMode"
     }, {
       "meta-mode-method-names": [
         "InputIsText"
