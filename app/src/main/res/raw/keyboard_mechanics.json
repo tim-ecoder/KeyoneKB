@@ -640,6 +640,12 @@
           ],
           "action-method-name": "ActionChangeSwipePanelVisibility",
           "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsSymPressed"
+          ],
+          "action-method-name": "ActionStartVoiceListening",
+          "stop-processing-at-success-result": true
         }
       ],
       "on-double-press": [
@@ -968,6 +974,9 @@
           "action-method-name": "ActionTryVibrate"
         },
         {
+          "action-method-name": "ActionEnableHoldSymMode"
+        },
+        {
           "action-method-name": "ActionSetNavModeHoldOnState",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
@@ -985,6 +994,9 @@
           "action-method-name": "ActionSetNavModeHoldOffState",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
+        },
+        {
+          "action-method-name": "ActionDisableHoldSymMode"
         },
         {
           "meta-mode-method-names": [

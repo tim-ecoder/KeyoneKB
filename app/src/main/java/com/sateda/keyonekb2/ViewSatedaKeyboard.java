@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -360,9 +361,32 @@ public class ViewSatedaKeyboard extends KeyboardView {
     }
 
     @Override
-    public void onDraw(Canvas canvas) {
+    public void onMeasure(int widthMeasureSpec,
+                          int heightMeasureSpec) {
+        Log.d(TAG2, "onMeasure()");
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
 
+    @Override
+    public void onSizeChanged (int w,
+                               int h,
+                               int oldw,
+                               int oldh) {
+        Log.d(TAG2, "onSizeChanged()");
+        super.onSizeChanged(w,h,oldw, oldh);
+    }
+
+    @Override
+    public void onDetachedFromWindow () {
+        Log.d(TAG2, "onDetachedFromWindow()");
+        super.onDetachedFromWindow();
+    }
+
+    @Override
+    public void onDraw(Canvas canvas) {
+        Log.d(TAG2, "onDraw(Canvas canvas)");
         super.onDraw(canvas);
+        mService.LastOnDraw = SystemClock.uptimeMillis();
 
         float startDrawLine, finishDrawLine;
         int height = getKeyboard().getHeight();

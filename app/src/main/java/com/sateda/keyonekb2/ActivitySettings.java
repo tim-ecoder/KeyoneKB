@@ -49,90 +49,97 @@ public class ActivitySettings extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         layout = (RelativeLayout) findViewById(R.id.activity_settings);
+        try {
 
-        ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
-        Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_keyboard_layout);
-        int prevId = 0;
-        int enableCount = 0;
-        deviceFullMODEL = getDeviceFullMODEL();
-        for (KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayouts) {
+            ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
 
-            boolean isDevice = IsCurrentDevice(deviceFullMODEL, keyboardLayoutOptions);
-            if(!isDevice)
-                continue;
+            Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_keyboard_layout);
+            int prevId = 0;
+            int enableCount = 0;
+            deviceFullMODEL = getDeviceFullMODEL();
+            for (KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayouts) {
 
-            Switch currentKeyboardLayoutSwitch;
-            //Первый язык будет по умолчанию всегда активирован
-            //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки
-            if(prevId == 0) {
-                currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
-                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultKeyboardLayoutSwitch.getLayoutParams();
-                RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
-                currentKeyboardLayoutSwitch.setLayoutParams(llp2);
-                prevId = currentKeyboardLayoutSwitch.getId();
-            } else {
-                currentKeyboardLayoutSwitch = new Switch(this);
-                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultKeyboardLayoutSwitch.getLayoutParams();
-                RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
-                currentKeyboardLayoutSwitch.setLayoutParams(llp2);
+                boolean isDevice = IsCurrentDevice(deviceFullMODEL, keyboardLayoutOptions);
+                if(!isDevice)
+                    continue;
 
-                llp2.addRule(RelativeLayout.BELOW, prevId);
-                prevId = keyboardLayoutOptions.getId();
-                currentKeyboardLayoutSwitch.setId(prevId);
-                currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultKeyboardLayoutSwitch.getTextSize());
-                layout.addView(currentKeyboardLayoutSwitch);
+                Switch currentKeyboardLayoutSwitch;
+                //Первый язык будет по умолчанию всегда активирован
+                //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки
+                if(prevId == 0) {
+                    currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
+                    RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultKeyboardLayoutSwitch.getLayoutParams();
+                    RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
+                    currentKeyboardLayoutSwitch.setLayoutParams(llp2);
+                    prevId = currentKeyboardLayoutSwitch.getId();
+                } else {
+                    currentKeyboardLayoutSwitch = new Switch(this);
+                    RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultKeyboardLayoutSwitch.getLayoutParams();
+                    RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
+                    currentKeyboardLayoutSwitch.setLayoutParams(llp2);
+
+                    llp2.addRule(RelativeLayout.BELOW, prevId);
+                    prevId = keyboardLayoutOptions.getId();
+                    currentKeyboardLayoutSwitch.setId(prevId);
+                    currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultKeyboardLayoutSwitch.getTextSize());
+                    layout.addView(currentKeyboardLayoutSwitch);
+
+                }
+
+                currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
+                keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
+                boolean enabled = SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
+                if(enabled)
+                    enableCount++;
+
+                currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        keyoneKb2Settings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
+                    }
+                });
 
             }
 
-            currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
-            keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
-            boolean enabled = SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
-            if(enabled)
-                enableCount++;
+            if(prevId == 0) {
+                Switch currentKeyboardLayoutSwitch;
+                currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
+                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams) defaultKeyboardLayoutSwitch.getLayoutParams();
+                RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
+                currentKeyboardLayoutSwitch.setLayoutParams(llp2);
+                prevId = currentKeyboardLayoutSwitch.getId();
 
-            currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    keyoneKb2Settings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
-                }
-            });
+                KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions = keyboardLayouts.get(0);
 
+                currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
+                keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
+                boolean enabled = SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
+                if(enabled)
+                    enableCount++;
+
+                currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        keyoneKb2Settings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
+                    }
+                });
+
+            }
+
+            if(enableCount == 0) {
+                KeyboardLayout.KeyboardLayoutOptions defLayout = keyboardLayouts.get(0);
+                keyoneKb2Settings.SetBooleanValue(defLayout.getPreferenceName(), true);
+                SetSwitchStateOrDefault(defaultKeyboardLayoutSwitch, defLayout.getPreferenceName());
+            }
+
+            View divider = findViewById(R.id.divider2);
+            RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)divider.getLayoutParams();
+            llp.addRule(RelativeLayout.BELOW, prevId);
+
+        } catch (Throwable ex) {
+            Toast.makeText(this, "", Toast.LENGTH_SHORT).show();
+            return;
         }
-
-        if(prevId == 0) {
-            Switch currentKeyboardLayoutSwitch;
-            currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
-            RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams) defaultKeyboardLayoutSwitch.getLayoutParams();
-            RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
-            currentKeyboardLayoutSwitch.setLayoutParams(llp2);
-            prevId = currentKeyboardLayoutSwitch.getId();
-
-            KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions = keyboardLayouts.get(0);
-
-            currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
-            keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
-            boolean enabled = SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
-            if(enabled)
-                enableCount++;
-
-            currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    keyoneKb2Settings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
-                }
-            });
-
-        }
-
-        if(enableCount == 0) {
-            KeyboardLayout.KeyboardLayoutOptions defLayout = keyboardLayouts.get(0);
-            keyoneKb2Settings.SetBooleanValue(defLayout.getPreferenceName(), true);
-            SetSwitchStateOrDefault(defaultKeyboardLayoutSwitch, defLayout.getPreferenceName());
-        }
-
-        View divider = findViewById(R.id.divider2);
-        RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)divider.getLayoutParams();
-        llp.addRule(RelativeLayout.BELOW, prevId);
 
         SeekBar sens_bottom_bar = (SeekBar) findViewById(R.id.seekBar);
         SetProgressOrDefault(sens_bottom_bar, keyoneKb2Settings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);

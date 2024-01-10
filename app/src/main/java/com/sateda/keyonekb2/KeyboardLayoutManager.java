@@ -31,53 +31,57 @@ public class KeyboardLayoutManager {
     HashMap<String, Keyboard> symKeyboardsHashMap = new HashMap<>();
 
 
-    public synchronized void Initialize(ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts, Resources resources, Context context) {
+    public synchronized void Initialize(ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts, Resources resources, Context context) throws Exception {
 
         Instance = this;
         FileJsonUtils.Initialize(context);
         KeyboardLayout currentLayout = null;
+        String LOAD_STAGE="";
+        try {
+            for (KeyboardLayout.KeyboardLayoutOptions layout : activeLayouts) {
+                LangListCount++;
+                LOAD_STAGE = "DeserializeFromJson(layout.KeyboardMapping): "+layout.KeyboardMapping;
+                currentLayout = DeserializeFromJson(layout.KeyboardMapping, new TypeReference<KeyboardLayout>() {}, context);
 
-        for (KeyboardLayout.KeyboardLayoutOptions layout : activeLayouts) {
-            LangListCount++;
-            currentLayout = DeserializeFromJson(layout.KeyboardMapping, new TypeReference<KeyboardLayout>() {}, context);
-            if(currentLayout == null) {
-                Log.e(TAG2, "Can not find correct Keyboard_layout neither in file, nor in resource "+layout.KeyboardMapping);
-                continue;
-            }
-            for (KeyboardLayout.KeyVariants kv: currentLayout.KeyMapping) {
-                if(kv.KeyCodeInt == 0 && kv.KeyCode != null && !kv.KeyCode.isEmpty()) {
-                    try {
+                for (KeyboardLayout.KeyVariants kv : currentLayout.KeyMapping) {
+                    if (kv.KeyCodeInt == 0 && kv.KeyCode != null && !kv.KeyCode.isEmpty()) {
+                        LOAD_STAGE = "FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(kv.KeyCode): "+kv.KeyCode+" AT LAYOUT: "+layout.KeyboardMapping;
                         kv.KeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(kv.KeyCode);
-                    } catch (Throwable e) {
-                        Log.e(TAG2, String.format("Can not map KEYCODE %s EX: %s", kv.KeyCode, e.toString()));
                     }
                 }
-            }
-            currentLayout.SymXmlId = resources.getIdentifier(currentLayout.SymModeLayout, "xml", context.getPackageName());
-            LoadAltLayout(resources, context, currentLayout);
+                LOAD_STAGE = "resources.getIdentifier(currentLayout.SymModeLayout): "+currentLayout.SymModeLayout+" AT LAYOUT: "+layout.KeyboardMapping;
+                currentLayout.SymXmlId = resources.getIdentifier(currentLayout.SymModeLayout, "xml", context.getPackageName());
+                if(currentLayout.SymXmlId == 0)
+                    throw new Exception("SYMBOL KEYBOARD RESOURCE NOT FOUND: "+currentLayout.SymModeLayout);
+                LoadAltLayout(resources, context, currentLayout);
 
-            currentLayout.Resources = layout;
-            KeyboardLayoutList.add(currentLayout);
-            //AddSymKeyboard(currentLayout.SymXmlId, context);
+                currentLayout.Resources = layout;
+                KeyboardLayoutList.add(currentLayout);
+                //AddSymKeyboard(currentLayout.SymXmlId, context);
+
+            }
+        } catch(Throwable ex) {
+            throw new Exception("INITIALIZE KEYBOARD LAYOUTS ERROR ON STAGE "+LOAD_STAGE+" ERROR: "+ex.toString());
         }
     }
 
-    private void LoadAltLayout(Resources resources, Context context, KeyboardLayout currentLayout) {
+    private void LoadAltLayout(Resources resources, Context context, KeyboardLayout currentLayout) throws Exception {
+        String LOAD_STAGE="";
         //TODO: Можно подкешировать, чтобы быстрее грузилась клава
-        Collection<KeyboardLayout.KeyVariants> list = DeserializeFromJson(currentLayout.AltModeLayout, new TypeReference<Collection<KeyboardLayout.KeyVariants>>() {}, context);
-        if(list == null) {
-            Log.e(TAG2, "Can not find ALT_Keyboard_layout neither in file, nor in resource "+currentLayout.AltModeLayout);
-        } else {
-            for (KeyboardLayout.KeyVariants kv: list) {
-                if(kv.KeyCodeInt == 0 && kv.KeyCode != null && !kv.KeyCode.isEmpty()) {
-                    try {
-                        kv.KeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(kv.KeyCode);
-                    } catch (Throwable e) {
-                        Log.e(TAG2, String.format("Can not map KEYCODE %s EX: %s", kv.KeyCode, e.toString()));
-                    }
+        try {
+            LOAD_STAGE = "DeserializeFromJson(currentLayout.AltModeLayout): "+currentLayout.AltModeLayout;
+            Collection<KeyboardLayout.KeyVariants> list = DeserializeFromJson(currentLayout.AltModeLayout, new TypeReference<Collection<KeyboardLayout.KeyVariants>>() {
+            }, context);
+
+            for (KeyboardLayout.KeyVariants kv : list) {
+                if (kv.KeyCodeInt == 0 && kv.KeyCode != null && !kv.KeyCode.isEmpty()) {
+                    LOAD_STAGE = "FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(kv.KeyCode): "+kv.KeyCode;
+                    kv.KeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(kv.KeyCode);
                 }
             }
             FillAltVariantsToCurrentLayout(currentLayout, list);
+        } catch(Throwable ex) {
+            throw new Exception("INITIALIZE ALT LAYOUTS ERROR ON STAGE "+LOAD_STAGE+" ERROR: "+ex.toString());
         }
     }
 
@@ -215,17 +219,14 @@ public class KeyboardLayoutManager {
         return keyVariants.AltMoreVariants.charAt(0);
     }
 
-    public static ArrayList<KeyboardLayout.KeyboardLayoutOptions> LoadKeyboardLayoutsRes(Resources resources, Context context) {
+    public static ArrayList<KeyboardLayout.KeyboardLayoutOptions> LoadKeyboardLayoutsRes(Resources resources, Context context) throws Exception {
         // Load keyboard layouts
         //Открывает R.xml.keyboard_layouts и загружает все настройки клавиатуры
         FileJsonUtils.Initialize(context);
 
         String resName = context.getResources().getResourceEntryName(R.raw.keyboard_layouts);
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayoutOptionsArray =  FileJsonUtils.DeserializeFromJson(resName, new TypeReference<ArrayList<KeyboardLayout.KeyboardLayoutOptions>>() {}, context);
-        if(keyboardLayoutOptionsArray == null) {
-            Log.e(TAG2, "keyboardLayoutResArray == null");
-            return null;
-        }
+
         for ( KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayoutOptionsArray) {
 
             keyboardLayoutOptions.IconCapsRes.DrawableResId= resources.getIdentifier(keyboardLayoutOptions.IconCapslock, "drawable", context.getPackageName());

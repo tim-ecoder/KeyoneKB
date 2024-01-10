@@ -20,6 +20,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.sateda.keyonekb2.FileJsonUtils.LogErrorToGui;
+
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
@@ -130,12 +132,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
             setServiceInfo(info);
 
-
-
             } catch(Throwable ex) {
                 Log.e(TAG3, "onServiceConnected Exception: "+ex);
+                LogErrorToGui("onServiceConnected Exception: "+ex);
                 new Thread(() -> {
-                    try { Thread.sleep(200); } catch (Throwable ignored) {}
+                    FileJsonUtils.SleepWithWakes(300);
                     StopService();
                 }).start();
             }
@@ -159,13 +160,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             _currentWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
             _layoutParams = InitializeLayoutParams();
             //executorService = Executors.newFixedThreadPool(2);
-
-
-
         } catch(Throwable ex) {
             Log.e(TAG3, "onCreate Exception: "+ex);
             new Thread(() -> {
-                try { Thread.sleep(200); } catch (Throwable ignored) {}
+                FileJsonUtils.SleepWithWakes(300);
                 StopService();
             }).start();
         }
@@ -752,16 +750,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     }
 
 
-    private void LoadSearchPluginData() {
+    private void LoadSearchPluginData() throws Exception {
         SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
-        if (data2 == null)
-            return;
+
         if (data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
             DefaultSearchWords = data2.DefaultSearchWords;
         } else {
             DefaultSearchWords = new ArrayList<>();
             DefaultSearchWords.add("Search");
             Log.e(TAG3, "DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
+            FileJsonUtils.LogErrorToGui("DefaultSearchWords array empty. Need to be customized in plugin_data.json. For now set default: 1. Search");
         }
         LoadSearchPlugins(data2.SearchPlugins, searchClickPlugins);
         LoadSearchPlugins(data2.ClickerPlugins, clickerPlugins);

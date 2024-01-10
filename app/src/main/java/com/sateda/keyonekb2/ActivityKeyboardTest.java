@@ -17,7 +17,7 @@ import android.widget.TextView;
 
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
-public class ActivityKeyboardTest extends Activity {
+public class ActivityKeyboardTest extends Activity implements InputMethodServiceCoreKeyPress.IDebugUpdate {
 
     private TextView codeView;
     private TextView codeMetaView;
@@ -37,6 +37,8 @@ public class ActivityKeyboardTest extends Activity {
         super.onCreate(paramBundle);
         setContentView(R.layout.activity_keyboard_test);
         KeyoneIME.IS_KEYBOARD_TEST = true;
+        KeyoneIME.DEBUG_UPDATE = this;
+
         this.debugView = (TextView)findViewById(R.id.debug_info_data);
         this.debugView.setMovementMethod(new ScrollingMovementMethod());
         this.debugScrollView = (ScrollView) findViewById(R.id.debug_scroll);
@@ -98,12 +100,19 @@ public class ActivityKeyboardTest extends Activity {
         deviceInfoView.append("display: " + Build.DISPLAY);
         deviceInfoView.append("\n");
         deviceInfoView.append("brand: " + Build.BRAND);
+
+
+        RedrawDebug();
     }
 
     private void updateViews(KeyEvent paramKeyEvent) {
         this.codeView.setText(String.valueOf(paramKeyEvent.getKeyCode()));
         this.codeMetaView.setText(Integer.toBinaryString(paramKeyEvent.getMetaState()));
 
+        RedrawDebug();
+    }
+
+    private void RedrawDebug() {
         if(!KeyoneIME.DEBUG_TEXT.isEmpty()) {
             this.debugView.setText(KeyoneIME.DEBUG_TEXT);
             debugScrollView.post(new Runnable() {
@@ -123,5 +132,10 @@ public class ActivityKeyboardTest extends Activity {
             sbTestKeyboardViewMode.setChecked(false);
             sbTestKeyboardViewMode.setText(R.string.keyboard_test_view_test);
         }
+    }
+
+    @Override
+    public void DebugUpdated() {
+        RedrawDebug();
     }
 }

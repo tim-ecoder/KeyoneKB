@@ -136,19 +136,17 @@ public class SearchClickPlugin {
         int _wait = 0;
 
         public void FirePluginAction() {
+            boolean visible = _info.isVisibleToUser();
+            boolean enabled = _info.isEnabled();
             boolean answer = _info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-
+            boolean refresh = _info.refresh();
+            boolean focused = _info.isFocused();
             //Для случая уезжающего окна поиска как в Яндекс.Навигаторе плагин хватает поле, которое уже не существует
             if (!answer) {
                 Log.e(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
             }
 
-            if (_wait > 0) {
-                try {
-                    Thread.sleep(_wait);
-                } catch (Throwable ignore) {
-                }
-            }
+            FileJsonUtils.SleepWithWakes(_wait);
         }
 
         public boolean Equals(SearchPluginLauncher other) {

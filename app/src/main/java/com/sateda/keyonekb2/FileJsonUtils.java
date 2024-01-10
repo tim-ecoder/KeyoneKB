@@ -101,18 +101,15 @@ public class FileJsonUtils {
         }
     }
 
-    private static <T> T DeserializeFromFile(InputStream is, TypeReference<T> typeReference) {
-        try {
-            JsonMapper mapper= PrepareMapper();
-            T obj = mapper.readValue(is, typeReference);
-            return obj;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+    private static <T> T DeserializeFromFile(InputStream is, TypeReference<T> typeReference) throws IOException {
+        JsonMapper mapper= PrepareMapper();
+        T obj = mapper.readValue(is, typeReference);
+        return obj;
     }
 
-    public static <T> T DeserializeFromJson(String resName, TypeReference<T> typeReference, Context context) {
+
+
+    public static <T> T DeserializeFromJson(String resName, TypeReference<T> typeReference, Context context) throws Exception {
 
         T object = null;
         Resources resources = context.getResources();
@@ -123,12 +120,34 @@ public class FileJsonUtils {
                 InputStream is = resources.openRawResource(resources.getIdentifier(resName, "raw", context.getPackageName()));
                 object = FileJsonUtils.DeserializeFromFile(is, typeReference);
                 is.close();
+            } else {
+                throw new Exception("JSON OR RES NOT FOUND NAME: "+resName);
             }
             return object;
         } catch(Throwable ex) {
             Log.e(TAG2, String.format("LOAD FROM JSON %s ERROR: %s", resName, ex.toString()));
-            return null;
+            throw new Exception(String.format("LOAD FROM JSON %s ERROR: %s", resName, ex.toString()), ex);
         }
+    }
+
+    public static void LogErrorToGui(String text) {
+        KeyoneIME.DEBUG_TEXT += "\r\n";
+        KeyoneIME.DEBUG_TEXT += text;
+        KeyoneIME.DEBUG_TEXT += "\r\n";
+        if(KeyoneIME.DEBUG_UPDATE != null)
+            KeyoneIME.DEBUG_UPDATE.DebugUpdated();
+    }
+
+    public static boolean SleepWithWakes(int sleep_lim) {
+        int sleep = 10;
+        for (int i = 0; i < sleep_lim / sleep; i++) {
+            try {
+                Thread.sleep(sleep);
+            } catch (Throwable ignore) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static long copyLarge(InputStream input, OutputStream output) throws IOException

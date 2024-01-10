@@ -13,8 +13,6 @@ import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
-import android.view.inputmethod.InputMethodInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import com.android.internal.telephony.ITelephony;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,9 +24,8 @@ import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
-import static com.sateda.keyonekb2.KeyoneKb2AccessibilityService.TAG3;
+import static com.sateda.keyonekb2.FileJsonUtils.LogErrorToGui;
 
 public abstract class InputMethodServiceCoreCustomizable extends InputMethodServiceCoreGesture {
     protected boolean pref_show_toast = false;
@@ -50,6 +47,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected boolean metaHoldShift; //нажатие клавишь с зажатым альтом
     protected boolean symPadAltShift;
     protected boolean metaHoldAlt; //нажатие клавишь с зажатым альтом
+
+    protected boolean metaHoldSym;
     protected boolean metaFixedModeFirstSymbolAlt;
     protected boolean metaFixedModeAllSymbolsAlt;
 
@@ -165,21 +164,23 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     KeyboardMechanics KeyboardMechanics;
 
+
+
     @RequiresApi(api = Build.VERSION_CODES.O)
-    protected void LoadKeyProcessingMechanics(Context context) {
+    protected void LoadKeyProcessingMechanics(Context context) throws Exception {
+
+        String LOADING_STAGE = "";
 
         try {
 
+            LOADING_STAGE = "DeserializeFromJson(keyboard_mechanics_res): "+keyboard_mechanics_res;
             KeyboardMechanics = FileJsonUtils.DeserializeFromJson(keyboard_mechanics_res, new TypeReference<KeyboardMechanics>() {
             }, context);
 
-            if (KeyboardMechanics == null) {
-                Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS JSON FILE");
-                return;
-            }
+            LOADING_STAGE = "LoadActionMethodsStringMapping()";
+            LoadActionMethodsStringMapping();
 
-            LoadMethods();
-
+            LOADING_STAGE = "KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes";
             if (KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes != null) {
                 ViewModeExcludeKeyCodes = new int[KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes.size()];
                 int i = 0;
@@ -188,11 +189,20 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                     i++;
                 }
             }
+
+            LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnStartInputActions)";
             OnStartInput = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnStartInputActions);
+
+            LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnFinishInputActions)";
             OnFinishInput = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnFinishInputActions);
+
+            LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.BeforeSendCharActions)";
             BeforeSendChar = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.BeforeSendCharActions);
+
+            LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.AfterSendCharActions)";
             AfterSendChar = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.AfterSendCharActions);
 
+            LOADING_STAGE = "KeyboardMechanics.KeyGroupProcessors";
             for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.KeyGroupProcessors) {
 
                 KeyProcessingMode keyAction;
@@ -201,20 +211,29 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
                 kgp.KeyCodeList = new ArrayList<>();
                 for (String keyCodeCode : kgp.KeyCodes) {
-
+                    LOADING_STAGE = "FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCodeCode): "+keyCodeCode;
                     int value = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCodeCode);
                     kgp.KeyCodeList.add(value);
 
                 }
+                if(kgp.KeyCodeList.isEmpty())
+                    throw new Exception("CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" key-codes CAN NOT BE EMPTY");
 
                 keyAction.KeyCodeArray = Arrays.stream(kgp.KeyCodeList.toArray(new Integer[0])).mapToInt(Integer::intValue).toArray();
 
+                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress) KEY_CODE: "+kgp.KeyCodes.get(0);
                 keyAction.OnShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress);
+                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress) KEY_CODE: "+kgp.KeyCodes.get(0);
                 keyAction.OnUndoShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress);
+                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress) KEY_CODE: "+kgp.KeyCodes.get(0);
                 keyAction.OnDoublePress = ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress);
+                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress) KEY_CODE: "+kgp.KeyCodes.get(0);
                 keyAction.OnLongPress = ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress);
+                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn) KEY_CODE: "+kgp.KeyCodes.get(0);
                 keyAction.OnHoldOn = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn);
+                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff) KEY_CODE: "+kgp.KeyCodes.get(0);
                 keyAction.OnHoldOff = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff);
+                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress) KEY_CODE: "+kgp.KeyCodes.get(0);
                 keyAction.OnTriplePress = ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress);
             }
 
@@ -226,21 +245,23 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 super.KeyHoldPlusGestureEnabled = KeyboardMechanics.GestureProcessor.KeyHoldPlusGestureEnabled;
 
                 if (KeyboardMechanics.GestureProcessor.OnGestureDoubleClick != null) {
+                    LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick)";
                     super.OnGestureDoubleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick);
                 }
                 if (KeyboardMechanics.GestureProcessor.OnGestureTripleClick != null) {
+                    LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureTripleClick)";
                     super.OnGestureTripleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureTripleClick);
                 }
                 if (KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp != null) {
+                    LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp)";
                     super.OnGestureSecondClickUp = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp);
                 }
             }
 
         } catch (Throwable ex) {
-            Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS: " + ex);
+            Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" EXCEPTION: " + ex);
+            throw new Exception("CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" EXCEPTION: " + ex);
         }
-
-
     }
 
 
@@ -248,7 +269,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
-    private InputMethodServiceCoreKeyPress.Processable ProcessMethodMappingAndCreateProcessable(ArrayList<KeyboardMechanics.Action> list) throws NoSuchFieldException, IllegalAccessException {
+    private InputMethodServiceCoreKeyPress.Processable ProcessMethodMappingAndCreateProcessable(ArrayList<KeyboardMechanics.Action> list) throws Exception {
         if (list == null || list.isEmpty()) {
             return null;
         }
@@ -260,19 +281,25 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 method = FindActionMethodByName(action.ActionMethodName);
                 if (!method.getType().equals(Integer.class)) {
                     Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
+                    throw new Exception("ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
                 }
             } else if (action.CustomChar > 0) {
                 method = FindActionMethodByName(action.ActionMethodName);
+                if(method == null) return null;
                 if (!method.getType().equals(Character.class)) {
                     Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
+                    throw new Exception("ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
                 }
             } else if (action.MethodNeedsKeyPressParameter) {
                 method = FindActionMethodByName(action.ActionMethodName);
+
                 if (!method.getType().equals(KeyPressData.class)) {
                     Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
+                    throw new Exception("ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
                 }
             } else {
                 method = FindActionMethodByName(action.ActionMethodName);
+
             }
             action.ActionMethod = method;
 
@@ -281,9 +308,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 for (String metaMethodName : action.MetaModeMethodNames) {
 
                     ActionMethod metaMethod = FindActionMethodByName(metaMethodName);
+
                     action.MetaModeMethods.add(metaMethod);
                     if (!metaMethod.getType().equals(Object.class)) {
-                        Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + metaMethodName + " NEED: " + method.getType());
+                        Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + metaMethodName + " NEED: " + metaMethod.getType());
+                        throw new Exception("ACTION METHOD PARAMETER TYPE MISMATCH " + metaMethodName + " NEED: " + metaMethod.getType());
                     }
                 }
             }
@@ -295,10 +324,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return p;
     }
 
-    ActionMethod FindActionMethodByName(String methodName) {
+    ActionMethod FindActionMethodByName(String methodName) throws Exception {
         if (!Methods.containsKey(methodName)) {
-            Log.e(TAG2, "CAN NOT FIND ACTION METHOD " + methodName);
-            return null;
+            Log.e(TAG2, "CAN NOT FIND PREDEFINED ACTION METHOD " + methodName);
+            LogErrorToGui("CAN NOT FIND PREDEFINED ACTION METHOD " + methodName);
+            throw new Exception("CAN NOT FIND PREDEFINED ACTION METHOD " + methodName);
         }
         return Methods.get(methodName);
     }
@@ -338,7 +368,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     HashMap<String, ActionMethod> Methods = new HashMap<>();
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    void LoadMethods() {
+    void LoadActionMethodsStringMapping() {
         FulfillMethodsHashMapGenerated2();
         //CodeGenerate();
     }
@@ -498,8 +528,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionDeleteFwdWord", InitializeMethod3((Object o) -> ActionDeleteFwdWord(), Object.class));
         Methods.put("ActionDeleteUntilFwdCrLf", InitializeMethod3((Object o) -> ActionDeleteUntilFwdCrLf(), Object.class));
         Methods.put("ActionTryEnableGestureInputScrollMode", InitializeMethod3((Object o) -> ActionTryEnableGestureInputScrollMode(), Object.class));
-
-        //ActionEnableGestureInputScrollMode
+        Methods.put("MetaIsSymPressed", InitializeMethod3((Object o) -> MetaIsSymPressed(), Object.class));
+        Methods.put("ActionEnableHoldSymMode", InitializeMethod3((Object o) -> ActionEnableHoldSymMode(), Object.class));
+        Methods.put("ActionDisableHoldSymMode", InitializeMethod3((Object o) -> ActionDisableHoldSymMode(), Object.class));
+        //MetaIsSymPressed
     }
 
     //endregion
@@ -858,6 +890,16 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     //endregion
 
     //region Actions SYM-PAD
+
+    public boolean ActionEnableHoldSymMode() {
+        metaHoldSym = true;
+        return true;
+    }
+
+    public boolean ActionDisableHoldSymMode() {
+        metaHoldSym = false;
+        return true;
+    }
 
     public boolean ActionDisableNavSymFnKeyboard() {
         //Отключаем режим навигации
@@ -1235,10 +1277,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     }
 
     public boolean ActionWait300() {
-        try {
-            Thread.sleep(300);
-        } catch (Throwable ignore) {
-        }
+        FileJsonUtils.SleepWithWakes(300);
         return true;
     }
 
@@ -1525,6 +1564,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return metaHoldAlt;
     }
 
+    public boolean MetaIsSymPressed() {
+        return metaHoldSym;
+    }
+
 
     public boolean MetaIsSymPadAltShiftMode() {
         return keyboardStateFixed_SymbolOnScreenKeyboard && symPadAltShift;
@@ -1589,31 +1632,31 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     //region Voice Recognition
 
     protected VoiceRecognitionTrigger mVoiceRecognitionTrigger;
+    public long LastOnDraw = 0;
 
     public boolean ActionStartVoiceListening() {
         if(!IsInputMode())
             return false;
-        if(KeyoneKb2AccessibilityService.Instance != null && KeyoneKb2AccessibilityService.Instance.CurFocus != null) {
-            int _wait = 0;
+        long methodCallTime = SystemClock.uptimeMillis();
+        if (KeyoneKb2AccessibilityService.Instance != null && KeyoneKb2AccessibilityService.Instance.CurFocus != null) {
+
+            Log.v(TAG2, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK)");
             boolean answer = KeyoneKb2AccessibilityService.Instance.CurFocus.performAction(AccessibilityNodeInfo.ACTION_CLICK);
             //Для случая уезжающего окна поиска как в Яндекс.Навигаторе плагин хватает поле, которое уже не существует
             if (!answer) {
-                Log.e(TAG3, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
+                Log.e(TAG2, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");
+                return false;
             }
 
-            if (_wait > 0) {
-                try {
-                    Thread.sleep(_wait);
-                } catch (Throwable ignore) {
-                }
-            }
+            FileJsonUtils.SleepWithWakes(250);
         }
+
         if(
                mVoiceRecognitionTrigger != null
            && mVoiceRecognitionTrigger.isInstalled()
            && mVoiceRecognitionTrigger.isEnabled()) {
+            Log.v(TAG2, "mVoiceRecognitionTrigger.startVoiceRecognition()");
 
-            //mVoiceRecognitionTrigger.onStartInputView();
             mVoiceRecognitionTrigger.startVoiceRecognition();
             return true;
         }

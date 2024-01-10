@@ -6,6 +6,7 @@ import android.content.res.XmlResourceParser;
 import android.inputmethodservice.Keyboard;
 
 public class SatedaKeyboard  extends Keyboard {
+
     private int height;
     public SatedaKeyboard(Context context, int xmlLayoutResId) {
         super(context, xmlLayoutResId);

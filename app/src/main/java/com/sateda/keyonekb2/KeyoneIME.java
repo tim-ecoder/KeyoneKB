@@ -139,12 +139,15 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     //endregion
 
+    private boolean isNotStarted = true;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     @Override
     public synchronized void onCreate() {
-        super.onCreate();
+
         try {
+            super.onCreate();
 
             Instance = this;
 
@@ -219,9 +222,14 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 }
             });
 
+            isNotStarted = false;
+
         } catch(Throwable ex) {
-            Log.e(TAG2, "onCreate Exception: "+ex);
-            throw ex;
+            Log.e(TAG2, "onCreate exception: "+ex);
+            FileJsonUtils.LogErrorToGui("onCreate exception: "+ex);
+            isNotStarted = true;
+            Instance = null;
+            //throw new RuntimeException("onCreate exception: ", ex);
         }
     }
 
@@ -277,16 +285,20 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     @Override
     public View onCreateInputView() {
         Log.d(TAG2, "onCreateInputView");
+        if(isNotStarted)
+            return null;
         super.onCreateInputView();
         keyboardView.setOnKeyboardActionListener(this);
         return keyboardView;
     }
 
-
     @Override
     public void onStartInputView(EditorInfo info, boolean restarting) {
         Log.d(TAG2, "onStartInputView");
+        if(isNotStarted)
+            return;
         super.onStartInputView(info, restarting);
+        mVoiceRecognitionTrigger.onStartInputView();
         IsVisualKeyboardOpen = true;
     }
 
@@ -299,14 +311,18 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
 
 
+
+
     @Override
     public synchronized void onStartInput(EditorInfo editorInfo, boolean restarting) {
-        super.onStartInput(editorInfo, restarting);
         //TODO: Минорно. Если надо знать какие флаги их надо расшифровывать
         Log.d(TAG2, "onStartInput restarting="+restarting+
                 " package: " + editorInfo.packageName
                 + " editorInfo.inputType: "+Integer.toBinaryString(editorInfo.inputType)
                 +" editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions));
+        if(isNotStarted)
+            return;
+        super.onStartInput(editorInfo, restarting);
         isPackageChangedInsideSingleEvent = false;
         // Обрабатываем переход между приложениями
         if (!editorInfo.packageName.equals(_lastPackageName)) {
@@ -327,7 +343,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 && IsInputMode()
                 && Orientation == 1) {
             keyboardView.setOnTouchListener(this);
-            this.showWindow(true);
+            this.showWindow(false);
         }
 
         OnStartInput.Process(null);
@@ -340,38 +356,48 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         isPackageChangedInsideSingleEvent = false;
     }
 
+    @Override
+    public void onFinishInput() {
+        Log.d(TAG2, "onFinishInput ");
+        if(isNotStarted)
+            return;
+        super.onFinishInput();
 
+        try {
+            OnFinishInput.Process(null);
+            if (needUpdateVisualInsideSingleEvent)
+                UpdateKeyboardModeVisualization();
+            needUpdateVisualInsideSingleEvent = false;
+            if (needUpdateGestureNotificationInsideSingleEvent)
+                UpdateGestureModeVisualization();
+            needUpdateGestureNotificationInsideSingleEvent = false;
+            //TODO: Проверить как это работает
+            if (_lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards(deviceFullMODEL);
+
+            //TODO: Подумать, чтобы не надо было инициализировать свайп-клавиаутуру по настройке pref_show_default_onscreen_keyboard
+            keyboardView.showFlag(pref_flag);
+            if (onScreenSwipePanelAndLanguage.getHeight() != 70 + pref_height_bottom_bar * 5)
+                onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
+        } catch(Throwable ex) {
+            Log.e(TAG2, "onFinishInput exception: "+ex);
+            FileJsonUtils.LogErrorToGui("onFinishInput exception: "+ex);
+            //throw new RuntimeException("onFinishInput exception: ", ex);
+        }
+
+
+    }
+
+    @Override
+    public void onWindowShown() {
+        Log.d(TAG2, "onFinishInputView");
+        super.onWindowShown();
+    }
 
     private boolean isPackageChangedInsideSingleEvent;
     @Override
     public boolean MetaIsPackageChanged() {
         return isPackageChangedInsideSingleEvent;
     }
-
-    @Override
-    public void onFinishInput() {
-        Log.d(TAG2, "onFinishInput ");
-        super.onFinishInput();
-
-        OnFinishInput.Process(null);
-        if (needUpdateVisualInsideSingleEvent)
-            UpdateKeyboardModeVisualization();
-        needUpdateVisualInsideSingleEvent = false;
-        if(needUpdateGestureNotificationInsideSingleEvent)
-            UpdateGestureModeVisualization();
-        needUpdateGestureNotificationInsideSingleEvent = false;
-        //TODO: Проверить как это работает
-        if (_lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards(deviceFullMODEL);
-
-        //TODO: Подумать, чтобы не надо было инициализировать свайп-клавиаутуру по настройке pref_show_default_onscreen_keyboard
-        keyboardView.showFlag(pref_flag);
-        if (onScreenSwipePanelAndLanguage.getHeight() != 70 + pref_height_bottom_bar * 5)
-            onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
-
-
-    }
-
-
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -1167,8 +1193,6 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     @Override
     protected boolean ProcessOnCursorMovement(EditorInfo editorInfo)
     {
-        //SystemClock.uptimeMillis();
-        //System.currentTimeMillis();
         AnyButtonPressOnHoldPlusButtonTime = SystemClock.uptimeMillis();
         return DetermineFirstBigCharStateAndUpdateVisualization1(editorInfo);
     }
@@ -1213,9 +1237,9 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     //region LOAD SETTINGS & KEYBOARDS
 
 
-    public static ArrayList<KeyboardLayout.KeyboardLayoutOptions> allLayouts;
 
-    private void LoadSettingsAndKeyboards(String deviceFullMODEL){
+
+    private void LoadSettingsAndKeyboards(String deviceFullMODEL) throws Exception {
 
         pref_gesture_motion_sensitivity = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
         pref_show_toast = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_2_SHOW_TOAST);
@@ -1234,23 +1258,25 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         pref_pointer_mode_rect_color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
         pref_nav_pad_on_hold = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD);
 
-
-        allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts = new ArrayList<>();
+
+        ArrayList<KeyboardLayout.KeyboardLayoutOptions> allLayouts;
+        allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
+
 
         boolean isFirst = true;
         //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
-        for(KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : allLayouts) {
-            if(keyboardLayoutOptions.DeviceModelRegexp != null && keyboardLayoutOptions.DeviceModelRegexp != "") {
+        for (KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : allLayouts) {
+            if (keyboardLayoutOptions.DeviceModelRegexp != null && keyboardLayoutOptions.DeviceModelRegexp != "") {
                 boolean isDevice = IsCurrentDevice(deviceFullMODEL, keyboardLayoutOptions);
-                if(!isDevice)
+                if (!isDevice)
                     continue;
             }
             keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
             boolean enabled = keyoneKb2Settings.GetBooleanValue(keyboardLayoutOptions.getPreferenceName());
-            if(enabled) {
+            if (enabled) {
                 activeLayouts.add(keyboardLayoutOptions);
-                if(isFirst) {
+                if (isFirst) {
                     if (keyboardLayoutOptions.CustomKeyboardMechanics != null && !keyboardLayoutOptions.CustomKeyboardMechanics.isEmpty()) {
                         keyboard_mechanics_res = keyboardLayoutOptions.CustomKeyboardMechanics;
                     }
@@ -1265,6 +1291,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             activeLayouts.add(defLayout);
         }
         keyboardLayoutManager.Initialize(activeLayouts, getResources(), getApplicationContext());
+
     }
 
 

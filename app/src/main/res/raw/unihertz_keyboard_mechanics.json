@@ -615,6 +615,12 @@
           ],
           "action-method-name": "ActionChangeSwipePanelVisibility",
           "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltPressed"
+          ],
+          "action-method-name": "ActionStartVoiceListening",
+          "stop-processing-at-success-result": true
         }
       ],
       "on-double-press": [
