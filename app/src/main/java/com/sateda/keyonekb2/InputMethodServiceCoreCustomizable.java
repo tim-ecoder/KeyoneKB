@@ -93,6 +93,9 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         @JsonProperty(index = 60)
         public ArrayList<String> ViewModeKeyTransparencyExcludeKeyCodes;
 
+        @JsonProperty(index = 90)
+        public KeyGroupProcessor OnAnyKeyBeforeActions;
+
         @JsonProperty(index = 100)
         public ArrayList<KeyGroupProcessor> KeyGroupProcessors = new ArrayList<>();
 
@@ -166,11 +169,40 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
 
 
+    void LoadKeyActions(StringBuilder sbSubStage, KeyProcessingMode keyAction, InputMethodServiceCoreCustomizable.KeyboardMechanics.KeyGroupProcessor kgp) throws Exception {
+        String keyCode = "NONE";
+        if(kgp.KeyCodes != null && !kgp.KeyCodes.isEmpty())
+            keyCode = kgp.KeyCodes.get(0);
+
+        sbSubStage.setLength(0);
+        sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress) KEY_CODE: %s",keyCode));
+        keyAction.OnShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress);
+        sbSubStage.setLength(0);
+        sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress) KEY_CODE: %s",keyCode));
+        keyAction.OnUndoShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress);
+        sbSubStage.setLength(0);
+        sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress) KEY_CODE: %s",keyCode));
+        sbSubStage.setLength(0);
+        keyAction.OnDoublePress = ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress);
+        sbSubStage.setLength(0);
+        sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress) KEY_CODE: %s",keyCode));
+        keyAction.OnLongPress = ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress);
+        sbSubStage.setLength(0);
+        sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn) KEY_CODE: %s",keyCode));
+        keyAction.OnHoldOn = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn);
+        sbSubStage.setLength(0);
+        sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff) KEY_CODE: %s",keyCode));
+        keyAction.OnHoldOff = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff);
+        sbSubStage.setLength(0);
+        sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress) KEY_CODE: %s",keyCode));
+        keyAction.OnTriplePress = ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress);
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     protected void LoadKeyProcessingMechanics(Context context) throws Exception {
 
         String LOADING_STAGE = "";
-
+        StringBuilder SB_STAGE = new StringBuilder();
         try {
 
             LOADING_STAGE = "DeserializeFromJson(keyboard_mechanics_res): "+keyboard_mechanics_res;
@@ -202,6 +234,14 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.AfterSendCharActions)";
             AfterSendChar = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.AfterSendCharActions);
 
+
+
+            if(KeyboardMechanics.OnAnyKeyBeforeActions != null) {
+                LOADING_STAGE = "AnyKeyBeforeAction = new KeyProcessingMode()";
+                AnyKeyBeforeAction = new KeyProcessingMode();
+                LoadKeyActions(SB_STAGE, AnyKeyBeforeAction, KeyboardMechanics.OnAnyKeyBeforeActions);
+            }
+
             LOADING_STAGE = "KeyboardMechanics.KeyGroupProcessors";
             for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.KeyGroupProcessors) {
 
@@ -221,20 +261,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
                 keyAction.KeyCodeArray = Arrays.stream(kgp.KeyCodeList.toArray(new Integer[0])).mapToInt(Integer::intValue).toArray();
 
-                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress) KEY_CODE: "+kgp.KeyCodes.get(0);
-                keyAction.OnShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress);
-                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress) KEY_CODE: "+kgp.KeyCodes.get(0);
-                keyAction.OnUndoShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress);
-                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress) KEY_CODE: "+kgp.KeyCodes.get(0);
-                keyAction.OnDoublePress = ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress);
-                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress) KEY_CODE: "+kgp.KeyCodes.get(0);
-                keyAction.OnLongPress = ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress);
-                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn) KEY_CODE: "+kgp.KeyCodes.get(0);
-                keyAction.OnHoldOn = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn);
-                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff) KEY_CODE: "+kgp.KeyCodes.get(0);
-                keyAction.OnHoldOff = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff);
-                LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress) KEY_CODE: "+kgp.KeyCodes.get(0);
-                keyAction.OnTriplePress = ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress);
+                LoadKeyActions(SB_STAGE, keyAction, kgp);
+
             }
 
             if (KeyboardMechanics.GestureProcessor != null) {
@@ -259,6 +287,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             }
 
         } catch (Throwable ex) {
+            if(SB_STAGE.length() > 0)
+                LOADING_STAGE += "SUB_STAGE: "+SB_STAGE;
             Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" EXCEPTION: " + ex);
             throw new Exception("CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" EXCEPTION: " + ex);
         }

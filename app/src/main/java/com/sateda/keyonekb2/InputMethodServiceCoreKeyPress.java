@@ -451,10 +451,15 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
     }
 
     //region PROCESS_KEY_EVENT
+
+    protected KeyProcessingMode AnyKeyBeforeAction;
+
     void ProcessHoldBegin(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnHoldOn != null) {
             LogKeyboardTest(TAG2, String.format("[%d] HOLD_ON %d", keyPressData.HoldBeginTime, keyPressData.KeyCode));
+            if(AnyKeyBeforeAction != null && AnyKeyBeforeAction.OnHoldOn != null)
+                AnyKeyBeforeAction.OnHoldOn.Process(keyPressData);
             keyProcessingMode.OnHoldOn.Process(keyPressData);
         }
     }
@@ -466,14 +471,17 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                 LogKeyboardTest(TAG2, String.format("[%d] SHORT_2ND_LONG_PRESS %d", keyPressData.LongPressBeginTime, keyPressData.KeyCode));
             else
                 LogKeyboardTest(TAG2, String.format("[%d] LONG_PRESS %d", keyPressData.LongPressBeginTime, keyPressData.KeyCode));
+            if(AnyKeyBeforeAction != null && AnyKeyBeforeAction.OnLongPress != null)
+                AnyKeyBeforeAction.OnLongPress.Process(keyPressData);
             keyProcessingMode.OnLongPress.Process(keyPressData);
         }
     }
     void ProcessKeyUnhold(KeyPressData keyPressData) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnHoldOff != null) {
-
             LogKeyboardTest(TAG2, String.format("[%d] HOLD_OFF %d HOLD_BEGAN %d", keyPressData.KeyUpTime, keyPressData.KeyCode, keyPressData.HoldBeginTime));
+            if(AnyKeyBeforeAction != null && AnyKeyBeforeAction.OnHoldOff != null)
+                AnyKeyBeforeAction.OnHoldOff.Process(keyPressData);
             keyProcessingMode.OnHoldOff.Process(keyPressData);
         }
     }
@@ -482,6 +490,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnShortPress != null) {
             LogKeyboardTest(TAG2, String.format("[%d] SHORT_PRESS %d", keyPressData.KeyDownTime, keyPressData.KeyCode));
+            if(AnyKeyBeforeAction != null && AnyKeyBeforeAction.OnShortPress != null)
+                AnyKeyBeforeAction.OnShortPress.Process(keyPressData);
             keyProcessingMode.OnShortPress.Process(keyPressData);
         }
     }
@@ -490,6 +500,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnDoublePress != null) {
             LogKeyboardTest(TAG2, String.format("[%d] DOUBLE_PRESS %d", keyPressData.DoublePressTime, keyPressData.KeyCode));
+            if(AnyKeyBeforeAction != null && AnyKeyBeforeAction.OnDoublePress != null)
+                AnyKeyBeforeAction.OnDoublePress.Process(keyPressData);
             keyProcessingMode.OnDoublePress.Process(keyPressData);
         }
     }
@@ -498,6 +510,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnTriplePress != null) {
             LogKeyboardTest(TAG2, String.format("[%d] TRIPLE_PRESS %d", keyPressData.DoublePressTime, keyPressData.KeyCode));
+            if(AnyKeyBeforeAction != null && AnyKeyBeforeAction.OnTriplePress != null)
+                AnyKeyBeforeAction.OnTriplePress.Process(keyPressData);
             keyProcessingMode.OnTriplePress.Process(keyPressData);
         }
     }
@@ -506,6 +520,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData);
         if(keyProcessingMode != null && keyProcessingMode.OnUndoShortPress != null) {
             LogKeyboardTest(TAG2, String.format("[%d] UNDO_SHORT_PRESS %d", keyPressData.KeyDownTime, keyPressData.KeyCode));
+            if(AnyKeyBeforeAction != null && AnyKeyBeforeAction.OnUndoShortPress != null)
+                AnyKeyBeforeAction.OnUndoShortPress.Process(keyPressData);
             keyProcessingMode.OnUndoShortPress.Process(keyPressData);
         }
     }

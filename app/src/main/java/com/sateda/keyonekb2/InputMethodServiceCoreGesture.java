@@ -1,21 +1,15 @@
 package com.sateda.keyonekb2;
 
-import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.GestureDescription;
-import android.graphics.Path;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
-
-import java.util.ArrayList;
 
 public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCoreKeyPress {
     private int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
@@ -88,6 +82,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
         if (IsNoGesturesMode())
             return true;
+        if (IsInputMode()) {
+            //Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
+            ProcessDoubleTripleGestureClick(motionEvent);
+        }
 
         if(IsInputMode()) {
             if(!KeyboardGesturesAtInputModeEnabled)
@@ -100,12 +98,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 return true;
             if(_modeGestureAtViewMode == GestureAtViewMode.Scroll)
                 return false;
-        }
-
-        if (IsInputMode() && (!mode_gesture_cursor_at_input_mode
-            || modeDoubleClickGesture)) {
-            //Log.d(TAG, "onGenericMotionEvent(): " + motionEvent);
-            ProcessDoubleGestureClick(motionEvent);
         }
 
         if(IsInputMode() && _modeGestureScrollAtInputMode) {
@@ -279,22 +271,48 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         lastEventTime = 0;
     }
 
-    private void ProcessDoubleGestureClick(MotionEvent motionEvent) {
+    long curDownTime = 0;
+
+    void ResetGestureClickTimes()
+    {
+        curDownTime = 0;
+        prevDownTime = 0;
+        prevPrevDownTime = 0;
+
+        prevUpTime = 0;
+        prevPrevUpTime = 0;
+
+    }
+
+    void LogGestureClickTimes() {
+        if(false) {
+            Log.d(TAG2, "CUR_DOWN: " + curDownTime);
+            Log.d(TAG2, "2ND_DELTA: " + (curDownTime - prevUpTime));
+
+            Log.d(TAG2, "PREV_DOWN: " + prevDownTime);
+            Log.d(TAG2, "PREV_UP: " + prevUpTime);
+            Log.d(TAG2, "PREV_DELTA: " + (prevUpTime - prevDownTime));
+            Log.d(TAG2, "3D_DELTA: " + (prevDownTime - prevPrevUpTime));
+
+            Log.d(TAG2, "PREV_PREV_DOWN: " + prevPrevDownTime);
+            Log.d(TAG2, "PREV_PREV_UP: " + prevPrevUpTime);
+            Log.d(TAG2, "PREV_PREV_DELTA: " + (prevPrevUpTime - prevPrevDownTime));
+        }
+    }
+
+    private void ProcessDoubleTripleGestureClick(MotionEvent motionEvent) {
 
 
         if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
                 || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)) {
-            if(modeDoubleClickGesture) {
-                modeDoubleClickGesture = false;
-                if(OnGestureSecondClickUp != null) {
-                    OnGestureSecondClickUp.Process(null);
-                }
-            } else {
-                prevPrevUpTime = prevUpTime;
-                prevUpTime = motionEvent.getEventTime();
-                prevX = motionEvent.getX();
-                prevY = motionEvent.getY();
-            }
+
+
+
+            prevPrevUpTime = prevUpTime;
+            prevUpTime = motionEvent.getEventTime();
+            prevX = motionEvent.getX();
+            prevY = motionEvent.getY();
+
         } else if( CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE)) {
             float curX = motionEvent.getX();
             float curY = motionEvent.getY();
@@ -304,10 +322,11 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 prevY = 0;
                 prevX = 0;
             }
+            //Log.d(TAG2, "GESTURE_MOVE_RESET");
         }
         else if (   CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)) {
 
-            long curDownTime = motionEvent.getEventTime();
+            curDownTime = motionEvent.getEventTime();
             float curX = motionEvent.getX();
             float curY = motionEvent.getY();
 
@@ -315,34 +334,46 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                     && Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
                     && Math.abs(prevPrevX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
                     && Math.abs(prevPrevY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
-                    && prevUpTime - prevDownTime <= TIME_LONG_PRESS
-                    && prevPrevUpTime - prevPrevDownTime <= TIME_LONG_PRESS
-                    && prevUpTime - prevPrevDownTime <= TIME_DOUBLE_PRESS
-                    && curDownTime - prevUpTime <= TIME_LONG_PRESS) {
+                    && prevUpTime - prevDownTime <= TIME_SHORT_PRESS
+                    && prevPrevUpTime - prevPrevDownTime <= TIME_SHORT_PRESS
+                    && prevDownTime - prevPrevUpTime <= TIME_DOUBLE_PRESS
+                    && curDownTime - prevUpTime <= TIME_TRIPLE_PRESS) {
                 Log.d(TAG2, "GESTURE TRIPLE CLICK");
                 if(OnGestureTripleClick != null) {
                     OnGestureTripleClick.Process(null);
                 }
                 modeDoubleClickGesture = true;
+                LogGestureClickTimes();
+                ResetGestureClickTimes();
             }
             else if(Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
                     && Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
-                    && prevUpTime - prevDownTime <= TIME_LONG_PRESS
+                    && prevUpTime - prevDownTime <= TIME_SHORT_PRESS
                     && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
                 Log.d(TAG2, "GESTURE DOUBLE CLICK");
                 if(OnGestureDoubleClick != null) {
                     OnGestureDoubleClick.Process(null);
                 }
                 modeDoubleClickGesture = true;
+                LogGestureClickTimes();
+                prevPrevDownTime = prevDownTime;
+                prevDownTime = curDownTime;
+                prevPrevX = prevX;
+                prevPrevY = prevY;
+                prevX = motionEvent.getX();
+                prevY = motionEvent.getY();
+            } else {
+                Log.d(TAG2, "NO GESTURE CLICK");
+                LogGestureClickTimes();
+                prevPrevDownTime = prevDownTime;
+                prevDownTime = curDownTime;
+                prevPrevX = prevX;
+                prevPrevY = prevY;
+                prevX = motionEvent.getX();
+                prevY = motionEvent.getY();
             }
 
-            prevPrevDownTime = prevDownTime;
-            prevDownTime = curDownTime;
 
-            prevPrevX = prevX;
-            prevPrevY = prevY;
-            prevX = motionEvent.getX();
-            prevY = motionEvent.getY();
 
 
 
@@ -479,11 +510,12 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     }
 
     public boolean ActionTryTurnOffGesturesMode() {
-        mode_gesture_cursor_plus_up_down = false;
+        Log.d(TAG2,"GESTURE_INPUT: DISABLED U|D="+mode_gesture_cursor_plus_up_down);
         if (mode_gesture_cursor_at_input_mode) {
             mode_gesture_cursor_at_input_mode = false;
             return true;
         }
+
         return false;
     }
 
@@ -491,6 +523,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     public boolean ActionEnableGestureAtInputMode() {
         mode_gesture_cursor_at_input_mode = true;
+        Log.d(TAG2,"GESTURE_INPUT: ENABLED");
         return true;
     }
 
@@ -498,9 +531,11 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     public boolean ActionTryEnableGestureCursorModeOnHoldState() {
         if(!mode_gesture_cursor_at_input_mode && KeyHoldPlusGestureEnabled) {
+            ActionTryDisableGestureInputScrollMode();
             gestureCursorAtInputEnabledByHold = true;
             mode_gesture_cursor_at_input_mode = true;
             ResetGestureMovementCoordsToInitial();
+            Log.d(TAG2,"GESTURE_INPUT: ENABLED U|D="+mode_gesture_cursor_plus_up_down);
             return true;
         }
         return false;
@@ -511,30 +546,45 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             gestureCursorAtInputEnabledByHold = false;
             mode_gesture_cursor_at_input_mode = false;
             ResetGestureMovementCoordsToInitial();
+            Log.d(TAG2,"GESTURE_INPUT: DISABLED U|D="+mode_gesture_cursor_plus_up_down);
             return true;
         }
         return false;
     }
 
     public boolean ActionChangeGestureAtInputModeUpAndDownMode() {
+        ActionTryDisableGestureInputScrollMode();
         mode_gesture_cursor_plus_up_down = !mode_gesture_cursor_plus_up_down;
+        if(mode_gesture_cursor_plus_up_down) {
+
+            mode_gesture_cursor_at_input_mode = true;
+            Log.d(TAG2,"GESTURE_INPUT: ENABLED +U|D");
+        }
+        else {
+            mode_gesture_cursor_at_input_mode = false;
+            Log.d(TAG2,"GESTURE_INPUT: DISABLED -U|D");
+        }
         return true;
     }
 
     public boolean ActionDisableGestureMode() {
         mode_gesture_cursor_at_input_mode = false;
+        Log.d(TAG2,"GESTURE_INPUT: DISABLED");
         return true;
     }
 
     public boolean ActionDisableAndResetGestureMode() {
         mode_gesture_cursor_at_input_mode = false;
         mode_gesture_cursor_plus_up_down = false;
+        Log.d(TAG2,"GESTURE_INPUT: DISABLED -U|D");
         return true;
     }
 
     public boolean ActionTryChangeGestureModeStateAtInputMode() {
         if (IsInputMode()) {
+            ActionTryDisableGestureInputScrollMode();
             mode_gesture_cursor_at_input_mode = !mode_gesture_cursor_at_input_mode;
+            Log.d(TAG2,"GESTURE_INPUT: ENABLED="+mode_gesture_cursor_at_input_mode);
             return true;
         }
         return false;
@@ -543,8 +593,10 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     public boolean ActionEnableGestureAtInputModeAndUpDownMode() {
         if (IsInputMode()) {
+            ActionTryDisableGestureInputScrollMode();
             mode_gesture_cursor_at_input_mode = true;
             mode_gesture_cursor_plus_up_down = true;
+            Log.d(TAG2,"GESTURE_INPUT: ENABLED +U|D");
         }
 
         return true;
@@ -560,6 +612,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         if (mode_gesture_cursor_at_input_mode && IsInputMode()) {
             mode_gesture_cursor_at_input_mode = false;
             mode_gesture_cursor_plus_up_down = false;
+            Log.d(TAG2,"GESTURE_INPUT: DISABLED -U|D");
             return true;
         }
         return false;
