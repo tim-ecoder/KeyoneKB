@@ -170,6 +170,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     }
 
+    public void StopService() {
+        disableSelf();
+    }
+
     @Override
     public void onInterrupt() {
         Log.v(TAG3, "onInterrupt()");
@@ -792,6 +796,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 shp.setEvents(STD_EVENTS);
             if (data.CustomClickAdapterClickParent)
                 shp.setConverter(AccessibilityNodeInfo::getParent);
+            else if(data.CustomClickAdapterClickFirstChild)
+                shp.setConverter(new NodeClickableConverter() {
+                    @Override
+                    public AccessibilityNodeInfo getNode(AccessibilityNodeInfo info) {
+                        if(info.getChildCount() == 0)
+                            return null;
+                        return info.getChild(0);
+                    }
+                });
 
             shp.WaitBeforeSendChar = data.WaitBeforeSendCharMs;
 
@@ -894,9 +907,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
 
-    public void StopService() {
-        disableSelf();
-    }
+
 
     private void SetSearchHack(SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData) {
         if (KeyoneIME.Instance != null) {
