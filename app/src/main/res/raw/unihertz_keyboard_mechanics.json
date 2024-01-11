@@ -1053,14 +1053,12 @@
     "key-hold-plus-gesture-enabled" : true,
     "on-gesture-double-click" : [
       {
-        "action-method-name": "ActionEnableGestureAtInputMode",
+        "action-method-name": "ActionDoNothing",
         "need-update-gesture-visual-state": true
       }
     ],
     "on-gesture-triple-click" : [
       {
-        "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode"
-      }, {
         "action-method-name": "ActionEnableGestureAtInputMode",
         "need-update-gesture-visual-state": true
       }
