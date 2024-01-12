@@ -33,9 +33,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     float prevY = 0;
     float prevPrevX = 0;
     float prevPrevY = 0;
-    boolean modeDoubleClickGesture = false;
-
-
     protected Processable OnGestureDoubleClick;
     protected Processable OnGestureTripleClick;
     protected Processable OnGestureSecondClickUp;
@@ -276,12 +273,12 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     void ResetGestureClickTimes()
     {
         curDownTime = 0;
+
         prevDownTime = 0;
-        prevPrevDownTime = 0;
-
         prevUpTime = 0;
-        prevPrevUpTime = 0;
 
+        prevPrevUpTime = 0;
+        prevPrevDownTime = 0;
     }
 
     void LogGestureClickTimes() {
@@ -305,9 +302,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
         if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_UP)
                 || CheckMotionAction(motionEvent, MotionEvent.ACTION_CANCEL)) {
-
-
-
             prevPrevUpTime = prevUpTime;
             prevUpTime = motionEvent.getEventTime();
             prevX = motionEvent.getX();
@@ -322,6 +316,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 prevY = 0;
                 prevX = 0;
             }
+            ResetGestureClickTimes();
             //Log.d(TAG2, "GESTURE_MOVE_RESET");
         }
         else if (   CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)) {
@@ -342,7 +337,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 if(OnGestureTripleClick != null) {
                     OnGestureTripleClick.Process(null);
                 }
-                modeDoubleClickGesture = true;
                 LogGestureClickTimes();
                 ResetGestureClickTimes();
             }
@@ -354,7 +348,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 if(OnGestureDoubleClick != null) {
                     OnGestureDoubleClick.Process(null);
                 }
-                modeDoubleClickGesture = true;
                 LogGestureClickTimes();
                 prevPrevDownTime = prevDownTime;
                 prevDownTime = curDownTime;
