@@ -195,7 +195,11 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
                 KeyPressData keyPressData1 = CreateKeyPressData(keyCode, scanCode, keyDownTime, keyProcessingMode, event.getMetaState(), event);
                 KeyDownList1.add(keyPressData1);
-
+            /*
+            TIME_SHORT_PRESS - время от нажатия кнопки(тапа) до отжатия (первый раз)
+            TIME_DOUBLE_PRESS - время от нажатия кнопки(тапа) ПЕРВЫЙ раз до нажатия ВТОРОЙ раз
+            TIME_TRIPLE_PRESS - время от нажатия кнопки(тапа) ВТОРОЙ раз до нажатия ТРЕТИЙ раз
+             */
                 if (LastShortPressKey1 == null
                         || !IsSameKeyDownPress(LastShortPressKey1, keyPressData1)) {
                     ProcessShortPress(keyPressData1);

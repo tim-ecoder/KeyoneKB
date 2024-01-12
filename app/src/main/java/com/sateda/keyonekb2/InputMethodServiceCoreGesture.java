@@ -321,6 +321,11 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         }
         else if (   CheckMotionAction(motionEvent, MotionEvent.ACTION_DOWN)) {
 
+            /*
+            TIME_SHORT_PRESS - время от нажатия кнопки(тапа) до отжатия (первый раз)
+            TIME_DOUBLE_PRESS - время от нажатия кнопки(тапа) ПЕРВЫЙ раз до нажатия ВТОРОЙ раз
+            TIME_TRIPLE_PRESS - время от нажатия кнопки(тапа) ВТОРОЙ раз до нажатия ТРЕТИЙ раз
+             */
             curDownTime = motionEvent.getEventTime();
             float curX = motionEvent.getX();
             float curY = motionEvent.getY();
@@ -331,8 +336,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                     && Math.abs(prevPrevY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
                     && prevUpTime - prevDownTime <= TIME_SHORT_PRESS
                     && prevPrevUpTime - prevPrevDownTime <= TIME_SHORT_PRESS
-                    && prevDownTime - prevPrevUpTime <= TIME_DOUBLE_PRESS
-                    && curDownTime - prevUpTime <= TIME_TRIPLE_PRESS) {
+                    && prevDownTime - prevPrevDownTime <= TIME_DOUBLE_PRESS
+                    && curDownTime - prevDownTime <= TIME_TRIPLE_PRESS) {
                 Log.d(TAG2, "GESTURE TRIPLE CLICK");
                 if(OnGestureTripleClick != null) {
                     OnGestureTripleClick.Process(null);
@@ -343,7 +348,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             else if(Math.abs(curX - prevX) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
                     && Math.abs(curY - prevY) < MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST
                     && prevUpTime - prevDownTime <= TIME_SHORT_PRESS
-                    && curDownTime - prevUpTime <= TIME_DOUBLE_PRESS) {
+                    && curDownTime - prevDownTime <= TIME_DOUBLE_PRESS) {
                 Log.d(TAG2, "GESTURE DOUBLE CLICK");
                 if(OnGestureDoubleClick != null) {
                     OnGestureDoubleClick.Process(null);
