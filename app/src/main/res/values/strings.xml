@@ -54,7 +54,6 @@
         \tDefault Swipe - the default keyboard sensor is in swipe mode. Switch via 2xCTRL (K1: 2xR_SHIFT)\n
         \tDefault Pointer - keyboard sensor in default pointer mode (moving focus/highlighting by icons, controls). Switch via 2xCTRL (K1: 2xR_SHIFT).\n
         \tFor more useful features for working with gestures and text, see the manual in chapter �</string>
-    <string name="pref_p_9_hint" translatable="false"></string>
     <string name="pref_p_10_name">10. Layout icon on the right (without text in notifications)</string>
     <string name="pref_p_11_name">11. Vibration response when pressing the buttons of the hardware keyboard</string>
     <string name="pref_p_12_name">12. (Paranoid) If the text is entered, then BACK/HOME key must be pressed 2 times</string>
@@ -65,7 +64,9 @@
     <string name="pref_p_13a_hint">\tIn order for the color settings to be applied, it is necessary to switch off/onn the special service KeyoneKB2</string>
     <string name="pref_p_14_name">14. Show on-screen NAV-pad while holding SYM</string>
     <string name="pref_p_14_hint">\tYou can disable it when you use the NAV mode via the hard keyboard and remember everything.\n\tIn addition, if another function is hanging on the same button (for example, changing the language), so that the NAV-pad that comes out does not infuriate every time.</string>
-    <string name="pref_first_install">\tFirst initialization after installation in strict sequence: A, B, C, D, E.\n\tIn the Settings item A, disable unnecessary layouts (because the keyboard comes out of the box for several devices). The rest of the Settings (default values) are made so that it is convenient to use as is.</string>
+    <string name="pref_first_install">\tFirst initialization after installation in strict sequence: A, B, C, D, E.\n
+        \tIn the Settings item A, disable unnecessary layouts (because the keyboard comes out of the box for several devices). The rest of the Settings (default values) are made so that it is convenient to use as is.\n
+        Do not forget to enable Visual Keyboard option in Hardware keyboard settings. This option is needed to show NAV, SYM and SWYPE on-screen keyboards.</string>
     <string name="pref_manual_name">Manual</string>
     <string name="pref_manual_link" translatable="false">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
     <string name="notification_kb_state_nav_mode">Navigation</string>
