@@ -35,11 +35,11 @@
     }, {
       "package-name": "com.android.dialer",
       "search-field-id": "com.android.dialer:id/search_box_collapsed",
-      "wait-before-send-char-ms": 100
+      "wait-before-send-char-ms": 0
     }, {
       "package-name": "com.blackberry.contacts",
       "search-field-id": "com.blackberry.contacts:id/menu_search",
-      "wait-before-send-char-ms": 100
+      "wait-before-send-char-ms": 0
     }, {
       "package-name": "com.oasisfeng.island",
       "additional-event-type-type-window-content-changed": true,
