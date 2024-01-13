@@ -561,7 +561,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("MetaIsSymPressed", InitializeMethod3((Object o) -> MetaIsSymPressed(), Object.class));
         Methods.put("ActionEnableHoldSymMode", InitializeMethod3((Object o) -> ActionEnableHoldSymMode(), Object.class));
         Methods.put("ActionDisableHoldSymMode", InitializeMethod3((Object o) -> ActionDisableHoldSymMode(), Object.class));
-        //MetaIsSymPressed
+        Methods.put("TryDoTelegramRightDialogueExitHack", InitializeMethod3((Object o) -> TryDoTelegramRightDialogueExitHack(), Object.class));
+        //
     }
 
     //endregion
@@ -1115,42 +1116,34 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public boolean ActionDeleteUntilPrevCrLf() {
         InputConnection inputConnection = getCurrentInputConnection();
         CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
-        int dist = findPrevEnterDistance(c);
-        if (dist == 0 && c.length() > 0) {
-            //Это первый абзац в тексте
-            dist = c.length();
-        }
-        if (dist > 0) {
-            inputConnection.deleteSurroundingText(dist, 0);
+        int dist1 = findPrevEnterDistance(c);
+        //Это первый абзац в тексте
+        if (dist1 == 0 && c.length() > 0)
+            dist1 = c.length();
+        else if(dist1 > 1) dist1--;
+        if (dist1 > 0) {
+            inputConnection.deleteSurroundingText(dist1, 0);
         }
         return true;
     }
 
     public boolean ActionDeleteUntilFwdCrLf() {
         InputConnection inputConnection = getCurrentInputConnection();
-        CharSequence c = inputConnection.getTextAfterCursor(Byte.MAX_VALUE, 0);
-        int dist = findFwdEnterDistance(c);
-        if (dist == 0 && c.length() > 0) {
-            //Это последний абзац в тексте
-            dist = c.length();
-        }
-        if (dist > 0) {
-            inputConnection.deleteSurroundingText(0, dist);
+        CharSequence c = inputConnection.getTextAfterCursor(Integer.MAX_VALUE - Character.MAX_VALUE, 0);
+        int dist1 = findFwdEnterDistance(c);
+        //Последний абзац в тексте
+        if(dist1 == 0 && c.length() > 0)
+            dist1 = c.length();
+        else if(dist1 > 1) dist1--;
+        if (dist1 > 0) {
+            inputConnection.deleteSurroundingText(0, dist1);
         }
         return true;
     }
 
     public boolean ActionDeletePrevWord() {
         InputConnection inputConnection = getCurrentInputConnection();
-        CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
-        int dist1 = findPrevEnterDistance(c);
-        if (dist1 == 0 && c.length() > 0) {
-            //Это первый абзац в тексте
-            dist1 = c.length();
-        }
-        int dist2 = findPrevCharDistance(c, ' ');
-        int dist3 = findPrevCharDistance(c, '\t');
-        int dist = FindMinGreater0(dist1, dist2, dist3);
+        int dist = findPrevWordOrOtherLen();
 
         if (dist > 0) {
             inputConnection.deleteSurroundingText(dist, 0);
@@ -1158,18 +1151,72 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
+    public boolean ActionMoveCursorPrevWord() {
+        InputConnection inputConnection = getCurrentInputConnection();
+        CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
+        int dist = findPrevWordOrOtherLen();
+        dist = c.length() - dist;
+        if (dist >= 0) {
+            inputConnection.setSelection(dist, dist);
+        }
+        return true;
+    }
+
+    private int findPrevWordOrOtherLen() {
+        InputConnection inputConnection = getCurrentInputConnection();
+        CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
+        int dist1 = findPrevEnterDistance(c);
+        //Это первый абзац в тексте
+        if (dist1 == 0 && c.length() > 0)
+            dist1 = c.length();
+        else if(dist1 > 1) dist1--;
+
+        int dist2 = findPrevCharDistance(c, ' ');
+        if(dist2 > 1) dist2--;
+        int dist3 = findPrevCharDistance(c, '\t');
+        if(dist3 > 1) dist3--;
+        int dist = FindMinGreater0(dist1, dist2, dist3);
+        return dist;
+    }
+
     public boolean ActionDeleteFwdWord() {
         InputConnection inputConnection = getCurrentInputConnection();
-        CharSequence c = inputConnection.getTextAfterCursor(Byte.MAX_VALUE, 0);
-        int dist1 = findFwdEnterDistance(c);
-        int dist2 = findFwdCharDistance(c, ' ');
-        int dist3 = findFwdCharDistance(c, '\t');
-        int dist = FindMinGreater0(dist1, dist2, dist3);
+        CharSequence c = inputConnection.getTextAfterCursor(Integer.MAX_VALUE - Character.MAX_VALUE, 0);
+        int dist = findFwdWordOrOtherLen();
 
-        if (dist > 0) {
+        if (dist <= c.length()) {
             inputConnection.deleteSurroundingText(0, dist);
         }
         return true;
+    }
+
+    public boolean ActionMoveCursorFwdWord() {
+
+        InputConnection inputConnection = getCurrentInputConnection();
+        CharSequence c = inputConnection.getTextAfterCursor(Integer.MAX_VALUE - Character.MAX_VALUE, 0);
+        int dist = findFwdWordOrOtherLen();
+        if (dist <= c.length()) {
+            CharSequence c2 = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
+            dist = dist + c2.length();
+            inputConnection.setSelection(dist, dist);
+        }
+        return true;
+    }
+
+    private int findFwdWordOrOtherLen() {
+        InputConnection inputConnection = getCurrentInputConnection();
+        CharSequence c = inputConnection.getTextAfterCursor(Integer.MAX_VALUE - Character.MAX_VALUE, 0);
+        int dist1 = findFwdEnterDistance(c);
+        //Последнее слово в тексте
+        if(dist1 == 0 && c.length() > 0)
+            dist1 = c.length();
+        else if(dist1 > 1) dist1--;
+        int dist2 = findFwdCharDistance(c, ' ');
+        if(dist2 > 1) dist2--;
+        int dist3 = findFwdCharDistance(c, '\t');
+        if(dist3 > 1) dist3--;
+        int dist = FindMinGreater0(dist1, dist2, dist3);
+        return dist;
     }
 
     private int FindMinGreater0(int i1, int i2, int i3) {
@@ -1698,6 +1745,14 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     //endregion
 
+    //
+    public boolean TryDoTelegramRightDialogueExitHack() {
+        if(!_lastPackageName.equals("org.telegram.messenger"))
+            return false;
+        keyDownUp(KeyEvent.KEYCODE_TAB, getCurrentInputConnection(), 0,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
+        return true;
+    }
+
     //region end all the rest -->
     //endregion
 
@@ -1841,7 +1896,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         }
         int r_dist = findFwdCharDistance(c, '\r');
         int n_dist = findFwdCharDistance(c, '\n');
-        if(r_dist == 0 && n_dist == 0) return c.length();
+        if(r_dist == 0 && n_dist == 0) return 0;
         if(r_dist > 0 && n_dist == 0) return r_dist;
         if(r_dist == 0 && n_dist > 0) return n_dist;
         if(r_dist > n_dist) return n_dist;
@@ -1869,7 +1924,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             if(c.charAt(i) == c1)
                 return i + 1; //Включая сам символ
         }
-        return len;
+        return 0;
     }
 
     private void DeleteLastSymbol() {

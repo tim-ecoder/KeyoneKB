@@ -33,6 +33,16 @@
       "additional-event-type-type-window-content-changed": true,
       "search-field-id": "com.google.android.dialer:id/open_search_bar"
     }, {
+      "package-name": "com.google.android.diales70plus",
+      "additional-event-type-type-window-content-changed": true,
+      "search-field-id": "com.google.android.diales:id/open_search_bar",
+      "wait-before-send-char-ms": 300
+    }, {
+      "package-name": "com.google.android.diales",
+      "additional-event-type-type-window-content-changed": true,
+      "search-field-id": "com.google.android.diales:id/search_edit_text",
+      "wait-before-send-char-ms": 200
+    }, {
       "package-name": "com.android.dialer",
       "search-field-id": "com.android.dialer:id/search_box_collapsed",
       "wait-before-send-char-ms": 0
