@@ -235,7 +235,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if(event.getPackageName() != null && !event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
                 return;
             if(KeyoneIME.Instance.IsInputMode()) {
-                if(CurFocus == null) {
+                if(CurFocus == null || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
                     CurFocus = GetFocusedNode(event.getSource());
                     if (CurFocus == null) {
                         CurFocus = GetFocusedNode(getRootInActiveWindow());

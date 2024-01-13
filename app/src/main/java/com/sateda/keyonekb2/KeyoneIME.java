@@ -38,9 +38,6 @@ import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
 public class KeyoneIME extends InputMethodServiceCoreCustomizable implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
 
 
-
-    private static final boolean DEBUG = false;
-
     public static KeyoneIME Instance;
 
 
@@ -426,12 +423,14 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         if (IsNavMode() && IsNavKeyCode(keyCode)) {
             AnyButtonPressOnHoldPlusButtonTime = event.getEventTime();
 
-            if(keyCode == KeyEvent.KEYCODE_Z) {
-                ActionMoveCursorPrevWord();
+            if(keyCode == KeyEvent.KEYCODE_Z
+                    || keyCode == KeyEvent.KEYCODE_N ) {
+                ActionMoveCursorPrevWord(event);
                 return true;
             }
-            if(keyCode == KeyEvent.KEYCODE_X) {
-                ActionMoveCursorFwdWord();
+            if(keyCode == KeyEvent.KEYCODE_X
+                    || keyCode == KeyEvent.KEYCODE_M ) {
+                ActionMoveCursorFwdWord(event);
                 return true;
             }
 
@@ -676,7 +675,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                                   final int composingSpanStart, final int composingSpanEnd) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd,
                 composingSpanStart, composingSpanEnd);
-        if (DEBUG) {
+        if (true) {
             Log.i(TAG2, "onUpdateSelection: oss=" + oldSelStart + ", ose=" + oldSelEnd
                     + ", nss=" + newSelStart + ", nse=" + newSelEnd
                     + ", cs=" + composingSpanStart + ", ce=" + composingSpanEnd);
@@ -1134,10 +1133,6 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     //endregion
 
-
-
-
-
     @Override
     public void onGetSuggestions(SuggestionsInfo[] results) {
         Log.d(TAG2, "onGetSuggestions");
@@ -1173,7 +1168,9 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 || keyCode == KeyEvent.KEYCODE_L
                 //MOVE WORDS
                 ||  keyCode == KeyEvent.KEYCODE_Z
-                ||  keyCode == KeyEvent.KEYCODE_X;
+                ||  keyCode == KeyEvent.KEYCODE_X
+                ||  keyCode == KeyEvent.KEYCODE_N
+                ||  keyCode == KeyEvent.KEYCODE_M;
 
     }
 

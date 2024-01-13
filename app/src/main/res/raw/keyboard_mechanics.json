@@ -635,6 +635,7 @@
         "KEYCODE_SHIFT_LEFT"
       ],
       "on-short-press": [
+
         {
           "action-method-name": "ActionTryChangeSymPadLayout",
           "need-update-visual-state": true,
@@ -650,6 +651,10 @@
         }
       ],
       "on-double-press": [
+        {
+          "action-method-name": "TryChangeSelectionStartDirection",
+          "stop-processing-at-success-result": true
+        },
         {
           "action-method-name": "ActionChangeShiftCapslockState",
           "need-update-visual-state": true

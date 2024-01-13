@@ -12,6 +12,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.ExtractedText;
+import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.widget.Toast;
 import com.android.internal.telephony.ITelephony;
@@ -562,7 +564,9 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionEnableHoldSymMode", InitializeMethod3((Object o) -> ActionEnableHoldSymMode(), Object.class));
         Methods.put("ActionDisableHoldSymMode", InitializeMethod3((Object o) -> ActionDisableHoldSymMode(), Object.class));
         Methods.put("TryDoTelegramRightDialogueExitHack", InitializeMethod3((Object o) -> TryDoTelegramRightDialogueExitHack(), Object.class));
-        //
+        Methods.put("TryChangeSelectionStartDirection", InitializeMethod3((Object o) -> TryChangeSelectionStartDirection(), Object.class));
+
+        //TryChangeSelectionStartDirection
     }
 
     //endregion
@@ -1151,16 +1155,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
-    public boolean ActionMoveCursorPrevWord() {
-        InputConnection inputConnection = getCurrentInputConnection();
-        CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
-        int dist = findPrevWordOrOtherLen();
-        dist = c.length() - dist;
-        if (dist >= 0) {
-            inputConnection.setSelection(dist, dist);
-        }
-        return true;
-    }
+
 
     private int findPrevWordOrOtherLen() {
         InputConnection inputConnection = getCurrentInputConnection();
@@ -1190,16 +1185,86 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
-    public boolean ActionMoveCursorFwdWord() {
-
+    public boolean ActionMoveCursorPrevWord(KeyEvent event) {
         InputConnection inputConnection = getCurrentInputConnection();
+
+        ExtractedTextRequest request1 = new ExtractedTextRequest();
+        ExtractedText extractedText1 = inputConnection.getExtractedText(request1, 0);
+        int start1 = extractedText1.selectionStart;
+        int end1 = extractedText1.selectionEnd;
+        if(Math.abs(start1-end1) > 0) {
+            inputConnection.setSelection(end1, end1);
+        }
+
+        CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
+        int dist = findPrevWordOrOtherLen();
+        if(Math.abs(start1-end1) > 0) {
+            inputConnection.setSelection(start1, end1);
+        }
+        if (dist >= 0) {
+            if(MetaIsShiftPressed() || (event.getMetaState() & KeyEvent.META_SHIFT_LEFT_ON) != 0) {
+                ExtractedTextRequest request = new ExtractedTextRequest();
+                ExtractedText extractedText = inputConnection.getExtractedText(request, 0);
+                int start = extractedText.selectionStart;
+                int end = extractedText.selectionEnd;
+                Log.d(TAG2, String.format("SELECTION BEFORE START: %d END: %d", start, end));
+                inputConnection.setSelection(start1, end1-dist);
+            }
+            else {
+                dist = c.length() - dist;
+                inputConnection.setSelection(dist, dist);
+            }
+        }
+        return true;
+    }
+
+    public boolean ActionMoveCursorFwdWord(KeyEvent event) {
+        InputConnection inputConnection = getCurrentInputConnection();
+
+        ExtractedTextRequest request1 = new ExtractedTextRequest();
+        ExtractedText extractedText1 = inputConnection.getExtractedText(request1, 0);
+        int start1 = extractedText1.selectionStart;
+        int end1 = extractedText1.selectionEnd;
+        if(Math.abs(start1-end1) > 0) {
+            inputConnection.setSelection(end1, end1);
+        }
+
         CharSequence c = inputConnection.getTextAfterCursor(Integer.MAX_VALUE - Character.MAX_VALUE, 0);
         int dist = findFwdWordOrOtherLen();
+        if(Math.abs(start1-end1) > 0) {
+            inputConnection.setSelection(start1, end1);
+        }
         if (dist <= c.length()) {
             CharSequence c2 = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
-            dist = dist + c2.length();
-            inputConnection.setSelection(dist, dist);
+
+            if(MetaIsShiftPressed()  || (event.getMetaState() & KeyEvent.META_SHIFT_LEFT_ON) != 0) {
+                ExtractedTextRequest request = new ExtractedTextRequest();
+                ExtractedText extractedText = inputConnection.getExtractedText(request, 0);
+                int start = extractedText.selectionStart;
+                int end = extractedText.selectionEnd;
+                //this.getCurrentInputEditorInfo().initialSelStart
+                Log.d(TAG2, String.format("SELECTION BEFORE START: %d END: %d", start, end));
+                inputConnection.setSelection(start1, end1+dist);
+            }
+            else {
+                dist = dist + c2.length();
+                inputConnection.setSelection(dist, dist);
+            }
         }
+        return true;
+    }
+
+    public boolean TryChangeSelectionStartDirection() {
+        if(!IsInputMode())
+            return false;
+        InputConnection inputConnection = getCurrentInputConnection();
+        ExtractedTextRequest request = new ExtractedTextRequest();
+        ExtractedText extractedText = inputConnection.getExtractedText(request, 0);
+        int start = extractedText.selectionStart;
+        int end = extractedText.selectionEnd;
+        if(Math.abs(start-end) == 0)
+            return false;
+        inputConnection.setSelection(end, start);
         return true;
     }
 
@@ -1242,14 +1307,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
         int pos = findPrevEnterAbsPos(c);
         inputConnection.setSelection(pos, pos);
-        //Иначе текст будет выделяться
-        //inputConnection.clearMetaKeyStates(KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON);
-            /*
-            if (c.length() > 0 && c.charAt(0) != '\r' && c.charAt(0) != '\n') {
-                keyDownUpNoMetaKeepTouch(KeyEvent.KEYCODE_MOVE_HOME, inputConnection);
-            } else {
-                MoveCursorUpSafe(inputConnection);
-            }*/
         return true;
     }
 
