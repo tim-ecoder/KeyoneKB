@@ -310,8 +310,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     }
 
 
-
-
+    @Override
+    public boolean onEvaluateInputViewShown() {
+        Log.d(TAG2, "onEvaluateInputViewShown");
+        return super.onEvaluateInputViewShown();
+    }
 
     @Override
     public synchronized void onStartInput(EditorInfo editorInfo, boolean restarting) {
@@ -422,6 +425,16 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         InputConnection inputConnection = getCurrentInputConnection();
         if (IsNavMode() && IsNavKeyCode(keyCode)) {
             AnyButtonPressOnHoldPlusButtonTime = event.getEventTime();
+
+            if(keyCode == KeyEvent.KEYCODE_Z) {
+                ActionMoveCursorPrevWord();
+                return true;
+            }
+            if(keyCode == KeyEvent.KEYCODE_X) {
+                ActionMoveCursorFwdWord();
+                return true;
+            }
+
             navigationKeyCode = getNavigationCode(event.getKeyCode());
 
             Log.d(TAG2, "navigationKeyCode " + navigationKeyCode);
@@ -466,19 +479,6 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
     }
 
-    /**
-     * Особенность в том, что NAV режим не работал для движения в режиме курсора по BB Launcher (чтобы работал flag должен быть 0)
-     * Но в режиме ввода текста чтобы фокус не выбивало при NAV-навигации в Telegram flag должен быть KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE
-     * @param keyEventCode
-     * @param ic
-     * @param meta
-     */
-    protected void keyDownUpKeepTouch2(int keyEventCode, InputConnection ic, int meta) {
-        if(IsInputMode())
-            keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
-        else
-            keyDownUp(keyEventCode, ic, meta,0);
-    }
 
     @Override
     public synchronized boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -522,6 +522,20 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
         //Это нужно чтобы работал "чужой"/встроенный механизм выделения с Shift-ом
         return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
+    }
+
+    /**
+     * Особенность в том, что NAV режим не работал для движения в режиме курсора по BB Launcher (чтобы работал flag должен быть 0)
+     * Но в режиме ввода текста чтобы фокус не выбивало при NAV-навигации в Telegram flag должен быть KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE
+     * @param keyEventCode
+     * @param ic
+     * @param meta
+     */
+    protected void keyDownUpKeepTouch2(int keyEventCode, InputConnection ic, int meta) {
+        if(IsInputMode())
+            keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
+        else
+            keyDownUp(keyEventCode, ic, meta,0);
     }
 
     //TODO: Вынести в XML/JSON
@@ -1156,7 +1170,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 || keyCode == KeyEvent.KEYCODE_H
                 || keyCode == KeyEvent.KEYCODE_J
                 || keyCode == KeyEvent.KEYCODE_K
-                || keyCode == KeyEvent.KEYCODE_L;
+                || keyCode == KeyEvent.KEYCODE_L
+                //MOVE WORDS
+                ||  keyCode == KeyEvent.KEYCODE_Z
+                ||  keyCode == KeyEvent.KEYCODE_X;
+
     }
 
     private boolean IsViewModeKeyCode(int keyCode, int meta) {
