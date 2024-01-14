@@ -27,8 +27,22 @@ android {
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
         versionCode 2607
-        versionName "v2.6-build0.7-RC6-sr6-ckp11v22-gm23-sp12-nm22"
+        versionName "v2.6-bigrelease-RC6"
         //TODO: ----------------------------
+
+        /**
+         * На этапе разработки, чтобы видеть между билдами какие функции менялись
+         * -RC6-sr6-ckp11v22-gm23-sp12-nm22
+         *
+         * RC6 - Release candidate
+         *
+         * sr6 - Speech recognition
+         * ckp - Core key press
+         * gm - Gesture movement
+         * sp - Search plugins
+         * nm - Navigation mode
+         *
+         */
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
