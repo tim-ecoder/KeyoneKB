@@ -156,6 +156,8 @@
       "action-method-name": "ActionTryDisableFirstSymbolAltMode"
     }, {
       "action-method-name": "ActionTryDisableFirstLetterShiftMode"
+    }, {
+      "action-method-name": "ActionSetNeedUpdateVisualState"
     }
   ],
   "view-mode-key-transparency-exclude-key-codes": [

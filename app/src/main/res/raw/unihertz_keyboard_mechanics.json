@@ -148,6 +148,8 @@
     }, {
       "action-method-name": "ActionTryDisableFirstLetterShiftMode"
     }, {
+      "action-method-name": "ActionSetNeedUpdateVisualState"
+    }, {
       "action-method-name": "ActionTryTurnOffGesturesMode",
       "need-update-visual-state": true,
       "need-update-gesture-visual-state": true
