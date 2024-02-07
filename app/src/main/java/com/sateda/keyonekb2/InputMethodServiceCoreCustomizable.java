@@ -1433,18 +1433,33 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     //region Actions LETTERS (CHARS)
 
-    public boolean ActionSendCtrlPlusKey(KeyPressData keyPressData) {
-        if(keyPressData.KeyCode == KeyEvent.KEYCODE_S) {
-            //keyDownUp(KeyEvent.KEYCODE_ESCAPE, getCurrentInputConnection(), 0xFFFFFFFF, 0xFFFFFFFF);
-            //Log.d(TAG2, "TEST KEY SENT");
-            //Testing open Search containers
-            //return true;
-        }
-        int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
-        //Для K1 надо очищать мета статус от всего лишено, оставляем только shift для Ctrl+Shift+Z;
-        int metaBase =  (keyPressData.MetaBase & KeyEvent.META_SHIFT_LEFT_ON) > 0 ? KeyEvent.META_SHIFT_LEFT_ON : 0;
-        keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | metaBase);
+    public static int GetKeyCode(int keyCode) {
+        if(keyCode == KeyEvent.KEYCODE_Y)
+            return KeyEvent.KEYCODE_Z;
+        if(keyCode == KeyEvent.KEYCODE_Z)
+            return KeyEvent.KEYCODE_Y;
+        return keyCode;
+    }
 
+    public boolean ActionSendCtrlPlusKey(KeyPressData keyPressData) {
+        InputConnection ic = getCurrentInputConnection();
+        if(IsInputMode()) {
+            int meta = 0;
+            meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
+            //Для K1 надо очищать мета статус от всего лишено, оставляем только shift для Ctrl+Shift+Z;
+            int metaBase = (keyPressData.MetaBase & KeyEvent.META_SHIFT_LEFT_ON) > 0 ? KeyEvent.META_SHIFT_LEFT_ON : 0;
+            keyDownUpKeepTouch(keyPressData.KeyCode, ic, meta | metaBase);
+        } else {
+            Log.i(TAG2, "ActionSendCtrlPlusKey at ViewMode KEY: "+keyPressData.KeyCode);
+            ic.sendKeyEvent(
+                    new KeyEvent(keyPressData.BaseKeyEvent.getDownTime(), keyPressData.BaseKeyEvent.getEventTime(), KeyEvent.ACTION_DOWN, keyPressData.BaseKeyEvent.getKeyCode(), keyPressData.BaseKeyEvent.getRepeatCount(),
+                            keyPressData.BaseKeyEvent.getMetaState(), keyPressData.BaseKeyEvent.getDeviceId(), keyPressData.BaseKeyEvent.getScanCode(),
+                            keyPressData.BaseKeyEvent.getFlags(), keyPressData.BaseKeyEvent.getSource()));
+            ic.sendKeyEvent(
+                    new KeyEvent(keyPressData.BaseKeyEvent.getDownTime(), keyPressData.BaseKeyEvent.getEventTime(), KeyEvent.ACTION_UP, keyPressData.BaseKeyEvent.getKeyCode(), keyPressData.BaseKeyEvent.getRepeatCount(),
+                            keyPressData.BaseKeyEvent.getMetaState(), keyPressData.BaseKeyEvent.getDeviceId(), keyPressData.BaseKeyEvent.getScanCode(),
+                            keyPressData.BaseKeyEvent.getFlags(), keyPressData.BaseKeyEvent.getSource()));
+        }
         return true;
     }
 

@@ -122,7 +122,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
         this.flagResId = flagResId;
     }
 
-    private boolean isKeyboard(int keyCode1) {
+    public static boolean isKeyboard(int keyCode1) {
         for(int keyCode2 : InputMethodServiceCoreKeyPress.KEY2_LATIN_ALPHABET_KEYS_CODES) {
             if(keyCode1 == keyCode2)
                 return true;

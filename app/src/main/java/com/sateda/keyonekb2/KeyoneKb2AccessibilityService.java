@@ -3,9 +3,16 @@ package com.sateda.keyonekb2;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.accessibilityservice.GestureDescription;
+import android.annotation.SuppressLint;
+import android.app.Instrumentation;
+import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.*;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -220,7 +227,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                             || event.getClassName().toString().equalsIgnoreCase("android.webkit.WebView")
                             || event.getClassName().toString().equalsIgnoreCase("android.widget.ScrollView")
                     ) {
-                        Log.d(TAG3, "IGNORING android.widget.EditText || android.webkit.WebView || android.widget.ScrollView at:" + event.getPackageName());
+                        Log.d(TAG3, "IGNORING android.widget.EditText || android.webkit.WebView || android.widget.ScrollView at: " + event.getPackageName());
                         //android.widget.ScrollView
                         return;
                     }
@@ -997,6 +1004,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     private boolean ContainsAllDigitsButtons2() {
         AccessibilityNodeInfo node = getRootInActiveWindow();
+        if(node == null)
+            return false;
         for (int i = 0; i < DigitsPadHackOptionsAppMarkers.length; i++) {
             KeyoneKb2AccServiceOptions.DigitsPadHackOptionsAppMarker marker = DigitsPadHackOptionsAppMarkers[i];
             if(!marker.PackageName.equalsIgnoreCase(node.getPackageName().toString()))
@@ -1040,6 +1049,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
         }
     }
+
+    @SuppressLint("WrongConstant")
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public synchronized boolean onKeyEvent(KeyEvent event) {
@@ -1050,12 +1061,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if(keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes == null || keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty())
             return false;
         try {
+            KeyEvent event1 = GetCopy(event);
+
             //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
             //Зажатие speed_key+Буква не передается в сервис клавиатуры
 
             // Этот блок ХАК-а нужен на К2_не_РСТ иначе при нажатиии speed_key вызывается меню биндинга букв
-            if (IsRetranslateKeyCode(event)) {
-                KeyEvent event1 = GetCopy(event);
+            if (IsRetranslateKeyCode(event)
+                    ) {
+                event1.setSource(KeyoneIME.SYNTHETIC_CALL);
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
                     return KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
                 }
@@ -1064,36 +1078,19 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 }
             }
 
-            if(keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
+            if(keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList != null
+                    && !keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList.isEmpty()
+                    /*&& KeyoneIME.Instance.IsInputMode()*/) {
                 for (KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList) {
                     if(pair.KeyKeyCodeInt != event.getKeyCode())
                         continue;
                     if(!IsMeta(event, pair.MetaKeyCodeInt))
                         continue;
+                    event1.setSource(KeyoneIME.SYNTHETIC_CALL_B_PLUS_META);
                     if (event.getAction() == KeyEvent.ACTION_DOWN) {
-
-                        KeyEvent event1 = GetCopy(event);
                         return KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
-
-                        /* Раньше работало только так, теперь заработало и по-нормальному
-                        executorService.execute(
-                                () -> {
-                                    try {
-                                        KeyEvent event1 = GetCopy(event);
-                                        //Было sleep 100 из-за задержки в KeyoneIME относительно AS
-                                        Thread.sleep(1);
-                                        KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
-                                    } catch (Throwable ignored) {
-                                    }
-                                });
-                        return true;
-
-                         */
                     } else if (event.getAction() == KeyEvent.ACTION_UP) {
-                        //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
-                        KeyEvent event1 = GetCopy(event);
                         return KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
-
                     }
                 }
             }

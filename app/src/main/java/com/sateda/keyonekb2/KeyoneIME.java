@@ -1,15 +1,18 @@
 package com.sateda.keyonekb2;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
 import android.graphics.drawable.Icon;
+import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.annotation.Keep;
@@ -313,6 +316,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         return super.onEvaluateInputViewShown();
     }
 
+    public InputConnection IC = null;
+
     @Override
     public synchronized void onStartInput(EditorInfo editorInfo, boolean restarting) {
         //TODO: Минорно. Если надо знать какие флаги их надо расшифровывать
@@ -323,6 +328,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         if(isNotStarted)
             return;
         super.onStartInput(editorInfo, restarting);
+        IC = getCurrentInputConnection();
         isPackageChangedInsideSingleEvent = false;
         // Обрабатываем переход между приложениями
         if (!editorInfo.packageName.equals(_lastPackageName)) {
@@ -399,11 +405,32 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         return isPackageChangedInsideSingleEvent;
     }
 
+    private KeyEvent GetCopy(KeyEvent keyEvent) {
+        return new KeyEvent(keyEvent.getDownTime(), keyEvent.getEventTime(), keyEvent.getAction(), GetKeyCode(keyEvent.getKeyCode()), keyEvent.getRepeatCount(),keyEvent.getMetaState(),keyEvent.getDeviceId(),keyEvent.getScanCode(),keyEvent.getFlags(),keyEvent.getFlags());
+    }
+
+    private void SendKeyEvent(KeyEvent event1) {
+        InputConnection ic = super.getCurrentInputConnection();
+        ic.sendKeyEvent(event1);
+    }
+
+    public static final int SYNTHETIC_CALL = 0x92101;
+    public static final int SYNTHETIC_CALL_B_PLUS_META = 0x92110;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public synchronized boolean onKeyDown(int keyCode, KeyEvent event) {
+    public synchronized boolean onKeyDown(int keyCode1, KeyEvent event1) {
         keyboardView.hidePopup(false);
-        Log.v(TAG2, "onKeyDown " + event);
+        Log.v(TAG2, "onKeyDown " + event1);
+
+        KeyEvent event = GetCopy(event1);
+        int keyCode = event.getKeyCode();
+
+        if(!IsInputMode()
+                && event1.getSource() == SYNTHETIC_CALL_B_PLUS_META
+                && ViewSatedaKeyboard.isKeyboard(event1.getKeyCode())) {
+            return true;
+        }
 
         if(
             !IsInputMode()
@@ -412,7 +439,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             && !_digitsHackActive
             && !IsNavMode())  {
             Log.d(TAG2, "App transparency mode");
-            return super.onKeyDown(keyCode, event);
+            SendKeyEvent(event);
+            return true;
         }
 
         //region Режим "Навигационные клавиши"
@@ -451,7 +479,6 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                  * С другой стороны надо передавать мета состояние чтобы работало сочетания Shift+Tab(SYM+A)
                  */
                 keyDownUpKeepTouch2(navigationKeyCode, inputConnection, meta);
-                //keyDownUpMeta(navigationKeyCode, inputConnection, meta);
             }
             return true;
         }
@@ -460,8 +487,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         needUpdateVisualInsideSingleEvent = false;
         _isKeyTransparencyInsideUpDownEvent = false;
         boolean processed = ProcessNewStatusModelOnKeyDown(keyCode, event);
-        if(_isKeyTransparencyInsideUpDownEvent)
-            return false;
+        if(_isKeyTransparencyInsideUpDownEvent) {
+            Log.d(TAG2, "App transparency inside");
+            SendKeyEvent(event);
+            return true;
+        }
         if (!processed)
             return false;
 
@@ -479,9 +509,47 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     }
 
 
+    @SuppressLint("WrongConstant")
+    private boolean BbLauncherShortcut(Character key, boolean long_press) {
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName("com.blackberry.blackberrylauncher", "com.blackberry.shortcuts.keyboard.receiver.CommandReceiver"));
+        intent.setAction("com.blackberry.shortcuts.SHORTCUT_COMMAND");
+        Bundle extras = new Bundle();
+        extras.putString("com.blackberry.shortcuts.KEY_MODIFIER", long_press ? "LONG_PRESS" : "SHORT_KEY_UP");
+        extras.putChar("com.blackberry.shortcuts.KEY", key);
+        intent.putExtras(extras);
+        //intent.addFlags(268435456);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        sendBroadcast(intent);
+        return true;
+    }
+
     @Override
-    public synchronized boolean onKeyUp(int keyCode, KeyEvent event) {
-        Log.v(TAG2, "onKeyUp " + event);
+    public synchronized boolean onKeyUp(int keyCode1, KeyEvent event1) {
+        Log.v(TAG2, "onKeyUp " + event1);
+
+        KeyEvent event = GetCopy(event1);
+        int keyCode = event.getKeyCode();
+
+        if(!IsInputMode()
+                && event1.getSource() == SYNTHETIC_CALL_B_PLUS_META
+                && ViewSatedaKeyboard.isKeyboard(event1.getKeyCode())) {
+            long time = event1.getEventTime() - event1.getDownTime();
+            boolean long_press;
+            if(time <= TIME_SHORT_PRESS)
+                long_press = false;
+            else
+                long_press = true;
+            if(event1.getKeyCode() == KeyEvent.KEYCODE_Z) {
+                BbLauncherShortcut('Y', long_press);
+                return true;
+            }
+            if(event1.getKeyCode() == KeyEvent.KEYCODE_Y) {
+                BbLauncherShortcut('Z', long_press);
+                return true;
+            }
+            return false;
+        }
 
         //region Блок навигационной клавиатуры
 
@@ -497,7 +565,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             && SearchPluginLauncher == null)  {
 
             Log.d(TAG2, "App transparency mode");
-            return super.onKeyUp(keyCode, event);
+            SendKeyEvent(event);
+            return true;
         }
 
         needUpdateVisualInsideSingleEvent = false;
@@ -505,7 +574,9 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
         if (_isKeyTransparencyInsideUpDownEvent) {
             _isKeyTransparencyInsideUpDownEvent = false;
-            return false;
+            Log.d(TAG2, "App transparency inside");
+            SendKeyEvent(event);
+            return true;
         }
 
         if (!processed)
