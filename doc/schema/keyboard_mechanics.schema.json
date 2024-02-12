@@ -1,0 +1,446 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "on-start-input-actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "meta-mode-method-names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "action-method-name": {
+            "type": "string"
+          },
+          "need-update-gesture-visual-state": {
+            "type": "boolean"
+          },
+          "need-update-visual-state": {
+            "type": "boolean"
+          },
+          "stop-processing-at-success-result": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action-method-name"
+        ]
+      }
+    },
+    "on-finish-input-actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action-method-name": {
+            "type": "string"
+          },
+          "need-update-visual-state": {
+            "type": "boolean"
+          },
+          "need-update-gesture-visual-state": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action-method-name"
+        ]
+      }
+    },
+    "before-send-char-actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action-method-name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action-method-name"
+        ]
+      }
+    },
+    "after-send-char-actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action-method-name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action-method-name"
+        ]
+      }
+    },
+    "view-mode-key-transparency-exclude-key-codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "on-any-key-before-actions": {
+      "type": "object",
+      "properties": {
+        "on-short-press": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action-method-name": {
+                "type": "string"
+              },
+              "need-update-gesture-visual-state": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "action-method-name"
+            ]
+          }
+        }
+      },
+      "required": [
+        "on-short-press"
+      ]
+    },
+    "key-group-processors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key-codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "on-short-press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "meta-mode-method-names": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "action-method-name": {
+                  "type": "string"
+                },
+                "method-needs-key-press-parameter": {
+                  "type": "boolean"
+                },
+                "stop-processing-at-success-result": {
+                  "type": "boolean"
+                },
+                "need-update-gesture-visual-state": {
+                  "type": "boolean"
+                },
+                "custom-char": {
+                  "type": "string"
+                },
+                "need-update-visual-state": {
+                  "type": "boolean"
+                },
+                "comment": {
+                  "type": "string"
+                },
+                "custom-key-code": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "action-method-name"
+              ]
+            }
+          },
+          "on-double-press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "action-method-name": {
+                  "type": "string"
+                },
+                "stop-processing-at-success-result": {
+                  "type": "boolean"
+                },
+                "need-update-visual-state": {
+                  "type": "boolean"
+                },
+                "method-needs-key-press-parameter": {
+                  "type": "boolean"
+                },
+                "meta-mode-method-names": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "comment": {
+                  "type": "string"
+                },
+                "custom-char": {
+                  "type": "string"
+                },
+                "need-update-gesture-visual-state": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "action-method-name"
+              ]
+            }
+          },
+          "on-long-press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "action-method-name": {
+                  "type": "string"
+                },
+                "method-needs-key-press-parameter": {
+                  "type": "boolean"
+                },
+                "stop-processing-at-success-result": {
+                  "type": "boolean"
+                },
+                "meta-mode-method-names": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "action-method-name",
+                "stop-processing-at-success-result"
+              ]
+            }
+          },
+          "on-hold-on": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "action-method-name": {
+                  "type": "string"
+                },
+                "need-update-visual-state": {
+                  "type": "boolean"
+                },
+                "method-needs-key-press-parameter": {
+                  "type": "boolean"
+                },
+                "need-update-gesture-visual-state": {
+                  "type": "boolean"
+                },
+                "meta-mode-method-names": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "stop-processing-at-success-result": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "action-method-name"
+              ]
+            }
+          },
+          "on-hold-off": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "action-method-name": {
+                  "type": "string"
+                },
+                "need-update-visual-state": {
+                  "type": "boolean"
+                },
+                "method-needs-key-press-parameter": {
+                  "type": "boolean"
+                },
+                "need-update-gesture-visual-state": {
+                  "type": "boolean"
+                },
+                "meta-mode-method-names": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "stop-processing-at-success-result": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "action-method-name"
+              ]
+            }
+          },
+          "on-undo-short-press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "action-method-name": {
+                  "type": "string"
+                },
+                "need-update-visual-state": {
+                  "type": "boolean"
+                },
+                "meta-mode-method-names": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "stop-processing-at-success-result": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "action-method-name"
+              ]
+            }
+          },
+          "on-triple-press": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "meta-mode-method-names": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "action-method-name": {
+                  "type": "string"
+                },
+                "stop-processing-at-success-result": {
+                  "type": "boolean"
+                },
+                "need-update-visual-state": {
+                  "type": "boolean"
+                },
+                "need-update-gesture-visual-state": {
+                  "type": "boolean"
+                },
+                "comment": {
+                  "type": "string"
+                },
+                "custom-char": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "action-method-name"
+              ]
+            }
+          }
+        },
+        "required": [
+          "key-codes",
+          "on-short-press"
+        ]
+      }
+    },
+    "gesture-processor": {
+      "type": "object",
+      "properties": {
+        "keyboard-gestures-at-input-mode-enabled": {
+          "type": "boolean"
+        },
+        "key-hold-plus-gesture-enabled": {
+          "type": "boolean"
+        },
+        "on-gesture-double-click": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action-method-name": {
+                "type": "string"
+              },
+              "need-update-gesture-visual-state": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "action-method-name",
+              "need-update-gesture-visual-state"
+            ]
+          }
+        },
+        "on-gesture-triple-click": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action-method-name": {
+                "type": "string"
+              },
+              "need-update-gesture-visual-state": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "action-method-name",
+              "need-update-gesture-visual-state"
+            ]
+          }
+        },
+        "on-gesture-second-click-up": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action-method-name": {
+                "type": "string"
+              },
+              "need-update-gesture-visual-state": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "action-method-name",
+              "need-update-gesture-visual-state"
+            ]
+          }
+        }
+      },
+      "required": [
+        "keyboard-gestures-at-input-mode-enabled",
+        "key-hold-plus-gesture-enabled",
+        "on-gesture-double-click",
+        "on-gesture-triple-click",
+        "on-gesture-second-click-up"
+      ]
+    }
+  },
+  "required": [
+    "on-start-input-actions",
+    "on-finish-input-actions",
+    "before-send-char-actions",
+    "after-send-char-actions",
+    "view-mode-key-transparency-exclude-key-codes",
+    "on-any-key-before-actions",
+    "key-group-processors",
+    "gesture-processor"
+  ]
+}

@@ -49,3 +49,4 @@
 -keep class com.sateda.keyonekb2.InputMethodServiceCoreCustomizable$KeyboardMechanics$* { *; }
 -keep class com.sateda.keyonekb2.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions { *; }
 -keep class com.sateda.keyonekb2.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions$* { *; }
+-keep class org.mozilla.javascript.** { *; }

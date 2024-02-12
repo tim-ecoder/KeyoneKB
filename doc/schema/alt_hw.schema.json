@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "key-code": {
+        "type": "string"
+      },
+      "single-press-alt-shift-mode": {
+        "type": "string"
+      },
+      "single-press-alt-mode": {
+        "type": "string"
+      },
+      "alt-more-variants": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "key-code",
+      "single-press-alt-shift-mode",
+      "single-press-alt-mode"
+    ]
+  }
+}

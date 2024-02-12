@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "time-short-press": {
+      "type": "number"
+    },
+    "time-double-press": {
+      "type": "number"
+    },
+    "time-triple-press": {
+      "type": "number"
+    },
+    "time-long-press": {
+      "type": "number"
+    },
+    "time-long-after-short-press": {
+      "type": "number"
+    },
+    "time-wait-gesture-upon-key0-hold": {
+      "type": "number"
+    },
+    "gesture-finger-press-radius": {
+      "type": "number"
+    },
+    "gesture-motion-base-sensitivity": {
+      "type": "number"
+    },
+    "gesture-row4-begin-y": {
+      "type": "number"
+    },
+    "gesture-row1-begin-y": {
+      "type": "number"
+    },
+    "time-vibrate": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "time-short-press",
+    "time-double-press",
+    "time-triple-press",
+    "time-long-press",
+    "time-long-after-short-press",
+    "time-wait-gesture-upon-key0-hold",
+    "gesture-finger-press-radius",
+    "gesture-motion-base-sensitivity",
+    "gesture-row4-begin-y",
+    "gesture-row1-begin-y",
+    "time-vibrate"
+  ]
+}

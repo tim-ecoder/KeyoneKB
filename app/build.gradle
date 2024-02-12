@@ -17,17 +17,22 @@ android {
             keyPassword 'qwerty'
         }
     }
+
+    lintOptions {
+        disable 'ExpiredTargetSdkVersion'
+    }
+
     compileSdkVersion 28
 
     defaultConfig {
         applicationId "com.sateda.keyonekb2"
-        minSdkVersion 25
+        minSdkVersion 27
         targetSdkVersion 27
         //TODO: ---- Меняем versionCode, versionName каждый публичный выкат даже для тестеров ----
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
         versionCode 2607
-        versionName "v2.6-bigrelease-RC7"
+        versionName "v2.7-build10-jsp2"
         //TODO: ----------------------------
 
         /**
@@ -41,7 +46,7 @@ android {
          * gm - Gesture movement
          * sp - Search plugins
          * nm - Navigation mode
-         *
+         * jsp - javascript patching
          */
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -85,6 +90,12 @@ dependencies {
     //implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.google.code.gson:gson:2.8.7'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
-    compile 'com.pes.materialcolorpicker:library:1.2.5'
+    implementation 'com.pes.materialcolorpicker:library:1.2.5'
+    //implementation 'com.arakelian:java-jq:1.3.0'
+    //implementation 'org.webjars:lodash:4.17.15'
+    //compile 'com.eclipsesource.j2v8:j2v8:6.2.1@aar'
+    //implementation 'com.github.LiquidPlayer:LiquidCore:0.6.2'
+    implementation 'com.faendir.rhino:rhino-android:1.6.0'
+
 
 }

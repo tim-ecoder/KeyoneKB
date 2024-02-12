@@ -56,8 +56,14 @@
       "search-field-id": "com.oasisfeng.island:id/menu_search"
     }, {
       "package-name": "ru.yandex.yandexmaps",
+      "additional-event-type-type-window-content-changed": true,
       "custom-click-adapter-click-parent": true,
-      "search-field-id": "ru.yandex.yandexmaps:id/search_line_search_text",
+      "search-field-id": "ru.yandex.yandexmaps:id/search_line_edit_text",
+      "wait-before-send-char-ms": 300
+    }, {
+      "package-name": "ru.yandex.yandexmaps1",
+      "custom-click-adapter-click-parent": true,
+      "search-field-id": "ru.yandex.yandexmaps:id/search_line_menu_button_or_search_icon",
       "wait-before-send-char-ms": 300
     }, {
       "package-name": "ru.yandex.yandexnavi",
@@ -129,5 +135,10 @@
       "package-name": "ru.fourpda.client",
       "additional-event-type-type-window-content-changed": true,
       "search-field-id": "ru.fourpda.client:id/qmsMsg"
-    }  ]
+    }, {
+      "package-name": "ru.yandex.yandexmaps",
+      "search-field-id": "ru.yandex.yandexmaps:id/search_line_edit_text",
+      "wait-before-send-char-ms": 300
+    }
+  ]
 }

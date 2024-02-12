@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "default-search-words": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "search-plugins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "package-name": {
+            "type": "string"
+          },
+          "additional-event-type-type-window-content-changed": {
+            "type": "boolean"
+          },
+          "custom-click-adapter-click-parent": {
+            "type": "boolean"
+          },
+          "dynamic-search-method": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dynamic-search-method-function": {
+                  "type": "string"
+                },
+                "contains-string": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "dynamic-search-method-function",
+                "contains-string"
+              ]
+            }
+          },
+          "wait-before-send-char-ms": {
+            "type": "number"
+          },
+          "search-field-id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "package-name"
+        ]
+      }
+    },
+    "clicker-plugins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "package-name": {
+            "type": "string"
+          },
+          "additional-event-type-type-window-content-changed": {
+            "type": "boolean"
+          },
+          "search-field-id": {
+            "type": "string"
+          },
+          "custom-click-adapter-click-first-child": {
+            "type": "boolean"
+          },
+          "wait-before-send-char-ms": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "package-name",
+          "search-field-id"
+        ]
+      }
+    }
+  },
+  "required": [
+    "default-search-words",
+    "search-plugins",
+    "clicker-plugins"
+  ]
+}

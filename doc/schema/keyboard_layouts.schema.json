@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "options-name": {
+        "type": "string"
+      },
+      "keyboard-mapping": {
+        "type": "string"
+      },
+      "icon-lowercase": {
+        "type": "string"
+      },
+      "icon-first-shift": {
+        "type": "string"
+      },
+      "icon-capslock": {
+        "type": "string"
+      },
+      "flag": {
+        "type": "string"
+      },
+      "device-model-regexp": {
+        "type": "string"
+      },
+      "custom-keyboard-mechanics": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "options-name",
+      "keyboard-mapping",
+      "icon-lowercase",
+      "icon-first-shift",
+      "icon-capslock",
+      "flag",
+      "device-model-regexp"
+    ]
+  }
+}

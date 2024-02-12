@@ -14,9 +14,13 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.mozilla.javascript.EvaluatorException;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.Scriptable;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
@@ -107,14 +111,92 @@ public class FileJsonUtils {
         return obj;
     }
 
+    private static <T> T DeserializeFromString(String s, TypeReference<T> typeReference) throws IOException {
+        JsonMapper mapper= PrepareMapper();
+        T obj = mapper.readValue(s, typeReference);
+        return obj;
+    }
 
+    public static String slurp(final InputStream is, final int bufferSize) {
+        final char[] buffer = new char[bufferSize];
+        final StringBuilder out = new StringBuilder();
+        try (Reader in = new InputStreamReader(is, "UTF-8")) {
+            for (;;) {
+                int rsz = in.read(buffer, 0, buffer.length);
+                if (rsz < 0)
+                    break;
+                out.append(buffer, 0, rsz);
+            }
+        }
+        catch (UnsupportedEncodingException ex) {
+            /* ... */
+        }
+        catch (IOException ex) {
+            /* ... */
+        }
+        return out.toString();
+    }
 
     public static <T> T DeserializeFromJson(String resName, TypeReference<T> typeReference, Context context) throws Exception {
 
         T object = null;
         Resources resources = context.getResources();
         try {
-            if (FileJsonUtils.FileExists(resName + ".json") && ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            if(FileJsonUtils.FileExists(resName + ".js") && ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
+                InputStream is_base_json = resources.openRawResource(resources.getIdentifier(resName, "raw", context.getPackageName()));
+                String base_json = slurp(is_base_json, 1024);
+                is_base_json.close();
+
+                String fullFileName = PATH + resName +".js";
+                FileInputStream fIn = new FileInputStream(fullFileName );
+                String Jscript = slurp(fIn, 1024);
+                fIn.close();
+                String output = "";
+
+                String jsCode = "function patch_json(json_text) { const json=JSON.parse(json_text); "+Jscript+" return JSON.stringify(json,null,'\\t');}";
+
+
+                Object[] params = new Object[] { base_json };
+
+                // Every Rhino VM begins with the enter()
+                // This Context is not Android's Context
+                org.mozilla.javascript.Context rhino = org.mozilla.javascript.Context.enter();
+
+                // Turn off optimization to make Rhino Android compatible
+                rhino.setOptimizationLevel(-1);
+                rhino.setLanguageVersion(org.mozilla.javascript.Context.VERSION_1_7);
+                try {
+                    Scriptable scope = rhino.initStandardObjects();
+
+                    // Note the forth argument is 1, which means the JavaScript source has
+                    // been compressed to only one line using something like YUI
+                    rhino.evaluateString(scope, jsCode, "JavaScript", 1, null);
+
+                    // Get the functionName defined in JavaScriptCode
+                    Object obj = scope.get("patch_json", scope);
+
+                    if (obj instanceof Function) {
+                        Function jsFunction = (Function) obj;
+
+                        // Call the function with params
+                        Object jsResult = jsFunction.call(rhino, scope, scope, params);
+                        // Parse the jsResult object to a String
+                        output = org.mozilla.javascript.Context.toString(jsResult);
+                    }
+                } finally {
+                    org.mozilla.javascript.Context.exit();
+                }
+
+                FileOutputStream fOut = new FileOutputStream(PATH+resName+".js.json",false);
+                InputStream stream = new ByteArrayInputStream(output.getBytes(StandardCharsets.UTF_8));
+                copyLarge(stream, fOut);
+                fOut.flush();
+                fOut.close();
+                stream.close();
+
+                object = DeserializeFromString(output, typeReference);
+            } else if (FileJsonUtils.FileExists(resName + ".json") && ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 object = FileJsonUtils.DeserializeFromFile(resName + ".json", typeReference);
             } else if (resources.getIdentifier(resName, "raw", context.getPackageName()) != 0) {
                 InputStream is = resources.openRawResource(resources.getIdentifier(resName, "raw", context.getPackageName()));
@@ -124,7 +206,11 @@ public class FileJsonUtils {
                 throw new Exception("JSON OR RES NOT FOUND NAME: "+resName);
             }
             return object;
-        } catch(Throwable ex) {
+        } catch (EvaluatorException ex) {
+            Log.e(TAG2, String.format("EVALUATE JavaScript patch at JSON %s ERROR: %s LINE: %s COL: %s TEXT: %s", resName, ex.toString(), ex.lineNumber(), ex.columnNumber(), ex.lineSource()));
+            throw new Exception(String.format("EVALUATE JavaScript patch at JSON %s ERROR: %s LINE: %s COL: %s TEXT: %s", resName, ex.toString(), ex.lineNumber(), ex.columnNumber(), ex.lineSource()));
+        }
+        catch(Throwable ex) {
             Log.e(TAG2, String.format("LOAD FROM JSON %s ERROR: %s", resName, ex.toString()));
             throw new Exception(String.format("LOAD FROM JSON %s ERROR: %s", resName, ex.toString()), ex);
         }

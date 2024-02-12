@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "search-plugins-enabled": {
+      "type": "boolean"
+    },
+    "retranslate-keyboard-key-codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "retranslate-keyboard-meta-key-plus-key-list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "meta-key-code": {
+            "type": "string"
+          },
+          "key-key-code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "meta-key-code",
+          "key-key-code"
+        ]
+      }
+    },
+    "digits-pad-plugin-enabled": {
+      "type": "boolean"
+    },
+    "digits-pad-plugin-app-markers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "package-name": {
+            "type": "string"
+          },
+          "digits-pad-marker-node-id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "package-name"
+        ]
+      }
+    },
+    "selected-node-click-hack": {
+      "type": "boolean"
+    },
+    "selected-node-highlight": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "search-plugins-enabled",
+    "retranslate-keyboard-key-codes",
+    "retranslate-keyboard-meta-key-plus-key-list",
+    "digits-pad-plugin-enabled",
+    "digits-pad-plugin-app-markers",
+    "selected-node-click-hack",
+    "selected-node-highlight"
+  ]
+}

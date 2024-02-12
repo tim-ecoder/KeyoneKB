@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "keyboard-name": {
+      "type": "string"
+    },
+    "alt-mode-layout": {
+      "type": "string"
+    },
+    "sym-mode-layout": {
+      "type": "string"
+    },
+    "key-mapping": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key-code": {
+            "type": "string"
+          },
+          "single-press": {
+            "type": "string"
+          },
+          "single-press-shift-mode": {
+            "type": "string"
+          },
+          "double-press": {
+            "type": "string"
+          },
+          "double-press-shift-mode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key-code",
+          "single-press",
+          "single-press-shift-mode"
+        ]
+      }
+    }
+  },
+  "required": [
+    "keyboard-name",
+    "alt-mode-layout",
+    "sym-mode-layout",
+    "key-mapping"
+  ]
+}
