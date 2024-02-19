@@ -21,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputMethodManager;
 import android.view.textservice.SentenceSuggestionsInfo;
 import android.view.textservice.SpellCheckerSession;
 import android.view.textservice.SuggestionsInfo;
@@ -343,7 +344,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 && IsInputMode()
                 && Orientation == 1) {
             keyboardView.setOnTouchListener(this);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                this.requestShowSelf(InputMethodManager.SHOW_IMPLICIT);
+            }
             this.showWindow(false);
+
         }
 
         OnStartInput.Process(null);
@@ -378,6 +383,10 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             keyboardView.showFlag(pref_flag);
             if (onScreenSwipePanelAndLanguage.getHeight() != 70 + pref_height_bottom_bar * 5)
                 onScreenSwipePanelAndLanguage = new SatedaKeyboard(this, R.xml.space_empty, 70 + pref_height_bottom_bar * 5);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                this.requestHideSelf(InputMethodManager.HIDE_NOT_ALWAYS);
+            }
         } catch(Throwable ex) {
             Log.e(TAG2, "onFinishInput exception: "+ex);
             FileJsonUtils.LogErrorToGui("onFinishInput exception: "+ex);
@@ -1075,7 +1084,12 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 ShowKeyboard();
             else
                 HideKeyboard();
-        else
+        else if(pref_show_default_onscreen_keyboard) {
+            if (IsInputMode())
+                ShowKeyboard();
+            else
+                HideKeyboard();
+        } else
             HideSwipePanelOnHidePreferenceAndVisibleState();
 
         if (changed && !pref_system_icon_no_notification_text)

@@ -32,7 +32,7 @@ android {
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
         versionCode 2607
-        versionName "v2.7-build10-jsp2"
+        versionName "v2.7-build11-jsp2-osk1"
         //TODO: ----------------------------
 
         /**
@@ -47,6 +47,8 @@ android {
          * sp - Search plugins
          * nm - Navigation mode
          * jsp - javascript patching
+         * uhsp - unihertz slim|pocket api >=28
+         * osk - on-screen-keyboard
          */
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
