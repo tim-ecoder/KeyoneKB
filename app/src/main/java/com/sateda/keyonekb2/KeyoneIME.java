@@ -75,6 +75,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     private final NotificationProcessor notificationProcessor = new NotificationProcessor();
 
+    private Toast mainToast;
+
 
     KeyboardLayout.KeyboardLayoutOptions.IconRes AltOneIconRes;
     KeyboardLayout.KeyboardLayoutOptions.IconRes AltAllIconRes;
@@ -904,8 +906,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     protected void ChangeLanguage() {
         keyboardLayoutManager.ChangeLayout();
         if(pref_show_toast) {
-            Toast toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
-            toast.show();
+            if(mainToast != null) {
+                mainToast.cancel();
+            }
+            mainToast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
+            mainToast.show();
         }
     }
 
@@ -913,8 +918,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     protected void ChangeLanguageBack() {
         keyboardLayoutManager.ChangeLayoutBack();
         if(pref_show_toast) {
-            Toast toast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
-            toast.show();
+            if(mainToast != null) {
+                mainToast.cancel();
+            }
+            mainToast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
+            mainToast.show();
         }
     }
 
