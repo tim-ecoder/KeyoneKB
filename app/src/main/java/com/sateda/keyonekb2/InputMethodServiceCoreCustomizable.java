@@ -63,8 +63,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected boolean needUpdateVisualInsideSingleEvent;
 
     protected ViewSatedaKeyboard keyboardView;
-
-
     protected Processable OnStartInput;
     protected Processable OnFinishInput;
     protected Processable BeforeSendChar;
@@ -773,7 +771,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             //Двойное нажание SYM -> Режим навигации
             keyboardStateFixed_NavModeAndKeyboard = true;
             keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
-            keyboardView.SetFnKeyboardMode(false);
+            keyboardView.setFnNavMode(false);
             return true;
         }
         return false;
@@ -940,7 +938,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         //Отключаем режим навигации
         keyboardStateFixed_NavModeAndKeyboard = false;
         keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
-        keyboardView.SetFnKeyboardMode(false);
+        keyboardView.setFnNavMode(false);
         return true;
     }
 

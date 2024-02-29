@@ -21,7 +21,13 @@ import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 public class ViewSatedaKeyboard extends KeyboardView {
 
-    private static final int MAX_KEY_COUNT = 50;
+    enum SatedaKeyboardMode {
+        SwipePanel,
+        NavPad,
+        SymPad
+    }
+
+    private SatedaKeyboardMode mode;
 
     private String[] altPopup;
     private String[] altPopupLabel;
@@ -32,14 +38,12 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
     private String lang = "";
     private String draw_lang = "";
-
     private int flagResId = 0;
-    private boolean alt = false;
-    private boolean shiftFirst = false;
-    private boolean showSymbol = false;
-    private boolean fnSymbol = false;
-
-    private boolean pref_flag = false;
+    private boolean modeSwipeSingleShift = false;
+    boolean modeSwipeAltMode = false;
+    boolean modeSwipeSingleAltMode = false;
+    private boolean modeNavFn = false;
+    private boolean showFlag = false;
 
     private KeyoneIME mService;
 
@@ -58,8 +62,17 @@ public class ViewSatedaKeyboard extends KeyboardView {
     private final float scaleHeightY;
     private final float scaleWidthX;
 
+
+    /***
+     * Swipe panel height in pixels. Need to be synchronized with space_empty.xml android:keyHeight value
+     */
+    public static int BASE_HEIGHT = 70;
+
+
     public ViewSatedaKeyboard(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        mode = SatedaKeyboardMode.SwipePanel;
 
         DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
         screenHeightY = dm.heightPixels;
@@ -93,26 +106,59 @@ public class ViewSatedaKeyboard extends KeyboardView {
         mMiniKeyboard = new ViewPopupScreenKeyboard(context,attrs);
     }
 
-    public void showFlag(boolean isShow){
-        pref_flag = isShow;
+    public void setFnNavMode(boolean isEnabled){
+        modeNavFn = isEnabled;
+        invalidateAllKeys();
     }
 
-    public void setLetterKB(){alt = false; showSymbol = false; }
+    public void setShowFlag(boolean isShow){
+        showFlag = isShow;
+    }
 
-    public void setAlt(){ alt = true; showSymbol = false; }
+    boolean resized = false;
+    public void setSwipePanelMode(){
+        if(!resized)
+        {
+            double mod = (double)getKeyboard().getHeight() / BASE_HEIGHT;
+            ((SatedaKeyboard)getKeyboard()).changeKeyHeight(mod);
+            resized = true;
+        }
+        mode = SatedaKeyboardMode.SwipePanel;
+    }
+
+
+
+    public void setAltMode(boolean single) {
+        modeSwipeSingleShift = false;
+
+        if(single) {
+            modeSwipeSingleAltMode = true;
+            modeSwipeAltMode = false;
+        }
+        else {
+            modeSwipeAltMode = true;
+            modeSwipeSingleAltMode = false;
+        }
+    }
 
     public void setShiftFirst(){
-        shiftFirst = true;
+        modeSwipeSingleShift = true;
+        modeSwipeAltMode = false;
+        modeSwipeSingleAltMode = false;
         draw_lang = lang;
     }
 
     public void setShiftAll(){
-        shiftFirst = false;
+        modeSwipeSingleShift = false;
+        modeSwipeAltMode = false;
+        modeSwipeSingleAltMode = false;
         draw_lang = lang.toUpperCase();
     }
 
     public void notShift(){
-        shiftFirst = false;
+        modeSwipeSingleShift = false;
+        modeSwipeAltMode = false;
+        modeSwipeSingleAltMode = false;
         draw_lang = lang;
     }
 
@@ -130,24 +176,17 @@ public class ViewSatedaKeyboard extends KeyboardView {
         return false;
     }
 
-    boolean isSymLoaded = false;
-    boolean isAltLoaded = false;
 
     int[] sym_KeyLabel_x;
     int[] sym_KeyLabel_y;
     String[] sym_KeyLabel;
     String[] sym_KeyLabelAltPopup;
 
-    boolean modeSym = false;
-
-    public void loadAltLayer(KeyboardLayout keyboardLayout, boolean isAltShift){
+    public void drawSymAltLayer(KeyboardLayout keyboardLayout, boolean isAltShift){
 
         max_keys = 27;
-        alt = true;
-        showSymbol = true;
-        fnSymbol = false;
-        modeSym = true;
-        modeNav = false;
+        modeNavFn = false;
+        mode = SatedaKeyboardMode.SymPad;
 
         /** кешировать не будем пока т.к. клавиатура дает возможность делать разные альт символы в привязке к разной раскладке
          * если закешировать то запомнится только первая раскладка и ее альт-символы
@@ -224,33 +263,18 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 arr_inc++;
             }
         }
-        //isSymLoaded = true;
 
     }
 
-    public void SetFnKeyboardMode(boolean isEnabled){
-        fnSymbol = isEnabled;
-        invalidateAllKeys();
-    }
-
-    boolean navLayerLoaded = false;
-    boolean modeNav = false;
-
-    public void setNavigationLayer(){
+    public void drawNavigationLayer(){
         max_keys = 12;
 
-        modeSym = false;
-        modeNav = true;
-
-        if(navLayerLoaded)
-            return;
+        mode = SatedaKeyboardMode.NavPad;
 
         nav_KeyLabel = new String[max_keys];
         nav_KeyLabel_x = new int[max_keys];
         nav_KeyLabel_y = new int[max_keys];
 
-        alt = true;
-        showSymbol = true;
         List<Keyboard.Key> keys = getKeyboard().getKeys();
 
         int arr_inc = 0;
@@ -282,11 +306,11 @@ public class ViewSatedaKeyboard extends KeyboardView {
     }
     
     private int scaleX(int x) {
-        return Math.round(x*scaleHeightY);
+        return Math.round(scaleHeightY*x);
     }
     
     private int scaleY(int y) {
-        return Math.round(y * scaleHeightY);
+        return Math.round(scaleHeightY*y);
     }
 
     @Override
@@ -294,10 +318,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
         //super.onLongPress(popupKey);
         Log.d(TAG2, "onLongPress "+popupKey.label);
 
-        //Не работает TODO: ВЕСЬ КЛАСС ПОДЛЕЖИТ РЕФАКТОРИНГУ
-        if(!showSymbol) return false;
-        //Работает
-        if(!modeSym) return false;
+        if(mode != SatedaKeyboardMode.SymPad)
+            return false;
 
         int popupX = 0;
 
@@ -332,13 +354,15 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
         mPopupKeyboard.setContentView(mMiniKeyboard);
         mPopupKeyboard.setWidth(keyboard.getMinWidth());
-        mPopupKeyboard.setHeight(keyboard.getHeight());
+        mPopupKeyboard.setHeight(keyboard.getHeight()+40);
 
         popupX = popupKey.x+(popupKey.width/2) - keyboard.getMinWidth()/2;
-        if(popupX < getWidth()/10) popupX = getWidth()/10;
-        if(popupX+keyboard.getMinWidth() > getWidth() - (getWidth()/10)) popupX = getWidth() - (getWidth()/10) - keyboard.getMinWidth();
+        if(popupX < getWidth()/10)
+            popupX = getWidth()/10;
+        if(popupX+keyboard.getMinWidth() > getWidth() - (getWidth()/10))
+            popupX = getWidth() - (getWidth()/10) - keyboard.getMinWidth();
 
-        mPopupKeyboard.showAtLocation(this, Gravity.NO_GRAVITY, popupX, 0);
+        mPopupKeyboard.showAtLocation(this, Gravity.NO_GRAVITY, popupX, popupKey.y - scaleY(100));
         mMiniKeyboard.startXindex(popupKey.x+(popupKey.width/2), this.getWidth(), keyboard.getMinWidth(), popupX);
 
         invalidate();
@@ -411,82 +435,96 @@ public class ViewSatedaKeyboard extends KeyboardView {
         Paint paint_blue = new Paint();
         paint_blue.setColor(Color.BLUE);
 
-
-        // TODO: Это все требует рефакторинга чтобы не перерисовывать каждый раз клавиатуру
-        // название текущего языка
         List<Keyboard.Key> keys = getKeyboard().getKeys();
-        for(Keyboard.Key key: keys) {
-            if(key.label != null) {
-                if (!alt && key.codes[0] == 32){
-                    canvas.drawText(draw_lang, key.x + (key.width/2), key.y + (height/2 + scaleY(20)), paint_white);
 
-                    float[] measuredWidth = new float[1];
-                    paint_white.breakText(draw_lang, true, 800, measuredWidth);
-                    startDrawLine = key.x + (key.width/2)-(measuredWidth[0]/2);
-                    finishDrawLine = key.x + (key.width/2)+(measuredWidth[0]/2);
-                    if(shiftFirst){
-                        paint_white.breakText(draw_lang.substring(0,1), true, 800, measuredWidth);
-                        finishDrawLine = startDrawLine+measuredWidth[0];
-                    }
+        if(mode == SatedaKeyboardMode.SwipePanel) {
 
-                    if(shiftFirst) canvas.drawRect(startDrawLine, key.y + (height/2 + scaleY(25)), finishDrawLine, key.y + (height/2 + scaleY(28)), paint_white);
+            Keyboard.Key key = FindKey(keys, 32);
 
-                    if(pref_flag) {
-                        // Show flag icon
-                        try {
+            //key.height = 30 * (getKeyboard()).getHeight() / BASE_HEIGHT;
 
-                            Drawable langIcon = getResources().getDrawable(flagResId == 0 ? R.drawable.ic_flag_gb_col : flagResId);
-                            canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), key.x + (key.width / 2) - scaleX(210), key.y + (height/2 - scaleY(28)), paint_white);
-                        } catch (Throwable ex) {
-                            Log.d("Tlt", "!ex: " + ex);
-                        }
-                    }
-                }else if (alt && key.codes[0] == 32){
-                    canvas.drawText(lang, key.x + (key.width/2), key.y + (height/2 + scaleY(20)), paint_white);
-                }
-                if(showSymbol && key.codes[0] == -7){
-                    startDrawLine = key.x + (key.width / 3);
-                    finishDrawLine = key.x + (key.width / 3 * 2);
-                    int ydelta1 = Math.round(83 * scaleHeightY);
-                    int ydelta2 = Math.round(88 * scaleHeightY);
-                    if(fnSymbol) {
-                        canvas.drawRect(startDrawLine, key.y + ydelta1, finishDrawLine, key.y + ydelta2, paint_blue);
-                    }else{
-                        canvas.drawRect(startDrawLine, key.y + ydelta1, finishDrawLine, key.y + ydelta2, paint_gray);
-                    }
+            canvas.drawText(draw_lang, key.x + (key.width/2), key.y + (height/2 + scaleY(20)), paint_white);
+
+            float[] measuredWidth = new float[1];
+            paint_white.breakText(draw_lang, true, 800, measuredWidth);
+            startDrawLine = key.x + (key.width/2)-(measuredWidth[0]/2);
+            //finishDrawLine = key.x + (key.width/2)+(measuredWidth[0]/2);
+            if(modeSwipeSingleShift || modeSwipeSingleAltMode){
+                paint_white.breakText(draw_lang.substring(0,1), true, 800, measuredWidth);
+                finishDrawLine = startDrawLine+measuredWidth[0];
+                canvas.drawRect(startDrawLine, key.y + (height/2 + scaleY(25)), finishDrawLine, key.y + (height/2 + scaleY(28)), paint_white);
+            }
+
+
+            if(showFlag && !modeSwipeAltMode && !modeSwipeSingleAltMode) {
+                // Show flag icon
+                try {
+                    Drawable langIcon = getResources().getDrawable(flagResId == 0 ? R.drawable.ic_flag_gb_col : flagResId);
+                    //canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), key.x + (key.width / 2) - scaleX(235), key.y + (height/2 - scaleY(24)), paint_white);
+
+                    canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), startDrawLine - scaleX(100), key.y + (height/2 - scaleY(24)), paint_white);
+
+                } catch (Throwable ex) {
+                    Log.d(TAG2, "Show flag icon exception: " + ex);
                 }
             }
         }
+        else if(mode == SatedaKeyboardMode.SymPad) {
 
-
-
-        // отображение подписи букв, эквивалентных кнопкам
-        if (showSymbol){
             int alt3deltaX = scaleX(65);
             int alt3deltaY = scaleY(65);
-            if(modeNav)
-                for(int i = 0; i < max_keys; i++){
-                    canvas.drawText(nav_KeyLabel[i], nav_KeyLabel_x[i], nav_KeyLabel_y[i], paint_gray);
-                }
-            else if(modeSym)
-                for(int i = 0; i < max_keys; i++){
-                    canvas.drawText(sym_KeyLabel[i], sym_KeyLabel_x[i], sym_KeyLabel_y[i], paint_gray);
-                    if(sym_KeyLabelAltPopup != null
-                            && sym_KeyLabelAltPopup[i] != null
-                            && sym_KeyLabelAltPopup[i] != "")
-                        canvas.drawText(sym_KeyLabelAltPopup[i], sym_KeyLabel_x[i]+ alt3deltaX, sym_KeyLabel_y[i]- alt3deltaY, paint_red);
-                }
+
+            for(int i = 0; i < max_keys; i++){
+                canvas.drawText(sym_KeyLabel[i], sym_KeyLabel_x[i], sym_KeyLabel_y[i], paint_gray);
+                if(sym_KeyLabelAltPopup != null
+                        && sym_KeyLabelAltPopup[i] != null
+                        && sym_KeyLabelAltPopup[i] != "")
+                    canvas.drawText(sym_KeyLabelAltPopup[i], sym_KeyLabel_x[i]+ alt3deltaX, sym_KeyLabel_y[i]- alt3deltaY, paint_red);
+            }
+
+            //если отображено меню сверху - прикрыть панель темной полоской
+            if(mPopupKeyboard.isShowing()) {
+                Paint paint = new Paint();
+                paint.setColor((int) ( 0.5* 0xFF) << 24);
+                canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+            }
         }
+        else if(mode == SatedaKeyboardMode.NavPad) {
 
+            Keyboard.Key key = FindKey(keys, -7);
 
+            startDrawLine = key.x + (key.width / 3);
+            finishDrawLine = key.x + (key.width / 3 * 2);
+            int ydelta1 = Math.round(83 * scaleHeightY);
+            int ydelta2 = Math.round(88 * scaleHeightY);
+            if(modeNavFn) {
+                canvas.drawRect(startDrawLine, key.y + ydelta1, finishDrawLine, key.y + ydelta2, paint_blue);
+            }else{
+                canvas.drawRect(startDrawLine, key.y + ydelta1, finishDrawLine, key.y + ydelta2, paint_gray);
+            }
 
-        //если отображено меню сверху - прикрыть панель темной полоской
-        if(mPopupKeyboard.isShowing()) {
-            Paint paint = new Paint();
-            paint.setColor((int) ( 0.5* 0xFF) << 24);
-            canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+            for(int i = 0; i < max_keys; i++) {
+                canvas.drawText(nav_KeyLabel[i], nav_KeyLabel_x[i], nav_KeyLabel_y[i], paint_gray);
+            }
+        }
+        else {
+            Log.e(TAG2,"Unknown SatedaKeyboardMode "+mode);
         }
     }
+
+    private Keyboard.Key FindKey(List<Keyboard.Key> keys, int key1) {
+        for(Keyboard.Key key: keys) {
+            if (key.label == null)
+                continue;
+            if (key.codes == null || key.codes.length == 0)
+                continue;
+            if (key.codes[0] == key1)
+                return key;
+        }
+        return null;
+    }
+
+
 
     public static class IconsHelper {
 

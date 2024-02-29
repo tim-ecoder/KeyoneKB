@@ -21,15 +21,15 @@ public class ViewPopupScreenKeyboard extends KeyboardView {
     private int indexPopupPressed;
     private float touchX;
     private float leftX;
-    private int keyWidht;
-    private int totalWidht;
+    private int keyWidth;
+    private int totalWidth;
 
 
 
     public ViewPopupScreenKeyboard(Context context, AttributeSet attrs) {
         super(context, attrs);
-        keyWidht = 0;
-        totalWidht = 0;
+        keyWidth = 0;
+        totalWidth = 0;
 
     }
 
@@ -38,20 +38,20 @@ public class ViewPopupScreenKeyboard extends KeyboardView {
     }
 
 
-    public void startXindex(float x, int totalWidht, int keyboardWidth, float leftX) {
+    public void startXindex(float x, int totalWidth, int keyboardWidth, float leftX) {
         List<Keyboard.Key> keys = getKeyboard().getKeys();
         countKeys = keys.size();
         touchX = x;
-        this.totalWidht = totalWidht;
+        this.totalWidth = totalWidth;
         this.leftX = leftX;
-        keyWidht = keyboardWidth / countKeys;
-        int startX = (totalWidht-keyboardWidth)/2;
-        if((int)touchX <= (startX + keyWidht)){
+        keyWidth = keyboardWidth / countKeys;
+        int startX = (totalWidth-keyboardWidth)/2;
+        if((int)touchX <= (startX + keyWidth)) {
             indexPopupPressed = 0;
-        }else if((int)touchX >= (startX + keyboardWidth-keyWidht)){
+        } else if((int)touchX >= (startX + keyboardWidth- keyWidth)) {
             indexPopupPressed = countKeys-1;
-        }else{
-            indexPopupPressed = ((int)touchX-(int)leftX)/keyWidht;
+        } else{
+            indexPopupPressed = ((int)touchX-(int)leftX)/ keyWidth;
         }
         Log.d(TAG2, "startXindex keys "+countKeys);
     }
@@ -62,11 +62,11 @@ public class ViewPopupScreenKeyboard extends KeyboardView {
 
     public void coordsToIndexKey(float x) {
 
-        if(keyWidht <= 0) return;
+        if(keyWidth <= 0) return;
         //Log.d(TAG, "coordsToIndexKey leftX "+leftX+" totalWidht "+totalWidht);
 
-        if(indexPopupPressed != ((int)x-(int)leftX)/keyWidht){
-            indexPopupPressed = ((int)x-(int)leftX)/keyWidht;
+        if(indexPopupPressed != ((int)x-(int)leftX)/ keyWidth){
+            indexPopupPressed = ((int)x-(int)leftX)/ keyWidth;
             if(indexPopupPressed > countKeys-1) indexPopupPressed = countKeys-1;
             if(indexPopupPressed < 0) indexPopupPressed = 0;
             invalidateAllKeys();

@@ -7,32 +7,16 @@ import android.inputmethodservice.Keyboard;
 
 public class SatedaKeyboard  extends Keyboard {
 
-    private int height;
-    public SatedaKeyboard(Context context, int xmlLayoutResId) {
-        super(context, xmlLayoutResId);
-        height = getKeyHeight();
-    }
+    private int currentHeight;
 
-    public SatedaKeyboard(Context context, int xmlLayoutResId, int new_height) {
+    public SatedaKeyboard(Context context, int xmlLayoutResId, int pref_swipe_panel_height) {
         super(context, xmlLayoutResId);
-        height = new_height;
-    }
-
-    public SatedaKeyboard(Context context, int xmlLayoutResId, int modeId, int width, int height) {
-        super(context, xmlLayoutResId, modeId, width, height);
-    }
-/*
-    public SatedaKeyboard(Context context, int xmlLayoutResId, int modeId) {
-        super(context, xmlLayoutResId, modeId);
-    }
-*/
-    public SatedaKeyboard(Context context, int layoutTemplateResId, CharSequence characters, int columns, int horizontalPadding) {
-        super(context, layoutTemplateResId, characters, columns, horizontalPadding);
+        currentHeight = ViewSatedaKeyboard.BASE_HEIGHT + pref_swipe_panel_height * 10;
     }
 
     @Override
     public int getHeight() {
-        return height;
+        return currentHeight;
     }
 
     @Override
@@ -41,5 +25,17 @@ public class SatedaKeyboard  extends Keyboard {
         Key key = new Key(res, parent, x, y, parser);
 
         return key;
+    }
+
+    public void changeKeyHeight(double height_modifier)
+    {
+        int height = 0;
+        for(Keyboard.Key key : getKeys()) {
+            key.height *= height_modifier;
+            key.y *= height_modifier;
+            height = key.height;
+        }
+        setKeyHeight(height);
+        getNearestKeys(0, 0); //somehow adding this fixed a weird bug where bottom row keys could not be pressed if keyboard height is too tall.. from the Keyboard source code seems like calling this will recalculate some values used in keypress detection calculation
     }
 }
