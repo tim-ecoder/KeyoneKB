@@ -1,6 +1,7 @@
 package com.sateda.keyonekb2;
 
 import android.Manifest;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.*;
@@ -25,6 +26,7 @@ import com.sateda.keyonekb2.input.CallStateCallback;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import static com.sateda.keyonekb2.FileJsonUtils.LogErrorToGui;
@@ -563,7 +565,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionDisableHoldSymMode", InitializeMethod3((Object o) -> ActionDisableHoldSymMode(), Object.class));
         Methods.put("TryDoTelegramRightDialogueExitHack", InitializeMethod3((Object o) -> TryDoTelegramRightDialogueExitHack(), Object.class));
         Methods.put("TryChangeSelectionStartDirection", InitializeMethod3((Object o) -> TryChangeSelectionStartDirection(), Object.class));
+        //2.8
+        Methods.put("ActionPasteTextFromClipboardByLetters", InitializeMethod3((Object o) -> ActionPasteTextFromClipboardByLetters(), Object.class));
 
+        //ActionPasteTextFromClipboardByLetters
         //TryChangeSelectionStartDirection
     }
 
@@ -1163,13 +1168,78 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if (dist1 == 0 && c.length() > 0)
             dist1 = c.length();
         else if(dist1 > 1) dist1--;
+        int nearWhitespaceCount = 0;
+        for (int i = c.length() - 1; i >= 0; i--) {
+            if(isWhitespace(c.charAt(i)))
+                nearWhitespaceCount++;
+            else
+                break;
+        }
+        return FindMinGreater0(AllBackWhiteSpaceDistArray(c, nearWhitespaceCount), dist1);
+    }
 
-        int dist2 = findPrevCharDistance(c, ' ');
-        if(dist2 > 1) dist2--;
-        int dist3 = findPrevCharDistance(c, '\t');
-        if(dist3 > 1) dist3--;
-        int dist = FindMinGreater0(dist1, dist2, dist3);
-        return dist;
+    private int findFwdWordOrOtherLen() {
+        InputConnection inputConnection = getCurrentInputConnection();
+        CharSequence c = inputConnection.getTextAfterCursor(Integer.MAX_VALUE - Character.MAX_VALUE, 0);
+        int dist1 = findFwdEnterDistance(c);
+        //Последнее слово в тексте
+        if(dist1 == 0 && c.length() > 0)
+            dist1 = c.length();
+        else if(dist1 > 1) dist1--;
+        int nearWhitespaceCount = 0;
+        for (int i = 0; i < c.length(); i++) {
+            if(isWhitespace(c.charAt(i)))
+                nearWhitespaceCount++;
+            else
+                break;
+        }
+        return FindMinGreater0(AllFwdWhiteSpaceDistArray(c, nearWhitespaceCount), dist1);
+    }
+
+    private int FindMinGreater0(Integer[] arr, int firstDist) {
+        arr[0] = firstDist;
+        java.util.Arrays.sort(arr, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer object1, Integer object2) {
+                if(object1 == 0)
+                    return object2;
+                return object1.compareTo(object2);
+            }
+        });
+        for (int i = 0; i < arr.length; i++) {
+            if(arr[i] == 0)
+                continue;
+            return arr[i];
+        }
+        return 0;
+    }
+
+    char[] WHITESPACECHARS = {' ', '.', ',', '\t', ':', ';', '?', '!'};
+
+    private Integer[] AllBackWhiteSpaceDistArray(CharSequence cs, int nearWhiteSpace) {
+        Integer[] rez = new Integer[WHITESPACECHARS.length+1];
+        for(int i = 1, j = 0; i <= WHITESPACECHARS.length; i++, j++) {
+            int r1 = findPrevCharDistance(cs, WHITESPACECHARS[j], nearWhiteSpace);
+            rez[i] = r1;
+        }
+        return rez;
+    }
+
+    private Integer[] AllFwdWhiteSpaceDistArray(CharSequence cs, int nearWhiteSpace) {
+        Integer[] rez = new Integer[WHITESPACECHARS.length+1];
+        for(int i = 1, j = 0; i <= WHITESPACECHARS.length; i++, j++) {
+            int r1 = findFwdCharDistance(cs, WHITESPACECHARS[j], nearWhiteSpace);
+            rez[i] = r1;
+        }
+        return rez;
+    }
+
+    boolean isWhitespace(char c1) {
+        for(int i = 1, j = 0; i <= WHITESPACECHARS.length; i++, j++) {
+            if(WHITESPACECHARS[j] == c1)
+                return true;
+        }
+        return false;
     }
 
     public boolean ActionDeleteFwdWord() {
@@ -1266,41 +1336,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
-    private int findFwdWordOrOtherLen() {
-        InputConnection inputConnection = getCurrentInputConnection();
-        CharSequence c = inputConnection.getTextAfterCursor(Integer.MAX_VALUE - Character.MAX_VALUE, 0);
-        int dist1 = findFwdEnterDistance(c);
-        //Последнее слово в тексте
-        if(dist1 == 0 && c.length() > 0)
-            dist1 = c.length();
-        else if(dist1 > 1) dist1--;
-        int dist2 = findFwdCharDistance(c, ' ');
-        if(dist2 > 1) dist2--;
-        int dist3 = findFwdCharDistance(c, '\t');
-        if(dist3 > 1) dist3--;
-        int dist = FindMinGreater0(dist1, dist2, dist3);
-        return dist;
-    }
-
-    private int FindMinGreater0(int i1, int i2, int i3) {
-        ArrayList<Integer> list = new ArrayList<Integer>();
-        if(i1 > 0)
-            list.add(i1);
-        if(i2 > 0)
-            list.add(i2);
-        if(i3 > 0)
-            list.add(i3);
-        if(list.isEmpty())
-            return 0;
-        if(list.size() == 1)
-            return list.get(0);
-        if(list.size() == 2)
-            return Math.min(list.get(0), list.get(1));
-        int ret = Math.min(list.get(0), list.get(1));
-        return Math.min(ret, list.get(2));
-    }
-
-    public boolean ActionUnCrLf() {
+     public boolean ActionUnCrLf() {
         InputConnection inputConnection = getCurrentInputConnection();
         CharSequence c = inputConnection.getTextBeforeCursor(Integer.MAX_VALUE, 0);
         int pos = findPrevEnterAbsPos(c);
@@ -1425,6 +1461,18 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
+    public boolean ActionPasteTextFromClipboardByLetters() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        CharSequence cs = clipboard.getText();
+        int len = cs.length();
+        if(len <= 0)
+            return false;
+        for(int i = 0; i < len; i++) {
+            char c1 = cs.charAt(i);
+            sendKeyChar(c1);
+        }
+        return true;
+    }
 
 
     //endregion
@@ -1936,8 +1984,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if(c == null || c.length() == 0) {
             return 0;
         }
-        int r_dist = findPrevCharDistance(c, '\r');
-        int n_dist = findPrevCharDistance(c, '\n');
+        int r_dist = findPrevCharDistance(c, '\r', 0);
+        int n_dist = findPrevCharDistance(c, '\n', 0);
         if(r_dist == 0 && n_dist == 0) return 0;
         if(r_dist > 0 && n_dist == 0) return r_dist;
         if(r_dist == 0 && n_dist > 0) return n_dist;
@@ -1949,8 +1997,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if(c == null || c.length() == 0) {
             return 0;
         }
-        int r_dist = findFwdCharDistance(c, '\r');
-        int n_dist = findFwdCharDistance(c, '\n');
+        int r_dist = findFwdCharDistance(c, '\r', 0);
+        int n_dist = findFwdCharDistance(c, '\n', 0);
         if(r_dist == 0 && n_dist == 0) return 0;
         if(r_dist > 0 && n_dist == 0) return r_dist;
         if(r_dist == 0 && n_dist > 0) return n_dist;
@@ -1958,24 +2006,24 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return r_dist;
     }
 
-    int findPrevCharDistance(CharSequence c, char c1) {
+    int findPrevCharDistance(CharSequence c, char c1, int nearWhitespace) {
         if(c == null || c.length() == 0) {
             return 0;
         }
         int len = c.length();
-        for(int i = len; i > 0; i--) {
+        for(int i = len - nearWhitespace; i > 0; i--) {
             if(c.charAt(i - 1) == c1)
                 return len - i + 1;
         }
         return 0;
     }
 
-    int findFwdCharDistance(CharSequence c, char c1) {
+    int findFwdCharDistance(CharSequence c, char c1, int nearWhitespace) {
         if(c == null || c.length() == 0) {
             return 0;
         }
         int len = c.length();
-        for(int i = 0; i < len ; i++) {
+        for(int i = nearWhitespace; i < len ; i++) {
             if(c.charAt(i) == c1)
                 return i + 1; //Включая сам символ
         }
