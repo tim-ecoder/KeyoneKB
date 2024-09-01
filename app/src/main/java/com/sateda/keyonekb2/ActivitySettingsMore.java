@@ -133,7 +133,7 @@ public class ActivitySettingsMore extends Activity {
         if(KeyoneKb2AccessibilityService.Instance == null)
             return;
         for(SearchClickPlugin searchClickPlugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
-            if(searchClickPlugin.getPackageName().equals(packageName)) {
+            if(packageName.contains(searchClickPlugin.getPartiallyPackageName())) {
                 isAdded = true;
                 break;
             }
@@ -197,7 +197,7 @@ public class ActivitySettingsMore extends Activity {
     private void SaveSearchClickPluginData(ArrayList<String> defaultSearchWords, ArrayList<SearchClickPlugin> _searchClickPlugins, ArrayList<SearchClickPlugin.SearchClickPluginData.SearchPluginData> clickerPluginDataArray) {
         for (SearchClickPlugin plugin : _searchClickPlugins) {
             SearchClickPlugin.SearchClickPluginData.SearchPluginData pluginData = new SearchClickPlugin.SearchClickPluginData.SearchPluginData();
-            pluginData.PackageName = plugin.getPackageName();
+            pluginData.PackageName = plugin.getPartiallyPackageName();
             pluginData.SearchFieldId = plugin.getId();
 
             if(pluginData.SearchFieldId == null || pluginData.SearchFieldId.isEmpty()) {
@@ -257,7 +257,7 @@ public class ActivitySettingsMore extends Activity {
                 else
                     value = getString(R.string.pref_more_tv_single_plugin_data);
             }
-            text_data += String.format("Application:\n%s\nResourceId:\n%s\n\n", plugin.getPackageName(), value);
+            text_data += String.format("Application:\n%s\nResourceId:\n%s\n\n", plugin.getPartiallyPackageName(), value);
         }
 
         textView.append(text_data);

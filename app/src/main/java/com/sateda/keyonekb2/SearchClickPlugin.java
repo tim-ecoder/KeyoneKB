@@ -105,7 +105,7 @@ public class SearchClickPlugin {
         return null;
     }
 
-    public String getPackageName() {
+    public String getPartiallyPackageName() {
         return _packageName;
     }
 

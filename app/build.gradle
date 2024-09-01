@@ -2,6 +2,8 @@ plugins {
     id 'com.android.application'
 }
 
+
+
 android {
     signingConfigs {
         debug {
@@ -32,7 +34,7 @@ android {
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
         versionCode 2607
-        versionName "v2.7-build12-jsp2-osk2-toast1-cp1"
+        versionName "v2.7-build13-jsp2-osk2-toast1-cp1-tgh1-sp1"
         //TODO: ----------------------------
 
         /**
@@ -49,6 +51,7 @@ android {
          * jsp - javascript patching
          * uhsp - unihertz slim|pocket api >=28
          * osk - on-screen-keyboard
+         * tgh - telegram hack
          */
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

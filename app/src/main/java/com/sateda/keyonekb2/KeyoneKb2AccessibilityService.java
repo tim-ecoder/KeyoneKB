@@ -730,7 +730,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             return;
         String packageName = packageNameCs.toString();
 
-        if(!SearchClickPackages.contains(packageName)) {
+        if(!ContainsContains(packageName)) {
             //LogEventD(event);
             return;
         }
@@ -753,6 +753,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
     }
 
+    private boolean ContainsContains(String packageName) {
+        for (String pkg:SearchClickPackages
+             ) {
+            if(packageName.contains(pkg))
+                return true;
+        }
+        return false;
+    }
+
 
     private void LoadSearchPluginData() throws Exception {
         SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
@@ -769,11 +778,11 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         LoadSearchPlugins(data2.ClickerPlugins, clickerPlugins);
 
         for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
-            if(SearchClickPackages.contains(shp2.getPackageName()))
+            if(SearchClickPackages.contains(shp2.getPartiallyPackageName()))
                 continue;
             if(searchClickPlugins.stream().anyMatch((SearchClickPlugin shp3) -> shp3._packageName.equals(shp2._packageName)))
                 continue;
-            SearchClickPackages.add(shp2.getPackageName());
+            SearchClickPackages.add(shp2.getPartiallyPackageName());
             searchClickPlugins.add(shp2);
         }
 
@@ -849,8 +858,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Log.v(TAG3, "--------------------LogEventD--------------------");
     }
 
-    private boolean ProcessSearchField(int eventType, String packageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchClickPlugin searchClickPlugin) {
-        if (!packageName.equals(searchClickPlugin.getPackageName()))
+    private boolean ProcessSearchField(int eventType, String fullPackageName, AccessibilityNodeInfo root, AccessibilityEvent event, SearchClickPlugin searchClickPlugin) {
+        if (!fullPackageName.contains(searchClickPlugin.getPartiallyPackageName()))
             return false;
         if(!searchClickPlugin.checkEventType(eventType))
             return false;
@@ -862,17 +871,17 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         AccessibilityNodeInfo info = searchClickPlugin.Convert(FindOrGetFromCache(root, searchClickPlugin));
 
         if (info != null) {
-            if (IsSearchHackSet(searchClickPlugin.getPackageName(), info))
+            if (IsSearchHackSet(fullPackageName, info))
                 return true;
             if(info.isFocused() )
                 return true;
-            Log.d(TAG3, "SetSearchHack=SET package: "+ searchClickPlugin.getPackageName());
+            Log.d(TAG3, "SetSearchHack=SET package: "+ fullPackageName);
             Log.d(TAG3, "SetSearchHack=SET getClassName: " + event.getClassName());
-            SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData = new SearchClickPlugin.SearchPluginLauncher(searchClickPlugin.getPackageName(), info, searchClickPlugin.WaitBeforeSendChar);
+            SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData = new SearchClickPlugin.SearchPluginLauncher(fullPackageName, info, searchClickPlugin.WaitBeforeSendChar);
             SetSearchHack(searchPluginLaunchData);
             return true;
         } else {
-            Log.d(TAG3, "SetSearchHack=NULL package: "+ searchClickPlugin.getPackageName());
+            Log.d(TAG3, "SetSearchHack=NULL package: "+ fullPackageName);
             Log.d(TAG3, "SetSearchHack=NULL: getClassName: " + event.getClassName());
             SetSearchHack(null);
             return false;

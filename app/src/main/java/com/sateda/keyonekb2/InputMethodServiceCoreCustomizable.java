@@ -1850,7 +1850,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     //
     public boolean TryDoTelegramRightDialogueExitHack() {
-        if(!_lastPackageName.equals("org.telegram.messenger"))
+        //На случай модификацией-клонов телеграмма, которые меняют последнюю букву пакета + .web
+        if(!_lastPackageName.contains("org.telegram.messenge"))
             return false;
         keyDownUp(KeyEvent.KEYCODE_TAB, getCurrentInputConnection(), 0,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
         return true;

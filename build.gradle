@@ -2,7 +2,10 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenLocal()
+        mavenCentral()
+        maven { url "https://repo.grails.org/grails/core/" }
+        //jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.2'
@@ -15,11 +18,14 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
-        //mavenCentral()
+        mavenLocal()
+        //jcenter()
+        mavenCentral()
         //maven { url 'https://jitpack.io' }
+        maven { url "https://repo.grails.org/grails/core/" }
     }
 }
+
 
 task clean(type: Delete) {
     delete rootProject.buildDir
