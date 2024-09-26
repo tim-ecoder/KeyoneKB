@@ -59,8 +59,6 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
     List<KeyPressData> KeyDownList1 = new ArrayList<>();
 
-    protected long AnyButtonPressOnHoldPlusButtonTime = 0;
-
     public static final String TAG2 = "KeyoneKb2-IME";
 
     protected List<KeyProcessingMode> mainModeKeyProcessors = new ArrayList<>();
@@ -164,7 +162,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             return false;
 
         if(NowHoldingPlusKeyNotUndoneSinglePress != null && NowHoldingPlusKeyNotUndoneSinglePress.KeyCode != keyCode) {
-            Log.d(TAG2, "!!!!!! ProcessUndoLastShortPress(NowHoldingPlusKeyNotUndoneSinglePress");
+            Log.d(TAG2, "FORCE UNDO SHORT PRESS OF HOLDING "+NowHoldingPlusKeyNotUndoneSinglePress.KeyCode+" UPON PRESS "+keyCode);
             ProcessUndoLastShortPress(NowHoldingPlusKeyNotUndoneSinglePress, keyEvent, mainModeKeyProcessors);
             NowHoldingPlusKeyNotUndoneSinglePress = null;
         }
@@ -282,20 +280,11 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                     if (keyPressData1.HoldBeginTime == 0) {
                         ProcessUndoLastShortPress(keyPressData1, keyEvent, keyProcessingModeList1);
                         keyPressData1.HoldBeginTime = keyDownTime;
-                    } else {
-                        if (keyPressData1.KeyDownTime < AnyButtonPressOnHoldPlusButtonTime
-                                && eventTime > AnyButtonPressOnHoldPlusButtonTime) {
-                            Log.d(TAG2, "WFT!? eventTime > AnyButtonPressOnHoldPlusButtonTime");
-                            //ProcessUndoLastShortPress(keyPressData1, keyEvent, keyProcessingModeList1);
-                            keyPressData1.HoldBeginTime = keyDownTime;
-                        }
-
                     }
+
                 }
             }
         }
-
-        AnyButtonPressOnHoldPlusButtonTime = keyDownTime;
         return true;
     }
 
@@ -357,18 +346,6 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             keyPressData.KeyUpTime = eventTime;
             RemoveFromKeyDownList(keyPressData);
             ProcessKeyUnhold(keyPressData, keyEvent, mainModeKeyProcessors);
-
-            if (!IsSameKeyDownPress(LastShortPressKey1, keyPressData) && keyPressData.HoldBeginTime == 0) {
-                ProcessUndoLastShortPress(keyPressData, keyEvent, mainModeKeyProcessors);
-            } else if (keyPressData.KeyDownTime < AnyButtonPressOnHoldPlusButtonTime
-                    && eventTime > AnyButtonPressOnHoldPlusButtonTime
-                            && keyPressData.HoldBeginTime == 0) {
-                ProcessUndoLastShortPress(keyPressData, keyEvent, mainModeKeyProcessors);
-            }
-
-            //if (keyPressData.HoldBeginTime != 0) {
-                //ProcessKeyUnhold(keyPressData);
-            //}
             return true;
         }
 

@@ -34,7 +34,7 @@ android {
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
         versionCode 2607
-        versionName "v2.7-build14-jsp2-osk3-toast1-cp1-tgh1-sp1-ckp1"
+        versionName "v2.7-build15-jsp2-osk3-toast1-cp1-tgh1-sp1-ckp2"
         //TODO: ----------------------------
 
         /**
