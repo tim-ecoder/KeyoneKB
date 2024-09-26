@@ -10,7 +10,6 @@ import android.graphics.drawable.Icon;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.os.Build;
-import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
@@ -1012,7 +1011,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             if( (pref_nav_pad_on_hold && keyboardStateHolding_NavModeAndKeyboard)
                     || keyboardStateFixed_NavModeAndKeyboard) {
                 keyboardView.setKeyboard(keyboardNavigation);
-                keyboardView.drawNavigationLayer();
+                keyboardView.prepareNavigationLayer();
                 needUsefulKeyboard = true;
             }
         } else if (keyboardStateFixed_SymbolOnScreenKeyboard) {
@@ -1026,7 +1025,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             //Keyboard k1 = keyboardLayoutManager.GetSymKeyboard(symPadAltShift);
             Keyboard k1 = new Keyboard(this, keyboardLayoutManager.GetCurrentKeyboardLayout().SymXmlId);
             keyboardView.setKeyboard(k1);
-            keyboardView.drawSymAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), symPadAltShift);
+            keyboardView.prepareSymAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), symPadAltShift);
 
             needUsefulKeyboard = true;
 

@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.*;
 import android.widget.PopupWindow;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
@@ -29,12 +30,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
     private SatedaKeyboardMode mode;
 
-    private String[] altPopup;
-    private String[] altPopupLabel;
-    private int indexAltPopup;
-    private int max_keys = 0;
-
-    private boolean popupOnCenter = true;
+    private SymPadKeyExtraData CurSymPadKeyPopup;
 
     private String lang = "";
     private String draw_lang = "";
@@ -54,9 +50,6 @@ public class ViewSatedaKeyboard extends KeyboardView {
     private Context context;
     private AttributeSet attrs;
 
-    private int[] nav_KeyLabel_x;
-    private int[] nav_KeyLabel_y;
-    private String[] nav_KeyLabel;
     private final int screenHeightY;
     private final int screenWidthX;
     private final float scaleHeightY;
@@ -177,131 +170,127 @@ public class ViewSatedaKeyboard extends KeyboardView {
     }
 
 
-    int[] sym_KeyLabel_x;
-    int[] sym_KeyLabel_y;
-    String[] sym_KeyLabel;
-    String[] sym_KeyLabelAltPopup;
+    private static class SymPadKeyExtraData {
+        Keyboard.Key Key;
+        String Label;
+        String LabelAltPopup;
+        int LabelX;
+        int LabelY;
+        String AltPopup;
+        String AltPopupLabel;
+    }
 
-    public void drawSymAltLayer(KeyboardLayout keyboardLayout, boolean isAltShift){
+    private ArrayList<SymPadKeyExtraData> SymPadKeyExtraDataList = new ArrayList<SymPadKeyExtraData>();
+    private ArrayList<SymPadKeyExtraData> SymPadAltKeyExtraDataList = new ArrayList<SymPadKeyExtraData>();
 
-        max_keys = 27;
+    public void prepareSymAltLayer(KeyboardLayout keyboardLayout, boolean isAltShift){
+
         modeNavFn = false;
         mode = SatedaKeyboardMode.SymPad;
 
-        /** кешировать не будем пока т.к. клавиатура дает возможность делать разные альт символы в привязке к разной раскладке
-         * если закешировать то запомнится только первая раскладка и ее альт-символы
-         * Если уж делать кеширование какое-то то в рамках полного переписывания кода SatedaKeyboard */
+        if(!isAltShift) {
+            CurSymKeyExtraDataList = SymPadKeyExtraDataList;
+            //if(!SymPadKeyExtraDataList.isEmpty())
+            //    return;
+            SymPadKeyExtraDataList.clear();
+            List<Keyboard.Key> keys = getKeyboard().getKeys();
+            for(Keyboard.Key key: keys) {
+                if (key == null)
+                    continue;
+                KeyboardLayout.KeyVariants keyVariants = null;
+                Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d", key.codes[0]));
+                if (keyCode == null) {
+                    Log.e(TAG2, "SCAN_CODE NOT MAPPED " + key.codes[0]);
+                    continue;
+                } else {
+                    keyVariants = KeyboardLayoutManager.getCurKeyVariants(keyboardLayout, keyCode.intValue());
+                }
 
-        //if(isSymLoaded) {
-        //    return;
-        //}
-        sym_KeyLabel = new String[max_keys];
-        sym_KeyLabel_x = new int[max_keys];
-        sym_KeyLabel_y = new int[max_keys];
-        sym_KeyLabelAltPopup = new String[max_keys];
-        altPopup = new String[max_keys];
-        altPopupLabel = new String[max_keys];
-
-
-        List<Keyboard.Key> keys = getKeyboard().getKeys();
-        int arr_inc = 0;
-        int i = 0;
-
-        for(KeyboardLayout.KeyVariants keyVariants : keyboardLayout.KeyMapping){
-            sym_KeyLabel[i] = "";
-            sym_KeyLabel_x[i] = 0;
-            sym_KeyLabel_y[i] = 0;
-            altPopup[i] = keyVariants.AltMoreVariants;
-
-            if(!isAltShift) {
-                altPopupLabel[i] = String.valueOf((char) keyVariants.SinglePressAltMode);
-            }
-            else if (altPopupLabel != null) {
-                altPopupLabel[i] = String.valueOf((char) keyVariants.SinglePressAltShiftMode);
-            }
-            i++;
-        }
-
-        for(Keyboard.Key key: keys) {
-            if(key == null)
-                continue;
-            KeyboardLayout.KeyVariants keyVariants = null;
-            //TODO: Особенно вот эта дичь
-            //Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d",key.codes[0]));
-            Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d",key.codes[0]));
-            if(keyCode == null) {
-                Log.e(TAG2, "SCAN_CODE NOT MAPPED "+key.codes[0]);
-                continue;
-            } else {
-                keyVariants = KeyboardLayoutManager.getCurKeyVariants(keyboardLayout, keyCode.intValue());
-            }
-
-            if(key.label.equals(" ")
-                    && sym_KeyLabel != null
-                    && isKeyboard(keyVariants.KeyCodeInt)
-                    && keyVariants.SinglePressShiftMode != null
-            ) {
-
-                sym_KeyLabel_x[arr_inc] = key.x + (key.width - scaleX(90));//key:90//pocket:60
-                sym_KeyLabel_y[arr_inc] = key.y + scaleY(100);//100//55
-                sym_KeyLabel[arr_inc] = keyVariants.SinglePressShiftMode.toString();
+                SymPadKeyExtraData spk =  new SymPadKeyExtraData();
+                spk.Key = key;
+                spk.LabelX = key.x + (key.width - scaleX(90));//key:90//pocket:60
+                spk.LabelY = key.y + scaleY(100);//100//55
+                spk.Label = keyVariants.SinglePressShiftMode.toString();
 
                 if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
-                    sym_KeyLabelAltPopup[arr_inc] = Character.toString(keyVariants.AltMoreVariants.charAt(0));
+                    spk.LabelAltPopup = Character.toString(keyVariants.AltMoreVariants.charAt(0));
                 } else
-                    sym_KeyLabelAltPopup[arr_inc] = "";
+                    spk.LabelAltPopup = "";
 
-                 if(!isAltShift) {
-                    key.codes[0] = keyVariants.SinglePressAltMode;
-                    key.label = String.valueOf((char) keyVariants.SinglePressAltMode);
-                }
-                else {
-                    key.codes[0] = keyVariants.SinglePressAltShiftMode;
-                    key.label = String.valueOf((char) keyVariants.SinglePressAltShiftMode);
+                spk.AltPopupLabel = String.valueOf((char) keyVariants.SinglePressAltMode);
+                spk.AltPopup = keyVariants.AltMoreVariants;
+
+                key.codes[0] = keyVariants.SinglePressAltMode;
+                key.label = String.valueOf((char) keyVariants.SinglePressAltMode);
+                SymPadKeyExtraDataList.add(spk);
+            }
+
+        } else {
+            CurSymKeyExtraDataList = SymPadAltKeyExtraDataList;
+
+            //if(!SymPadAltKeyExtraDataList.isEmpty())
+            //    return;
+
+            SymPadAltKeyExtraDataList.clear();
+            List<Keyboard.Key> keys = getKeyboard().getKeys();
+            for(Keyboard.Key key: keys) {
+                if (key == null)
+                    continue;
+                KeyboardLayout.KeyVariants keyVariants = null;
+                Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d", key.codes[0]));
+                if (keyCode == null) {
+                    Log.e(TAG2, "SCAN_CODE NOT MAPPED " + key.codes[0]);
+                    continue;
+                } else {
+                    keyVariants = KeyboardLayoutManager.getCurKeyVariants(keyboardLayout, keyCode.intValue());
                 }
 
-                arr_inc++;
+                SymPadKeyExtraData spk =  new SymPadKeyExtraData();
+                spk.Key = key;
+                spk.LabelX = key.x + (key.width - scaleX(90));//key:90//pocket:60
+                spk.LabelY = key.y + scaleY(100);//100//55
+                spk.Label = keyVariants.SinglePressShiftMode.toString();
+
+                if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
+                    spk.LabelAltPopup = Character.toString(keyVariants.AltMoreVariants.charAt(0));
+                } else
+                    spk.LabelAltPopup = "";
+                spk.AltPopup = keyVariants.AltMoreVariants;
+                spk.AltPopupLabel = String.valueOf((char) keyVariants.SinglePressAltShiftMode);
+
+                key.codes[0] = keyVariants.SinglePressAltShiftMode;
+                key.label = String.valueOf((char) keyVariants.SinglePressAltShiftMode);
+
+                SymPadAltKeyExtraDataList.add(spk);
             }
         }
-
     }
 
-    public void drawNavigationLayer(){
-        max_keys = 12;
+    protected static class NavKeyExtraData {
+        Keyboard.Key Key;
+        String KeyLabel;
+        int KeyLabelX;
+        int KeyLabelY;
+    }
+
+    private ArrayList<NavKeyExtraData> NavKeyDataList = new ArrayList<NavKeyExtraData>();
+
+    public void prepareNavigationLayer(){
 
         mode = SatedaKeyboardMode.NavPad;
 
-        nav_KeyLabel = new String[max_keys];
-        nav_KeyLabel_x = new int[max_keys];
-        nav_KeyLabel_y = new int[max_keys];
+        if(!NavKeyDataList.isEmpty())
+            return;
 
         List<Keyboard.Key> keys = getKeyboard().getKeys();
 
-        int arr_inc = 0;
-        for(int i = 0; i < max_keys; i++){
-            nav_KeyLabel[i] = "";
-            nav_KeyLabel_x[i] = 0;
-            nav_KeyLabel_y[i] = 0;
-        }
-
         for(Keyboard.Key key: keys) {
-
-            if (key.codes[0] == 111) { nav_KeyLabel[arr_inc] = "Q"; } //ESC
-            if (key.codes[0] == 122) { nav_KeyLabel[arr_inc] = "W|Y"; } //HOME
-            if (key.codes[0] == 19)  { nav_KeyLabel[arr_inc] = "E|U"; } //Arrow Up
-            if (key.codes[0] == 123) { nav_KeyLabel[arr_inc] = "R|I"; } //END
-            if (key.codes[0] == 92)  { nav_KeyLabel[arr_inc] = "T|O"; } //Page Up
-            if (key.codes[0] == -7)  { nav_KeyLabel[arr_inc] = "P"; } //FN
-
-            if (key.codes[0] == 61)  { nav_KeyLabel[arr_inc] = "A"; } //TAB
-            if (key.codes[0] == 21)  { nav_KeyLabel[arr_inc] = "S|H"; } //Arrow Left
-            if (key.codes[0] == 20)  { nav_KeyLabel[arr_inc] = "D|J"; } //Arrow Down
-            if (key.codes[0] == 22)  { nav_KeyLabel[arr_inc] = "F|K"; } //Arrow Right
-            if (key.codes[0] == 93)  { nav_KeyLabel[arr_inc] = "G|L"; } //Page Down
-
-            nav_KeyLabel_x[arr_inc] = key.x + scaleX(32);
-            nav_KeyLabel_y[arr_inc] = key.y + scaleY(32);
-            arr_inc++;
+            NavKeyExtraData nkd = new NavKeyExtraData();
+            nkd.Key = key;
+            nkd.KeyLabel = String.valueOf(key.popupCharacters);
+            nkd.KeyLabelX = key.x + scaleX(32);
+            nkd.KeyLabelY = key.y + scaleY(32);
+            NavKeyDataList.add(nkd);
         }
     }
     
@@ -323,18 +312,22 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
         int popupX = 0;
 
-        for(int i = 0; i < altPopupLabel.length; i++){
-            if(altPopupLabel[i].equals(popupKey.label)){
-                indexAltPopup = i;
-                break;
-            }
+        SymPadKeyExtraData curSpk = null;
+        for (SymPadKeyExtraData spk: CurSymKeyExtraDataList) {
+            if(spk.AltPopupLabel != null
+                && popupKey.label != null
+                && spk.AltPopupLabel.equals(popupKey.label))
+                curSpk = spk;
         }
 
-        if(altPopup[indexAltPopup] == null || altPopup[indexAltPopup].equals("")) return false;
+
+        if(curSpk == null) return false;
+
+        CurSymPadKeyPopup = curSpk;
 
         Keyboard keyboard;
         keyboard = new Keyboard(getContext(), R.layout.keyboard,
-                altPopup[indexAltPopup], -1, getPaddingLeft() + getPaddingRight());
+                curSpk.AltPopup, -1, getPaddingLeft() + getPaddingRight());
 
         mMiniKeyboard.setKeyboard(keyboard);
 
@@ -377,7 +370,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
     public void hidePopup(boolean returnKey) {
         if(mPopupKeyboard.isShowing()){
             if(returnKey) {
-                mService.onKey(altPopup[indexAltPopup].charAt(mMiniKeyboard.getCurrentIndex()), null);
+                mService.onKey(CurSymPadKeyPopup.AltPopup.charAt(mMiniKeyboard.getCurrentIndex()), null);
             }
             mPopupKeyboard.dismiss();
             invalidate();
@@ -405,6 +398,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
         Log.d(TAG2, "onDetachedFromWindow()");
         super.onDetachedFromWindow();
     }
+
+    ArrayList<SymPadKeyExtraData> CurSymKeyExtraDataList;
 
     @Override
     public void onDraw(Canvas canvas) {
@@ -474,12 +469,12 @@ public class ViewSatedaKeyboard extends KeyboardView {
             int alt3deltaX = scaleX(65);
             int alt3deltaY = scaleY(65);
 
-            for(int i = 0; i < max_keys; i++){
-                canvas.drawText(sym_KeyLabel[i], sym_KeyLabel_x[i], sym_KeyLabel_y[i], paint_gray);
-                if(sym_KeyLabelAltPopup != null
-                        && sym_KeyLabelAltPopup[i] != null
-                        && sym_KeyLabelAltPopup[i] != "")
-                    canvas.drawText(sym_KeyLabelAltPopup[i], sym_KeyLabel_x[i]+ alt3deltaX, sym_KeyLabel_y[i]- alt3deltaY, paint_red);
+            for (SymPadKeyExtraData spk: CurSymKeyExtraDataList) {
+                canvas.drawText(spk.Label, spk.LabelX, spk.LabelY, paint_gray);
+                if(spk.LabelAltPopup != null
+                && !spk.LabelAltPopup.isEmpty()) {
+                    canvas.drawText(spk.LabelAltPopup, spk.LabelX + alt3deltaX, spk.LabelY - alt3deltaY, paint_red);
+                }
             }
 
             //если отображено меню сверху - прикрыть панель темной полоской
@@ -503,8 +498,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 canvas.drawRect(startDrawLine, key.y + ydelta1, finishDrawLine, key.y + ydelta2, paint_gray);
             }
 
-            for(int i = 0; i < max_keys; i++) {
-                canvas.drawText(nav_KeyLabel[i], nav_KeyLabel_x[i], nav_KeyLabel_y[i], paint_gray);
+            for (NavKeyExtraData nkd: NavKeyDataList) {
+                canvas.drawText(nkd.KeyLabel, nkd.KeyLabelX, nkd.KeyLabelY, paint_gray);
             }
         }
         else {

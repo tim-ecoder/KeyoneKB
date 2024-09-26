@@ -110,5 +110,9 @@
     "key-code" : "KEYCODE_M",
     "single-press" : "m",
     "single-press-shift-mode" : "M"
+  }, {
+    "key-code" : "KEYCODE_0",
+    "single-press" : "0",
+    "single-press-shift-mode" : "0"
   } ]
 }
