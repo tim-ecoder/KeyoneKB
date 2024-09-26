@@ -353,7 +353,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             }
         }
 
-        OnStartInput.Process(null);
+        OnStartInput.Process(null, null);
         if (needUpdateVisualInsideSingleEvent)
             UpdateKeyboardModeVisualization();
         needUpdateVisualInsideSingleEvent = false;
@@ -371,7 +371,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         super.onFinishInput();
 
         try {
-            OnFinishInput.Process(null);
+            OnFinishInput.Process(null, null);
             if (needUpdateVisualInsideSingleEvent)
                 UpdateKeyboardModeVisualization();
             needUpdateVisualInsideSingleEvent = false;
@@ -410,6 +410,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         return isPackageChangedInsideSingleEvent;
     }
 
+
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public synchronized boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -427,50 +429,26 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         }
 
         //region Режим "Навигационные клавиши"
-        //TODO: Вынести NAV режим в кастомизации keyboard_mechanics
 
-        int navigationKeyCode;
-        InputConnection inputConnection = getCurrentInputConnection();
-        if (IsNavMode() && IsNavKeyCode(keyCode)) {
-            AnyButtonPressOnHoldPlusButtonTime = event.getEventTime();
+        /**
+         * Особенность в том, что NAV режим не работал для движения в режиме курсора по BB Launcher (чтобы работал flag должен быть 0)
+         * Но в режиме ввода текста чтобы фокус не выбивало при NAV-навигации в Telegram flag должен быть KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE
+         */
 
-            if(keyCode == KeyEvent.KEYCODE_Z
-                    || keyCode == KeyEvent.KEYCODE_N ) {
-                ActionMoveCursorPrevWord(event);
-                return true;
-            }
-            if(keyCode == KeyEvent.KEYCODE_X
-                    || keyCode == KeyEvent.KEYCODE_M ) {
-                ActionMoveCursorFwdWord(event);
-                return true;
-            }
-
-            navigationKeyCode = getNavigationCode(event.getKeyCode());
-
-            Log.d(TAG2, "navigationKeyCode " + navigationKeyCode);
-            if (navigationKeyCode == -7) {
-                keyboardStateFixed_FnSymbolOnScreenKeyboard = !keyboardStateFixed_FnSymbolOnScreenKeyboard;
-                UpdateKeyboardModeVisualization();
-                keyboardView.setFnNavMode(keyboardStateFixed_FnSymbolOnScreenKeyboard);
-                return true;
-            }
-            if (inputConnection != null && navigationKeyCode != 0) {
-                //Удаляем из meta состояния SYM т.к. он мешает некоторым приложениям воспринимать NAV символы с зажатием SYM
-                int meta = event.getMetaState() & ~KeyEvent.META_SYM_ON;
-
-                /** Это (Флаги KeepTouch) нужно чтобы в Telegram не выбивало курсор при движении курсора
-                 * С другой стороны надо передавать мета состояние чтобы работало сочетания Shift+Tab(SYM+A)
-                 */
-                keyDownUpKeepTouch2(navigationKeyCode, inputConnection, meta);
-                //keyDownUpMeta(navigationKeyCode, inputConnection, meta);
+        if (IsNavMode() && !IsNavModeExtraKeyTransparency(keyCode)) {
+            //AnyButtonPressOnHoldPlusButtonTime = event.getEventTime();
+            boolean rez = ProcessCoreOnKeyDown(keyCode, event, navKeyProcessors);
+            if(rez) {
+                ProcessOnCursorMovement(getCurrentInputEditorInfo());
             }
             return true;
         }
+
         //endregion
 
         needUpdateVisualInsideSingleEvent = false;
         _isKeyTransparencyInsideUpDownEvent = false;
-        boolean processed = ProcessNewStatusModelOnKeyDown(keyCode, event);
+        boolean processed = ProcessCoreOnKeyDown(keyCode, event, mainModeKeyProcessors);
         if(_isKeyTransparencyInsideUpDownEvent)
             return false;
         if (!processed)
@@ -489,6 +467,10 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
     }
 
+    private boolean IsNavModeExtraKeyTransparency(int keyCode) {
+        return navSwitcherKeyCode == keyCode || keyCode == KeyEvent.KEYCODE_SHIFT_LEFT || keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT;
+    }
+
 
     @Override
     public synchronized boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -496,7 +478,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
         //region Блок навигационной клавиатуры
 
-        if (IsNavMode() && IsNavKeyCode(keyCode)) {
+        if (IsNavMode() && !IsNavModeExtraKeyTransparency(keyCode)) {
             return true;
         }
         //endregion
@@ -512,7 +494,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         }
 
         needUpdateVisualInsideSingleEvent = false;
-        boolean processed = ProcessNewStatusModelOnKeyUp(keyCode, event);
+        boolean processed = ProcessCoreOnKeyUp(keyCode, event);
 
         if (_isKeyTransparencyInsideUpDownEvent) {
             _isKeyTransparencyInsideUpDownEvent = false;
@@ -534,19 +516,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
     }
 
-    /**
-     * Особенность в том, что NAV режим не работал для движения в режиме курсора по BB Launcher (чтобы работал flag должен быть 0)
-     * Но в режиме ввода текста чтобы фокус не выбивало при NAV-навигации в Telegram flag должен быть KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE
-     * @param keyEventCode
-     * @param ic
-     * @param meta
-     */
-    protected void keyDownUpKeepTouch2(int keyEventCode, InputConnection ic, int meta) {
-        if(IsInputMode())
-            keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
-        else
-            keyDownUp(keyEventCode, ic, meta,0);
-    }
+
+
 
     //TODO: Вынести в XML/JSON
     public int getNavigationCode(int keyCode) {
@@ -1170,33 +1141,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
 
     private boolean IsNavKeyCode(int keyCode) {
-        return keyCode == KeyEvent.KEYCODE_Q
-                || keyCode == KeyEvent.KEYCODE_A
-                || keyCode == KeyEvent.KEYCODE_P
-                //LEFT NAV BLOCK
-                || keyCode == KeyEvent.KEYCODE_W
-                || keyCode == KeyEvent.KEYCODE_E
-                || keyCode == KeyEvent.KEYCODE_R
-                || keyCode == KeyEvent.KEYCODE_T
-                || keyCode == KeyEvent.KEYCODE_S
-                || keyCode == KeyEvent.KEYCODE_D
-                || keyCode == KeyEvent.KEYCODE_F
-                || keyCode == KeyEvent.KEYCODE_G
-                //RIGHT BLOCK
-                || keyCode == KeyEvent.KEYCODE_Y
-                || keyCode == KeyEvent.KEYCODE_U
-                || keyCode == KeyEvent.KEYCODE_I
-                || keyCode == KeyEvent.KEYCODE_O
-                || keyCode == KeyEvent.KEYCODE_H
-                || keyCode == KeyEvent.KEYCODE_J
-                || keyCode == KeyEvent.KEYCODE_K
-                || keyCode == KeyEvent.KEYCODE_L
-                //MOVE WORDS
-                ||  keyCode == KeyEvent.KEYCODE_Z
-                ||  keyCode == KeyEvent.KEYCODE_X
-                ||  keyCode == KeyEvent.KEYCODE_N
-                ||  keyCode == KeyEvent.KEYCODE_M;
-
+        return FindAtKeyActionOptionList(keyCode, -1, navKeyProcessors) != null;
     }
 
     private boolean IsViewModeKeyCode(int keyCode, int meta) {
@@ -1233,7 +1178,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     @Override
     protected boolean ProcessOnCursorMovement(EditorInfo editorInfo)
     {
-        AnyButtonPressOnHoldPlusButtonTime = SystemClock.uptimeMillis();
+        //AnyButtonPressOnHoldPlusButtonTime = SystemClock.uptimeMillis();
         return DetermineFirstBigCharStateAndUpdateVisualization1(editorInfo);
     }
 

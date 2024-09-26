@@ -79,11 +79,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     protected int TIME_VIBRATE;
 
-    //region LOAD
+    //region KEYBOARD_MECHANICS LOAD
+
+    KeyboardMechanics KeyboardMechanics;
 
     public static class KeyboardMechanics {
-
-
         @JsonProperty(index = 20)
         public ArrayList<Action> OnStartInputActions;
         @JsonProperty(index = 30)
@@ -100,6 +100,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
         @JsonProperty(index = 100)
         public ArrayList<KeyGroupProcessor> KeyGroupProcessors = new ArrayList<>();
+
+        @JsonProperty(index = 105)
+        public ArrayList<KeyGroupProcessor> NavKeyGroupProcessors = new ArrayList<>();
+
 
         @JsonProperty(index = 110)
         public GestureProcessor GestureProcessor = new GestureProcessor();
@@ -163,11 +167,15 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             public int CustomKeyCodeInt;
             @JsonProperty(index = 70)
             public char CustomChar;
+            @JsonProperty(index = 80)
+            public boolean MethodNeedsKeyEventParameter;
+            @JsonProperty(index = 90)
+            public boolean MethodNeedsNavActionParameter;
 
         }
     }
 
-    KeyboardMechanics KeyboardMechanics;
+
 
 
 
@@ -249,7 +257,30 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
                 KeyProcessingMode keyAction;
                 keyAction = new KeyProcessingMode();
-                keyProcessingModeList.add(keyAction);
+                mainModeKeyProcessors.add(keyAction);
+
+                kgp.KeyCodeList = new ArrayList<>();
+                for (String keyCodeCode : kgp.KeyCodes) {
+                    LOADING_STAGE = "FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCodeCode): "+keyCodeCode;
+                    int value = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCodeCode);
+                    kgp.KeyCodeList.add(value);
+
+                }
+                if(kgp.KeyCodeList.isEmpty())
+                    throw new Exception("CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" key-codes CAN NOT BE EMPTY");
+
+                keyAction.KeyCodeArray = Arrays.stream(kgp.KeyCodeList.toArray(new Integer[0])).mapToInt(Integer::intValue).toArray();
+
+                LoadKeyActions(SB_STAGE, keyAction, kgp);
+
+            }
+
+            LOADING_STAGE = "KeyboardMechanics.NavKeyGroupProcessors";
+            for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.NavKeyGroupProcessors) {
+
+                KeyProcessingMode keyAction;
+                keyAction = new KeyProcessingMode();
+                navKeyProcessors.add(keyAction);
 
                 kgp.KeyCodeList = new ArrayList<>();
                 for (String keyCodeCode : kgp.KeyCodes) {
@@ -308,7 +339,24 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
         for (KeyboardMechanics.Action action : list) {
             ActionMethod method;
-            if (action.CustomKeyCode != null && !action.CustomKeyCode.isEmpty()) {
+            if (action.MethodNeedsNavActionParameter) {
+                // Эта проверка должна быть до action.CustomKeyCode так как action.CustomKeyCode в нем используется тоже, но есть и без него вариант, отдельный
+                method = FindActionMethodByName(action.ActionMethodName);
+
+                if (!method.getType().equals(NavActionData.class)) {
+                    Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
+                    throw new Exception("ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
+                }
+
+                if(action.CustomKeyCode == null || action.CustomKeyCode.isEmpty()) {
+                    Log.e(TAG2, "ACTION METHOD MethodNeedsNavActionParameter NEED CustomKeyCode parameter");
+                    throw new Exception("ACTION METHOD MethodNeedsNavActionParameter NEED CustomKeyCode parameter");
+                }
+
+                action.CustomKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(action.CustomKeyCode);
+
+
+            } else if (action.CustomKeyCode != null && !action.CustomKeyCode.isEmpty()) {
                 action.CustomKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(action.CustomKeyCode);
                 method = FindActionMethodByName(action.ActionMethodName);
                 if (!method.getType().equals(Integer.class)) {
@@ -326,6 +374,13 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 method = FindActionMethodByName(action.ActionMethodName);
 
                 if (!method.getType().equals(KeyPressData.class)) {
+                    Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
+                    throw new Exception("ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
+                }
+            } else if (action.MethodNeedsKeyEventParameter) {
+                method = FindActionMethodByName(action.ActionMethodName);
+
+                if (!method.getType().equals(KeyEvent.class)) {
                     Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
                     throw new Exception("ACTION METHOD PARAMETER TYPE MISMATCH " + action.ActionMethodName + " NEED: " + method.getType());
                 }
@@ -367,7 +422,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     //endregion
 
-    //region ActionMethod HashMap
+    //region MAIN HASHMAP ActionMethods
 
     interface IActionMethod<T> {
         boolean invoke(T t);
@@ -401,7 +456,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     void LoadActionMethodsStringMapping() {
-        FulfillMethodsHashMapGenerated2();
+        MAIN_ActionMethodsHashMapInitializer();
         //CodeGenerate();
     }
 
@@ -444,7 +499,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void FulfillMethodsHashMapGenerated2() {
+    private void MAIN_ActionMethodsHashMapInitializer() {
 
         Methods.put("ActionChangeFirstLetterShiftMode", InitializeMethod3((Object o) -> ActionChangeFirstLetterShiftMode(), Object.class));
         Methods.put("ActionChangeFirstSymbolAltMode", InitializeMethod3((Object o) -> ActionChangeFirstSymbolAltMode(), Object.class));
@@ -553,7 +608,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionTryResetHoldCtrlMode", InitializeMethod3((Object o) -> ActionTryResetHoldCtrlMode(), Object.class));
         //2.6
         Methods.put("ActionDisableFirstSymbolAltMode", InitializeMethod3((Object o) -> ActionDisableFirstSymbolAltMode(), Object.class));
-        //2.7
+
         Methods.put("ActionStartVoiceListening", InitializeMethod3((Object o) -> ActionStartVoiceListening(), Object.class));
         Methods.put("ActionChangeBackKeyboardLayout", InitializeMethod3((Object o) -> ActionChangeBackKeyboardLayout(), Object.class));
         Methods.put("ActionWait300", InitializeMethod3((Object o) -> ActionWait300(), Object.class));
@@ -565,11 +620,15 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionDisableHoldSymMode", InitializeMethod3((Object o) -> ActionDisableHoldSymMode(), Object.class));
         Methods.put("TryDoTelegramRightDialogueExitHack", InitializeMethod3((Object o) -> TryDoTelegramRightDialogueExitHack(), Object.class));
         Methods.put("TryChangeSelectionStartDirection", InitializeMethod3((Object o) -> TryChangeSelectionStartDirection(), Object.class));
-        //2.8
-        Methods.put("ActionPasteTextFromClipboardByLetters", InitializeMethod3((Object o) -> ActionPasteTextFromClipboardByLetters(), Object.class));
 
-        //ActionPasteTextFromClipboardByLetters
-        //TryChangeSelectionStartDirection
+        //2.7
+        Methods.put("ActionPasteTextFromClipboardByLetters", InitializeMethod3((Object o) -> ActionPasteTextFromClipboardByLetters(), Object.class));
+        Methods.put("ActionMoveCursorPrevWord", InitializeMethod3(this::ActionMoveCursorPrevWord, KeyEvent.class));
+        Methods.put("ActionMoveCursorFwdWord", InitializeMethod3(this::ActionMoveCursorFwdWord, KeyEvent.class));
+        Methods.put("ActionSendNavKey", InitializeMethod3(this::ActionSendNavKey, NavActionData.class));
+
+
+
     }
 
     //endregion
@@ -578,7 +637,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     class Processable2 implements InputMethodServiceCoreKeyPress.Processable {
         @Override
-        public boolean Process(KeyPressData keyPressData) {
+        public boolean Process(KeyPressData keyPressData, KeyEvent keyEvent) {
             if (Actions == null || Actions.isEmpty())
                 return true;
             try {
@@ -593,7 +652,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                         }
 
                         if (metaResult) {
-                            boolean result = InvokeMethod(keyPressData, action);
+                            boolean result = InvokeMethod(keyPressData, action, keyEvent);
                             if (result && action.NeedUpdateVisualState)
                                 Keyboard.ActionSetNeedUpdateVisualState();
                             if (action.NeedUpdateGestureVisualState)
@@ -607,7 +666,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 for (KeyboardMechanics.Action action : Actions) {
 
                     if (action.MetaModeMethods == null || action.MetaModeMethods.isEmpty()) {
-                        boolean result = InvokeMethod(keyPressData, action);
+                        boolean result = InvokeMethod(keyPressData, action, keyEvent);
                         if (result && action.NeedUpdateVisualState)
                             Keyboard.ActionSetNeedUpdateVisualState();
                         if (action.NeedUpdateGestureVisualState)
@@ -624,18 +683,23 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             return true;
         }
 
-        private boolean InvokeMethod(KeyPressData keyPressData, KeyboardMechanics.Action action) {
+        private boolean InvokeMethod(KeyPressData keyPressData, KeyboardMechanics.Action action, KeyEvent keyEvent) {
             boolean result;
             if (action.ActionMethod == null) {
                 Log.e(TAG2, "action.ActionMethod == null; MethodName: " + action.ActionMethodName + " KeyCode: " + keyPressData.KeyCode);
                 return false;
             }
-            if (action.CustomKeyCodeInt > 0) {
+            // Эта проверка должна быть до action.CustomKeyCode так как action.CustomKeyCode в нем используется тоже, но есть и без него вариант, отдельный
+            if (action.MethodNeedsNavActionParameter) {
+                result = action.ActionMethod.invoke(new NavActionData(action.CustomKeyCodeInt, keyEvent.getMetaState()));
+            } else if (action.CustomKeyCodeInt > 0) {
                 result = action.ActionMethod.invoke(action.CustomKeyCodeInt);
             } else if (action.CustomChar > 0) {
                 result = action.ActionMethod.invoke(action.CustomChar);
             } else if (action.MethodNeedsKeyPressParameter) {
                 result = action.ActionMethod.invoke(keyPressData);
+            } else if (action.MethodNeedsKeyEventParameter) {
+                result = action.ActionMethod.invoke(keyEvent);
             } else {
                 result = action.ActionMethod.invoke(Keyboard);
             }
@@ -771,24 +835,61 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return false;
     }
 
+    int navSwitcherKeyCode = -1;
+
     public boolean ActionTryEnableNavModeAndKeyboard() {
         if (!keyboardStateFixed_NavModeAndKeyboard) {
             //Двойное нажание SYM -> Режим навигации
             keyboardStateFixed_NavModeAndKeyboard = true;
             keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
             keyboardView.setFnNavMode(false);
+            navSwitcherKeyCode = LastShortPressKey1.KeyCode;
             return true;
         }
         return false;
     }
 
     public boolean ActionSetNavModeHoldOnState() {
+        navSwitcherKeyCode = KeyDownList1.get(KeyDownList1.size()-1).KeyCode;
         keyboardStateHolding_NavModeAndKeyboard = true;
         return true;
     }
 
     public boolean ActionSetNavModeHoldOffState() {
         keyboardStateHolding_NavModeAndKeyboard = false;
+        return true;
+    }
+
+    protected void keyDownUpKeepTouch2(int keyEventCode, InputConnection ic, int meta) {
+        if(IsInputMode())
+            keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
+        else
+            keyDownUp(keyEventCode, ic, meta,0);
+    }
+
+    public static class NavActionData {
+        public NavActionData(int navKeyCode, int metaState) {
+            NavKeyCode = navKeyCode;
+            MetaState = metaState;
+        }
+        public int NavKeyCode;
+        public int MetaState;
+    }
+
+    public boolean ActionSendNavKey(NavActionData navData) {
+        InputConnection inputConnection = getCurrentInputConnection();
+        if(inputConnection!=null)
+        if (inputConnection != null && navData.NavKeyCode != 0) {
+            //Удаляем из meta состояния SYM т.к. он мешает некоторым приложениям воспринимать NAV символы с зажатием SYM
+            int meta = navData.MetaState & ~KeyEvent.META_SYM_ON;
+
+            /** Это (Флаги KeepTouch) нужно чтобы в Telegram не выбивало курсор при движении курсора
+             * С другой стороны надо передавать мета состояние чтобы работало сочетания Shift+Tab(SYM+A)
+             */
+            keyDownUpKeepTouch2(navData.NavKeyCode, inputConnection, meta);
+            //ProcessOnCursorMovement(getCurrentInputEditorInfo());
+            //keyDownUpMeta(navigationKeyCode, inputConnection, meta);
+        }
         return true;
     }
 
@@ -951,6 +1052,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if (IsInputMode()) {
             if (!keyboardStateFixed_SymbolOnScreenKeyboard) {
                 keyboardStateFixed_SymbolOnScreenKeyboard = true;
+                Log.d(TAG2, "metaFixedModeAllSymbolsAlt = true");
                 metaFixedModeAllSymbolsAlt = true;
                 symPadAltShift = true;
                 metaFixedModeFirstSymbolAlt = false;
@@ -958,6 +1060,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 symPadAltShift = false;
                 keyboardStateFixed_SymbolOnScreenKeyboard = false;
                 metaFixedModeFirstSymbolAlt = false;
+                Log.d(TAG2, "metaFixedModeAllSymbolsAlt = false");
                 metaFixedModeAllSymbolsAlt = false;
             }
             //TODO: Много лишних вызовов апдейта нотификаций
@@ -977,6 +1080,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     public boolean ActionTryDisableSymPad() {
         if (keyboardStateFixed_SymbolOnScreenKeyboard) {
+            Log.d(TAG2, "metaFixedModeAllSymbolsAlt = false");
             keyboardStateFixed_SymbolOnScreenKeyboard = false;
             symPadAltShift = false;
             metaFixedModeFirstSymbolAlt = false;
@@ -1863,12 +1967,12 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     private void SendLetterOrSymbol(int code2send) {
 
 
-        BeforeSendChar.Process(null);
+        BeforeSendChar.Process(null, null);
 
         Log.v(TAG2, SystemClock.uptimeMillis()+" KEY SEND: "+String.format("%c", code2send));
         sendKeyChar((char) code2send);
 
-        AfterSendChar.Process(null);
+        AfterSendChar.Process(null, null);
     }
 
     protected KeyboardLayoutManager keyboardLayoutManager = new KeyboardLayoutManager();
@@ -1931,6 +2035,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     //TODO: Иногда вызывается по несколько раз подряд (видимо из разных мест)
     protected boolean DetermineForceFirstUpper(EditorInfo editorInfo) {
+        Log.d(TAG2, "DetermineForceFirstUpper");
         //Если мы вывалились из зоны ввода текста
         //NOTE: Проверка не дает вводить Заглавную прям на первом входе в приложение. Видимо не успевает еще активироваться.
         //if(!isInputViewShown())
@@ -1938,6 +2043,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
         if(editorInfo == null)
             return false;
+
 
         if (MetaIsAltMode()
                 || metaFixedModeCapslock)

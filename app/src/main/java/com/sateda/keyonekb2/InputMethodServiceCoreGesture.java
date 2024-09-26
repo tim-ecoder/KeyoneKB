@@ -340,7 +340,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                     && curDownTime - prevDownTime <= TIME_TRIPLE_PRESS) {
                 Log.d(TAG2, "GESTURE TRIPLE CLICK");
                 if(OnGestureTripleClick != null) {
-                    OnGestureTripleClick.Process(null);
+                    OnGestureTripleClick.Process(null, null);
                 }
                 LogGestureClickTimes();
                 ResetGestureClickTimes();
@@ -351,7 +351,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                     && curDownTime - prevDownTime <= TIME_DOUBLE_PRESS) {
                 Log.d(TAG2, "GESTURE DOUBLE CLICK");
                 if(OnGestureDoubleClick != null) {
-                    OnGestureDoubleClick.Process(null);
+                    OnGestureDoubleClick.Process(null, null);
                 }
                 LogGestureClickTimes();
                 prevPrevDownTime = prevDownTime;
