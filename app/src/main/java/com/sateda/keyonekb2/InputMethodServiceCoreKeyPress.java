@@ -346,6 +346,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             keyPressData.KeyUpTime = eventTime;
             RemoveFromKeyDownList(keyPressData);
             ProcessKeyUnhold(keyPressData, keyEvent, mainModeKeyProcessors);
+            if(NowHoldingPlusKeyNotUndoneSinglePress != null && NowHoldingPlusKeyNotUndoneSinglePress.KeyCode == keyCode)
+                NowHoldingPlusKeyNotUndoneSinglePress = null;
             return true;
         }
 

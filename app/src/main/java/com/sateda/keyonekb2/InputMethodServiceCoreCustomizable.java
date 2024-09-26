@@ -932,6 +932,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     public boolean ActionDisableHoldAltMode() {
         metaHoldAlt = false;
+        DetermineForceFirstUpper(getCurrentInputEditorInfo());
         return true;
     }
 
@@ -1052,7 +1053,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if (IsInputMode()) {
             if (!keyboardStateFixed_SymbolOnScreenKeyboard) {
                 keyboardStateFixed_SymbolOnScreenKeyboard = true;
-                Log.d(TAG2, "metaFixedModeAllSymbolsAlt = true");
                 metaFixedModeAllSymbolsAlt = true;
                 symPadAltShift = true;
                 metaFixedModeFirstSymbolAlt = false;
@@ -1060,8 +1060,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 symPadAltShift = false;
                 keyboardStateFixed_SymbolOnScreenKeyboard = false;
                 metaFixedModeFirstSymbolAlt = false;
-                Log.d(TAG2, "metaFixedModeAllSymbolsAlt = false");
                 metaFixedModeAllSymbolsAlt = false;
+                DetermineForceFirstUpper(getCurrentInputEditorInfo());
             }
             //TODO: Много лишних вызовов апдейта нотификаций
             return true;
@@ -1080,7 +1080,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     public boolean ActionTryDisableSymPad() {
         if (keyboardStateFixed_SymbolOnScreenKeyboard) {
-            Log.d(TAG2, "metaFixedModeAllSymbolsAlt = false");
             keyboardStateFixed_SymbolOnScreenKeyboard = false;
             symPadAltShift = false;
             metaFixedModeFirstSymbolAlt = false;
