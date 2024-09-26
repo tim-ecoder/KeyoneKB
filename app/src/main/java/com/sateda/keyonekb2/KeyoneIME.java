@@ -639,24 +639,6 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         return keyEventCode;
     }
 
-    @Override
-    public void onPress(int primaryCode) {
-        Log.d(TAG2, "onPress");
-    }
-
-    @Override
-    public void onRelease(int primaryCode) {
-
-    }
-
-    @Override
-    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-        Log.d(TAG2, "onKeyLongPress " + event);
-        return false;
-    }
-
-
-
     //private int lastOrientation = 0;
     private int lastVisibility = -1;
 
@@ -699,6 +681,22 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
         ProcessOnCursorMovement(getCurrentInputEditorInfo());
 
+    }
+
+    @Override
+    public void onPress(int primaryCode) {
+        Log.d(TAG2, "onPress");
+        //onKey(primaryCode, null);
+    }
+
+    @Override
+    public void onRelease(int primaryCode) {
+    }
+
+    @Override
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+        Log.d(TAG2, "onKeyLongPress " + event);
+        return false;
     }
 
     @Override
@@ -852,6 +850,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         LogKeyboardTest("onTouch: "+motionEvent.getAction());
         printSamples(motionEvent);
 
+
+        if(
+        keyboardStateFixed_FnSymbolOnScreenKeyboard
+        || keyboardStateFixed_NavModeAndKeyboard)
+            return false;
 
         //Log.d(TAG, "onTouch "+motionEvent);
         InputConnection inputConnection = getCurrentInputConnection();

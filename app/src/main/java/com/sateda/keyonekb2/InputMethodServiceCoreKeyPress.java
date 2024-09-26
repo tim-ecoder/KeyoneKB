@@ -297,6 +297,11 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             return false;
         if (keyProcessingMode.IsShortPressOnly()) {
             KeyPressData keyPressData = FindAtKeyDownList(keyCode, scanCode);
+            if(keyPressData == null) {
+                Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
+                return false;
+            }
+            RemoveFromKeyDownList(keyPressData);
             keyPressData.KeyUpTime = eventTime;
             LastShortPressKey1 = keyPressData;
             return true;

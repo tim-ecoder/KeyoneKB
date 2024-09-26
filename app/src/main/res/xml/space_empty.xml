@@ -11,7 +11,8 @@
         <Key android:keyLabel="⇚"
             android:keyWidth="10%p"
             android:keyEdgeFlags="left"
-            android:codes="21"/>
+            android:codes="21"
+            android:isRepeatable="true"/>
 
         <Key android:keyLabel=" "
             android:keyWidth="80%p"
@@ -21,7 +22,8 @@
         <Key android:keyLabel="⇛"
             android:keyWidth="10%p"
             android:keyEdgeFlags="right"
-            android:codes="22"/>
+            android:codes="22"
+            android:isRepeatable="true"/>
 
     </Row>
 

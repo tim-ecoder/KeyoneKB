@@ -6,19 +6,19 @@
     android:keyHeight="45dp"
     >
     <Row >
-        <Key android:codes="111" android:keyLabel="Esc" android:keyEdgeFlags="left" />
-        <Key android:codes="122" android:keyLabel="Home" />
-        <Key android:codes="19" android:keyIcon="@mipmap/ic_up_arrow_white"  />
-        <Key android:codes="123" android:keyLabel="End" />
-        <Key android:codes="92" android:keyLabel="PGUP" />
-        <Key android:codes="-7" android:keyLabel="FN" android:keyEdgeFlags="right"  />
+        <Key android:codes="111" android:keyLabel="Esc" android:keyEdgeFlags="left" android:isRepeatable="true"/>
+        <Key android:codes="122" android:keyLabel="Home" android:isRepeatable="true"/>
+        <Key android:codes="19" android:keyIcon="@mipmap/ic_up_arrow_white"  android:isRepeatable="true"/>
+        <Key android:codes="123" android:keyLabel="End" android:isRepeatable="true"/>
+        <Key android:codes="92" android:keyLabel="PGUP" android:isRepeatable="true"/>
+        <Key android:codes="-7" android:keyLabel="FN" android:keyEdgeFlags="right" android:isRepeatable="true" />
     </Row>
     <Row>
-        <Key android:codes="61" android:keyLabel="Tab" android:keyEdgeFlags="left" />
-        <Key android:codes="21" android:keyIcon="@mipmap/ic_left_arrow_white" />
-        <Key android:codes="20" android:keyIcon="@mipmap/ic_down_arrow_white"  />
-        <Key android:codes="22" android:keyIcon="@mipmap/ic_right_arrow_white"  />
-        <Key android:codes="93" android:keyLabel="PGDN" />
+        <Key android:codes="61" android:keyLabel="Tab" android:keyEdgeFlags="left" android:isRepeatable="true"/>
+        <Key android:codes="21" android:keyIcon="@mipmap/ic_left_arrow_white" android:isRepeatable="true"/>
+        <Key android:codes="20" android:keyIcon="@mipmap/ic_down_arrow_white"  android:isRepeatable="true"/>
+        <Key android:codes="22" android:keyIcon="@mipmap/ic_right_arrow_white"  android:isRepeatable="true"/>
+        <Key android:codes="93" android:keyLabel="PGDN" android:isRepeatable="true"/>
         <Key android:codes="-5" android:keyIcon="@mipmap/ic_backspace_white_24dp"
             android:isRepeatable="true" android:keyEdgeFlags="right"  />
     </Row>
