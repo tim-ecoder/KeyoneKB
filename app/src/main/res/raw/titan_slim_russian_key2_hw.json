@@ -129,11 +129,7 @@
     "single-press-shift-mode" : "Б",
     "double-press" : "ю",
     "double-press-shift-mode" : "Ю"
-  }, {
-      "key-code" : "KEYCODE_0",
-      "single-press" : "0",
-      "single-press-shift-mode" : "0"
-    }
+  }
 
 
   ]
