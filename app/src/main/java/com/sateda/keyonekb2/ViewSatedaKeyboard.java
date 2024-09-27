@@ -321,7 +321,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
         }
 
 
-        if(curSpk == null) return false;
+        if(curSpk == null || curSpk.AltPopup == null) return false;
 
         CurSymPadKeyPopup = curSpk;
 

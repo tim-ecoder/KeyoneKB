@@ -121,5 +121,9 @@
     "key-code" : "KEYCODE_M",
     "single-press" : "б",
     "single-press-shift-mode" : "Б"
-  } ]
+  }, {
+      "key-code" : "KEYCODE_0",
+      "single-press" : "0",
+      "single-press-shift-mode" : "0"
+    } ]
 }

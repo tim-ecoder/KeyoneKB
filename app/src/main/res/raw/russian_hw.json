@@ -122,5 +122,9 @@
     "single-press-shift-mode" : "Ь",
     "double-press" : "ъ",
     "double-press-shift-mode" : "Ъ"
+  }, {
+    "key-code" : "KEYCODE_0",
+    "single-press" : "0",
+    "single-press-shift-mode" : "0"
   } ]
 }

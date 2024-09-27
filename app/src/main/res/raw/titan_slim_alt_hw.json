@@ -126,6 +126,10 @@
   "single-press-alt-shift-mode" : "€",
   "single-press-alt-mode" : "$",
   "alt-more-variants" : "₽₴₩£₪¥$€"
+}, {
+  "key-code" : "KEYCODE_0",
+  "single-press-alt-shift-mode" : "0",
+  "single-press-alt-mode" : "0"
 }
 
 

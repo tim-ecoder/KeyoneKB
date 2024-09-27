@@ -888,6 +888,161 @@
       ]
     }
   ],
+  "nav-key-group-processors": [
+    {
+      "key-codes": [
+        "KEYCODE_Z",
+        "KEYCODE_N"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionMoveCursorPrevWord",
+          "method-needs-key-event-parameter": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_X",
+        "KEYCODE_M"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionMoveCursorFwdWord",
+          "method-needs-key-event-parameter": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_Q"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_ESCAPE"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_W",
+        "KEYCODE_Y"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_MOVE_HOME"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_E",
+        "KEYCODE_U"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_DPAD_UP"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_R",
+        "KEYCODE_I"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_MOVE_END"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_T",
+        "KEYCODE_O"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_PAGE_UP"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_A"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_TAB"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_S",
+        "KEYCODE_H"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_DPAD_LEFT"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_D",
+        "KEYCODE_J"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_DPAD_DOWN"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_F",
+        "KEYCODE_K"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_DPAD_RIGHT"
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_G",
+        "KEYCODE_L"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code" : "KEYCODE_PAGE_DOWN"
+        }
+      ]
+    }
+
+  ],
   "gesture-processor" : {
     "keyboard-gestures-at-input-mode-enabled" : true,
     "key-hold-plus-gesture-enabled" : true,

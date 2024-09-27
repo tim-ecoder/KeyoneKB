@@ -122,5 +122,9 @@
     "key-code" : "KEYCODE_M",
     "single-press" : "м",
     "single-press-shift-mode" : "М"
+  }, {
+    "key-code" : "KEYCODE_0",
+    "single-press" : "0",
+    "single-press-shift-mode" : "0"
   } ]
 }
