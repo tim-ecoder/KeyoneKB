@@ -867,8 +867,9 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     }
 
     protected void keyDownUpKeepTouch2(int keyEventCode, InputConnection ic, int meta) {
-        if(IsInputMode())
-            keyDownUp(keyEventCode, ic, meta,KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
+        if(IsInputMode()) {
+            keyDownUp(keyEventCode, ic, meta, KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
+        }
         else
             keyDownUp(keyEventCode, ic, meta,0);
     }
@@ -884,10 +885,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     public boolean ActionSendNavKey(NavActionData navData) {
         InputConnection inputConnection = getCurrentInputConnection();
-        if(inputConnection!=null)
         if (inputConnection != null && navData.NavKeyCode != 0) {
+
             //Удаляем из meta состояния SYM т.к. он мешает некоторым приложениям воспринимать NAV символы с зажатием SYM
-            int meta = navData.MetaState & ~KeyEvent.META_SYM_ON;
+            int meta = navData.MetaState & (KeyEvent.META_SHIFT_ON | KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_RIGHT_ON);
 
             /** Это (Флаги KeepTouch) нужно чтобы в Telegram не выбивало курсор при движении курсора
              * С другой стороны надо передавать мета состояние чтобы работало сочетания Shift+Tab(SYM+A)
