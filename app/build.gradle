@@ -34,7 +34,7 @@ android {
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
         versionCode 2607
-        versionName "v2.7b16-jsp2-osk4-toast1-cp1-tgh1-sp1-ckp2"
+        versionName "v2.7b17-jsp2-osk4-ts1-cp1-tgh1-sp1-ckp2-cc1"
         //TODO: ----------------------------
 
         /**
@@ -45,6 +45,7 @@ android {
          *
          * sr6 - Speech recognition
          * ckp - Core key press
+         * cc - Core customizable
          * gm - Gesture movement
          * sp - Search plugins
          * nm - Navigation mode
@@ -52,6 +53,7 @@ android {
          * uhsp - unihertz slim|pocket api >=28
          * osk - on-screen-keyboard
          * tgh - telegram hack
+         * ts - toast
          */
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 public class InputMethodServiceCoreKeyPress extends InputMethodService {
@@ -61,8 +62,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
     public static final String TAG2 = "KeyoneKb2-IME";
 
-    protected List<KeyProcessingMode> mainModeKeyProcessors = new ArrayList<>();
-    protected List<KeyProcessingMode> navKeyProcessors = new ArrayList<>();
+    protected HashMap<Integer, KeyProcessingMode> mainModeKeyProcessorsMap = new HashMap<Integer, KeyProcessingMode>();
+    protected HashMap<Integer, KeyProcessingMode> navKeyProcessorsMap = new HashMap<Integer, KeyProcessingMode>();
     KeyPressData LastShortPressKeyUpForDoublePress = null;
     KeyPressData LastDoublePress = null;
 
@@ -151,7 +152,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
                     || keyPressData1.ScanCode == keyPressData2.ScanCode);
     }
 
-    protected boolean ProcessCoreOnKeyDown(int keyCode, KeyEvent keyEvent, List<KeyProcessingMode> keyProcessingModeList1) {
+    protected boolean ProcessCoreOnKeyDown(int keyCode, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         int scanCode = keyEvent.getScanCode();
         int repeatCount1 = keyEvent.getRepeatCount();
         long eventTime = keyEvent.getEventTime();
@@ -163,7 +164,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
         if(NowHoldingPlusKeyNotUndoneSinglePress != null && NowHoldingPlusKeyNotUndoneSinglePress.KeyCode != keyCode) {
             Log.d(TAG2, "FORCE UNDO SHORT PRESS OF HOLDING "+NowHoldingPlusKeyNotUndoneSinglePress.KeyCode+" UPON PRESS "+keyCode);
-            ProcessUndoLastShortPress(NowHoldingPlusKeyNotUndoneSinglePress, keyEvent, mainModeKeyProcessors);
+            ProcessUndoLastShortPress(NowHoldingPlusKeyNotUndoneSinglePress, keyEvent, mainModeKeyProcessorsMap);
             NowHoldingPlusKeyNotUndoneSinglePress = null;
         }
 
@@ -294,7 +295,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         int scanCode = keyEvent.getScanCode();
         //long eventTime = SystemClock.uptimeMillis();
         long eventTime = keyEvent.getEventTime();
-        KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyCode, scanCode, mainModeKeyProcessors);
+        KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyCode, scanCode, mainModeKeyProcessorsMap);
         if(keyProcessingMode == null)
             return false;
         if (keyProcessingMode.IsShortPressOnly()) {
@@ -345,7 +346,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
             keyPressData.KeyUpTime = eventTime;
             RemoveFromKeyDownList(keyPressData);
-            ProcessKeyUnhold(keyPressData, keyEvent, mainModeKeyProcessors);
+            ProcessKeyUnhold(keyPressData, keyEvent, mainModeKeyProcessorsMap);
             if(NowHoldingPlusKeyNotUndoneSinglePress != null && NowHoldingPlusKeyNotUndoneSinglePress.KeyCode == keyCode)
                 NowHoldingPlusKeyNotUndoneSinglePress = null;
             return true;
@@ -378,7 +379,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
     //Для нажатий, где нельзя себе позволить FAST_TRACK (OnKeyDown) реакцию (например откатывать OnShorPress нельзя)
     //final ExecutorService ExecutorService = Executors.newFixedThreadPool(2);
-    private void ProcessShortPressIfNoDoublePress(KeyPressData keyPressData, KeyEvent keyEvent, List<KeyProcessingMode> keyProcessingModeList1) {
+    private void ProcessShortPressIfNoDoublePress(KeyPressData keyPressData, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         try {
             Thread.sleep(TIME_DOUBLE_PRESS - (keyPressData.KeyUpTime - keyPressData.KeyDownTime));
             long now = SystemClock.uptimeMillis();
@@ -408,7 +409,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         return null;
     }
 
-    KeyProcessingMode FindAtKeyActionOptionList(KeyCodeScanCode keyCodeScanCode, List<KeyProcessingMode> keyProcessingModeList1) {
+    KeyProcessingMode FindAtKeyActionOptionList(KeyCodeScanCode keyCodeScanCode, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         if(keyCodeScanCode == null) {
             Log.e(TAG2, "FindAtKeyActionOptionList: keyCodeScanCode == null");
             return null;
@@ -416,26 +417,8 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         return FindAtKeyActionOptionList(keyCodeScanCode.KeyCode, keyCodeScanCode.ScanCode, keyProcessingModeList1);
     }
 
-    //TODO: Переделать на KeyValue ???
-    static KeyProcessingMode FindAtKeyActionOptionList(int keyCode, int scanCode, List<KeyProcessingMode> keyProcessingModeList1) {
-        for (KeyProcessingMode keyProcessingMode : keyProcessingModeList1) {
-            if(keyProcessingMode.KeyCodeScanCode == null && keyProcessingMode.KeyCodeArray == null){
-                Log.e(TAG2, "KeyActionsOptionList contains keyActionsOption.KeyCodeScanCode == null && keyActionsOption.KeyCodeArray == null");
-                continue;
-            }
-            if(keyProcessingMode.KeyCodeArray != null) {
-                for (int keyCode1: keyProcessingMode.KeyCodeArray) {
-                    if(keyCode1 == keyCode)
-                        return keyProcessingMode;
-                }
-                continue;
-            }
-            if (keyProcessingMode.KeyCodeScanCode.ScanCode == scanCode
-                    || keyProcessingMode.KeyCodeScanCode.KeyCode == keyCode) {
-                return keyProcessingMode;
-            }
-        }
-        return null;
+    static KeyProcessingMode FindAtKeyActionOptionList(int keyCode, int scanCode, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
+        return keyProcessingModeList1.get(keyCode);
     }
 
     protected void LogKeyboardTest(String tag, String msg) {
@@ -455,7 +438,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
     protected KeyProcessingMode AnyKeyBeforeAction;
 
-    void ProcessHoldBegin(KeyPressData keyPressData, KeyEvent keyEvent, List<KeyProcessingMode> keyProcessingModeList1) {
+    void ProcessHoldBegin(KeyPressData keyPressData, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData, keyProcessingModeList1);
         if(keyProcessingMode != null && keyProcessingMode.OnHoldOn != null) {
             LogKeyboardTest(TAG2, String.format("[%d] HOLD_ON %d", keyPressData.HoldBeginTime, keyPressData.KeyCode));
@@ -465,7 +448,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         }
     }
 
-    void ProcessLongPress(KeyPressData keyPressData, KeyEvent keyEvent, List<KeyProcessingMode> keyProcessingModeList1) {
+    void ProcessLongPress(KeyPressData keyPressData, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData, keyProcessingModeList1);
         if(keyProcessingMode != null && keyProcessingMode.OnLongPress != null) {
             if(keyPressData.Short2ndLongPress)
@@ -477,7 +460,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             keyProcessingMode.OnLongPress.Process(keyPressData, keyEvent);
         }
     }
-    void ProcessKeyUnhold(KeyPressData keyPressData, KeyEvent keyEvent, List<KeyProcessingMode> keyProcessingModeList1) {
+    void ProcessKeyUnhold(KeyPressData keyPressData, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData, keyProcessingModeList1);
         if(keyProcessingMode != null && keyProcessingMode.OnHoldOff != null) {
             LogKeyboardTest(TAG2, String.format("[%d] HOLD_OFF %d HOLD_BEGAN %d", keyPressData.KeyUpTime, keyPressData.KeyCode, keyPressData.HoldBeginTime));
@@ -487,7 +470,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         }
     }
 
-    void ProcessShortPress(KeyPressData keyPressData, KeyEvent keyEvent, List<KeyProcessingMode> keyProcessingModeList1) {
+    void ProcessShortPress(KeyPressData keyPressData, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData, keyProcessingModeList1);
         if(keyProcessingMode != null && keyProcessingMode.OnShortPress != null) {
             LogKeyboardTest(TAG2, String.format("[%d] SHORT_PRESS %d", keyPressData.KeyDownTime, keyPressData.KeyCode));
@@ -497,7 +480,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         }
     }
 
-    void ProcessDoublePress(KeyPressData keyPressData, KeyEvent keyEvent, List<KeyProcessingMode> keyProcessingModeList1) {
+    void ProcessDoublePress(KeyPressData keyPressData, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData, keyProcessingModeList1);
         if(keyProcessingMode != null && keyProcessingMode.OnDoublePress != null) {
             LogKeyboardTest(TAG2, String.format("[%d] DOUBLE_PRESS %d", keyPressData.DoublePressTime, keyPressData.KeyCode));
@@ -507,7 +490,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         }
     }
 
-    void ProcessTriplePress(KeyPressData keyPressData, KeyEvent keyEvent, List<KeyProcessingMode> keyProcessingModeList1) {
+    void ProcessTriplePress(KeyPressData keyPressData, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData, keyProcessingModeList1);
         if(keyProcessingMode != null && keyProcessingMode.OnTriplePress != null) {
             LogKeyboardTest(TAG2, String.format("[%d] TRIPLE_PRESS %d", keyPressData.DoublePressTime, keyPressData.KeyCode));
@@ -517,7 +500,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         }
     }
 
-    void ProcessUndoLastShortPress(KeyPressData keyPressData, KeyEvent keyEvent, List<KeyProcessingMode> keyProcessingModeList1) {
+    void ProcessUndoLastShortPress(KeyPressData keyPressData, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessingModeList1) {
         KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyPressData, keyProcessingModeList1);
         if(keyProcessingMode != null && keyProcessingMode.OnUndoShortPress != null) {
             LogKeyboardTest(TAG2, String.format("[%d] UNDO_SHORT_PRESS %d", keyPressData.KeyDownTime, keyPressData.KeyCode));
@@ -538,12 +521,6 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
 
     class KeyProcessingMode {
-
-        public KeyProcessingMode() {
-            KeyCodeScanCode = new KeyCodeScanCode();
-        }
-        public KeyCodeScanCode KeyCodeScanCode;
-        public int[] KeyCodeArray;
         public Processable OnShortPress;
         public Processable OnDoublePress;
         public Processable OnTriplePress;

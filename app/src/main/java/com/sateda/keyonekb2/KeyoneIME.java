@@ -436,7 +436,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
         if (IsNavMode() && !IsNavModeExtraKeyTransparency(keyCode)) {
             //AnyButtonPressOnHoldPlusButtonTime = event.getEventTime();
-            boolean rez = ProcessCoreOnKeyDown(keyCode, event, navKeyProcessors);
+            boolean rez = ProcessCoreOnKeyDown(keyCode, event, navKeyProcessorsMap);
             if(rez) {
                 ProcessOnCursorMovement(getCurrentInputEditorInfo());
             }
@@ -447,7 +447,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
         needUpdateVisualInsideSingleEvent = false;
         _isKeyTransparencyInsideUpDownEvent = false;
-        boolean processed = ProcessCoreOnKeyDown(keyCode, event, mainModeKeyProcessors);
+        boolean processed = ProcessCoreOnKeyDown(keyCode, event, mainModeKeyProcessorsMap);
         if(_isKeyTransparencyInsideUpDownEvent)
             return false;
         if (!processed)
@@ -1140,7 +1140,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
 
     private boolean IsNavKeyCode(int keyCode) {
-        return FindAtKeyActionOptionList(keyCode, -1, navKeyProcessors) != null;
+        return FindAtKeyActionOptionList(keyCode, -1, navKeyProcessorsMap) != null;
     }
 
     private boolean IsViewModeKeyCode(int keyCode, int meta) {

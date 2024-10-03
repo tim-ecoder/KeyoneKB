@@ -186,26 +186,25 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
         sbSubStage.setLength(0);
         sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress) KEY_CODE: %s",keyCode));
-        keyAction.OnShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress);
+        keyAction.OnShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnShortPress, keyAction.OnShortPress);
         sbSubStage.setLength(0);
         sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress) KEY_CODE: %s",keyCode));
-        keyAction.OnUndoShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress);
+        keyAction.OnUndoShortPress = ProcessMethodMappingAndCreateProcessable(kgp.OnUndoShortPress, keyAction.OnUndoShortPress);
         sbSubStage.setLength(0);
         sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress) KEY_CODE: %s",keyCode));
-        sbSubStage.setLength(0);
-        keyAction.OnDoublePress = ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress);
+        keyAction.OnDoublePress = ProcessMethodMappingAndCreateProcessable(kgp.OnDoublePress, keyAction.OnDoublePress);
         sbSubStage.setLength(0);
         sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress) KEY_CODE: %s",keyCode));
-        keyAction.OnLongPress = ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress);
+        keyAction.OnLongPress = ProcessMethodMappingAndCreateProcessable(kgp.OnLongPress, keyAction.OnLongPress);
         sbSubStage.setLength(0);
         sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn) KEY_CODE: %s",keyCode));
-        keyAction.OnHoldOn = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn);
+        keyAction.OnHoldOn = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOn, keyAction.OnHoldOn);
         sbSubStage.setLength(0);
         sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff) KEY_CODE: %s",keyCode));
-        keyAction.OnHoldOff = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff);
+        keyAction.OnHoldOff = ProcessMethodMappingAndCreateProcessable(kgp.OnHoldOff, keyAction.OnHoldOff);
         sbSubStage.setLength(0);
         sbSubStage.append(String.format("ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress) KEY_CODE: %s",keyCode));
-        keyAction.OnTriplePress = ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress);
+        keyAction.OnTriplePress = ProcessMethodMappingAndCreateProcessable(kgp.OnTriplePress, keyAction.OnTriplePress);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -233,16 +232,16 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             }
 
             LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnStartInputActions)";
-            OnStartInput = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnStartInputActions);
+            OnStartInput = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnStartInputActions, OnStartInput);
 
             LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnFinishInputActions)";
-            OnFinishInput = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnFinishInputActions);
+            OnFinishInput = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.OnFinishInputActions, OnFinishInput);
 
             LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.BeforeSendCharActions)";
-            BeforeSendChar = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.BeforeSendCharActions);
+            BeforeSendChar = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.BeforeSendCharActions, BeforeSendChar);
 
             LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.AfterSendCharActions)";
-            AfterSendChar = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.AfterSendCharActions);
+            AfterSendChar = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.AfterSendCharActions, AfterSendChar);
 
 
 
@@ -255,10 +254,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             LOADING_STAGE = "KeyboardMechanics.KeyGroupProcessors";
             for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.KeyGroupProcessors) {
 
-                KeyProcessingMode keyAction;
-                keyAction = new KeyProcessingMode();
-                mainModeKeyProcessors.add(keyAction);
-
                 kgp.KeyCodeList = new ArrayList<>();
                 for (String keyCodeCode : kgp.KeyCodes) {
                     LOADING_STAGE = "FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCodeCode): "+keyCodeCode;
@@ -269,19 +264,21 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 if(kgp.KeyCodeList.isEmpty())
                     throw new Exception("CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" key-codes CAN NOT BE EMPTY");
 
-                keyAction.KeyCodeArray = Arrays.stream(kgp.KeyCodeList.toArray(new Integer[0])).mapToInt(Integer::intValue).toArray();
+                int[] kc_arr = Arrays.stream(kgp.KeyCodeList.toArray(new Integer[0])).mapToInt(Integer::intValue).toArray();
 
-                LoadKeyActions(SB_STAGE, keyAction, kgp);
-
+                for (int kc : kc_arr) {
+                    KeyProcessingMode keyAction1 = mainModeKeyProcessorsMap.get(kc);
+                    if(keyAction1 == null) {
+                        keyAction1 = new KeyProcessingMode();
+                        mainModeKeyProcessorsMap.put(kc, keyAction1);
+                    }
+                    LoadKeyActions(SB_STAGE, keyAction1, kgp);
+                }
             }
 
             LOADING_STAGE = "KeyboardMechanics.NavKeyGroupProcessors";
             for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.NavKeyGroupProcessors) {
 
-                KeyProcessingMode keyAction;
-                keyAction = new KeyProcessingMode();
-                navKeyProcessors.add(keyAction);
-
                 kgp.KeyCodeList = new ArrayList<>();
                 for (String keyCodeCode : kgp.KeyCodes) {
                     LOADING_STAGE = "FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCodeCode): "+keyCodeCode;
@@ -292,9 +289,13 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 if(kgp.KeyCodeList.isEmpty())
                     throw new Exception("CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" key-codes CAN NOT BE EMPTY");
 
-                keyAction.KeyCodeArray = Arrays.stream(kgp.KeyCodeList.toArray(new Integer[0])).mapToInt(Integer::intValue).toArray();
+                int[] kc_arr = Arrays.stream(kgp.KeyCodeList.toArray(new Integer[0])).mapToInt(Integer::intValue).toArray();
 
-                LoadKeyActions(SB_STAGE, keyAction, kgp);
+                for (int kc : kc_arr) {
+                    KeyProcessingMode keyAction1 = new KeyProcessingMode();
+                    navKeyProcessorsMap.put(kc, keyAction1);
+                    LoadKeyActions(SB_STAGE, keyAction1, kgp);
+                }
 
             }
 
@@ -307,15 +308,15 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
                 if (KeyboardMechanics.GestureProcessor.OnGestureDoubleClick != null) {
                     LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick)";
-                    super.OnGestureDoubleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick);
+                    super.OnGestureDoubleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick, super.OnGestureDoubleClick);
                 }
                 if (KeyboardMechanics.GestureProcessor.OnGestureTripleClick != null) {
                     LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureTripleClick)";
-                    super.OnGestureTripleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureTripleClick);
+                    super.OnGestureTripleClick = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureTripleClick, super.OnGestureTripleClick);
                 }
                 if (KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp != null) {
                     LOADING_STAGE = "ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp)";
-                    super.OnGestureSecondClickUp = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp);
+                    super.OnGestureSecondClickUp = ProcessMethodMappingAndCreateProcessable(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp, super.OnGestureSecondClickUp);
                 }
             }
 
@@ -332,7 +333,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return true;
     }
 
-    private InputMethodServiceCoreKeyPress.Processable ProcessMethodMappingAndCreateProcessable(ArrayList<KeyboardMechanics.Action> list) throws Exception {
+    private InputMethodServiceCoreKeyPress.Processable ProcessMethodMappingAndCreateProcessable(ArrayList<KeyboardMechanics.Action> list, InputMethodServiceCoreKeyPress.Processable processable) throws Exception {
         if (list == null || list.isEmpty()) {
             return null;
         }
@@ -405,9 +406,14 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             }
         }
 
-        Processable2 p = new Processable2();
-        p.Actions = list;
-        p.Keyboard = this;
+        Processable2 p = (Processable2) processable;
+        if(p == null) {
+            p = new Processable2();
+            p.Actions = list;
+            p.Keyboard = this;
+        } else {
+            p.Actions.addAll(list);
+        }
         return p;
     }
 
