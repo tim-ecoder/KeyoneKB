@@ -291,11 +291,11 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
     KeyPressData NowHoldingPlusKeyNotUndoneSinglePress = null;
 
-    protected boolean ProcessCoreOnKeyUp(int keyCode, KeyEvent keyEvent) {
+    protected boolean ProcessCoreOnKeyUp(int keyCode, KeyEvent keyEvent, HashMap<Integer, KeyProcessingMode> keyProcessorsMap) {
         int scanCode = keyEvent.getScanCode();
         //long eventTime = SystemClock.uptimeMillis();
         long eventTime = keyEvent.getEventTime();
-        KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyCode, scanCode, mainModeKeyProcessorsMap);
+        KeyProcessingMode keyProcessingMode = FindAtKeyActionOptionList(keyCode, scanCode, keyProcessorsMap);
         if(keyProcessingMode == null)
             return false;
         if (keyProcessingMode.IsShortPressOnly()) {
@@ -346,7 +346,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
             keyPressData.KeyUpTime = eventTime;
             RemoveFromKeyDownList(keyPressData);
-            ProcessKeyUnhold(keyPressData, keyEvent, mainModeKeyProcessorsMap);
+            ProcessKeyUnhold(keyPressData, keyEvent, keyProcessorsMap);
             if(NowHoldingPlusKeyNotUndoneSinglePress != null && NowHoldingPlusKeyNotUndoneSinglePress.KeyCode == keyCode)
                 NowHoldingPlusKeyNotUndoneSinglePress = null;
             return true;

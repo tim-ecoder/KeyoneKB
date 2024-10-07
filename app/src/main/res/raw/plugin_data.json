@@ -55,16 +55,10 @@
       "additional-event-type-type-window-content-changed": true,
       "search-field-id": "com.oasisfeng.island:id/menu_search"
     }, {
-      "package-name": "ru.yandex.yandexmaps",
-      "additional-event-type-type-window-content-changed": true,
-      "custom-click-adapter-click-parent": true,
-      "search-field-id": "ru.yandex.yandexmaps:id/search_line_edit_text",
-      "wait-before-send-char-ms": 300
-    }, {
-      "package-name": "ru.yandex.yandexmaps1",
-      "custom-click-adapter-click-parent": true,
-      "search-field-id": "ru.yandex.yandexmaps:id/search_line_menu_button_or_search_icon",
-      "wait-before-send-char-ms": 300
+      "package-name" : "ru.yandex.yandexmaps",
+      "additional-event-type-type-window-content-changed" : true,
+      "search-field-id" : "ru.yandex.yandexmaps:id/tab_navigation_bottom_search_line",
+      "wait-before-send-char-ms" : 400
     }, {
       "package-name": "ru.yandex.yandexnavi",
       "additional-event-type-type-window-content-changed": true,
@@ -136,9 +130,14 @@
       "additional-event-type-type-window-content-changed": true,
       "search-field-id": "ru.fourpda.client:id/qmsMsg"
     }, {
-      "package-name": "ru.yandex.yandexmaps",
-      "search-field-id": "ru.yandex.yandexmaps:id/search_line_edit_text",
-      "wait-before-send-char-ms": 300
+      "package-name" : "ru.yandex.yandexmaps",
+      "additional-event-type-type-window-content-changed" : true,
+      "search-field-id" : "ru.yandex.yandexmaps:id/search_line_edit_text",
+      "wait-before-send-char-ms" : 100
+    }, {
+      "package-name": "com.android.contacts",
+      "search-field-id": "com.android.contacts:id/menu_search",
+      "wait-before-send-char-ms": 0
     }
   ]
 }

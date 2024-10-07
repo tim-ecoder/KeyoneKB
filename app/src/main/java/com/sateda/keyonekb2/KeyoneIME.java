@@ -424,7 +424,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             && !_digitsHackActive
             && !IsNavMode())  {
             Log.d(TAG2, "App transparency mode");
-            return super.onKeyDown(keyCode, event);
+            return false;
         }
 
         //region Режим "Навигационные клавиши"
@@ -440,7 +440,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             if(rez) {
                 ProcessOnCursorMovement(getCurrentInputEditorInfo());
             }
-            return true;
+            return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
         }
 
         //endregion
@@ -463,7 +463,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         needUpdateGestureNotificationInsideSingleEvent = false;
 
         //Это нужно чтобы работал "чужой"/встроенный механизм выделения с Shift-ом
-        return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
+        boolean isShiftSelection = keyCode == KeyEvent.KEYCODE_SHIFT_LEFT;// && event.getRepeatCount() == 0);
+        return !isShiftSelection;
     }
 
     private boolean IsNavModeExtraKeyTransparency(int keyCode) {
@@ -478,6 +479,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         //region Блок навигационной клавиатуры
 
         if (IsNavMode() && !IsNavModeExtraKeyTransparency(keyCode)) {
+            ProcessCoreOnKeyUp(keyCode, event, navKeyProcessorsMap);
             return true;
         }
         //endregion
@@ -489,11 +491,11 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             && SearchPluginLauncher == null)  {
 
             Log.d(TAG2, "App transparency mode");
-            return super.onKeyUp(keyCode, event);
+            return false;
         }
 
         needUpdateVisualInsideSingleEvent = false;
-        boolean processed = ProcessCoreOnKeyUp(keyCode, event);
+        boolean processed = ProcessCoreOnKeyUp(keyCode, event, mainModeKeyProcessorsMap);
 
         if (_isKeyTransparencyInsideUpDownEvent) {
             _isKeyTransparencyInsideUpDownEvent = false;
@@ -511,8 +513,13 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             UpdateGestureModeVisualization();
         needUpdateGestureNotificationInsideSingleEvent = false;
 
+        //Log.d(TAG2, "KEY_DOWN_LIST: "+KeyDownList1.size());
+
         //Это нужно чтобы работал "чужой"/встроенный механизм выделения с Shift-ом
-        return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
+        if(keyCode == KeyEvent.KEYCODE_SHIFT_LEFT || keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) {
+            getCurrentInputConnection().clearMetaKeyStates(KeyEvent.META_SHIFT_ON | KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_RIGHT_ON);
+        }
+        return true;
     }
 
 
