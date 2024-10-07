@@ -124,7 +124,7 @@
       "package-name": "com.avito.android",
       "additional-event-type-type-window-content-changed": false,
       "custom-click-adapter-click-first-child": true,
-      "search-field-id": "com.avito.android:id/message_container"
+      "search-field-id": "com.avito.android:id/input_view"
     }, {
       "package-name": "ru.fourpda.client",
       "additional-event-type-type-window-content-changed": true,
