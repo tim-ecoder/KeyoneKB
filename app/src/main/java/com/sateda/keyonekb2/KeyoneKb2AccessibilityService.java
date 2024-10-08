@@ -314,14 +314,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         Log.d(TAG3,"ProcessGesturePointerModeAndNodeSelection:LOGIC");
 
-        //TODO: Удалить какой-то атавизм от экспериментов
-        if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
-            if(keyoneKb2AccServiceOptions.SelectedNodeHighlight) {
-                //TryRemoveRectangle();
-            }
-            //return;
-        }
-
         if(event.getEventType() != AccessibilityEvent.TYPE_VIEW_FOCUSED
                 && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
                 && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
@@ -385,7 +377,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             }
 
             if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
-                //Иммитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
+                //Имитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
                 if (info != null) {
                     PreparePointerClickHack(info);
                 } else {
@@ -480,7 +472,10 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
      private void ProcessSelectionRectangle(AccessibilityNodeInfo info) {
 
-        if(SelectionRectView == null) {
+        Rect rect = new Rect();
+        info.getBoundsInScreen(rect);
+        //Если квадрат
+        if(SelectionRectView == null && Math.abs(rect.top - rect.bottom) < 1620/2) {
             SelectionRectView = CreateRectangleView();
             LestSelectionRectView = SelectionRectView;
             Log.d(TAG3, "DRAW [ASYNC] FIRST-TIME HASH: "+info.hashCode());
