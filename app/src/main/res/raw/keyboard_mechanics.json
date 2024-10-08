@@ -891,7 +891,8 @@
         },
         {
           "meta-mode-method-names": [
-            "MetaIsShiftPressed"
+            "MetaIsShiftPressed",
+            "MetaIsDisabled"
           ],
           "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true

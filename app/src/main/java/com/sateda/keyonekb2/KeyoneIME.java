@@ -435,7 +435,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
          */
 
         if (IsNavMode() && !IsNavModeExtraKeyTransparency(keyCode)) {
-            //AnyButtonPressOnHoldPlusButtonTime = event.getEventTime();
+
             boolean rez = ProcessCoreOnKeyDown(keyCode, event, navKeyProcessorsMap);
             if(rez) {
                 ProcessOnCursorMovement(getCurrentInputEditorInfo());
