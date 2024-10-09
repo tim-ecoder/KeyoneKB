@@ -347,8 +347,13 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             keyPressData.KeyUpTime = eventTime;
             RemoveFromKeyDownList(keyPressData);
             ProcessKeyUnhold(keyPressData, keyEvent, keyProcessorsMap);
-            if(NowHoldingPlusKeyNotUndoneSinglePress != null && NowHoldingPlusKeyNotUndoneSinglePress.KeyCode == keyCode)
+            if(NowHoldingPlusKeyNotUndoneSinglePress != null && NowHoldingPlusKeyNotUndoneSinglePress.KeyCode == keyCode) {
+                if(keyEvent.getEventTime() - keyPressData.KeyDownTime > TIME_LONG_PRESS) {
+                    Log.d(TAG2, "FORCE UNDO SHORT PRESS OF HOLDING " + NowHoldingPlusKeyNotUndoneSinglePress.KeyCode + " UPON KEY_UP WHILE NO REPEAT_COUNT");
+                    ProcessUndoLastShortPress(NowHoldingPlusKeyNotUndoneSinglePress, keyEvent, mainModeKeyProcessorsMap);
+                }
                 NowHoldingPlusKeyNotUndoneSinglePress = null;
+            }
             return true;
         }
 
