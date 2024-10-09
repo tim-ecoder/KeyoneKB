@@ -475,7 +475,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         Rect rect = new Rect();
         info.getBoundsInScreen(rect);
         //Если квадрат
-        if(SelectionRectView == null && Math.abs(rect.top - rect.bottom) < 1620/2) {
+        if(SelectionRectView == null) {
+            //&& Math.abs(rect.top - rect.bottom) < 1620/2
             SelectionRectView = CreateRectangleView();
             LestSelectionRectView = SelectionRectView;
             Log.d(TAG3, "DRAW [ASYNC] FIRST-TIME HASH: "+info.hashCode());
@@ -608,7 +609,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             int dx = locationOnScreen[0];
             int dy = locationOnScreen[1];
             SelectedNodeRect = new Rect(SelectedNodeRect.left, SelectedNodeRect.top - dy, SelectedNodeRect.right, SelectedNodeRect.bottom - dy);
-            canvas.drawRect(SelectedNodeRect, paintMainer);
+            //Большое выделение не нужно - это скорее всего isSelectable крупных блоков-контейнеров
+            if(Math.abs(SelectedNodeRect.top - SelectedNodeRect.bottom) < 1620/3*2)
+                canvas.drawRect(SelectedNodeRect, paintMainer);
         }
 
         public boolean RemoveRectOnNextDraw;
@@ -1001,6 +1004,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     private boolean ContainsAllDigitsButtons2() {
         AccessibilityNodeInfo node = getRootInActiveWindow();
+        if(node == null)
+            return false;
         for (int i = 0; i < DigitsPadHackOptionsAppMarkers.length; i++) {
             KeyoneKb2AccServiceOptions.DigitsPadHackOptionsAppMarker marker = DigitsPadHackOptionsAppMarkers[i];
             if(!marker.PackageName.equalsIgnoreCase(node.getPackageName().toString()))
