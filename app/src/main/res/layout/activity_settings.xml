@@ -23,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text=""
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:layout_below="@id/text_keyboard_layouts"
         tools:checked="false" />
 
