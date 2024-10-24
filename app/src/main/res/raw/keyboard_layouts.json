@@ -102,5 +102,32 @@
   "flag" : "ic_flag_eesti_col",
   "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
   "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+}, {
+  "options-name" : "Unihertz Titan English",
+  "keyboard-mapping" : "titan_english_hw",
+  "icon-lowercase" : "ic_eng_small",
+  "icon-first-shift" : "ic_eng_shift_first",
+  "icon-capslock" : "ic_eng_shift_all",
+  "flag" : "ic_flag_gb_col",
+  "custom-keyboard-mechanics": "titan_keyboard_mechanics",
+  "device-model-regexp" : "A-Gold Titan"
+}, {
+  "options-name" : "Unihertz Titan Русский (kika)",
+  "keyboard-mapping" : "titan_russian_kika_hw",
+  "icon-lowercase" : "ic_rus_small",
+  "icon-first-shift" : "ic_rus_shift_first",
+  "icon-capslock" : "ic_rus_shift_all",
+  "flag" : "ic_flag_russia_col",
+  "custom-keyboard-mechanics": "titan_keyboard_mechanics",
+  "device-model-regexp" : "A-Gold Titan"
+}, {
+  "options-name" : "Unihertz Titan Украинский (kika)",
+  "keyboard-mapping" : "titan_ukranian_kika_hw",
+  "icon-lowercase" : "ic_ukr_small",
+  "icon-first-shift" : "ic_ukr_shift_first",
+  "icon-capslock" : "ic_ukr_shift_all",
+  "flag" : "ic_flag_ukraine_col",
+  "custom-keyboard-mechanics": "titan_keyboard_mechanics",
+  "device-model-regexp" : "A-Gold Titan"
 }
 ]

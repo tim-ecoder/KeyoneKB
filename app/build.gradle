@@ -34,7 +34,7 @@ android {
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
         versionCode 2607
-        versionName "v2.7b20-jsp2-osk4-ts1-cp1-tgh1-sp1-ckp3-cc1-nm2-sel1"
+        versionName "v2.7b21-jsp2-osk4-ts1-cp1-tgh1-sp1-ckp3-cc1-nm2-sel1-uht1"
         //TODO: ----------------------------
 
         /**
@@ -54,6 +54,7 @@ android {
          * osk - on-screen-keyboard
          * tgh - telegram hack
          * ts - toast
+         * uht - unihertz titan (big)
          */
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
