@@ -84,5 +84,23 @@
   "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
   "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+}, {
+  "options-name" : "Unihertz Pocket|Slim Латышский",
+  "keyboard-mapping" : "titan_slim_latvian_hw",
+  "icon-lowercase" : "ic_lv_small",
+  "icon-first-shift" : "ic_lv_shift_first",
+  "icon-capslock" : "ic_lv_shift_all",
+  "flag" : "ic_flag_latvija_col",
+  "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
+  "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+}, {
+  "options-name" : "Unihertz Pocket|Slim Эстонский (q/õ)",
+  "keyboard-mapping" : "titan_slim_estonian_hw",
+  "icon-lowercase" : "ic_est_small",
+  "icon-first-shift" : "ic_est_shift_first",
+  "icon-capslock" : "ic_est_shift_all",
+  "flag" : "ic_flag_eesti_col",
+  "custom-keyboard-mechanics": "unihertz_keyboard_mechanics",
+  "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
 }
 ]

@@ -1,0 +1,134 @@
+{
+  "keyboard-name" : "Эстонский",
+  "alt-mode-layout" : "titan_slim_alt_hw",
+  "sym-mode-layout" : "pocket_symbol",
+  "key-mapping" : [
+
+
+    {
+    "key-code" : "KEYCODE_Q",
+    "single-press" : "q",
+    "single-press-shift-mode" : "Q",
+    "double-press" : "õ",
+    "double-press-shift-mode" : "Õ"
+  }, {
+    "key-code" : "KEYCODE_W",
+    "single-press" : "w",
+    "single-press-shift-mode" : "W"
+  }, {
+    "key-code" : "KEYCODE_E",
+    "single-press" : "e",
+    "single-press-shift-mode" : "E"
+  }, {
+    "key-code" : "KEYCODE_R",
+    "single-press" : "r",
+    "single-press-shift-mode" : "R"
+  }, {
+    "key-code" : "KEYCODE_T",
+    "single-press" : "t",
+    "single-press-shift-mode" : "T"
+  }, {
+    "key-code" : "KEYCODE_Y",
+    "single-press" : "y",
+    "single-press-shift-mode" : "Y"
+  }, {
+    "key-code" : "KEYCODE_U",
+    "single-press" : "u",
+    "single-press-shift-mode" : "U",
+    "double-press" : "ü",
+    "double-press-shift-mode" : "Ü"
+  }, {
+    "key-code" : "KEYCODE_I",
+    "single-press" : "i",
+    "single-press-shift-mode" : "I"
+  }, {
+    "key-code" : "KEYCODE_O",
+    "single-press" : "o",
+    "single-press-shift-mode" : "O",
+    "double-press" : "ö",
+    "double-press-shift-mode" : "Ö"
+  }, {
+    "key-code" : "KEYCODE_P",
+    "single-press" : "p",
+    "single-press-shift-mode" : "P"
+  },
+
+
+    {
+    "key-code" : "KEYCODE_A",
+    "single-press" : "a",
+    "single-press-shift-mode" : "A",
+    "double-press" : "ä",
+    "double-press-shift-mode" : "Ä"
+  }, {
+    "key-code" : "KEYCODE_S",
+    "single-press" : "s",
+    "single-press-shift-mode" : "S",
+    "double-press" : "š",
+    "double-press-shift-mode" : "Š"
+  }, {
+    "key-code" : "KEYCODE_D",
+    "single-press" : "d",
+    "single-press-shift-mode" : "D"
+  }, {
+    "key-code" : "KEYCODE_F",
+    "single-press" : "f",
+    "single-press-shift-mode" : "F"
+  }, {
+    "key-code" : "KEYCODE_G",
+    "single-press" : "g",
+    "single-press-shift-mode" : "G"
+  }, {
+    "key-code" : "KEYCODE_H",
+    "single-press" : "h",
+    "single-press-shift-mode" : "H"
+  }, {
+    "key-code" : "KEYCODE_J",
+    "single-press" : "j",
+    "single-press-shift-mode" : "J"
+  }, {
+    "key-code" : "KEYCODE_K",
+    "single-press" : "k",
+    "single-press-shift-mode" : "K"
+  }, {
+    "key-code" : "KEYCODE_L",
+    "single-press" : "l",
+    "single-press-shift-mode" : "L"
+  },
+
+
+    {
+    "key-code" : "KEYCODE_Z",
+    "single-press" : "z",
+    "single-press-shift-mode" : "Z",
+    "double-press" : "ž",
+    "double-press-shift-mode" : "Ž"
+  }, {
+    "key-code" : "KEYCODE_X",
+    "single-press" : "x",
+    "single-press-shift-mode" : "X"
+  }, {
+    "key-code" : "KEYCODE_C",
+    "single-press" : "c",
+    "single-press-shift-mode" : "C"
+  }, {
+    "key-code" : "KEYCODE_V",
+    "single-press" : "v",
+    "single-press-shift-mode" : "V"
+  }, {
+    "key-code" : "KEYCODE_B",
+    "single-press" : "b",
+    "single-press-shift-mode" : "B"
+  }, {
+    "key-code" : "KEYCODE_N",
+    "single-press" : "n",
+    "single-press-shift-mode" : "N"
+  }, {
+    "key-code" : "KEYCODE_M",
+    "single-press" : "m",
+    "single-press-shift-mode" : "M"
+  }
+
+
+  ]
+}
