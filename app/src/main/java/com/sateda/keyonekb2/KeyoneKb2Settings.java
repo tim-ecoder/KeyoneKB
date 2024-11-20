@@ -24,6 +24,7 @@ public class KeyoneKb2Settings {
     public final String APP_PREFERENCES_1_SENS_BOTTOM_BAR = "sens_bottom_bar";
 
     public final boolean KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT = false;
+    public final boolean JS_PATCH_IS_ENABLED_DEFAULT = false;
     private static KeyoneKb2Settings _instance;
     SharedPreferences _mSettings;
 

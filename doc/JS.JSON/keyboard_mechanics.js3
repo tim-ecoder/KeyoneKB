@@ -1,3 +1,0 @@
-// Для случая когда надо отключить одну из функций
-// На примере отключения двойного-тапа по сенсору
-json["gesture-processor"]["on-gesture-double-click"].find(v => v["action-method-name"] === "ActionTryChangeGestureModeStateAtInputMode")["action-method-name"] = "ActionDoNothing";

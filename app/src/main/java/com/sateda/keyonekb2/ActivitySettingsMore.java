@@ -8,13 +8,14 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 import static com.sateda.keyonekb2.ActivitySettings.REQUEST_PERMISSION_CODE;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
@@ -25,6 +26,8 @@ public class ActivitySettingsMore extends Activity {
     Button btSave;
     Button btSavePluginData;
     Button btn_sys_kb_accessibility_setting;
+
+    private RelativeLayout layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,20 +47,6 @@ public class ActivitySettingsMore extends Activity {
 
         btSavePluginData = (Button)findViewById(R.id.pref_more_bt_save_search_plugins);
 
-
-        Button btClear = (Button)findViewById(R.id.pref_more_bt_clear);
-        btClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                KeyoneKb2AccessibilityService.TEMP_ADDED_SEARCH_CLICK_PLUGINS.clear();
-                for (SearchClickPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
-                    plugin.setId("");
-                    KeyoneKb2AccessibilityService.Instance.ClearFromSettings(plugin);
-                }
-                SetTextPluginData();
-            }
-        });
-
         btn_sys_kb_accessibility_setting = (Button) findViewById(R.id.btn_sys_kb_accessibility_setting);
         btn_sys_kb_accessibility_setting.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,6 +58,62 @@ public class ActivitySettingsMore extends Activity {
         });
 
         RedrawViewData();
+
+        List<String> patches = new ArrayList<>();
+        for (List<String> value: FileJsonUtils.JsPatchesMap.values())
+        {
+            patches.addAll(value);
+        }
+
+        if(patches.size() == 0)
+            return;
+
+        layout = (RelativeLayout) findViewById(R.id.activity_more_settings);
+
+        Switch defaultJsPatch = (Switch) findViewById(R.id.default_js_patch);
+        defaultJsPatch.setVisibility(View.VISIBLE);
+
+        int prevId = 0;
+
+        for (String jsPatch: patches ) {
+            Switch jsPatchSwitch;
+            //Первый язык будет по умолчанию всегда активирован
+            //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки
+            if(prevId == 0) {
+                jsPatchSwitch = defaultJsPatch;
+                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultJsPatch.getLayoutParams();
+                RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
+                jsPatchSwitch.setLayoutParams(llp2);
+                prevId = jsPatchSwitch.getId();
+
+
+            } else {
+                jsPatchSwitch = new Switch(this);
+                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultJsPatch.getLayoutParams();
+                RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
+                jsPatchSwitch.setLayoutParams(llp2);
+
+                llp2.addRule(RelativeLayout.BELOW, prevId);
+                prevId = View.generateViewId();
+                jsPatchSwitch.setId(prevId);
+                jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultJsPatch.getTextSize());
+                layout.addView(jsPatchSwitch);
+
+            }
+
+            keyoneKb2Settings.CheckSettingOrSetDefault(jsPatch, keyoneKb2Settings.JS_PATCH_IS_ENABLED_DEFAULT);
+            boolean enabled = keyoneKb2Settings.GetBooleanValue(jsPatch);
+            jsPatchSwitch.setChecked(enabled);
+            jsPatchSwitch.setText(jsPatch);
+
+            jsPatchSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    keyoneKb2Settings.SetBooleanValue(jsPatch, isChecked);
+                }
+            });
+
+        }
 
 
     }
@@ -112,64 +157,8 @@ public class ActivitySettingsMore extends Activity {
             });
         }
 
-        if(KeyoneIME.Instance != null && KeyoneIME.Instance.PackageHistory.size() > 0) {
-            int i = 0;
-            for (String packageName : KeyoneIME.Instance.PackageHistory) {
-                i++;
-                if(i == 1) InitAddPluginButton(packageName, findViewById(R.id.pref_more_bt_add_plugin3));
-                else if(i == 2) InitAddPluginButton(packageName, findViewById(R.id.pref_more_bt_add_plugin2));
-                else if(i == 3) InitAddPluginButton(packageName, findViewById(R.id.pref_more_bt_add_plugin1));
-            }
-        }
-
         UpdateAccessibilityButton();
-        SetTextPluginData();
     }
-
-    private void InitAddPluginButton(String packageName, Button btAddPlugin) {
-        if(packageName == null || packageName.isEmpty())
-            return;
-        boolean isAdded = false;
-        if(KeyoneKb2AccessibilityService.Instance == null)
-            return;
-        for(SearchClickPlugin searchClickPlugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
-            if(packageName.contains(searchClickPlugin.getPartiallyPackageName())) {
-                isAdded = true;
-                break;
-            }
-        }
-
-        if(!isAdded) {
-            btAddPlugin.setEnabled(true);
-            btAddPlugin.setText("ADD PLUGIN: " + packageName);
-            btAddPlugin.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (KeyoneIME.Instance == null) return;
-                    if (packageName.isEmpty()) return;
-                    if (KeyoneKb2AccessibilityService.Instance == null) return;
-                    SearchClickPlugin sp = new SearchClickPlugin(packageName);
-                    sp.setEvents(KeyoneKb2AccessibilityService.STD_EVENTS | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
-                    KeyoneKb2AccessibilityService.TEMP_ADDED_SEARCH_CLICK_PLUGINS.add(sp);
-                    btAddPlugin.setText("ADDED: " + packageName);
-                    btAddPlugin.setEnabled(false);
-                    ShowToast("Application added. Accessibility service automatic stopped. Need start manually.");
-                    KeyoneKb2AccessibilityService.Instance.StopService();
-                    UpdateAccessibilityButton();
-                }
-            });
-        } else {
-            btAddPlugin.setText("PLUGIN EXISTS: " + packageName);
-            btAddPlugin.setEnabled(false);
-            btAddPlugin.setOnClickListener(null);
-        }
-    }
-
-    private void ShowToast(String text) {
-        Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG);
-        toast.show();
-    }
-
 
     private void SavePluginData() {
 
@@ -238,31 +227,6 @@ public class ActivitySettingsMore extends Activity {
             clickerPluginDataArray.add(pluginData);
         }
     }
-
-    private void SetTextPluginData() {
-        TextView textView = (TextView)findViewById(R.id.tv_search_plugins_data);
-        textView.setText(R.string.pref_more_tv_search_plugins_comment);
-        if(KeyoneKb2AccessibilityService.Instance == null) {
-            textView.append(getString(R.string.pref_more_tv_search_plugins_comment_not_active));
-            return;
-        }
-        String text_data = "";
-        for(SearchClickPlugin plugin : KeyoneKb2AccessibilityService.Instance.searchClickPlugins) {
-            String value = plugin.getId();
-            if(value.isEmpty()) {
-                if(plugin.DynamicSearchMethod != null && plugin.DynamicSearchMethod.size() == 1)
-                    value = getString(R.string.pref_more_tv_single_plugin_data2)+
-                            " SearchFunction: "+plugin.DynamicSearchMethod.get(0).DynamicSearchMethodFunction+
-                            " SearchWord: "+plugin.DynamicSearchMethod.get(0).ContainsString;
-                else
-                    value = getString(R.string.pref_more_tv_single_plugin_data);
-            }
-            text_data += String.format("Application:\n%s\nResourceId:\n%s\n\n", plugin.getPartiallyPackageName(), value);
-        }
-
-        textView.append(text_data);
-    }
-
 
     private void SaveResFiles() {
         String path = "NOT SAVED";

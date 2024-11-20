@@ -1,0 +1,1 @@
+json["time-long-press"]=700;

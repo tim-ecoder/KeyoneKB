@@ -48,8 +48,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     private final ArrayList<String> SearchClickPackages = new ArrayList<>();
 
-    public static final ArrayList<SearchClickPlugin> TEMP_ADDED_SEARCH_CLICK_PLUGINS = new ArrayList<>();
-
     KeyoneKb2AccServiceOptions keyoneKb2AccServiceOptions;
 
 
@@ -106,7 +104,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
             keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
             FileJsonUtils.Initialize(this);
-            keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJson(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, this);
+            keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJsonApplyPatches(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, this);
 
             LoadRetranslationData();
 
@@ -123,8 +121,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if (keyoneKb2AccServiceOptions.SearchPluginsEnabled) {
                 //info.packageNames = SearchClickPackages.toArray(new String[SearchClickPackages.size()]);
                 info.packageNames = null;
-                if (!TEMP_ADDED_SEARCH_CLICK_PLUGINS.isEmpty())
-                    info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
+                //info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
             } else {
                 info.packageNames = null;
                 info.flags = 0;
@@ -762,7 +759,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
     private void LoadSearchPluginData() throws Exception {
-        SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJson("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
+        SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJsonApplyPatches("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
 
         if (data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
             DefaultSearchWords = data2.DefaultSearchWords;
@@ -774,18 +771,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         }
         LoadSearchPlugins(data2.SearchPlugins, searchClickPlugins);
         LoadSearchPlugins(data2.ClickerPlugins, clickerPlugins);
-
-        for(SearchClickPlugin shp2: TEMP_ADDED_SEARCH_CLICK_PLUGINS) {
-            if(SearchClickPackages.contains(shp2.getPartiallyPackageName()))
-                continue;
-            if(searchClickPlugins.stream().anyMatch((SearchClickPlugin shp3) -> shp3._packageName.equals(shp2._packageName)))
-                continue;
-            SearchClickPackages.add(shp2.getPartiallyPackageName());
-            searchClickPlugins.add(shp2);
-        }
-
-
-
     }
 
     private void LoadSearchPlugins(ArrayList<SearchClickPlugin.SearchClickPluginData.SearchPluginData> clickPluginData, ArrayList<SearchClickPlugin> _clickPlugins) {

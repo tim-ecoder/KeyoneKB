@@ -215,7 +215,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         try {
 
             LOADING_STAGE = "DeserializeFromJson(keyboard_mechanics_res): "+keyboard_mechanics_res;
-            KeyboardMechanics = FileJsonUtils.DeserializeFromJson(keyboard_mechanics_res, new TypeReference<KeyboardMechanics>() {
+            KeyboardMechanics = FileJsonUtils.DeserializeFromJsonApplyPatches(keyboard_mechanics_res, new TypeReference<KeyboardMechanics>() {
             }, context);
 
             LOADING_STAGE = "LoadActionMethodsStringMapping()";
@@ -1985,7 +1985,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     protected abstract void UpdateKeyboardModeVisualization(boolean updateSwipePanelData);
 
-    protected abstract void UpdateKeyboardModeVisualization();
+
 
     protected abstract void ChangeLanguage();
     protected abstract void ChangeLanguageBack();

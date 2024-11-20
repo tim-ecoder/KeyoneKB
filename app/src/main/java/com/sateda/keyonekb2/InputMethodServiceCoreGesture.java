@@ -72,6 +72,8 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     float Ktime = 1.25f;
 
     protected abstract boolean IsGestureModeAtViewEnabled();
+
+    protected abstract void UpdateKeyboardModeVisualization();
     public boolean IsVisualKeyboardOpen = false;
 
     protected boolean ProcessGestureAtMotionEvent(MotionEvent motionEvent) {
@@ -97,17 +99,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 return false;
         }
 
-        if(IsInputMode() && _modeGestureScrollAtInputMode) {
-            if(CheckMotionAction(motionEvent,  MotionEvent.ACTION_MOVE) &&
-                    motionEvent.getHistorySize() > 0) {
-                for (int i = 0; i < motionEvent.getHistorySize(); i++) {
-                    ProcessGesturePointersAndPerformAction(motionEvent, i);
-                }
-            } else {
-                ProcessGesturePointersAndPerformAction(motionEvent, -1);
-            }
-            return true;
-        }
         if ( (IsInputMode() && mode_gesture_cursor_at_input_mode)
                 || IsAnyGestureAtViewMode()) {
             ProcessGesturePointersAndPerformAction(motionEvent, -1);
@@ -136,7 +127,6 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 motionEventX = motionEvent.getHistoricalX(historyIndex);
                 motionEventY = motionEvent.getHistoricalY(historyIndex);
             }
-            //TODO: Это проблема т.к. не обрабатывается ACTION_UP/DOWN на нижнем ряду. ЛЕЧИТЬ!
 
             //if(motionEventY > ROW_4_BEGIN_Y)
             //    return true;
@@ -205,23 +195,39 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
         if (    CheckMotionAction(motionEvent, MotionEvent.ACTION_MOVE)) {
 
+
+
             if(lastGestureX > 0 && lastGestureY > 0) {
+
+                if(NowHoldingPlusKeyNotUndoneSinglePress != null) {
+                    Log.d(TAG2, "FORCE UNDO SHORT PRESS OF HOLDING "+NowHoldingPlusKeyNotUndoneSinglePress.KeyCode+" UPON SWYPE");
+                    ProcessUndoLastShortPress(NowHoldingPlusKeyNotUndoneSinglePress, null, mainModeKeyProcessorsMap);
+                    NowHoldingPlusKeyNotUndoneSinglePress = null;
+                    UpdateKeyboardModeVisualization();
+                }
+
                 float deltaX = motionEventX - lastGestureX;
                 float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
                 float deltaY = motionEventY - lastGestureY;
                 float absDeltaY = deltaY < 0 ? -1 * deltaY : deltaY;
-                float Kpower = 1;
+                float KpowerX;
+                float KpowerY;
                 /* проезд 3 рядов (сверху-донизу, кроме игнорируемого нижнего ряда) -
                 K=1 ~6 событий MoveCursor*/
                 /*MAGIC_KEYBOARD_GESTURE_MOTION_CONST=48; pref_gesture_motion_sensitivity=1-положение-слева
                 * K=0.5 ~9 событий */
-                if(IsAnyGestureAtViewMode())
-                    Kpower = 2.5f;
-                if(IsInputMode() && _modeGestureScrollAtInputMode)
-                    Kpower = 0f;
+                if(IsAnyGestureAtViewMode()) {
+                    //Для случая движения курсора по иконкам GUI
+                    KpowerX = 2.5f;
+                    KpowerY = 2.5f;
+                } else {
+                    //Для случая движения курсора по тексу
+                    KpowerX = 1;
+                    KpowerY = 1.75f;
+                }
 
-                int motion_delta_min_x = Math.round((MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity)*Kpower);
-                int motion_delta_min_y = Math.round((MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity)*Kpower);
+                int motion_delta_min_x = Math.round((MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity)*KpowerX);
+                int motion_delta_min_y = Math.round((MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity)*KpowerY);
 
                 if (absDeltaX >= absDeltaY) {
                     if (absDeltaX < motion_delta_min_x)
@@ -233,7 +239,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                         if (MoveCursorLeftSafe(inputConnection))
                             Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_LEFT " + motionEvent);
                     }
-                } else if (mode_gesture_cursor_plus_up_down || IsAnyGestureAtViewMode() || (IsInputMode() && _modeGestureScrollAtInputMode)) {
+                } else if (mode_gesture_cursor_plus_up_down || IsAnyGestureAtViewMode()) {
                     if (absDeltaY < motion_delta_min_y)
                         return true;
                     //int times = Math.round(absDeltaY / motion_delta_min_y);
@@ -245,12 +251,13 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                             Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
                     }
                 }
-            }
-            lastGestureX = motionEventX;
-            lastGestureY = motionEventY;
-            lastEventTime = eventTime;
+                lastGestureX = motionEventX;
+                lastGestureY = motionEventY;
+                lastEventTime = eventTime;
 
-            Log.d(TAG2, "lastX: "+lastGestureX+" lastY: "+lastGestureY);
+                Log.d(TAG2, "lastX: "+lastGestureX+" lastY: "+lastGestureY);
+            }
+
         } else if(CheckMotionAction(motionEvent, ACTION_OR_POINTER_UP)) {
             ResetGestureMovementCoordsToInitial();
             return true;

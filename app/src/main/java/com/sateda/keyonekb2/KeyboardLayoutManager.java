@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
-import static com.sateda.keyonekb2.FileJsonUtils.DeserializeFromJson;
+import static com.sateda.keyonekb2.FileJsonUtils.DeserializeFromJsonApplyPatches;
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 public class KeyboardLayoutManager {
@@ -41,7 +41,7 @@ public class KeyboardLayoutManager {
             for (KeyboardLayout.KeyboardLayoutOptions layout : activeLayouts) {
                 LangListCount++;
                 LOAD_STAGE = "DeserializeFromJson(layout.KeyboardMapping): "+layout.KeyboardMapping;
-                currentLayout = DeserializeFromJson(layout.KeyboardMapping, new TypeReference<KeyboardLayout>() {}, context);
+                currentLayout = DeserializeFromJsonApplyPatches(layout.KeyboardMapping, new TypeReference<KeyboardLayout>() {}, context);
 
                 for (KeyboardLayout.KeyVariants kv : currentLayout.KeyMapping) {
                     if (kv.KeyCodeInt == 0 && kv.KeyCode != null && !kv.KeyCode.isEmpty()) {
@@ -70,7 +70,7 @@ public class KeyboardLayoutManager {
         //TODO: Можно подкешировать, чтобы быстрее грузилась клава
         try {
             LOAD_STAGE = "DeserializeFromJson(currentLayout.AltModeLayout): "+currentLayout.AltModeLayout;
-            Collection<KeyboardLayout.KeyVariants> list = DeserializeFromJson(currentLayout.AltModeLayout, new TypeReference<Collection<KeyboardLayout.KeyVariants>>() {
+            Collection<KeyboardLayout.KeyVariants> list = DeserializeFromJsonApplyPatches(currentLayout.AltModeLayout, new TypeReference<Collection<KeyboardLayout.KeyVariants>>() {
             }, context);
 
             for (KeyboardLayout.KeyVariants kv : list) {
@@ -225,7 +225,7 @@ public class KeyboardLayoutManager {
         FileJsonUtils.Initialize(context);
 
         String resName = context.getResources().getResourceEntryName(R.raw.keyboard_layouts);
-        ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayoutOptionsArray =  FileJsonUtils.DeserializeFromJson(resName, new TypeReference<ArrayList<KeyboardLayout.KeyboardLayoutOptions>>() {}, context);
+        ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayoutOptionsArray =  FileJsonUtils.DeserializeFromJsonApplyPatches(resName, new TypeReference<ArrayList<KeyboardLayout.KeyboardLayoutOptions>>() {}, context);
 
         for ( KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayoutOptionsArray) {
 

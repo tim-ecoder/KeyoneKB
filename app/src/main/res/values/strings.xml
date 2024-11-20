@@ -83,6 +83,8 @@
     <string name="keyonekb_accessibility_service_label" translatable="false">KeyoneKB2</string>
     <string name="keyonekb_accessibility_service_description">It helps KeyoneKB2 to understand in which field the cursor is located for calling search windows (for searching when entering and typing in BB Contacts, Dialer, Telegram, etc.).\nIn addition, it is _mandatory_ to enable it to work SpeedKey as CTRL on non Russian market Blackberry Key2 phones.\nIn addition, the scroll mode works through it in the input fields, highlighting in the pointer mode and clicking on the highlighted by space key.</string>
     <string name="pref_more_tv_search_plugins_title">SEARCH PLUGINS</string>
+    <string name="pref_more_tv_js_patches_title" translatable="false">JS PATCHES</string>
+
     <string name="pref_more_tv_search_plugins_data">Identifiers of the Search field resource so that it activate focus into it when you start typing</string>
     <string name="pref_more_tv_settings_more_title">ADVANCED SETTINGS</string>
     <string name="pref_more_tv_single_plugin_data">Log in to the app to automatically find the search field.\nIf you have entered, but nothing has changed here, then the auto-search in the application does not work and the algorithm for determining the search field does not find anything, or the search field identifier is determined only dynamically and everything works.</string>

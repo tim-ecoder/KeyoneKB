@@ -80,7 +80,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         super.onCreate();
         FileJsonUtils.Initialize(this);
         try {
-            CoreKeyboardSettings = FileJsonUtils.DeserializeFromJson(KeyoneKb2Settings.CoreKeyboardSettingsResFileName, new TypeReference<KeyoneKb2Settings.CoreKeyboardSettings>() {}, this);
+            CoreKeyboardSettings = FileJsonUtils.DeserializeFromJsonApplyPatches(KeyoneKb2Settings.CoreKeyboardSettingsResFileName, new TypeReference<KeyoneKb2Settings.CoreKeyboardSettings>() {}, this);
         } catch (Exception e) {
             Log.e(TAG2, "onCreate exception: "+e);
             FileJsonUtils.LogErrorToGui("onCreate exception: "+e);
@@ -277,9 +277,12 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
             } else { // Count > 0
                 KeyPressData keyPressData1 = FindAtKeyDownList(keyCode, scanCode);
                 if (eventTime - keyDownTime > TIME_SHORT_PRESS) {
-                    NowHoldingPlusKeyNotUndoneSinglePress = null;
+
                     if (keyPressData1.HoldBeginTime == 0) {
-                        ProcessUndoLastShortPress(keyPressData1, keyEvent, keyProcessingModeList1);
+                        if(NowHoldingPlusKeyNotUndoneSinglePress != null) {
+                            ProcessUndoLastShortPress(keyPressData1, keyEvent, keyProcessingModeList1);
+                            NowHoldingPlusKeyNotUndoneSinglePress = null;
+                        }
                         keyPressData1.HoldBeginTime = keyDownTime;
                     }
 
