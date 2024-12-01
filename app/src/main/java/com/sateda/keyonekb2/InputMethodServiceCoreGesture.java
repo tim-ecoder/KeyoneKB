@@ -198,7 +198,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
 
             if(lastGestureX > 0 && lastGestureY > 0) {
-
+            //if(true) {
                 if(NowHoldingPlusKeyNotUndoneSinglePress != null) {
                     Log.d(TAG2, "FORCE UNDO SHORT PRESS OF HOLDING "+NowHoldingPlusKeyNotUndoneSinglePress.KeyCode+" UPON SWYPE");
                     ProcessUndoLastShortPress(NowHoldingPlusKeyNotUndoneSinglePress, null, mainModeKeyProcessorsMap);
@@ -251,12 +251,14 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                             Log.d(TAG2, "onGenericMotionEvent KEYCODE_DPAD_DOWN  " + motionEvent);
                     }
                 }
-                lastGestureX = motionEventX;
-                lastGestureY = motionEventY;
-                lastEventTime = eventTime;
 
-                Log.d(TAG2, "lastX: "+lastGestureX+" lastY: "+lastGestureY);
             }
+
+            lastGestureX = motionEventX;
+            lastGestureY = motionEventY;
+            lastEventTime = eventTime;
+
+            Log.d(TAG2, "lastX: "+lastGestureX+" lastY: "+lastGestureY);
 
         } else if(CheckMotionAction(motionEvent, ACTION_OR_POINTER_UP)) {
             ResetGestureMovementCoordsToInitial();
