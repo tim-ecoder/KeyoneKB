@@ -147,7 +147,8 @@ public class FileJsonUtils {
 
         T object = null;
         Resources resources = context.getResources();
-        KeyoneKb2Settings keyoneKb2Settings = KeyoneKb2Settings.Get(null);
+
+        KeyoneKb2Settings keyoneKb2Settings = KeyoneKb2Settings.Get(context.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
         List<String> JsPatches = new ArrayList<>();
         JsPatchesMap.put(resName, JsPatches);
 
