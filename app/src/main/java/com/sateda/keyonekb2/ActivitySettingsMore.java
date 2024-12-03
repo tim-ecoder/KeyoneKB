@@ -13,8 +13,8 @@ import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 import static com.sateda.keyonekb2.ActivitySettings.REQUEST_PERMISSION_CODE;
@@ -228,6 +228,36 @@ public class ActivitySettingsMore extends Activity {
         }
     }
 
+    public void saveAssetFiles(String path) {
+        String[] list;
+
+        try {
+            list = getAssets().list(path);
+            if (list.length > 0) {
+                for (String file : list) {
+                    if (file.indexOf(".") < 0) { // <<-- check if filename has a . then it is a file - hopefully directory names dont have .
+
+                        if (path.equals("")) {
+                            FileJsonUtils.CheckFoldersAndCreateJsPatches(path);
+                            saveAssetFiles(file); // <<-- To get subdirectory files and directories list and check
+                        } else {
+                            String subFile = path + "/" + file;
+                            FileJsonUtils.CheckFoldersAndCreateJsPatches(subFile);
+
+                            saveAssetFiles(subFile); // <<-- For Multiple level subdirectories
+                        }
+                    } else {
+                        String subFile = path + "/" + file;
+                        FileJsonUtils.SaveAssetToFile(subFile, file, this);
+                    }
+                }
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void SaveResFiles() {
         String path = "NOT SAVED";
 
@@ -244,6 +274,8 @@ public class ActivitySettingsMore extends Activity {
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.Resources.KeyboardMapping, getApplicationContext());
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.AltModeLayout, getApplicationContext());
         }
+
+        saveAssetFiles("js_patches");
 
         btSave.setText(path);
 

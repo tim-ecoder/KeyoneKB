@@ -3,6 +3,7 @@ package com.sateda.keyonekb2;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
@@ -45,6 +46,13 @@ public class FileJsonUtils {
     }
 
     private static void CheckFoldersAndCreate(String path) {
+        if (!(new File(path)).exists()) {
+            new File(path).mkdirs();
+        }
+    }
+
+    public static void CheckFoldersAndCreateJsPatches(String path) {
+        path = PATH +"/"+path;
         if (!(new File(path)).exists()) {
             new File(path).mkdirs();
         }
@@ -289,7 +297,7 @@ public class FileJsonUtils {
         return SaveResToFile(resName, ".json", context);
     }
 
-    private static String SaveResToFile(String resName, String fileExtensionName, Context context){
+    public static String SaveResToFile(String resName, String fileExtensionName, Context context){
         Resources resources = context.getResources();
 
         String pathDef = PATH_DEF;
@@ -314,6 +322,26 @@ public class FileJsonUtils {
             Log.e(TAG2, "Save file error: Can not find Resource: "+resName);
         }
         return pathDef;
+    }
+
+    public static void SaveAssetToFile(String assetFile, String saveFile, Context context){
+
+        String pathDef = PATH;
+        CheckFoldersAndCreate(pathDef);
+        String fileName = pathDef + saveFile;
+
+        AssetManager am= context.getAssets();
+        try {
+            InputStream is = am.open(assetFile);
+
+            FileOutputStream fOut = new FileOutputStream(fileName,false);
+            copyLarge(is, fOut);
+            fOut.flush();
+            fOut.close();
+            is.close();
+        } catch (Throwable e) {
+            Log.e(TAG2, "Save file error: "+e.toString());
+        }
     }
 
     public static HashMap<String, Double> ScanCodeKeyCodeMapping = new HashMap<String, Double>();

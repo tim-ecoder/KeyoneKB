@@ -1590,12 +1590,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     //region Actions LETTERS (CHARS)
 
     public boolean ActionSendCtrlPlusKey(KeyPressData keyPressData) {
-        if(keyPressData.KeyCode == KeyEvent.KEYCODE_S) {
-            //keyDownUp(KeyEvent.KEYCODE_ESCAPE, getCurrentInputConnection(), 0xFFFFFFFF, 0xFFFFFFFF);
-            //Log.d(TAG2, "TEST KEY SENT");
-            //Testing open Search containers
-            //return true;
-        }
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         //Для K1 надо очищать мета статус от всего лишено, оставляем только shift для Ctrl+Shift+Z;
         int metaBase =  (keyPressData.MetaBase & KeyEvent.META_SHIFT_LEFT_ON) > 0 ? KeyEvent.META_SHIFT_LEFT_ON : 0;
