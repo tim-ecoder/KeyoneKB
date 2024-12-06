@@ -2,7 +2,7 @@
 
 let nav_kgp = json["nav-key-group-processors"];
 
-nav_kgp.unshift(
+nav_kgp.push(
     {
         "key-codes": [
             "KEYCODE_A"
