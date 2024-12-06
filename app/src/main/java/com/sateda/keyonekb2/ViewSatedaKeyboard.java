@@ -378,13 +378,6 @@ public class ViewSatedaKeyboard extends KeyboardView {
     }
 
     @Override
-    public void onMeasure(int widthMeasureSpec,
-                          int heightMeasureSpec) {
-        Log.d(TAG2, "onMeasure()");
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
-
-    @Override
     public void onSizeChanged (int w,
                                int h,
                                int oldw,
@@ -403,7 +396,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
     @Override
     public void onDraw(Canvas canvas) {
-        Log.d(TAG2, "onDraw(Canvas canvas)");
+        //Log.d(TAG2, "onDraw(Canvas canvas)");
         super.onDraw(canvas);
         mService.LastOnDraw = SystemClock.uptimeMillis();
 

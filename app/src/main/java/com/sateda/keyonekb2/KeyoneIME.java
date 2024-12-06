@@ -262,12 +262,6 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
 
     @Override
-    public boolean onEvaluateInputViewShown() {
-        Log.d(TAG2, "onEvaluateInputViewShown");
-        return super.onEvaluateInputViewShown();
-    }
-
-    @Override
     public synchronized void onStartInput(EditorInfo editorInfo, boolean restarting) {
         //TODO: Минорно. Если надо знать какие флаги их надо расшифровывать
         Log.d(TAG2, "onStartInput restarting="+restarting+
@@ -277,6 +271,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         if(isNotStarted)
             return;
         super.onStartInput(editorInfo, restarting);
+        if(restarting)
+            return;
         isPackageChangedInsideSingleEvent = false;
         // Обрабатываем переход между приложениями
         if (!editorInfo.packageName.equals(_lastPackageName)) {
@@ -347,12 +343,6 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         }
 
 
-    }
-
-    @Override
-    public void onWindowShown() {
-        Log.d(TAG2, "onFinishInputView");
-        super.onWindowShown();
     }
 
     private boolean isPackageChangedInsideSingleEvent;
@@ -602,14 +592,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                     + ", nss=" + newSelStart + ", nse=" + newSelEnd
                     + ", cs=" + composingSpanStart + ", ce=" + composingSpanEnd);
         }
-
-        // This call happens whether our view is displayed or not, but if it's not then we should
-        // not attempt recorrection. This is true even with a hardware keyboard connected: if the
-        // view is not displayed we have no means of showing suggestions anyway, and if it is then
-        // we want to show suggestions anyway.
-
         ProcessOnCursorMovement(getCurrentInputEditorInfo());
-
     }
 
     @Override

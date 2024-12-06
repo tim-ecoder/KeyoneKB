@@ -1593,6 +1593,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         //Для K1 надо очищать мета статус от всего лишено, оставляем только shift для Ctrl+Shift+Z;
         int metaBase =  (keyPressData.MetaBase & KeyEvent.META_SHIFT_LEFT_ON) > 0 ? KeyEvent.META_SHIFT_LEFT_ON : 0;
+        Log.d(TAG2, "Sending CTRL+"+keyPressData.KeyCode+" SHIFT:"+metaBase);
         keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | metaBase);
 
         return true;
@@ -2035,7 +2036,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     //TODO: Иногда вызывается по несколько раз подряд (видимо из разных мест)
     protected boolean DetermineForceFirstUpper(EditorInfo editorInfo) {
-        Log.d(TAG2, "DetermineForceFirstUpper");
+        //Log.d(TAG2, "DetermineForceFirstUpper");
         //Если мы вывалились из зоны ввода текста
         //NOTE: Проверка не дает вводить Заглавную прям на первом входе в приложение. Видимо не успевает еще активироваться.
         //if(!isInputViewShown())
