@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Vibrator;
 import android.support.annotation.Keep;
 import android.support.annotation.RequiresApi;
+import android.support.v4.os.BuildCompat;
 import android.telephony.PhoneStateListener;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -29,8 +30,12 @@ import android.widget.Toast;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.sateda.keyonekb2.input.CallStateCallback;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
+import static android.content.ContentValues.TAG;
+import static com.sateda.keyonekb2.FileJsonUtils.GetContext;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.IsCurrentDevice;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
 import static com.sateda.keyonekb2.KeyoneKb2Settings.RES_KEYBOARD_MECHANICS_DEFAULT;
@@ -134,8 +139,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             if (telephonyManager != null) {
                 telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_CALL_STATE);
             }
+            Context psc = GetContext(this);
 
-            Context psc = createDeviceProtectedStorageContext();
             keyoneKb2Settings = KeyoneKb2Settings.Get(psc.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
 
             TIME_VIBRATE = CoreKeyboardSettings.TimeVibrate;
@@ -178,13 +183,18 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             isNotStarted = false;
 
         } catch(Throwable ex) {
-            Log.e(TAG2, "onCreate exception: "+ex);
-            FileJsonUtils.LogErrorToGui("onCreate exception: "+ex);
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            ex.printStackTrace(pw);
+            Log.e(TAG2, "onCreate exception: "+ex+" "+sw.toString());
+            FileJsonUtils.LogErrorToGui("onCreate exception: "+ex +" "+sw.toString());
             isNotStarted = true;
             Instance = null;
             //throw new RuntimeException("onCreate exception: ", ex);
         }
     }
+
+
 
 
     //region LoadShortcuts
@@ -358,6 +368,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public synchronized boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(isNotStarted)
+            return false;
         keyboardView.hidePopup(false);
         Log.v(TAG2, "onKeyDown " + event);
 
@@ -419,7 +431,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     @Override
     public synchronized boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.v(TAG2, "onKeyUp " + event);
-
+        if(isNotStarted)
+            return false;
         //region Блок навигационной клавиатуры
 
         if (IsNavMode() && !IsNavModeExtraKeyTransparency(keyCode)) {
@@ -567,6 +580,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
+        if(isNotStarted)
+            return;
         if (newConfig.orientation == 2) {
             Orientation = 2;
             if (keyboardView.getVisibility() == View.VISIBLE) {

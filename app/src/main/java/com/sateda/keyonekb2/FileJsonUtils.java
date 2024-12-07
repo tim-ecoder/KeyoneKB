@@ -7,6 +7,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.os.BuildCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -22,6 +23,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static android.content.ContentValues.TAG;
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 public class FileJsonUtils {
@@ -41,6 +43,8 @@ public class FileJsonUtils {
             PATH_DEF = PATH + DEFAULT_FOLDER + "/";
         }
     }
+
+
 
     //region FOLDERS AND FILES
 
@@ -175,8 +179,8 @@ public class FileJsonUtils {
     public static <T> T DeserializeFromJsonApplyPatches(String resName, TypeReference<T> typeReference, Context context) throws Exception {
 
         T object = null;
-
-        KeyoneKb2Settings keyoneKb2Settings = KeyoneKb2Settings.Get(context.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        Context psc = GetContext(context);
+        KeyoneKb2Settings keyoneKb2Settings = KeyoneKb2Settings.Get(psc.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
         List<String> JsPatches = new ArrayList<>();
         JsPatchesMap.put(resName, JsPatches);
         String noFolderName = ResNameNoFolder(resName);
@@ -188,10 +192,12 @@ public class FileJsonUtils {
 
                 File[] jsFiles = findFilenamesMatchingRegex(noFolderName + ".*\\.js", new File(PATH));
                 List<File> jsFilesActive = new ArrayList<>();
-                for (File jsPatch: jsFiles) {
-                    JsPatches.add(jsPatch.getName());
-                    if(keyoneKb2Settings.GetBooleanValue(jsPatch.getName()))
-                        jsFilesActive.add(jsPatch);
+                if(jsFiles != null) {
+                    for (File jsPatch : jsFiles) {
+                        JsPatches.add(jsPatch.getName());
+                        if (keyoneKb2Settings.GetBooleanValue(jsPatch.getName()))
+                            jsFilesActive.add(jsPatch);
+                    }
                 }
 
                 // Если в папке уже сформированный json берем его
@@ -307,6 +313,21 @@ public class FileJsonUtils {
     //endregion
 
     //region OTHER UTIL
+
+    public static Context GetContext(Context context) {
+
+        if (BuildCompat.isAtLeastN()) {
+            // All N devices have split storage areas, but we may need to
+            // move the existing preferences to the new device protected
+            // storage area, which is where the data lives from now on.
+            final Context deviceContext = context.createDeviceProtectedStorageContext();
+            if (!deviceContext.moveSharedPreferencesFrom(context, KeyoneKb2Settings.APP_PREFERENCES)) {
+                Log.w(TAG, "Failed to migrate shared preferences.");
+            }
+            return deviceContext;
+        }
+        return context;
+    }
 
     public static void LogErrorToGui(String text) {
         KeyoneIME.DEBUG_TEXT += "\r\n";

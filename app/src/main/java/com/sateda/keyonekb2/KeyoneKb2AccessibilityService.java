@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.sateda.keyonekb2.FileJsonUtils.GetContext;
 import static com.sateda.keyonekb2.FileJsonUtils.LogErrorToGui;
 import static com.sateda.keyonekb2.KeyoneKb2Settings.RES_PLUGIN_DATA;
 
@@ -103,7 +104,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
         try {
 
-            keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
+            Context psc = GetContext(this);
+            keyoneKb2Settings = KeyoneKb2Settings.Get(psc.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
             keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJsonApplyPatches(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, this);
 
             LoadRetranslationData();
