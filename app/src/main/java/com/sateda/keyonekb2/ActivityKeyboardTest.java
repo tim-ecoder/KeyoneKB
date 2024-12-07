@@ -15,6 +15,8 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import java.util.Map;
+
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 public class ActivityKeyboardTest extends Activity implements InputMethodServiceCoreKeyPress.IDebugUpdate {
@@ -45,6 +47,7 @@ public class ActivityKeyboardTest extends Activity implements InputMethodService
         this.touchInfoView = (TextView)findViewById(R.id.touch_info);
         this.codeView = (TextView)findViewById(R.id.tv_code_value);
         this.codeMetaView = (TextView)findViewById(R.id.tv_key_meta_value);
+        TextView customView = (TextView) findViewById(R.id.customization_info_text);
 
         CheckBox sbTestKeyboardViewMode = (CheckBox) findViewById(R.id.cb_test_keyboard_view_mode);
         sbTestKeyboardViewMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -86,7 +89,10 @@ public class ActivityKeyboardTest extends Activity implements InputMethodService
         });
 
 
-        //this.inputView
+        for (Map.Entry kv: FileJsonUtils.CustomizationLoadVariants.entrySet()) {
+            customView.append(kv.getKey()+": \t\t"+kv.getValue()+"\n");
+        }
+
 
         sbTestKeyboardViewMode.requestFocus();
 

@@ -13,8 +13,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
@@ -30,16 +28,21 @@ public class FileJsonUtils {
 
     public static String PATH;
     public static String PATH_DEF;
-
     public static String APP_FILES_DIR = "KeyoneKb2";
-    public static void Initialize(Context context) {
+    public static String DEFAULT_FOLDER = "default";
+    public static String JsonFileExt = ".json";
+    public static String JsFileExt = ".js";
+    public static String JsPatchesAssetFolder = "js_patches";
+
+    public static void Initialize() {
 
         if(PATH == null || PATH.isEmpty()) {
             PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + APP_FILES_DIR + "/";
-            PATH_DEF = PATH + "default/";
-            LoadMappingFile(context);
+            PATH_DEF = PATH + DEFAULT_FOLDER + "/";
         }
     }
+
+    //region FOLDERS AND FILES
 
     private static void CheckFoldersAndCreate() {
         CheckFoldersAndCreate(PATH);
@@ -67,11 +70,41 @@ public class FileJsonUtils {
     public static boolean JsonsExist(String res_name)
     {
         CheckFoldersAndCreate();
-        if(FileJsonUtils.FileExists(res_name + ".json")) return true;
+        if(FileJsonUtils.FileExists(res_name + JsonFileExt)) return true;
         return false;
     }
 
-    public static JsonMapper PrepareMapper() {
+    public static String SaveJsonResToFile(String resName, Context context){
+
+        return SaveAssetToFile(resName +JsonFileExt, PATH_DEF, ResNameNoFolder(resName), context);
+    }
+
+    public static String SaveAssetToFile(String assetFile, String NEW_PATH, String saveFile, Context context){
+
+        CheckFoldersAndCreate(NEW_PATH);
+        String fileName = NEW_PATH + saveFile;
+
+        AssetManager am = context.getAssets();
+        try {
+            InputStream is = am.open(assetFile);
+
+            FileOutputStream fOut = new FileOutputStream(fileName,false);
+            copyLarge(is, fOut);
+            fOut.flush();
+            fOut.close();
+            is.close();
+
+        } catch (Throwable e) {
+            Log.e(TAG2, "Save file error: "+e.toString());
+        }
+        return NEW_PATH;
+    }
+
+    //endregion
+
+    //region SERIALIZE
+
+    private static JsonMapper PrepareJsonMapper() {
         JsonMapper mapper = JsonMapper.builder().disable(MapperFeature.AUTO_DETECT_CREATORS,
                 MapperFeature.AUTO_DETECT_FIELDS,
                 MapperFeature.AUTO_DETECT_GETTERS,
@@ -84,7 +117,7 @@ public class FileJsonUtils {
     }
 
     public static void SerializeToFile(Object obj, String fileName) {
-        JsonMapper mapper = PrepareMapper();
+        JsonMapper mapper = PrepareJsonMapper();
 
         CheckFoldersAndCreate(PATH_DEF);
         String fullFileName = PATH_DEF + fileName;
@@ -102,8 +135,8 @@ public class FileJsonUtils {
         try {
             CheckFoldersAndCreate();
             String fullFileName = PATH + fileName;
-            JsonMapper mapper= PrepareMapper();
-            FileInputStream fIn = new FileInputStream(fullFileName);
+            JsonMapper mapper= PrepareJsonMapper();
+            InputStream fIn = new FileInputStream(fullFileName);
             T obj = mapper.readValue(fIn, typeReference);
             fIn.close();
             return obj;
@@ -114,64 +147,63 @@ public class FileJsonUtils {
     }
 
     private static <T> T DeserializeFromFile(InputStream is, TypeReference<T> typeReference) throws IOException {
-        JsonMapper mapper= PrepareMapper();
+        JsonMapper mapper= PrepareJsonMapper();
         T obj = mapper.readValue(is, typeReference);
         return obj;
     }
 
     private static <T> T DeserializeFromString(String s, TypeReference<T> typeReference) throws IOException {
-        JsonMapper mapper= PrepareMapper();
+        JsonMapper mapper= PrepareJsonMapper();
         T obj = mapper.readValue(s, typeReference);
         return obj;
     }
 
-    public static String slurp(final InputStream is, final int bufferSize) {
-        final char[] buffer = new char[bufferSize];
-        final StringBuilder out = new StringBuilder();
-        try (Reader in = new InputStreamReader(is, "UTF-8")) {
-            for (;;) {
-                int rsz = in.read(buffer, 0, buffer.length);
-                if (rsz < 0)
-                    break;
-                out.append(buffer, 0, rsz);
-            }
-        }
-        catch (UnsupportedEncodingException ex) {
-            /* ... */
-        }
-        catch (IOException ex) {
-            /* ... */
-        }
-        return out.toString();
+    //endregion
+
+    //region PATCH JSON
+
+    public enum ResLoadVariant {
+        DefaultFromAsset,
+        CustomJson,
+        JsPatched
     }
 
-    public static File[] findFilenamesMatchingRegex(String regex, File dir) {
-        return dir.listFiles(file -> file.getName().matches(regex));
-    }
+    public static Map<String, ResLoadVariant> CustomizationLoadVariants = new HashMap<>();
 
     public static Hashtable<String, List<String>> JsPatchesMap = new Hashtable<>();
 
     public static <T> T DeserializeFromJsonApplyPatches(String resName, TypeReference<T> typeReference, Context context) throws Exception {
 
         T object = null;
-        Resources resources = context.getResources();
 
         KeyoneKb2Settings keyoneKb2Settings = KeyoneKb2Settings.Get(context.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
         List<String> JsPatches = new ArrayList<>();
         JsPatchesMap.put(resName, JsPatches);
+        String noFolderName = ResNameNoFolder(resName);
 
         try {
             if(ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                File[] jsFiles = findFilenamesMatchingRegex(resName + ".*\\.js", new File(PATH));
+
+                // В первую очередь грузим js-патчи, чтобы они потом в морде показались
+
+                File[] jsFiles = findFilenamesMatchingRegex(noFolderName + ".*\\.js", new File(PATH));
                 List<File> jsFilesActive = new ArrayList<>();
                 for (File jsPatch: jsFiles) {
                     JsPatches.add(jsPatch.getName());
                     if(keyoneKb2Settings.GetBooleanValue(jsPatch.getName()))
                         jsFilesActive.add(jsPatch);
                 }
+
+                // Если в папке уже сформированный json берем его
+                if (FileJsonUtils.JsonsExist(noFolderName)) {
+                    CustomizationLoadVariants.put(noFolderName, ResLoadVariant.CustomJson);
+                    return FileJsonUtils.DeserializeFromFile(noFolderName + JsonFileExt, typeReference);
+                }
+
+                // Накидываем патчи на дефолтный json
                 if (jsFilesActive.size() > 0) {
 
-                    InputStream is_base_json = resources.openRawResource(resources.getIdentifier(resName, "raw", context.getPackageName()));
+                    InputStream is_base_json = getResStream(resName, context);
                     String base_json = slurp(is_base_json, 1024);
                     is_base_json.close();
 
@@ -185,21 +217,18 @@ public class FileJsonUtils {
                         i++;
                     }
 
-                    String output = patchJsonAndDeserialize(resName, base_json, jss);
-
+                    String output = patchJsonAndSaveResult(noFolderName, base_json, jss);
+                    CustomizationLoadVariants.put(noFolderName, ResLoadVariant.JsPatched);
                     return DeserializeFromString(output, typeReference);
                 }
-                if (FileJsonUtils.FileExists(resName + ".json")) {
-                    return FileJsonUtils.DeserializeFromFile(resName + ".json", typeReference);
-                }
+
             }
-            if (resources.getIdentifier(resName, "raw", context.getPackageName()) != 0) {
-                InputStream is = resources.openRawResource(resources.getIdentifier(resName, "raw", context.getPackageName()));
-                object = FileJsonUtils.DeserializeFromFile(is, typeReference);
-                is.close();
-            } else {
-                throw new Exception("JSON OR RES NOT FOUND NAME: "+resName);
-            }
+
+            CustomizationLoadVariants.put(noFolderName, ResLoadVariant.DefaultFromAsset);
+            InputStream is = getResStream(resName, context);
+            object = FileJsonUtils.DeserializeFromFile(is, typeReference);
+            is.close();
+
             return object;
         } catch (EvaluatorException ex) {
             Log.e(TAG2, String.format("EVALUATE JavaScript patch at JSON %s ERROR: %s LINE: %s COL: %s TEXT: %s", resName, ex.toString(), ex.lineNumber(), ex.columnNumber(), ex.lineSource()));
@@ -211,7 +240,20 @@ public class FileJsonUtils {
         }
     }
 
-    private static String patchJsonAndDeserialize(String resName, String base_json, String[] Jscripts) throws IOException {
+    private static String ResNameNoFolder(String noFolderName) {
+        int folderPos = noFolderName.lastIndexOf("/");
+        if(folderPos >= 0)
+            noFolderName = noFolderName.substring(folderPos + 1, noFolderName.length());
+        return noFolderName;
+    }
+
+    private static InputStream getResStream(String resName, Context context) throws IOException {
+        AssetManager am = context.getAssets();
+        return am.open(resName+JsonFileExt);
+
+    }
+
+    private static String patchJsonAndSaveResult(String resName, String base_json, String[] Jscripts) throws IOException {
         String updatingJsonText = base_json;
 
 
@@ -253,7 +295,7 @@ public class FileJsonUtils {
         }
 
 
-        FileOutputStream fOut = new FileOutputStream(PATH+ resName +".js.json",false);
+        FileOutputStream fOut = new FileOutputStream(PATH+ resName +JsFileExt+JsonFileExt,false);
         InputStream stream = new ByteArrayInputStream(updatingJsonText.getBytes(StandardCharsets.UTF_8));
         copyLarge(stream, fOut);
         fOut.flush();
@@ -261,6 +303,10 @@ public class FileJsonUtils {
         stream.close();
         return updatingJsonText;
     }
+
+    //endregion
+
+    //region OTHER UTIL
 
     public static void LogErrorToGui(String text) {
         KeyoneIME.DEBUG_TEXT += "\r\n";
@@ -282,6 +328,21 @@ public class FileJsonUtils {
         return true;
     }
 
+    public static int GetKeyCodeIntFromKeyEventOrInt(String keyCode) throws NoSuchFieldException, IllegalAccessException {
+        int value;
+        if(keyCode.startsWith("KEYCODE_") || keyCode.startsWith("META_")) {
+            Field f = KeyEvent.class.getField(keyCode);
+            value = f.getInt(null);
+        } else {
+            value = Integer.valueOf(keyCode);
+        }
+        return value;
+    }
+
+    //endregion
+
+    //region PRIV TOOLs
+
     private static long copyLarge(InputStream input, OutputStream output) throws IOException
     {
         byte[] buffer = new byte[4096];
@@ -293,102 +354,27 @@ public class FileJsonUtils {
         }
         return count;
     }
-    public static String SaveJsonResToFile(String resName, Context context){
-        return SaveResToFile(resName, ".json", context);
-    }
 
-    public static String SaveResToFile(String resName, String fileExtensionName, Context context){
-        Resources resources = context.getResources();
-
-        String pathDef = PATH_DEF;
-        CheckFoldersAndCreate(pathDef);
-        String fileName = pathDef+ resName+fileExtensionName;
-        int resId = resources.getIdentifier(resName, "raw", context.getPackageName());
-        if(resId > 0) {
-
-            InputStream is;
-            is = resources.openRawResource(resId);
-
-            try {
-                FileOutputStream fOut = new FileOutputStream(fileName,false);
-                copyLarge(is, fOut);
-                fOut.flush();
-                fOut.close();
-                is.close();
-            } catch (Throwable e) {
-                Log.e(TAG2, "Save file error: "+e.toString());
+    private static String slurp(final InputStream is, final int bufferSize) throws IOException {
+        final char[] buffer = new char[bufferSize];
+        final StringBuilder out = new StringBuilder();
+        try (Reader in = new InputStreamReader(is, "UTF-8")) {
+            for (;;) {
+                int rsz = in.read(buffer, 0, buffer.length);
+                if (rsz < 0)
+                    break;
+                out.append(buffer, 0, rsz);
             }
-        } else {
-            Log.e(TAG2, "Save file error: Can not find Resource: "+resName);
         }
-        return pathDef;
+        return out.toString();
     }
 
-    public static void SaveAssetToFile(String assetFile, String saveFile, Context context){
-
-        String pathDef = PATH;
-        CheckFoldersAndCreate(pathDef);
-        String fileName = pathDef + saveFile;
-
-        AssetManager am= context.getAssets();
-        try {
-            InputStream is = am.open(assetFile);
-
-            FileOutputStream fOut = new FileOutputStream(fileName,false);
-            copyLarge(is, fOut);
-            fOut.flush();
-            fOut.close();
-            is.close();
-        } catch (Throwable e) {
-            Log.e(TAG2, "Save file error: "+e.toString());
-        }
+    private static File[] findFilenamesMatchingRegex(String regex, File dir) {
+        return dir.listFiles(file -> file.getName().matches(regex));
     }
 
-    public static HashMap<String, Double> ScanCodeKeyCodeMapping = new HashMap<String, Double>();
 
-    private static void LoadMappingFile(Context context) {
-
-        Gson gson;
-        gson = new GsonBuilder()
-                .enableComplexMapKeySerialization()
-                .serializeNulls()
-                //.setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
-                //.setPrettyPrinting()
-                //.setVersion(1.0)
-                //.excludeFieldsWithoutExposeAnnotation()
-                .create();
-
-        Resources resources = context.getResources();
-
-        try {
-            // Open output stream
-            InputStream is = resources.openRawResource(R.raw.scan_code_key_code);
-            // write integers as separated ascii's
-
-            //mapper.writeValue(stream, Instance.KeyboardLayoutList);
-            java.io.Reader w = new InputStreamReader(is);
-            //gson.toJson(Instance.ScanCodeKeyCodeMapping, w);
-            ScanCodeKeyCodeMapping = gson.fromJson(w, ScanCodeKeyCodeMapping.getClass());
-            is.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();
-        //btSave.setText(baseFolder);
-
-    }
-
-    public static int GetKeyCodeIntFromKeyEventOrInt(String keyCode) throws NoSuchFieldException, IllegalAccessException {
-        int value;
-        if(keyCode.startsWith("KEYCODE_") || keyCode.startsWith("META_")) {
-            Field f = KeyEvent.class.getField(keyCode);
-            value = f.getInt(null);
-        } else {
-            value = Integer.valueOf(keyCode);
-        }
-        return value;
-    }
+    //endregion
 
     //region FixedSizeSet
 

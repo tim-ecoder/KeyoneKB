@@ -1,6 +1,6 @@
 {
-  "keyboard-name" : "Русский",
-  "alt-mode-layout" : "alt_hw",
+  "keyboard-name" : "Українська",
+  "alt-mode-layout" : "bb_key_1_2/alt_hw",
   "sym-mode-layout" : "symbol",
   "key-mapping" : [ {
     "key-code" : "KEYCODE_4",
@@ -11,9 +11,7 @@
   }, {
     "key-code" : "KEYCODE_Q",
     "single-press" : "й",
-    "single-press-shift-mode" : "Й",
-    "double-press" : "ë",
-    "double-press-shift-mode" : "Ë"
+    "single-press-shift-mode" : "Й"
   }, {
     "key-code" : "KEYCODE_W",
     "single-press" : "ц",
@@ -52,16 +50,18 @@
     "key-code" : "KEYCODE_P",
     "single-press" : "х",
     "single-press-shift-mode" : "Х",
-    "double-press" : "э",
-    "double-press-shift-mode" : "Э"
+    "double-press" : "є",
+    "double-press-shift-mode" : "Є"
   }, {
     "key-code" : "KEYCODE_A",
     "single-press" : "ф",
     "single-press-shift-mode" : "Ф"
   }, {
     "key-code" : "KEYCODE_S",
-    "single-press" : "ы",
-    "single-press-shift-mode" : "Ы"
+    "single-press" : "і",
+    "single-press-shift-mode" : "І",
+    "double-press" : "ї",
+    "double-press-shift-mode" : "Ї"
   }, {
     "key-code" : "KEYCODE_D",
     "single-press" : "в",
@@ -120,8 +120,7 @@
     "key-code" : "KEYCODE_M",
     "single-press" : "ь",
     "single-press-shift-mode" : "Ь",
-    "double-press" : "ъ",
-    "double-press-shift-mode" : "Ъ"
+    "double-press" : "'"
   }, {
     "key-code" : "KEYCODE_0",
     "single-press" : "0",

@@ -71,9 +71,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected Processable AfterSendChar;
     protected int[] ViewModeExcludeKeyCodes;
 
-    public static String DEFAULT_KEYBOARD_MECHANICS_RES = "keyboard_mechanics";
-
-    public String keyboard_mechanics_res = DEFAULT_KEYBOARD_MECHANICS_RES;
+    public String keyboard_mechanics_res;
 
     protected Vibrator vibratorService;
 

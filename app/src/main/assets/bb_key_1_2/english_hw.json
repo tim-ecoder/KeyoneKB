@@ -1,11 +1,12 @@
 {
-  "keyboard-name" : "Латышский",
-  "alt-mode-layout" : "titan_slim_alt_hw",
-  "sym-mode-layout" : "pocket_symbol",
-  "key-mapping" : [
-
-
-    {
+  "keyboard-name" : "English",
+  "alt-mode-layout" : "bb_key_1_2/alt_hw",
+  "sym-mode-layout" : "symbol",
+  "key-mapping" : [ {
+    "key-code" : "KEYCODE_4",
+    "single-press" : "$",
+    "single-press-shift-mode" : "$"
+  }, {
     "key-code" : "KEYCODE_Q",
     "single-press" : "q",
     "single-press-shift-mode" : "Q"
@@ -16,9 +17,7 @@
   }, {
     "key-code" : "KEYCODE_E",
     "single-press" : "e",
-    "single-press-shift-mode" : "E",
-    "double-press" : "ē",
-    "double-press-shift-mode" : "Ē"
+    "single-press-shift-mode" : "E"
   }, {
     "key-code" : "KEYCODE_R",
     "single-press" : "r",
@@ -34,15 +33,11 @@
   }, {
     "key-code" : "KEYCODE_U",
     "single-press" : "u",
-    "single-press-shift-mode" : "U",
-    "double-press" : "ū",
-    "double-press-shift-mode" : "Ū"
+    "single-press-shift-mode" : "U"
   }, {
     "key-code" : "KEYCODE_I",
     "single-press" : "i",
-    "single-press-shift-mode" : "I",
-    "double-press" : "ī",
-    "double-press-shift-mode" : "Ī"
+    "single-press-shift-mode" : "I"
   }, {
     "key-code" : "KEYCODE_O",
     "single-press" : "o",
@@ -51,21 +46,14 @@
     "key-code" : "KEYCODE_P",
     "single-press" : "p",
     "single-press-shift-mode" : "P"
-  },
-
-
-    {
+  }, {
     "key-code" : "KEYCODE_A",
     "single-press" : "a",
-    "single-press-shift-mode" : "A",
-    "double-press" : "ā",
-    "double-press-shift-mode" : "Ā"
+    "single-press-shift-mode" : "A"
   }, {
     "key-code" : "KEYCODE_S",
     "single-press" : "s",
-    "single-press-shift-mode" : "S",
-    "double-press" : "š",
-    "double-press-shift-mode" : "Š"
+    "single-press-shift-mode" : "S"
   }, {
     "key-code" : "KEYCODE_D",
     "single-press" : "d",
@@ -77,9 +65,7 @@
   }, {
     "key-code" : "KEYCODE_G",
     "single-press" : "g",
-    "single-press-shift-mode" : "G",
-    "double-press" : "ģ",
-    "double-press-shift-mode" : "Ģ"
+    "single-press-shift-mode" : "G"
   }, {
     "key-code" : "KEYCODE_H",
     "single-press" : "h",
@@ -91,24 +77,15 @@
   }, {
     "key-code" : "KEYCODE_K",
     "single-press" : "k",
-    "single-press-shift-mode" : "K",
-    "double-press" : "ķ",
-    "double-press-shift-mode" : "Ķ"
+    "single-press-shift-mode" : "K"
   }, {
     "key-code" : "KEYCODE_L",
     "single-press" : "l",
-    "single-press-shift-mode" : "L",
-    "double-press" : "ļ",
-    "double-press-shift-mode" : "Ļ"
-  },
-
-
-    {
+    "single-press-shift-mode" : "L"
+  }, {
     "key-code" : "KEYCODE_Z",
     "single-press" : "z",
-    "single-press-shift-mode" : "Z",
-    "double-press" : "ž",
-    "double-press-shift-mode" : "Ž"
+    "single-press-shift-mode" : "Z"
   }, {
     "key-code" : "KEYCODE_X",
     "single-press" : "x",
@@ -116,9 +93,7 @@
   }, {
     "key-code" : "KEYCODE_C",
     "single-press" : "c",
-    "single-press-shift-mode" : "C",
-    "double-press" : "č",
-    "double-press-shift-mode" : "Č"
+    "single-press-shift-mode" : "C"
   }, {
     "key-code" : "KEYCODE_V",
     "single-press" : "v",
@@ -130,15 +105,14 @@
   }, {
     "key-code" : "KEYCODE_N",
     "single-press" : "n",
-    "single-press-shift-mode" : "N",
-    "double-press" : "ņ",
-    "double-press-shift-mode" : "Ņ"
+    "single-press-shift-mode" : "N"
   }, {
     "key-code" : "KEYCODE_M",
     "single-press" : "m",
     "single-press-shift-mode" : "M"
-  }
-
-
-  ]
+  }, {
+    "key-code" : "KEYCODE_0",
+    "single-press" : "0",
+    "single-press-shift-mode" : "0"
+  } ]
 }

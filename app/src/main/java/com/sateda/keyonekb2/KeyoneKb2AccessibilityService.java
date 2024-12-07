@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.sateda.keyonekb2.FileJsonUtils.LogErrorToGui;
+import static com.sateda.keyonekb2.KeyoneKb2Settings.RES_PLUGIN_DATA;
 
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {
@@ -103,7 +104,6 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         try {
 
             keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
-            FileJsonUtils.Initialize(this);
             keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJsonApplyPatches(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, this);
 
             LoadRetranslationData();
@@ -152,7 +152,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     public synchronized void onCreate() {
         Log.v(TAG3, "onCreate()");
         try {
+            FileJsonUtils.Initialize();
             super.onCreate();
+
             Instance = this;
             _currentWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
             _layoutParams = InitializeLayoutParams();
@@ -759,7 +761,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
     private void LoadSearchPluginData() throws Exception {
-        SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJsonApplyPatches("plugin_data", new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
+        SearchClickPlugin.SearchClickPluginData data2 = FileJsonUtils.DeserializeFromJsonApplyPatches(RES_PLUGIN_DATA, new TypeReference<SearchClickPlugin.SearchClickPluginData>() {}, getApplicationContext());
 
         if (data2.DefaultSearchWords != null && !data2.DefaultSearchWords.isEmpty()) {
             DefaultSearchWords = data2.DefaultSearchWords;

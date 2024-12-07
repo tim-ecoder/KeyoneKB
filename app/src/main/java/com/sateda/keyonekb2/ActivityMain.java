@@ -19,6 +19,7 @@ import static com.sateda.keyonekb2.ActivitySettings.*;
 import static com.sateda.keyonekb2.BuildConfig.*;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
+import static com.sateda.keyonekb2.KeyoneKb2Settings.*;
 
 public class ActivityMain extends Activity {
 
@@ -39,7 +40,9 @@ public class ActivityMain extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        FileJsonUtils.Initialize();
         super.onCreate(savedInstanceState);
+
         _this_act = this;
         setContentView(R.layout.activity_main);
         keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
@@ -160,7 +163,6 @@ public class ActivityMain extends Activity {
     }
 
     private void CheckFilePermissions() {
-        FileJsonUtils.Initialize(this);
         if(!AnyJsonExists() && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             btn_file_permissions.setEnabled(false);
             btn_file_permissions.setText(R.string.main_btn_file_permissions_not_need);
@@ -194,11 +196,10 @@ public class ActivityMain extends Activity {
 
     private boolean AnyJsonExists()
     {
-        if(FileJsonUtils.JsonsExist(getResources().getResourceEntryName(R.raw.keyboard_layouts))) return true;
-        if(FileJsonUtils.JsonsExist(getResources().getResourceEntryName(R.raw.keyboard_core))) return true;
+        if(FileJsonUtils.JsonsExist(RES_KEYBOARD_LAYOUTS)) return true;
+        if(FileJsonUtils.JsonsExist(RES_KEYBOARD_CORE)) return true;
         if(KeyoneIME.Instance != null)
             if(FileJsonUtils.JsonsExist(KeyoneIME.Instance.keyboard_mechanics_res)) return true;
-        else if (FileJsonUtils.JsonsExist(KeyoneIME.DEFAULT_KEYBOARD_MECHANICS_RES)) return true;
         if(FileJsonUtils.JsonsExist(KeyoneKb2AccessibilityService.KeyoneKb2AccServiceOptions.ResName)) return true;
         if(Instance == null)
             return false;

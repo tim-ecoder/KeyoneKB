@@ -14,8 +14,14 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.*;
 import android.widget.PopupWindow;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
@@ -92,12 +98,53 @@ public class ViewSatedaKeyboard extends KeyboardView {
             }
         };
         mPopupKeyboard.setBackgroundDrawable(null);
+
+        if(ScanCodeKeyCodeMapping == null)
+            LoadMappingFile(context);
     }
 
     public void setService(KeyoneIME listener) {
         mService = listener;
         mMiniKeyboard = new ViewPopupScreenKeyboard(context,attrs);
     }
+
+
+    public static HashMap<String, Double> ScanCodeKeyCodeMapping;
+
+    private static void LoadMappingFile(Context context) {
+
+        ScanCodeKeyCodeMapping = new HashMap<String, Double>();
+        Gson gson;
+        gson = new GsonBuilder()
+                .enableComplexMapKeySerialization()
+                .serializeNulls()
+                //.setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
+                //.setPrettyPrinting()
+                //.setVersion(1.0)
+                //.excludeFieldsWithoutExposeAnnotation()
+                .create();
+
+        Resources resources = context.getResources();
+
+        try {
+            // Open output stream
+            InputStream is = resources.openRawResource(R.raw.scan_code_key_code);
+            // write integers as separated ascii's
+
+            //mapper.writeValue(stream, Instance.KeyboardLayoutList);
+            java.io.Reader w = new InputStreamReader(is);
+            //gson.toJson(Instance.ScanCodeKeyCodeMapping, w);
+            ScanCodeKeyCodeMapping = gson.fromJson(w, ScanCodeKeyCodeMapping.getClass());
+            is.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //String baseFolder = getApplicationContext().getFileStreamPath(fileName).getAbsolutePath();
+        //btSave.setText(baseFolder);
+
+    }
+
 
     public void setFnNavMode(boolean isEnabled){
         modeNavFn = isEnabled;
@@ -198,7 +245,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 if (key == null)
                     continue;
                 KeyboardLayout.KeyVariants keyVariants = null;
-                Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d", key.codes[0]));
+                Double keyCode = ScanCodeKeyCodeMapping.get(String.format("%d", key.codes[0]));
                 if (keyCode == null) {
                     Log.e(TAG2, "SCAN_CODE NOT MAPPED " + key.codes[0]);
                     continue;
@@ -237,7 +284,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 if (key == null)
                     continue;
                 KeyboardLayout.KeyVariants keyVariants = null;
-                Double keyCode = FileJsonUtils.ScanCodeKeyCodeMapping.get(String.format("%d", key.codes[0]));
+                Double keyCode = ScanCodeKeyCodeMapping.get(String.format("%d", key.codes[0]));
                 if (keyCode == null) {
                     Log.e(TAG2, "SCAN_CODE NOT MAPPED " + key.codes[0]);
                     continue;

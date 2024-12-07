@@ -18,7 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.sateda.keyonekb2.ActivitySettings.REQUEST_PERMISSION_CODE;
+import static com.sateda.keyonekb2.FileJsonUtils.*;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
+import static com.sateda.keyonekb2.KeyoneKb2Settings.*;
 
 public class ActivitySettingsMore extends Activity {
     private KeyoneKb2Settings keyoneKb2Settings;
@@ -33,7 +35,6 @@ public class ActivitySettingsMore extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        FileJsonUtils.Initialize(getApplicationContext());
 
         setContentView(R.layout.activity_more_settings);
 
@@ -176,8 +177,8 @@ public class ActivitySettingsMore extends Activity {
             SaveSearchClickPluginData(KeyoneKb2AccessibilityService.Instance.DefaultSearchWords, KeyoneKb2AccessibilityService.Instance.searchClickPlugins, data.SearchPlugins);
             SaveSearchClickPluginData(KeyoneKb2AccessibilityService.Instance.DefaultSearchWords, KeyoneKb2AccessibilityService.Instance.clickerPlugins, data.ClickerPlugins);
 
-            FileJsonUtils.SerializeToFile(data, "plugin_data.json");
-                btSavePluginData.setText(FileJsonUtils.PATH_DEF);
+            FileJsonUtils.SerializeToFile(data, RES_PLUGIN_DATA + JsonFileExt);
+            btSavePluginData.setText(FileJsonUtils.PATH_DEF);
 
         }
 
@@ -248,7 +249,7 @@ public class ActivitySettingsMore extends Activity {
                         }
                     } else {
                         String subFile = path + "/" + file;
-                        FileJsonUtils.SaveAssetToFile(subFile, file, this);
+                        FileJsonUtils.SaveAssetToFile(subFile, PATH, file, this);
                     }
                 }
 
@@ -266,8 +267,8 @@ public class ActivitySettingsMore extends Activity {
             return;
         }
 
-        path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_layouts), getApplicationContext());
-        path = FileJsonUtils.SaveJsonResToFile(getResources().getResourceEntryName(R.raw.keyboard_core), getApplicationContext());
+        path = FileJsonUtils.SaveJsonResToFile(RES_KEYBOARD_LAYOUTS, getApplicationContext());
+        path = FileJsonUtils.SaveJsonResToFile(RES_KEYBOARD_CORE, getApplicationContext());
         path = FileJsonUtils.SaveJsonResToFile(KeyoneIME.Instance.keyboard_mechanics_res, getApplicationContext());
         path = FileJsonUtils.SaveJsonResToFile(KeyoneKb2AccessibilityService.KeyoneKb2AccServiceOptions.ResName, getApplicationContext());
         for (KeyboardLayout keyboardLayout: Instance.KeyboardLayoutList) {
@@ -275,7 +276,7 @@ public class ActivitySettingsMore extends Activity {
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.AltModeLayout, getApplicationContext());
         }
 
-        saveAssetFiles("js_patches");
+        saveAssetFiles(JsPatchesAssetFolder);
 
         btSave.setText(path);
 

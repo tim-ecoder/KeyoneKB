@@ -8,13 +8,12 @@ import android.util.Log;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.sateda.keyonekb2.FileJsonUtils.DeserializeFromJsonApplyPatches;
 import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
+import static com.sateda.keyonekb2.KeyoneKb2Settings.RES_KEYBOARD_LAYOUTS;
 
 public class KeyboardLayoutManager {
 
@@ -31,12 +30,13 @@ public class KeyboardLayoutManager {
     HashMap<String, Keyboard> symKeyboardsHashMap = new HashMap<>();
 
 
+
     public synchronized void Initialize(ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts, Resources resources, Context context) throws Exception {
 
         Instance = this;
-        FileJsonUtils.Initialize(context);
         KeyboardLayout currentLayout = null;
         String LOAD_STAGE="";
+
         try {
             for (KeyboardLayout.KeyboardLayoutOptions layout : activeLayouts) {
                 LangListCount++;
@@ -222,10 +222,8 @@ public class KeyboardLayoutManager {
     public static ArrayList<KeyboardLayout.KeyboardLayoutOptions> LoadKeyboardLayoutsRes(Resources resources, Context context) throws Exception {
         // Load keyboard layouts
         //Открывает R.xml.keyboard_layouts и загружает все настройки клавиатуры
-        FileJsonUtils.Initialize(context);
 
-        String resName = context.getResources().getResourceEntryName(R.raw.keyboard_layouts);
-        ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayoutOptionsArray =  FileJsonUtils.DeserializeFromJsonApplyPatches(resName, new TypeReference<ArrayList<KeyboardLayout.KeyboardLayoutOptions>>() {}, context);
+        ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayoutOptionsArray =  FileJsonUtils.DeserializeFromJsonApplyPatches(RES_KEYBOARD_LAYOUTS, new TypeReference<ArrayList<KeyboardLayout.KeyboardLayoutOptions>>() {}, context);
 
         for ( KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayoutOptionsArray) {
 

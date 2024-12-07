@@ -33,6 +33,7 @@ import java.util.*;
 
 import static com.sateda.keyonekb2.KeyboardLayoutManager.IsCurrentDevice;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
+import static com.sateda.keyonekb2.KeyoneKb2Settings.RES_KEYBOARD_MECHANICS_DEFAULT;
 
 @Keep
 public class KeyoneIME extends InputMethodServiceCoreCustomizable implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -98,6 +99,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
     public synchronized void onCreate() {
 
         try {
+            FileJsonUtils.Initialize();
             super.onCreate();
 
             Instance = this;
@@ -1184,13 +1186,14 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
         pref_pointer_mode_rect_color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
         pref_nav_pad_on_hold = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD);
 
+        keyboard_mechanics_res = null;
+
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts = new ArrayList<>();
 
         ArrayList<KeyboardLayout.KeyboardLayoutOptions> allLayouts;
         allLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
 
 
-        boolean isFirst = true;
         //for each keyboard layout in active layouts find in settings and if setting is true then set keyboard layout to active
         for (KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : allLayouts) {
             if (keyboardLayoutOptions.DeviceModelRegexp != null && keyboardLayoutOptions.DeviceModelRegexp != "") {
@@ -1199,15 +1202,18 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                     continue;
             }
             keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
+
+            if (keyboard_mechanics_res == null) {
+                if (keyboardLayoutOptions.CustomKeyboardMechanics != null && !keyboardLayoutOptions.CustomKeyboardMechanics.isEmpty()) {
+                    keyboard_mechanics_res = keyboardLayoutOptions.CustomKeyboardMechanics;
+                } else {
+                    keyboard_mechanics_res = RES_KEYBOARD_MECHANICS_DEFAULT;
+                }
+            }
+
             boolean enabled = keyoneKb2Settings.GetBooleanValue(keyboardLayoutOptions.getPreferenceName());
             if (enabled) {
                 activeLayouts.add(keyboardLayoutOptions);
-                if (isFirst) {
-                    if (keyboardLayoutOptions.CustomKeyboardMechanics != null && !keyboardLayoutOptions.CustomKeyboardMechanics.isEmpty()) {
-                        keyboard_mechanics_res = keyboardLayoutOptions.CustomKeyboardMechanics;
-                    }
-                    isFirst = false;
-                }
             }
         }
 

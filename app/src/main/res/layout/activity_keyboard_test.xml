@@ -58,13 +58,26 @@
               android:textSize="13.0sp"/>
 
     <TextView
+            android:id="@+id/customization_info"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:scrollbarAlwaysDrawHorizontalTrack="false"
+            android:scrollbarAlwaysDrawVerticalTrack="false"
+            android:text="\nCUSTOMIZATION INFO:"
+            android:textAlignment="textStart"
+            android:textStyle="bold"/>
+    <TextView android:id="@+id/customization_info_text"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+    <TextView
             android:id="@+id/debug_info_text"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:scrollbarAlwaysDrawHorizontalTrack="false"
             android:scrollbarAlwaysDrawVerticalTrack="false"
-            android:text="DEBUG INFO"
-            android:textAlignment="center"/>
+            android:text="DEBUG INFO:"
+            android:textAlignment="textStart"
+            android:textStyle="bold"/>
     <ScrollView
             android:id="@+id/debug_scroll"
             android:layout_width="fill_parent"

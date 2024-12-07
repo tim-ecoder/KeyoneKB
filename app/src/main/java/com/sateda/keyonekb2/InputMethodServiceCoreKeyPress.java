@@ -78,7 +78,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
     @Override
     public void onCreate() {
         super.onCreate();
-        FileJsonUtils.Initialize(this);
+
         try {
             CoreKeyboardSettings = FileJsonUtils.DeserializeFromJsonApplyPatches(KeyoneKb2Settings.CoreKeyboardSettingsResFileName, new TypeReference<KeyoneKb2Settings.CoreKeyboardSettings>() {}, this);
         } catch (Exception e) {

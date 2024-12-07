@@ -1,9 +1,14 @@
 {
-  "keyboard-name" : "Транслит kika",
-  "alt-mode-layout" : "titan_slim_alt_hw",
-  "sym-mode-layout" : "pocket_symbol",
-  "key-mapping" : [
-    {
+  "keyboard-name" : "Русский",
+  "alt-mode-layout" : "bb_key_1_2/alt_hw",
+  "sym-mode-layout" : "symbol",
+  "key-mapping" : [ {
+    "key-code" : "KEYCODE_4",
+    "single-press" : "ь",
+    "single-press-shift-mode" : "Ь",
+    "double-press" : "ъ",
+    "double-press-shift-mode" : "Ъ"
+  }, {
     "key-code" : "KEYCODE_Q",
     "single-press" : "я",
     "single-press-shift-mode" : "Я"
@@ -40,15 +45,11 @@
   }, {
     "key-code" : "KEYCODE_I",
     "single-press" : "и",
-    "single-press-shift-mode" : "И",
-    "double-press" : "й",
-    "double-press-shift-mode" : "Й"
+    "single-press-shift-mode" : "И"
   }, {
     "key-code" : "KEYCODE_O",
     "single-press" : "о",
-    "single-press-shift-mode" : "О",
-    "double-press" : "ё",
-    "double-press-shift-mode" : "Ё"
+    "single-press-shift-mode" : "О"
   }, {
     "key-code" : "KEYCODE_P",
     "single-press" : "п",
@@ -79,10 +80,10 @@
     "single-press-shift-mode" : "Ч"
   }, {
     "key-code" : "KEYCODE_J",
-    "single-press" : "ь",
-    "single-press-shift-mode" : "Ь",
-    "double-press" : "ъ",
-    "double-press-shift-mode" : "Ъ"
+    "single-press" : "й",
+    "single-press-shift-mode" : "Й",
+    "double-press" : "ë",
+    "double-press-shift-mode" : "Ë"
   }, {
     "key-code" : "KEYCODE_K",
     "single-press" : "к",
@@ -121,5 +122,9 @@
     "key-code" : "KEYCODE_M",
     "single-press" : "м",
     "single-press-shift-mode" : "М"
+  }, {
+    "key-code" : "KEYCODE_0",
+    "single-press" : "0",
+    "single-press-shift-mode" : "0"
   } ]
 }
