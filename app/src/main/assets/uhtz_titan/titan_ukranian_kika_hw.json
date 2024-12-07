@@ -1,6 +1,6 @@
 {
   "keyboard-name" : "Украинский",
-  "alt-mode-layout" : "titan_alt_hw",
+  "alt-mode-layout" : "uhtz_titan/titan_alt_hw",
   "sym-mode-layout" : "pocket_symbol",
   "key-mapping" : [ { }, {
     "key-code" : "KEYCODE_Q",
