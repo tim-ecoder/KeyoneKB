@@ -1153,6 +1153,17 @@
           "custom-key-code" : "KEYCODE_TAB"
         }
       ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_DEL"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionKeyDown",
+          "custom-key-code": "KEYCODE_DEL"
+        }
+      ]
     }
   ],
   "gesture-processor" : {

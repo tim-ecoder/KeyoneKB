@@ -316,6 +316,9 @@ public class FileJsonUtils {
 
     public static Context GetContext(Context context) {
 
+        /* Подготовка к запуску приложения до входа пользователя
+        в таком режиме сбрасываются настройки (надо разобраться)
+
         if (BuildCompat.isAtLeastN()) {
             // All N devices have split storage areas, but we may need to
             // move the existing preferences to the new device protected
@@ -326,6 +329,7 @@ public class FileJsonUtils {
             }
             return deviceContext;
         }
+         */
         return context;
     }
 

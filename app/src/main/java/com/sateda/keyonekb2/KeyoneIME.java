@@ -392,11 +392,9 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
         if (IsNavMode() && !IsNavModeExtraKeyTransparency(keyCode)) {
 
-            boolean rez = ProcessCoreOnKeyDown(keyCode, event, navKeyProcessorsMap);
-            if(rez) {
-                ProcessOnCursorMovement(getCurrentInputEditorInfo());
-            }
+            ProcessCoreOnKeyDown(keyCode, event, navKeyProcessorsMap);
             return keyCode != KeyEvent.KEYCODE_SHIFT_LEFT;
+
         }
 
         //endregion
@@ -609,8 +607,12 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                     + ", nss=" + newSelStart + ", nse=" + newSelEnd
                     + ", cs=" + composingSpanStart + ", ce=" + composingSpanEnd);
         }
+        CurrentSelectionStart = newSelStart;
+        CurrentSelectionEnd = newSelEnd;
         ProcessOnCursorMovement(getCurrentInputEditorInfo());
     }
+
+
 
     @Override
     public void onPress(int primaryCode) {
@@ -776,8 +778,8 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
-        LogKeyboardTest("onTouch: "+motionEvent.getAction());
-        printSamples(motionEvent);
+        //LogKeyboardTest("onTouch: "+motionEvent.getAction());
+        //printSamples(motionEvent);
 
 
         if(

@@ -1040,6 +1040,17 @@
           "custom-key-code" : "KEYCODE_PAGE_DOWN"
         }
       ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_DEL"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionKeyDown",
+          "custom-key-code": "KEYCODE_DEL"
+        }
+      ]
     }
 
   ],

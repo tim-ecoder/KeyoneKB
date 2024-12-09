@@ -1591,12 +1591,23 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         int meta = KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON;
         //Для K1 надо очищать мета статус от всего лишено, оставляем только shift для Ctrl+Shift+Z;
         int metaBase =  (keyPressData.MetaBase & KeyEvent.META_SHIFT_LEFT_ON) > 0 ? KeyEvent.META_SHIFT_LEFT_ON : 0;
-        Log.d(TAG2, "Sending CTRL+"+keyPressData.KeyCode+" SHIFT:"+metaBase);
-        keyDownUpKeepTouch(keyPressData.KeyCode, getCurrentInputConnection(), meta | metaBase);
+        Log.i(TAG2, "Sending CTRL+"+keyPressData.KeyCode+" SHIFT:"+metaBase);
+
+        InputConnection ic = getCurrentInputConnection();
+
+        if(CurrentSelectionEnd == 0 && CurrentSelectionStart > 0) {
+            //В Unihertz BUG если выделять с конца влево до упора, то в SEL END становится 0 и не работает ctrl+c/ctrl+x и надо поменять местами начало выделения и конец
+            Log.d(TAG2, "Selection END=0, changing SEL_END and SEL_START");
+            ic.setSelection(CurrentSelectionEnd, CurrentSelectionStart);
+        }
+
+        keyDownUpKeepTouch(keyPressData.KeyCode, ic, meta | metaBase);
 
         return true;
     }
 
+    protected int CurrentSelectionStart = 0;
+    protected int CurrentSelectionEnd = 0;
 
 
     public boolean ActionSendCharSinglePressSymMode(KeyPressData keyPressData) {

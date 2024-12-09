@@ -1110,9 +1110,19 @@
           "custom-key-code" : "KEYCODE_PAGE_DOWN"
         }
       ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_DEL"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionKeyDown",
+          "custom-key-code": "KEYCODE_DEL"
+        }
+      ]
     }
-
-  ],
+    ],
   "gesture-processor" : {
     "keyboard-gestures-at-input-mode-enabled" : true,
     "key-hold-plus-gesture-enabled" : true,
