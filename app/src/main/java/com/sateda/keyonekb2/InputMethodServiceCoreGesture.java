@@ -199,12 +199,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
             if(lastGestureX > 0 && lastGestureY > 0) {
             //if(true) {
-                if(NowHoldingPlusKeyNotUndoneSinglePress != null) {
-                    Log.d(TAG2, "FORCE UNDO SHORT PRESS OF HOLDING "+NowHoldingPlusKeyNotUndoneSinglePress.KeyCode+" UPON SWYPE");
-                    ProcessUndoLastShortPress(NowHoldingPlusKeyNotUndoneSinglePress, null, mainModeKeyProcessorsMap);
-                    NowHoldingPlusKeyNotUndoneSinglePress = null;
-                    UpdateKeyboardModeVisualization();
-                }
+
 
                 float deltaX = motionEventX - lastGestureX;
                 float absDeltaX = deltaX < 0 ? -1 * deltaX : deltaX;
@@ -228,6 +223,15 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
                 int motion_delta_min_x = Math.round((MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity)*KpowerX);
                 int motion_delta_min_y = Math.round((MAGIC_KEYBOARD_GESTURE_MOTION_CONST - pref_gesture_motion_sensitivity)*KpowerY);
+
+                if(absDeltaX >= motion_delta_min_x || absDeltaY >= motion_delta_min_y) {
+                    if (NowHoldingPlusKeyNotUndoneSinglePress != null) {
+                        Log.d(TAG2, "FORCE UNDO SHORT PRESS OF HOLDING " + NowHoldingPlusKeyNotUndoneSinglePress.KeyCode + " UPON SWYPE");
+                        ProcessUndoLastShortPress(NowHoldingPlusKeyNotUndoneSinglePress, null, mainModeKeyProcessorsMap);
+                        NowHoldingPlusKeyNotUndoneSinglePress = null;
+                        UpdateKeyboardModeVisualization();
+                    }
+                }
 
                 if (absDeltaX >= absDeltaY) {
                     if (absDeltaX < motion_delta_min_x)
