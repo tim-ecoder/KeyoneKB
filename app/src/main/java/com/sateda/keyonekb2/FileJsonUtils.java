@@ -80,7 +80,7 @@ public class FileJsonUtils {
 
     public static String SaveJsonResToFile(String resName, Context context){
 
-        return SaveAssetToFile(resName +JsonFileExt, PATH_DEF, ResNameNoFolder(resName), context);
+        return SaveAssetToFile(resName +JsonFileExt, PATH_DEF, ResNameNoFolder(resName)+JsonFileExt, context);
     }
 
     public static String SaveAssetToFile(String assetFile, String NEW_PATH, String saveFile, Context context){
