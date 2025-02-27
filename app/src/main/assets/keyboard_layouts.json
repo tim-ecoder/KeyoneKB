@@ -151,5 +151,23 @@
   "flag" : "ic_flag_ukraine_col",
   "custom-keyboard-mechanics": "uhtz_titan/titan_keyboard_mechanics",
   "device-model-regexp" : "A-Gold Titan"
+}, {
+  "options-name" : "Unihertz Titan Транслит",
+  "keyboard-mapping" : "uhtz_titan/titan_russian_translit_hw",
+  "icon-lowercase" : "ic_rus_small",
+  "icon-first-shift" : "ic_rus_shift_first",
+  "icon-capslock" : "ic_rus_shift_all",
+  "flag" : "ic_flag_russia_col",
+  "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
+  "device-model-regexp" : "A-Gold Titan"
+}, {
+  "options-name" : "Unihertz Titan Транслит Kika",
+  "keyboard-mapping" : "uhtz_titan/titan_russian_translit2_hw",
+  "icon-lowercase" : "ic_rus_small",
+  "icon-first-shift" : "ic_rus_shift_first",
+  "icon-capslock" : "ic_rus_shift_all",
+  "flag" : "ic_flag_russia_col",
+  "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
+  "device-model-regexp" : "A-Gold Titan"
 }
 ]

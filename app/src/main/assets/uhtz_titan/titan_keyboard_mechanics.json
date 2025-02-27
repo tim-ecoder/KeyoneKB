@@ -167,11 +167,12 @@
     "289",
     "KEYCODE_SPACE",
     "KEYCODE_SYM",
-    "KEYCODE_0",
     "KEYCODE_BACK",
     "KEYCODE_HOME",
     "KEYCODE_SHIFT_LEFT",
-    "KEYCODE_ALT_LEFT"
+    "KEYCODE_ALT_LEFT",
+    "KEYCODE_ALT_RIGHT",
+    "KEYCODE_APP_SWITCH"
   ],
   "on-any-key-before-actions" :
   {
@@ -408,37 +409,6 @@
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
         }
-      ],
-      "on-double-press": [
-        {
-          "comment" : "Если мы в режиме ввода, то на одиночный пробел (первый клик) ввелся пробел, его надо удалить ",
-          "meta-mode-method-names": [
-            "MetaStateIsOnCall",
-            "InputIsAnyInput"
-          ],
-          "action-method-name": "ActionDeletePreviousSymbol"
-        }, {
-          "meta-mode-method-names": [
-            "MetaStateIsOnCall"
-          ],
-          "action-method-name": "ActionTryAcceptCall",
-          "stop-processing-at-success-result": true
-        }, {
-          "action-method-name": "ActionTryDoubleSpaceDotSpaceConversion",
-          "need-update-visual-state": true,
-          "stop-processing-at-success-result": true
-        }, {
-          "action-method-name": "ActionSendCharToInput",
-          "custom-char": " ",
-          "need-update-visual-state": true
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsShiftMode"
-          ],
-          "action-method-name": "ActionSendCharSinglePressShiftMode",
-          "method-needs-key-press-parameter": true,
-          "stop-processing-at-success-result": true
-        }
       ]
     },
     {
@@ -526,6 +496,10 @@
         "KEYCODE_ALT_LEFT", "KEYCODE_ALT_RIGHT"
       ],
       "on-short-press": [
+	{
+          "action-method-name": "ActionTryDeclineCall",
+          "stop-processing-at-success-result": true
+        },
         {
           "meta-mode-method-names": [
             "MetaIsActionBeforeMeta"
@@ -644,8 +618,13 @@
         "KEYCODE_SHIFT_LEFT"
       ],
       "on-short-press": [
-
         {
+          "meta-mode-method-names": [
+                "MetaStateIsOnCall"
+            ],
+                "action-method-name": "ActionTryAcceptCall",
+                "stop-processing-at-success-result": true
+        }, {
           "action-method-name": "ActionTryChangeSymPadLayout",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
@@ -688,138 +667,10 @@
         }
       ]
     },
-    {
+ 
+ {
       "key-codes": [
-        "KEYCODE_0"
-      ],
-      "on-short-press": [
-        {
-          "meta-mode-method-names": [
-            "MetaIsActionBeforeMeta"
-          ],
-          "action-method-name": "ActionTryTurnOffGesturesMode"
-        },
-        {
-          "action-method-name": "ActionChangeKeyboardLayout",
-          "need-update-visual-state": true,
-          "stop-processing-at-success-result": true
-        }, {
-          "meta-mode-method-names": [
-            "InputIsDigitsPad"
-          ],
-          "action-method-name": "ActionKeyDownUpDefaultFlags",
-          "custom-key-code": "KEYCODE_0",
-          "stop-processing-at-success-result": true
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionSendCharToInput",
-          "stop-processing-at-success-result": true,
-          "custom-char": "0"
-        }
-      ],
-      "on-double-press": [
-        {
-          "action-method-name": "ActionTryChangeGestureModeStateAtInputMode",
-          "need-update-gesture-visual-state": true,
-          "stop-processing-at-success-result": true
-        }, {
-          "meta-mode-method-names": [
-            "InputIsDigitsPad"
-          ],
-          "action-method-name": "ActionSetKeyTransparency",
-          "stop-processing-at-success-result": true
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionSendCharToInput",
-          "stop-processing-at-success-result": true,
-          "custom-char": "0"
-        }
-      ],
-      "on-hold-on": [
-        {
-          "action-method-name": "ActionTryEnableGestureCursorModeOnHoldState",
-          "need-update-gesture-visual-state": true
-        },
-        {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionDoNothing",
-          "stop-processing-at-success-result": true
-        }
-      ],
-      "on-hold-off": [
-        {
-          "action-method-name": "ActionTryDisableGestureCursorModeUnHoldState",
-          "need-update-gesture-visual-state": true
-        },
-        {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionDoNothing",
-          "stop-processing-at-success-result": true
-        }
-      ],
-      "on-triple-press": [
-        {
-          "meta-mode-method-names": [
-            "InputIsDigitsPad"
-          ],
-          "action-method-name": "ActionSetKeyTransparency",
-          "stop-processing-at-success-result": true
-        },
-        {
-          "meta-mode-method-names": [
-            "MetaIsActionBeforeMeta"
-          ],
-          "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode",
-          "need-update-visual-state": true,
-          "need-update-gesture-visual-state": true
-        },
-        {
-          "comment": "Это хак чтобы если НЕ выключился режим курсора, то ничего не делать",
-          "meta-mode-method-names": [
-            "InputIsGestureCursor"
-          ],
-          "action-method-name": "ActionDoNothing",
-          "stop-processing-at-success-result": true
-        },
-        {
-          "comment": "А вот если вы прошли предыдущий шаг, значит мы были не в режиме курсора и его надо включить",
-          "action-method-name": "ActionEnableGestureAtInputMode",
-          "need-update-visual-state": true,
-          "need-update-gesture-visual-state": true
-        }, {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionSendCharToInput",
-          "stop-processing-at-success-result": true,
-          "custom-char": "0"
-        }
-      ],
-      "on-undo-short-press" : [
-        {
-          "action-method-name": "ActionChangeBackKeyboardLayout",
-          "need-update-visual-state": true
-        },
-        {
-          "meta-mode-method-names": [
-            "MetaIsAltMode"
-          ],
-          "action-method-name": "ActionDoNothing",
-          "stop-processing-at-success-result": true
-        }
-      ]
-    },
-    {
-      "key-codes": [
-        "KEYCODE_SYM", "KEYCODE_APP_SWITCH"
+        "KEYCODE_SYM"
       ],
       "on-short-press": [
         {
@@ -833,7 +684,17 @@
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+		
+		{
+            "meta-mode-method-names": [
+              "MetaStateIsOnCall"
+            ],
+          "action-method-name": "ActionTryAcceptCall",
+          "stop-processing-at-success-result": true
+        },
+		
+        {
           "action-method-name": "ActionTryChangeSymPadVisibilityAtInputMode",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
@@ -845,7 +706,8 @@
           "action-method-name": "ActionKeyDown",
           "stop-processing-at-success-result": true,
           "custom-key-code": "KEYCODE_MENU"
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsCtrlPressed"
           ],
@@ -857,7 +719,8 @@
         {
           "action-method-name": "ActionTryDeclineCall",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryEnableNavModeAndKeyboard",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
@@ -890,8 +753,99 @@
           "stop-processing-at-success-result": true
         }
       ],
-      "on-undo-short-press" : [
+      "on-undo-short-press": [
         {
+          "action-method-name": "ActionTryDisableSymPad",
+          "need-update-visual-state": true
+        }
+      ]
+    },
+ 
+    {
+      "key-codes": [
+        "KEYCODE_APP_SWITCH"
+      ],
+      "on-short-press": [
+        {
+          "action-method-name": "ActionTryDisableNavModeAndKeyboard",
+          "need-update-visual-state": false,
+          "need-update-gesture-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionChangeKeyboardLayout",
+          "need-update-visual-state": false,
+          "stop-processing-at-success-result": true
+        }, {
+            "meta-mode-method-names": [
+              "MetaStateIsOnCall"
+            ],
+          "action-method-name": "ActionTryAcceptCall",
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+              "MetaIsActionBeforeMeta"
+          ],
+          "action-method-name": "ActionTryTurnOffGesturesMode"
+        }, {
+          "meta-mode-method-names": [
+              "MetaIsAltPressed"
+            ],
+          "action-method-name": "ActionTryChangeSymPadVisibilityAtInputMode",
+          "need-update-visual-state": true,
+          "stop-processing-at-success-result": true
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsAltPressed"
+          ],
+          "action-method-name": "ActionKeyDown",
+          "stop-processing-at-success-result": true,
+          "custom-key-code": "KEYCODE_MENU"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsCtrlPressed"
+          ],
+          "action-method-name": "ActionStartVoiceListening",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-double-press": [
+	{
+          "action-method-name": "ActionTryDeclineCall",
+          "stop-processing-at-success-result": true
+        }, {
+          "action-method-name": "ActionTryEnableNavModeAndKeyboard",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true
+        }
+      ],
+      "on-hold-on": [
+        {
+          "action-method-name": "ActionEnableHoldSymMode"
+        }, {
+          "action-method-name": "ActionSetNavModeHoldOnState",
+          "need-update-visual-state": false,
+          "need-update-gesture-visual-state": true
+        }
+      ],
+      "on-hold-off": [
+        {
+          "action-method-name": "ActionSetNavModeHoldOffState",
+          "need-update-visual-state": true,
+          "need-update-gesture-visual-state": true
+        }, {
+          "action-method-name": "ActionDisableHoldSymMode"
+        }, {
+          "meta-mode-method-names": [
+            "MetaIsShiftPressed"
+          ],
+          "action-method-name": "ActionDoNothing",
+          "stop-processing-at-success-result": true
+        }
+      ],
+      "on-undo-short-press" : [
+	{
+          "action-method-name": "ActionChangeBackKeyboardLayout"
+	}, {
           "action-method-name": "ActionTryDisableSymPad",
           "need-update-visual-state": true
         }
@@ -1151,17 +1105,6 @@
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
           "custom-key-code" : "KEYCODE_TAB"
-        }
-      ]
-    },
-    {
-      "key-codes": [
-        "KEYCODE_DEL"
-      ],
-      "on-short-press": [
-        {
-          "action-method-name": "ActionKeyDown",
-          "custom-key-code": "KEYCODE_DEL"
         }
       ]
     }
