@@ -1,12 +1,12 @@
 {
   "keyboard-name" : "Русский",
-  "alt-mode-layout" : "uhtz_slim_pocket/titan_slim_alt_hw",
+  "alt-mode-layout" : "uhtz_titan/titan_alt_hw",
   "sym-mode-layout" : "pocket_symbol",
   "key-mapping" : [
     {
     "key-code" : "KEYCODE_Q",
     "single-press" : "я",
-    "single-press-shift-mode" : "Я",
+    "single-press-shift-mode" : "Я"
   }, {
     "key-code" : "KEYCODE_W",
     "single-press" : "ш",

@@ -1,6 +1,6 @@
 {
   "keyboard-name" : "Транслит kika",
-  "alt-mode-layout" : "uhtz_slim_pocket/titan_slim_alt_hw",
+  "alt-mode-layout" : "uhtz_titan/titan_alt_hw",
   "sym-mode-layout" : "pocket_symbol",
   "key-mapping" : [
     {
