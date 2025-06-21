@@ -3,7 +3,7 @@
 #### 4 INTERNATIONAL USE 
 ### KeyoneKB2 hardware keyboard is translation and customization READY and can be easily adopted by community to other languages and keyboard layouts
 
-KeyoneKb2 кастомная хардварная клавиатура для Blackberry KEY1 и KEY2 (в том числе НЕ_РСТ) (Android 7/8.1+), а также Unihertz Titan Pocket и Slim (кроме жестов по клавиатуре в режиме ввода текста).
+KeyoneKb2 кастомная хардварная клавиатура для Blackberry KEY1 и KEY2 (в том числе НЕ_РСТ) (Android 7/8.1+), а также Unihertz Titan, Titan Pocket и Slim (кроме жестов по клавиатуре в режиме ввода текста).
 Наиболее современных устройств (относительно конечно) с одновременно самой удобной «железной» клавиатурой (относительно конечно). И то, и другое компримис, но за неимением большего как говорится.. 
  
 Клавиатура претендует на то, чтобы быть удобнее, чем (очень хорошая) клавиатура Blackberry Keyboard, чтобы у разработчиков RIM (где бы они сейчас не работали) ушки горели. 
@@ -20,6 +20,9 @@ KeyoneKb2 кастомная хардварная клавиатура для Bl
  
 # Инструкция на wiki
  https://github.com/tim-ecoder/KeyoneKB/wiki#%D0%98%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%86%D0%B8%D1%8F
+
+# ОСНОВНАЯ ТЕМА ДЛЯ ОБСУЖДЕНИЯ (MAIN FORUM TOPIC FOR DISCUSSION)
+https://4pda.to/forum/index.php?showtopic=1024645
 
 # БЛАГОДАРНОСТИ
 * Основатель: Артем Твердохлеб aka l3n1n-ua (UA)
