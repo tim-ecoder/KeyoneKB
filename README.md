@@ -21,7 +21,7 @@ KeyoneKb2 кастомная хардварная клавиатура для Bl
 # Инструкция на wiki
  https://github.com/tim-ecoder/KeyoneKB/wiki#%D0%98%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%86%D0%B8%D1%8F
 
-# ОСНОВНАЯ ТЕМА ДЛЯ ОБСУЖДЕНИЯ (MAIN FORUM TOPIC FOR DISCUSSION)
+## ОСНОВНАЯ ТЕМА ДЛЯ ОБСУЖДЕНИЯ (MAIN FORUM TOPIC FOR DISCUSSION)
 https://4pda.to/forum/index.php?showtopic=1024645
 
 # БЛАГОДАРНОСТИ
