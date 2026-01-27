@@ -21,8 +21,8 @@ allprojects {
         mavenLocal()
         //jcenter()
         mavenCentral()
-        //maven { url 'https://jitpack.io' }
-        maven { url "https://repo.grails.org/grails/core/" }
+        maven { url "https://jitpack.io" }
+        //maven { url "https://repo.grails.org/grails/core/" }
     }
 }
 

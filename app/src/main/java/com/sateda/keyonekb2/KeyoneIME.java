@@ -1234,6 +1234,10 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             }
         }
 
+        if (keyboard_mechanics_res == null) {
+            keyboard_mechanics_res = RES_KEYBOARD_MECHANICS_DEFAULT;
+        }
+
         if(activeLayouts.isEmpty()) {
             KeyboardLayout.KeyboardLayoutOptions defLayout = allLayouts.get(0);
             keyoneKb2Settings.SetBooleanValue(defLayout.getPreferenceName(), true);

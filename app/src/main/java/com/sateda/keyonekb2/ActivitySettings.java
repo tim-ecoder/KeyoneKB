@@ -12,12 +12,13 @@ import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.*;
 import android.widget.*;
-import com.pes.androidmaterialcolorpickerdialog.ColorPicker;
 
 import java.util.ArrayList;
 
 import static com.sateda.keyonekb2.KeyboardLayoutManager.IsCurrentDevice;
 import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
+
+import yuku.ambilwarna.AmbilWarnaDialog;
 
 public class ActivitySettings extends AppCompatActivity {
 
@@ -315,26 +316,41 @@ public class ActivitySettings extends AppCompatActivity {
         });
 
         int color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
-        final ColorPicker cp = new ColorPicker(this, Color.red(color), Color.green(color), Color.blue(color));
+
+        AmbilWarnaDialog colorPicker = new AmbilWarnaDialog(
+                this,
+                color,
+                new AmbilWarnaDialog.OnAmbilWarnaListener() {
+                    @Override
+                    public void onOk(AmbilWarnaDialog dialog, int color) {
+                        // User pressed OK
+                        keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR, color);
+                    }
+
+                    @Override
+                    public void onCancel(AmbilWarnaDialog dialog) {
+                        // User pressed Cancel
+                    }
+                }
+        );
+        //final ColorPicker cp = new ColorPicker(this, Color.red(color), Color.green(color), Color.blue(color));
 
         Button btSave = (Button)findViewById(R.id.button_pointer_mode_rect_color_picker);
+
+
         btSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                cp.show();
-
-                /* On Click listener for the dialog, when the user select the color */
-                Button okColor = (Button)cp.findViewById(R.id.okColorButton);
-
-                okColor.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR, cp.getColor());
-                        cp.dismiss();
-                    }
-                });
+                colorPicker.show();
             }
         });
+
+
+
+
+
+
+
 
 
 
