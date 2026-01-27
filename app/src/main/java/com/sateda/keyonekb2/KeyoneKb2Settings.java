@@ -23,7 +23,7 @@ public class KeyoneKb2Settings {
     public final String APP_PREFERENCES_2_SHOW_TOAST = "show_toast";
     public final String APP_PREFERENCES_1_SENS_BOTTOM_BAR = "sens_bottom_bar";
 
-    public static String RES_KEYBOARD_MECHANICS_DEFAULT = "keyboard_mechanics";
+    public static String RES_KEYBOARD_MECHANICS_DEFAULT = "bb_key_1_2/keyboard_mechanics";
     public static String RES_KEYBOARD_LAYOUTS = "keyboard_layouts";
     public static String RES_KEYBOARD_CORE = "keyboard_core";
     public static String RES_PLUGIN_DATA = "plugin_data";
