@@ -6,7 +6,7 @@
   "icon-capslock" : "ic_eng_shift_all",
   "flag" : "ic_flag_gb_col",
   "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-  "device-model-regexp" : "(Blackberry (BBB|BBF|BBE).*)|(.*KEY2)"
+  "device-model-regexp" : "Blackberry (BBB|BBF|BBE|unknown).*"
 }, {
   "options-name" : "Blackberry Key1|2 Русский",
   "keyboard-mapping" : "bb_key_1_2/russian_hw",
@@ -15,7 +15,7 @@
   "icon-capslock" : "ic_rus_shift_all",
   "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-  "device-model-regexp" : "(Blackberry (BBB|BBF|BBE).*)|(.*KEY2)"
+  "device-model-regexp" : "Blackberry (BBB|BBF|BBE|unknown).*"
 }, {
   "options-name" : "Blackberry Key1|2 Русский (Транслит)",
   "keyboard-mapping" : "bb_key_1_2/russian_translit_hw",
@@ -24,7 +24,7 @@
   "icon-capslock" : "ic_rus_shift_all",
   "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-  "device-model-regexp" : "(Blackberry (BBB|BBF|BBE).*)|(.*KEY2)"
+  "device-model-regexp" : "Blackberry (BBB|BBF|BBE|unknown).*"
 }, {
   "options-name" : "Blackberry Key1|2 Украинский",
   "keyboard-mapping" : "bb_key_1_2/ukraine_hw",
@@ -33,7 +33,7 @@
   "icon-capslock" : "ic_ukr_shift_all",
   "flag" : "ic_flag_ukraine_col",
   "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-  "device-model-regexp" : "(Blackberry (BBB|BBF|BBE).*)|(.*KEY2)"
+  "device-model-regexp" : "Blackberry (BBB|BBF|BBE|unknown).*"
 }, {
   "options-name" : "Unihertz Pocket|Slim English (v1)",
   "keyboard-mapping" : "uhtz_slim_pocket/titan_slim_english_hw",
@@ -42,7 +42,7 @@
   "icon-capslock" : "ic_eng_shift_all",
   "flag" : "ic_flag_gb_col",
   "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-  "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+  "device-model-regexp" : "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
 }, {
   "options-name" : "Unihertz Pocket|Slim Русский (fidel)",
   "keyboard-mapping" : "uhtz_slim_pocket/titan_slim_russian_hw",
@@ -51,7 +51,7 @@
   "icon-capslock" : "ic_rus_shift_all",
   "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-  "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+  "device-model-regexp" : "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
 }, {
   "options-name" : "Unihertz Pocket|Slim Русский (kika)",
   "keyboard-mapping" : "uhtz_slim_pocket/titan_slim_russian_kika_hw",
@@ -60,7 +60,7 @@
   "icon-capslock" : "ic_rus_shift_all",
   "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-  "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+  "device-model-regexp" : "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
 }, {
   "options-name" : "Unihertz Pocket|Slim Русский (key2)",
   "keyboard-mapping" : "uhtz_slim_pocket/titan_slim_russian_key2_hw",
@@ -69,7 +69,7 @@
   "icon-capslock" : "ic_rus_shift_all",
   "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-  "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+  "device-model-regexp" : "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
 }, {
   "options-name" : "Unihertz Pocket|Slim Транслит",
   "keyboard-mapping" : "uhtz_slim_pocket/titan_slim_russian_translit_hw",
@@ -78,7 +78,7 @@
   "icon-capslock" : "ic_rus_shift_all",
   "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-  "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+  "device-model-regexp" : "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
 }, {
   "options-name" : "Unihertz Pocket|Slim Транслит Kika",
   "keyboard-mapping" : "uhtz_slim_pocket/titan_slim_russian_translit2_hw",
@@ -87,7 +87,7 @@
   "icon-capslock" : "ic_rus_shift_all",
   "flag" : "ic_flag_russia_col",
   "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-  "device-model-regexp" : "Unihertz Titan (Slim|Pocket)"
+  "device-model-regexp" : "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
 }, {
   "options-name" : "Unihertz Pocket|Slim Латышский",
   "keyboard-mapping" : "uhtz_slim_pocket/titan_slim_latvian_hw",
