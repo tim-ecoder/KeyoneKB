@@ -468,7 +468,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
         Paint paint_gray = new Paint();
         paint_gray.setTextAlign(Paint.Align.CENTER);
-        paint_gray.setTextSize(Math.round(scaleHeightY*28));
+        paint_gray.setTextSize(Math.round(scaleWidthX*28));
         paint_gray.setColor(Color.GRAY);
 
         Paint paint_red = new Paint();
