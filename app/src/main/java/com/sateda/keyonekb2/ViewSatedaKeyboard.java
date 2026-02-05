@@ -351,7 +351,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
     }
     
     private int scaleX(int x) {
-        return Math.round(scaleHeightY*x);
+        return Math.round(scaleWidthX*x);
     }
     
     private int scaleY(int y) {
