@@ -986,7 +986,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             //Keyboard k1 = keyboardLayoutManager.GetSymKeyboard(symPadAltShift);
             Keyboard k1 = new Keyboard(this, keyboardLayoutManager.GetCurrentKeyboardLayout().SymXmlId);
             keyboardView.setKeyboard(k1);
-            keyboardView.prepareSymAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), symPadAltShift);
+            keyboardView.prepareSymAltLayer(keyboardLayoutManager.GetCurrentKeyboardLayout(), keyboardLayoutManager.GetDefaultKeyboardLayout(), symPadAltShift);
 
             needUsefulKeyboard = true;
 

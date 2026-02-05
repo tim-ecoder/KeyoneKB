@@ -239,7 +239,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
     private ArrayList<SymPadKeyExtraData> SymPadKeyExtraDataList = new ArrayList<SymPadKeyExtraData>();
     private ArrayList<SymPadKeyExtraData> SymPadAltKeyExtraDataList = new ArrayList<SymPadKeyExtraData>();
 
-    public void prepareSymAltLayer(KeyboardLayout keyboardLayout, boolean isAltShift){
+    public void prepareSymAltLayer(KeyboardLayout keyboardLayout, KeyboardLayout defaultKeyboardLayout, boolean isAltShift){
 
         modeNavFn = false;
         mode = SatedaKeyboardMode.SymPad;
@@ -266,7 +266,11 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 spk.Key = key;
                 spk.LabelX = key.x + (key.width - scaleX(SYM_PADDING_X));//key:90//pocket:60
                 spk.LabelY = key.y + scaleY(SYM_PADDING_Y);//100//55
-                spk.Label = keyVariants.SinglePressShiftMode.toString();
+
+                KeyboardLayout.KeyVariants defaultKeyVariants = KeyboardLayoutManager.getCurKeyVariants(defaultKeyboardLayout, keyCode.intValue());
+                spk.Label = (defaultKeyVariants != null && defaultKeyVariants.SinglePressShiftMode != null)
+                        ? defaultKeyVariants.SinglePressShiftMode.toString()
+                        : keyVariants.SinglePressShiftMode.toString();
 
                 if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
                     spk.LabelAltPopup = Character.toString(keyVariants.AltMoreVariants.charAt(0));
@@ -305,7 +309,11 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 spk.Key = key;
                 spk.LabelX = key.x + (key.width - scaleX(SYM_PADDING_X));//key:90//pocket:60
                 spk.LabelY = key.y + scaleY(SYM_PADDING_Y);//100//55
-                spk.Label = keyVariants.SinglePressShiftMode.toString();
+
+                KeyboardLayout.KeyVariants defaultKeyVariants = KeyboardLayoutManager.getCurKeyVariants(defaultKeyboardLayout, keyCode.intValue());
+                spk.Label = (defaultKeyVariants != null && defaultKeyVariants.SinglePressShiftMode != null)
+                        ? defaultKeyVariants.SinglePressShiftMode.toString()
+                        : keyVariants.SinglePressShiftMode.toString();
 
                 if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
                     spk.LabelAltPopup = Character.toString(keyVariants.AltMoreVariants.charAt(0));
