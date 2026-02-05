@@ -463,7 +463,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
         Paint paint_white = new Paint();
         paint_white.setTextAlign(Paint.Align.CENTER);
-        paint_white.setTextSize(Math.round(scaleHeightY*40));
+        paint_white.setTextSize(Math.round(scaleWidthX*40));
         paint_white.setColor(Color.WHITE);
 
         Paint paint_gray = new Paint();
@@ -473,7 +473,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
         Paint paint_red = new Paint();
         paint_red.setTextAlign(Paint.Align.CENTER);
-        paint_red.setTextSize(Math.round(scaleHeightY*32));
+        paint_red.setTextSize(Math.round(scaleWidthX*32));
         paint_red.setColor(Color.CYAN);
 
         Paint paint_blue = new Paint();
