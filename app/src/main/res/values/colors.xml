@@ -17,8 +17,13 @@
     <color name="candidate_other">#ff808080</color>
     <color name="candidate_background">#bbffffff</color>
 
-    <!--Color your keyboard-->
-    <color name="keyboard_background_color">#000000</color>
+    <!--Color your keyboard - Gboard Dark style-->
+    <color name="keyboard_background_color">#202124</color>
+    <color name="keyboard_key_bg">#3C4043</color>
+    <color name="keyboard_key_special_bg">#2E3134</color>
+    <color name="keyboard_pressed">#5F6368</color>
     <color name="keyboard_divider">#A8A8A8</color>
-    <color name="keyboard_pressed">#646464</color>
+    <color name="keyboard_text_color">#E8EAED</color>
+    <color name="keyboard_special_text">#8AB4F8</color>
+    <color name="keyboard_preview_bg">#5F6368</color>
 </resources>

@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <solid android:color="@color/keyboard_pressed"/>
-
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background fill matching keyboard background -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/keyboard_background_color"/>
+        </shape>
+    </item>
+    <!-- Rounded pressed key with inset gap -->
+    <item android:left="3dp" android:right="3dp" android:top="3dp" android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/keyboard_pressed"/>
+            <corners android:radius="6dp"/>
+        </shape>
+    </item>
+</layer-list>

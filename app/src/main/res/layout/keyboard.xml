@@ -4,7 +4,7 @@
     android:orientation="vertical"
     android:layout_alignParentBottom="true"
 
-    android:keyTextColor="@android:color/white"
+    android:keyTextColor="@color/keyboard_text_color"
     android:keyTextSize="17sp"
     android:keyBackground="@drawable/key_background"
     android:keyPreviewLayout="@layout/key_preview"

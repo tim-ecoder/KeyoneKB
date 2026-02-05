@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="#FFF"
+    android:background="@color/keyboard_background_color"
     >
     <com.sateda.keyonekb2.ViewSatedaKeyboard
         android:id="@android:id/keyboardView"
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:keyPreviewLayout="@layout/key_preview"
         android:keyBackground="@drawable/key_background"
-        android:keyTextColor="#fff"
-        android:background="@color/colorPrimaryDark"
-        android:keyTextSize="22sp"/>   
+        android:keyTextColor="@color/keyboard_text_color"
+        android:background="@color/keyboard_background_color"
+        android:keyTextSize="22sp"/>
 </LinearLayout>
