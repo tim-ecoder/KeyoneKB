@@ -28,6 +28,15 @@ import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
 
 public class ViewSatedaKeyboard extends KeyboardView {
 
+    public static final int SYM_PADDING_X = 84;
+    public static final int SYM_PADDING_Y = 108;
+    public static final int SYM2_PADDING_X = 56;
+    public static final int SYM2_PADDING_Y = 66;
+
+    public static final int NAV_PADDING_X = 37;
+    public static final int NAV_PADDING_Y = 39;
+
+
     enum SatedaKeyboardMode {
         SwipePanel,
         NavPad,
@@ -255,8 +264,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
                 SymPadKeyExtraData spk =  new SymPadKeyExtraData();
                 spk.Key = key;
-                spk.LabelX = key.x + (key.width - scaleX(90));//key:90//pocket:60
-                spk.LabelY = key.y + scaleY(100);//100//55
+                spk.LabelX = key.x + (key.width - scaleX(SYM_PADDING_X));//key:90//pocket:60
+                spk.LabelY = key.y + scaleY(SYM_PADDING_Y);//100//55
                 spk.Label = keyVariants.SinglePressShiftMode.toString();
 
                 if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
@@ -294,8 +303,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
                 SymPadKeyExtraData spk =  new SymPadKeyExtraData();
                 spk.Key = key;
-                spk.LabelX = key.x + (key.width - scaleX(90));//key:90//pocket:60
-                spk.LabelY = key.y + scaleY(100);//100//55
+                spk.LabelX = key.x + (key.width - scaleX(SYM_PADDING_X));//key:90//pocket:60
+                spk.LabelY = key.y + scaleY(SYM_PADDING_Y);//100//55
                 spk.Label = keyVariants.SinglePressShiftMode.toString();
 
                 if (keyVariants.AltMoreVariants != null && !keyVariants.AltMoreVariants.isEmpty()) {
@@ -335,8 +344,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
             NavKeyExtraData nkd = new NavKeyExtraData();
             nkd.Key = key;
             nkd.KeyLabel = String.valueOf(key.popupCharacters);
-            nkd.KeyLabelX = key.x + scaleX(32);
-            nkd.KeyLabelY = key.y + scaleY(32);
+            nkd.KeyLabelX = key.x + scaleX(NAV_PADDING_X);
+            nkd.KeyLabelY = key.y + scaleY(NAV_PADDING_Y);
             NavKeyDataList.add(nkd);
         }
     }
@@ -506,8 +515,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
         }
         else if(mode == SatedaKeyboardMode.SymPad) {
 
-            int alt3deltaX = scaleX(65);
-            int alt3deltaY = scaleY(65);
+            int alt3deltaX = scaleX(SYM2_PADDING_X);
+            int alt3deltaY = scaleY(SYM2_PADDING_Y);
 
             for (SymPadKeyExtraData spk: CurSymKeyExtraDataList) {
                 canvas.drawText(spk.Label, spk.LabelX, spk.LabelY, paint_gray);

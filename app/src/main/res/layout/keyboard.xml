@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_alignParentBottom="true"
-
+    android:paddingTop="2dp"
     android:keyTextColor="@color/keyboard_text_color"
     android:keyTextSize="17sp"
     android:keyBackground="@drawable/key_background"
