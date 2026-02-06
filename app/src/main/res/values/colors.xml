@@ -22,6 +22,15 @@
     <color name="hintBoxBg">#1F4CAF50</color>
     <color name="switchOff">#444444</color>
 
+    <!-- Light Pills UI palette -->
+    <color name="colorBackgroundLight">#F2F2F7</color>
+    <color name="colorItemPillLight">#FFFFFF</color>
+    <color name="textPrimaryLight">#1C1C1E</color>
+    <color name="textSecondaryLight">#8E8E93</color>
+    <color name="sectionHeaderLight">#8E8E93</color>
+    <color name="chevronColorLight">#C7C7CC</color>
+    <color name="hintBoxBgLight">#1A4CAF50</color>
+
     <color name="candidate_normal">#FF000000</color>
     <color name="candidate_recommended">#000000</color>
     <color name="candidate_other">#ff808080</color>

@@ -4,7 +4,7 @@
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="?attr/appBackgroundColor">
 
     <LinearLayout
         android:id="@+id/activity_more_settings"
@@ -33,7 +33,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="SAVE KEYBOARD DATA"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -50,7 +50,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="SAVE PLUGIN DATA"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -62,7 +62,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_sys_kb_accessibility_setting_enabled"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>

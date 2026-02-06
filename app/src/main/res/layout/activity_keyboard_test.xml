@@ -4,7 +4,7 @@
     android:fillViewport="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="?attr/appBackgroundColor">
 
     <!-- Pill Header -->
     <LinearLayout style="@style/PillHeader">
@@ -27,7 +27,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="14sp"
-                android:textColor="@color/textSecondary"
+                android:textColor="?attr/textSecondaryColor"
                 android:text="@string/keyboard_test_code_title" />
             <TextView
                 android:id="@+id/tv_code_value"
@@ -48,7 +48,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="14sp"
-                android:textColor="@color/textSecondary"
+                android:textColor="?attr/textSecondaryColor"
                 android:text="@string/keyboard_test_key_meta_title" />
             <TextView
                 android:id="@+id/tv_key_meta_value"
@@ -66,7 +66,7 @@
         android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/textSecondary" />
+        android:textColor="?attr/textSecondaryColor" />
 
     <TextView
         android:id="@+id/touch_info"
@@ -75,7 +75,7 @@
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="8dp"
-        android:textColor="@color/textSecondary"
+        android:textColor="?attr/textSecondaryColor"
         android:textSize="13sp" />
 
     <TextView
@@ -84,7 +84,7 @@
         android:layout_height="wrap_content"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:textColor="@color/textSecondary"
+        android:textColor="?attr/textSecondaryColor"
         android:textSize="13sp" />
 
     <!-- TEST section -->
@@ -98,7 +98,7 @@
             android:layout_margin="2dp"
             android:text="@string/keyboard_test_view_test"
             android:textSize="13sp"
-            android:textColor="@color/textPrimary"
+            android:textColor="?attr/textPrimaryColor"
             android:buttonTint="@color/colorPrimary"
             android:focusable="true"
             android:focusableInTouchMode="true" />
@@ -108,8 +108,8 @@
             android:layout_height="wrap_content"
             android:hint="@string/keyboard_test_input_hint"
             android:textSize="13sp"
-            android:textColor="@color/textPrimary"
-            android:textColorHint="@color/textSecondary"
+            android:textColor="?attr/textPrimaryColor"
+            android:textColorHint="?attr/textSecondaryColor"
             android:backgroundTint="@color/colorPrimary" />
     </LinearLayout>
 
@@ -133,7 +133,7 @@
         android:layout_height="wrap_content"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:textColor="@color/textSecondary"
+        android:textColor="?attr/textSecondaryColor"
         android:textSize="12sp" />
 
     <!-- DEBUG INFO -->
@@ -164,7 +164,7 @@
             android:hint="Debug info printed here.."
             android:scrollbarAlwaysDrawVerticalTrack="true"
             android:scrollbars="vertical"
-            android:textColor="@color/textSecondary"
+            android:textColor="?attr/textSecondaryColor"
             android:textSize="11sp" />
     </ScrollView>
 </LinearLayout>

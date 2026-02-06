@@ -44,10 +44,13 @@ public class ActivityMain extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         FileJsonUtils.Initialize();
         super.onCreate(savedInstanceState);
+        k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        if (k12KbSettings.isLightTheme()) {
+            setTheme(R.style.AppTheme_Light);
+        }
 
         _this_act = this;
         setContentView(R.layout.activity_main);
-        k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
         Button btn_settings = (Button) findViewById(R.id.btn_settings);
         Button btn_test_key = (Button) findViewById(R.id.btn_test_key);
         btn_power_manager = (Button) findViewById(R.id.btn_power_manager);

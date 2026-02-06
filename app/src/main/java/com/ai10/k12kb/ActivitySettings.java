@@ -60,6 +60,9 @@ public class ActivitySettings extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        if (k12KbSettings.isLightTheme()) {
+            setTheme(R.style.AppTheme_Light);
+        }
 
         setContentView(R.layout.activity_settings);
 
@@ -373,8 +376,17 @@ public class ActivitySettings extends Activity {
             }
         });
 
-
-
+        Switch switchLightTheme = (Switch) findViewById(R.id.switch_light_theme);
+        SetSwitchStateOrDefault(switchLightTheme, k12KbSettings.APP_PREFERENCES_18_LIGHT_THEME);
+        switchLightTheme.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_18_LIGHT_THEME, isChecked);
+                Intent restart = new Intent(ActivitySettings.this, ActivitySettings.class);
+                finish();
+                startActivity(restart);
+            }
+        });
 
 
 
@@ -547,7 +559,8 @@ public class ActivitySettings extends Activity {
                         || key.equals("prediction_enabled")) {
                     input.put(key, jsonVal);
                 } else if (key.equals("show_toast") || key.equals("flag")
-                        || key.equals("notification_icon_system")) {
+                        || key.equals("notification_icon_system")
+                        || key.equals("light_theme")) {
                     display.put(key, jsonVal);
                 } else if (key.equals("gesture_mode_at_view_mode")
                         || key.equals("pointer_mode_rect") || key.equals("pointer_mode_rect_color")) {

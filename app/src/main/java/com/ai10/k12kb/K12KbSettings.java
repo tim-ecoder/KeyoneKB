@@ -11,6 +11,7 @@ public class K12KbSettings {
     public final String APP_PREFERENCES_15_PREDICTION_HEIGHT = "prediction_height";
     public final String APP_PREFERENCES_16_PREDICTION_COUNT = "prediction_count";
     public final String APP_PREFERENCES_17_PREDICTION_ENABLED = "prediction_enabled";
+    public final String APP_PREFERENCES_18_LIGHT_THEME = "light_theme";
     public final String APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR = "pointer_mode_rect_color";
     public final String APP_PREFERENCES_13_POINTER_MODE_RECT = "pointer_mode_rect";
     public final String APP_PREFERENCES_12_ENSURE_ENTERED_TEXT = "ensure_entered_text";
@@ -88,6 +89,7 @@ public class K12KbSettings {
         CheckSettingOrSetDefault(APP_PREFERENCES_15_PREDICTION_HEIGHT, 36);
         CheckSettingOrSetDefault(APP_PREFERENCES_16_PREDICTION_COUNT, 4);
         CheckSettingOrSetDefault(APP_PREFERENCES_17_PREDICTION_ENABLED, true);
+        CheckSettingOrSetDefault(APP_PREFERENCES_18_LIGHT_THEME, false);
     }
 
     public boolean GetBooleanValue(String name) {
@@ -109,6 +111,10 @@ public class K12KbSettings {
     public void SetIntValue(String name, int value) {
         _mSettings.edit().putInt(name, value).apply();
     }
+    public boolean isLightTheme() {
+        return _mSettings.getBoolean(APP_PREFERENCES_18_LIGHT_THEME, false);
+    }
+
     public void SetStringValue(String name, String value) {
         _mSettings.edit().putString(name, value).apply();
     }

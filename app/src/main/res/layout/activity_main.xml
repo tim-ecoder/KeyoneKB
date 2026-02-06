@@ -4,7 +4,7 @@
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="?attr/appBackgroundColor">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -36,7 +36,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_settings"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -48,7 +48,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_sys_kb_setting_enabled"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -60,7 +60,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_sys_kb_accessibility_setting_enabled"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -72,7 +72,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_sys_phone_permission_activated"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -84,7 +84,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_power_manager_activated"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -97,7 +97,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_file_permissions_not_need"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -114,7 +114,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_keyboard_reload"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -126,7 +126,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_accessibility_reload"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -138,7 +138,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_more_settings"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -150,7 +150,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/main_btn_test_keyboard"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>

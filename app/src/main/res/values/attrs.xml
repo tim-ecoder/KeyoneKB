@@ -4,4 +4,12 @@
         <attr name="supportsAlpha"
               format="boolean"/>
     </declare-styleable>
+
+    <attr name="appBackgroundColor" format="color" />
+    <attr name="itemPillColor" format="color" />
+    <attr name="textPrimaryColor" format="color" />
+    <attr name="textSecondaryColor" format="color" />
+    <attr name="sectionHeaderColor" format="color" />
+    <attr name="chevronTextColor" format="color" />
+    <attr name="hintBoxBgColor" format="color" />
 </resources>

@@ -37,6 +37,10 @@ public class ActivityKeyboardTest extends Activity implements InputMethodService
 
     public void onCreate(Bundle paramBundle) {
         super.onCreate(paramBundle);
+        K12KbSettings kbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, MODE_PRIVATE));
+        if (kbSettings.isLightTheme()) {
+            setTheme(R.style.AppTheme_Light);
+        }
         setContentView(R.layout.activity_keyboard_test);
         K12KbIME.IS_KEYBOARD_TEST = true;
         K12KbIME.DEBUG_UPDATE = this;

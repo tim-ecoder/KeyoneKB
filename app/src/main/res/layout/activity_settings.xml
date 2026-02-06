@@ -4,7 +4,7 @@
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="?attr/appBackgroundColor">
 
     <LinearLayout
         android:id="@+id/activity_settings"
@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/pref_p_1_value"
                 android:textAlignment="center"
-                android:textColor="@color/textSecondary"
+                android:textColor="?attr/textSecondaryColor"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -156,7 +156,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/pref_p_7_value"
                 android:textAlignment="center"
-                android:textColor="@color/textSecondary"
+                android:textColor="?attr/textSecondaryColor"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -185,7 +185,7 @@
                 android:id="@+id/text_title_p9"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textSize="15sp"
                 android:layout_marginBottom="4dp"
                 android:text="@string/pref_p9_gesture_modes_title" />
@@ -207,6 +207,12 @@
             style="@style/SectionHeader"
             android:text="APPEARANCE" />
 
+        <Switch
+            android:id="@+id/switch_light_theme"
+            style="@style/SwitchPill"
+            android:text="Light theme"
+            tools:checked="false" />
+
         <!-- Pointer rectangle color picker pill -->
         <LinearLayout style="@style/ItemPill">
             <Button
@@ -215,7 +221,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="@string/pref_p_13a_name"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
@@ -272,7 +278,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="Save settings to file"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u2913" />
         </LinearLayout>
@@ -284,7 +290,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
                 android:text="Load settings from file"
-                android:textColor="@color/textPrimary"
+                android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u2912" />
         </LinearLayout>
