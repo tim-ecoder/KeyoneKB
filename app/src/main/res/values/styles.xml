@@ -1,0 +1,186 @@
+<resources>
+    <!-- Green pill header -->
+    <style name="PillHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">14dp</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:background">@drawable/bg_pill_header</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="PillHeaderTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="PillHeaderSubtitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#CCFFFFFF</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:layout_marginTop">3dp</item>
+    </style>
+
+    <!-- Section header -->
+    <style name="SectionHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">28dp</item>
+        <item name="android:paddingEnd">28dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:textColor">@color/sectionHeader</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.04</item>
+    </style>
+
+    <!-- Individual item pill (clickable row) -->
+    <style name="ItemPill">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">14dp</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:background">@drawable/bg_item_pill</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <!-- Item pill button text -->
+    <style name="ItemPillText">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textColor">@color/textPrimary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Chevron text -->
+    <style name="Chevron">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/chevronColor</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <!-- Item pill with seekbar -->
+    <style name="ItemPillSeek">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">14dp</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:background">@drawable/bg_item_pill</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <!-- Item pill seekbar title -->
+    <style name="ItemPillSeekTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/textPrimary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+
+    <!-- Item pill with spinner -->
+    <style name="ItemPillSpinner">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">14dp</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:background">@drawable/bg_item_pill</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <!-- Switch pill (item pill with switch) -->
+    <style name="SwitchPill">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">14dp</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:background">@drawable/bg_item_pill</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:textColor">@color/textPrimary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Green hint box -->
+    <style name="GreenHintBox">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">14dp</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:background">@drawable/bg_hint_box</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:lineSpacingMultiplier">1.45</item>
+    </style>
+
+    <!-- Manual title -->
+    <style name="ManualTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Manual link -->
+    <style name="ManualLink">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:alpha">0.7</item>
+        <item name="android:autoLink">web</item>
+    </style>
+
+    <!-- Link text centered -->
+    <style name="LinkText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">24dp</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:autoLink">web</item>
+    </style>
+</resources>

@@ -1,95 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
-              android:fillViewport="true"
-              android:layout_width="fill_parent" android:layout_height="fill_parent">
-    <LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content">
-        <TextView android:gravity="center"
-                  android:id="@+id/tv_key_code_title"
-                  android:textSize="20.0sp"
-                  android:layout_width="fill_parent"
-                  android:layout_height="fill_parent"
-                  android:layout_weight="1.0"
-                  android:text="@string/keyboard_test_code_title"/>
-        <TextView android:gravity="center"
-                  android:textSize="20.0sp"
-                  android:id="@+id/tv_key_meta"
-                  android:layout_width="fill_parent"
-                  android:layout_height="fill_parent"
-                  android:layout_weight="1.0"
-                  android:text="@string/keyboard_test_key_meta_title"/>
-    </LinearLayout>
-    <LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content">
-        <TextView android:textSize="20.0sp"
-                  android:gravity="center"
-                  android:id="@+id/tv_code_value"
-                  android:layout_width="fill_parent"
-                  android:layout_height="fill_parent"
-                  android:layout_weight="1.0"
-                  android:text="0"/>
-        <TextView android:textSize="20.0sp"
-                  android:gravity="center"
-                  android:id="@+id/tv_key_meta_value"
-                  android:layout_width="fill_parent"
-                  android:layout_height="fill_parent"
-                  android:layout_weight="1.0"
-                  android:text="0"/>
-    </LinearLayout>
+    android:orientation="vertical"
+    android:fillViewport="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground">
 
-    <TextView android:id="@+id/device_info"
-              android:visibility="gone"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"/>
-    <TextView android:id="@+id/touch_info" android:layout_width="fill_parent"
-              android:layout_height="wrap_content"/>
-    <TextView android:id="@+id/meta_info" android:layout_width="fill_parent"
-              android:layout_height="wrap_content"/>
-    <CheckBox android:id="@+id/cb_test_keyboard_view_mode"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:layout_margin="2.0dip"
-              android:text="@string/keyboard_test_view_test"
-              android:textSize="13.0sp"
-              android:focusable="true"
-              android:focusableInTouchMode="true"/>
-    <EditText android:id="@+id/input" android:layout_width="fill_parent" android:layout_height="wrap_content"
-              android:hint="@string/keyboard_test_input_hint"
-              android:textSize="13.0sp"/>
-
-    <TextView
-            android:id="@+id/customization_info"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:scrollbarAlwaysDrawHorizontalTrack="false"
-            android:scrollbarAlwaysDrawVerticalTrack="false"
-            android:text="\nCUSTOMIZATION INFO:"
-            android:textAlignment="textStart"
-            android:textStyle="bold"/>
-    <TextView android:id="@+id/customization_info_text"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"/>
-    <TextView
-            android:id="@+id/debug_info_text"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:scrollbarAlwaysDrawHorizontalTrack="false"
-            android:scrollbarAlwaysDrawVerticalTrack="false"
-            android:text="DEBUG INFO:"
-            android:textAlignment="textStart"
-            android:textStyle="bold"/>
-    <ScrollView
-            android:id="@+id/debug_scroll"
-            android:layout_width="fill_parent"
-            android:layout_height="70mm"
-            android:scrollbars="vertical">
-
+    <!-- Pill Header -->
+    <LinearLayout style="@style/PillHeader">
         <TextView
-                android:id="@+id/debug_info_data"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:hint="Debug info printed here.."
-                android:scrollbarAlwaysDrawVerticalTrack="true"
-                android:scrollbars="vertical"/>
+            style="@style/PillHeaderTitle"
+            android:text="Keyboard Test" />
+    </LinearLayout>
+
+    <!-- KEY INFO pill -->
+    <LinearLayout style="@style/ItemPill"
+        android:layout_marginTop="12dp">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/tv_key_code_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/textSecondary"
+                android:text="@string/keyboard_test_code_title" />
+            <TextView
+                android:id="@+id/tv_code_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textColor="@color/colorPrimary"
+                android:text="0" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/tv_key_meta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/textSecondary"
+                android:text="@string/keyboard_test_key_meta_title" />
+            <TextView
+                android:id="@+id/tv_key_meta_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textColor="@color/colorPrimary"
+                android:text="0" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Device / touch / meta info pills -->
+    <TextView
+        android:id="@+id/device_info"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/textSecondary" />
+
+    <TextView
+        android:id="@+id/touch_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:textColor="@color/textSecondary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/meta_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="@color/textSecondary"
+        android:textSize="13sp" />
+
+    <!-- TEST section -->
+    <LinearLayout style="@style/ItemPill"
+        android:orientation="vertical"
+        android:layout_marginTop="8dp">
+        <CheckBox
+            android:id="@+id/cb_test_keyboard_view_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:text="@string/keyboard_test_view_test"
+            android:textSize="13sp"
+            android:textColor="@color/textPrimary"
+            android:buttonTint="@color/colorPrimary"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+        <EditText
+            android:id="@+id/input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/keyboard_test_input_hint"
+            android:textSize="13sp"
+            android:textColor="@color/textPrimary"
+            android:textColorHint="@color/textSecondary"
+            android:backgroundTint="@color/colorPrimary" />
+    </LinearLayout>
+
+    <!-- CUSTOMIZATION INFO -->
+    <TextView
+        android:id="@+id/customization_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="\nCUSTOMIZATION INFO:"
+        android:textAlignment="textStart"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimary"
+        android:textSize="12sp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp" />
+
+    <TextView
+        android:id="@+id/customization_info_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="@color/textSecondary"
+        android:textSize="12sp" />
+
+    <!-- DEBUG INFO -->
+    <TextView
+        android:id="@+id/debug_info_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="DEBUG INFO:"
+        android:textAlignment="textStart"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimary"
+        android:textSize="12sp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp" />
+
+    <ScrollView
+        android:id="@+id/debug_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="70mm"
+        android:scrollbars="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+        <TextView
+            android:id="@+id/debug_info_data"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Debug info printed here.."
+            android:scrollbarAlwaysDrawVerticalTrack="true"
+            android:scrollbars="vertical"
+            android:textColor="@color/textSecondary"
+            android:textSize="11sp" />
     </ScrollView>
 </LinearLayout>

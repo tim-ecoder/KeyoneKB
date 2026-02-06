@@ -29,7 +29,7 @@ public class ActivitySettingsMore extends Activity {
     Button btSavePluginData;
     Button btn_sys_kb_accessibility_setting;
 
-    private RelativeLayout layout;
+    private LinearLayout layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,38 +69,41 @@ public class ActivitySettingsMore extends Activity {
         if(patches.size() == 0)
             return;
 
-        layout = (RelativeLayout) findViewById(R.id.activity_more_settings);
+        layout = (LinearLayout) findViewById(R.id.activity_more_settings);
+        LinearLayout containerJsPatches = (LinearLayout) findViewById(R.id.container_js_patches);
 
         Switch defaultJsPatch = (Switch) findViewById(R.id.default_js_patch);
         defaultJsPatch.setVisibility(View.VISIBLE);
 
-        int prevId = 0;
+        boolean isFirst = true;
 
         for (String jsPatch: patches ) {
             Switch jsPatchSwitch;
-            //Первый язык будет по умолчанию всегда активирован
-            //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки
-            if(prevId == 0) {
+            if(isFirst) {
                 jsPatchSwitch = defaultJsPatch;
-                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultJsPatch.getLayoutParams();
-                RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
-                jsPatchSwitch.setLayoutParams(llp2);
-                prevId = jsPatchSwitch.getId();
-
-
+                ((android.view.ViewGroup)jsPatchSwitch.getParent()).removeView(jsPatchSwitch);
+                isFirst = false;
             } else {
                 jsPatchSwitch = new Switch(this);
-                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultJsPatch.getLayoutParams();
-                RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
-                jsPatchSwitch.setLayoutParams(llp2);
-
-                llp2.addRule(RelativeLayout.BELOW, prevId);
-                prevId = View.generateViewId();
-                jsPatchSwitch.setId(prevId);
+                jsPatchSwitch.setId(View.generateViewId());
                 jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultJsPatch.getTextSize());
-                layout.addView(jsPatchSwitch);
-
             }
+
+            // Style as individual pill
+            LinearLayout.LayoutParams pillParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            int marginH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+            int marginT = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics());
+            pillParams.setMargins(marginH, marginT, marginH, 0);
+            jsPatchSwitch.setLayoutParams(pillParams);
+            jsPatchSwitch.setBackgroundResource(R.drawable.bg_item_pill);
+            int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+            int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+            jsPatchSwitch.setPadding(padH, pad, padH, pad);
+            jsPatchSwitch.setTextColor(getResources().getColor(R.color.textPrimary));
+            jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+
+            containerJsPatches.addView(jsPatchSwitch);
 
             k12KbSettings.CheckSettingOrSetDefault(jsPatch, k12KbSettings.JS_PATCH_IS_ENABLED_DEFAULT);
             boolean enabled = k12KbSettings.GetBooleanValue(jsPatch);

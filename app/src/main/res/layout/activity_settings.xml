@@ -1,386 +1,230 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content" >
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground">
 
-<RelativeLayout
-    android:id="@+id/activity_settings"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    tools:context=".ActivitySettings">
+    <LinearLayout
+        android:id="@+id/activity_settings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="24dp"
+        tools:context=".ActivitySettings">
 
-    <TextView
+        <!-- Pill Header -->
+        <LinearLayout style="@style/PillHeader">
+            <TextView
+                style="@style/PillHeaderTitle"
+                android:text="Settings" />
+        </LinearLayout>
+
+        <!-- KEYBOARD LAYOUTS -->
+        <TextView
             android:id="@+id/text_keyboard_layouts"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/SectionHeader"
             android:text="@string/pref_keyboard_layouts" />
 
-    <Switch
-        android:id="@+id/default_keyboard_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="16sp"
-        android:layout_below="@id/text_keyboard_layouts"
-        tools:checked="false" />
-
-    <View
-        android:id="@+id/divider2"
-        android:layout_width="match_parent"
-        android:layout_height="5dp"
-        android:background="?android:attr/listDivider" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider2"
-        android:text="@string/pref_p_1_name"
-        android:textColor="@color/black"
-        android:textSize="20sp" />
-
-    <SeekBar
-        android:id="@+id/seekBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/textView"
-        android:max="10"
-        android:progress="10" />
-
-    <TextView
-        android:id="@+id/textViewSeekBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/seekBar"
-        android:text="@string/pref_p_1_value"
-        android:textAlignment="center"
-        android:textSize="18sp" />
-
-    <View
-        android:id="@+id/divider4"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/textViewSeekBar"
-        android:background="?android:attr/listDivider" />
-
-    <Switch
-        android:id="@+id/toast_show_lang"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider4"
-        android:text="@string/pref_p_2_name"
-        android:textSize="20sp" />
-
-    <TextView
-        android:id="@+id/text_toast_show_lang"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/toast_show_lang"
-        android:text="@string/pref_p_2_hint" />
-
-    <View
-        android:id="@+id/divider5"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/text_toast_show_lang"
-        android:background="?android:attr/listDivider" />
-
-    <Switch
-        android:id="@+id/switch_alt_space"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider5"
-        android:text="@string/pref_p_3_name"
-        android:textSize="20sp"
-        tools:checked="true" />
-
-    <TextView
-        android:id="@+id/text_help_alt_space"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/switch_alt_space"
-        android:text="@string/pref_p_3_hint" />
-
-    <View
-        android:id="@+id/divider6"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/text_help_alt_space"
-        android:background="?android:attr/listDivider" />
-
-    <Switch
-        android:id="@+id/switch_flag"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider6"
-        android:text="@string/pref_p_4_name"
-        android:textSize="20sp"
-        tools:checked="false" />
-
-    <View
-        android:id="@+id/divider7"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/switch_flag"
-        android:background="?android:attr/listDivider" />
-
-    <Switch
-        android:id="@+id/switch_long_press_alt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider7"
-        android:text="@string/pref_p_5_name"
-        android:textSize="20sp"
-        tools:checked="true" />
-    <TextView
-        android:id="@+id/help_switch_long_press_alt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/switch_long_press_alt"
-        android:text="@string/pref_p_5_hint" />
-
-    <View
-        android:id="@+id/divider8"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/help_switch_long_press_alt"
-        android:background="?android:attr/listDivider" />
-
-    <Switch
-        android:id="@+id/switch_manage_call"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider8"
-        android:text="@string/pref_p_6_name"
-        android:textSize="20sp"
-        tools:checked="true" />
-    <TextView
-        android:id="@+id/text_manage_call_hint"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/switch_manage_call"
-        android:text="@string/pref_p_6_hint" />
-
-    <View
-        android:id="@+id/divider9"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/text_manage_call_hint"
-        android:background="?android:attr/listDivider" />
-
-    <TextView
-        android:id="@+id/sizeBtnPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider9"
-        android:text="@string/pref_p_7_name"
-        android:textColor="@color/black"
-        android:textSize="20sp" />
-
-
-    <SeekBar
-        android:id="@+id/seekBarBtnPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/sizeBtnPanel"
-        android:max="10"
-        android:progress="10" />
-
-    <TextView
-        android:id="@+id/textViewBtnPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/seekBarBtnPanel"
-        android:text="@string/pref_p_7_value"
-        android:textAlignment="center"
-        android:textSize="18sp" />
-
-    <View
-        android:id="@+id/divider10"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/textViewBtnPanel"
-        android:background="?android:attr/listDivider" />
-
-    <Switch
-        android:id="@+id/switch_show_default_onscreen_keyboard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider10"
-        android:text="@string/pref_p_8_name"
-        android:textSize="20sp"
-        tools:checked="true" />
-
-    <TextView
-        android:id="@+id/text_help_p8"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/switch_show_default_onscreen_keyboard"
-        android:text="@string/pref_p_8_hint" />
-    <View
-        android:id="@+id/divider11"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/text_help_p8"
-        android:background="?android:attr/listDivider" />
-    <TextView
-            android:id="@+id/text_title_p9"
+        <!-- Container for dynamic keyboard layout switches -->
+        <LinearLayout
+            android:id="@+id/container_keyboard_layouts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/divider11"
-            android:textSize="20sp"
-            android:text="@string/pref_p9_gesture_modes_title" />
-    <Spinner
-            android:id="@+id/static_spinner_p9"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignEnd="@id/text_title_p9"
-            android:textSize="32sp"
-            android:layout_below="@id/text_title_p9" />
+            android:orientation="vertical" />
 
-    <TextView
-            android:id="@+id/text_help_p9"
+        <!-- Placeholder for first keyboard layout (hidden, used by Java code) -->
+        <Switch
+            android:id="@+id/default_keyboard_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/static_spinner_p9"
-            android:text="@string/pref_p9_gesture_modes_comment" />
-    <View
-            android:id="@+id/divider12"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@id/text_help_p9"
-            android:background="?android:attr/listDivider" />
-    <Switch
+            android:text=""
+            android:textSize="15sp"
+            android:visibility="gone"
+            tools:checked="false" />
+
+        <!-- INPUT -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="INPUT" />
+
+        <!-- Sensitivity seekbar pill -->
+        <LinearLayout style="@style/ItemPillSeek">
+            <TextView
+                style="@style/ItemPillSeekTitle"
+                android:text="@string/pref_p_1_name" />
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="10"
+                android:progress="10"
+                android:progressTint="@color/colorPrimary"
+                android:thumbTint="@color/colorPrimary" />
+            <TextView
+                android:id="@+id/textViewSeekBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/pref_p_1_value"
+                android:textAlignment="center"
+                android:textColor="@color/textSecondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Toast language switch pill -->
+        <Switch
+            android:id="@+id/toast_show_lang"
+            style="@style/SwitchPill"
+            android:text="@string/pref_p_2_name" />
+
+        <!-- ALT space switch pill -->
+        <Switch
+            android:id="@+id/switch_alt_space"
+            style="@style/SwitchPill"
+            android:text="@string/pref_p_3_name"
+            tools:checked="true" />
+
+        <!-- Flag display switch pill -->
+        <Switch
+            android:id="@+id/switch_flag"
+            style="@style/SwitchPill"
+            android:text="@string/pref_p_4_name"
+            tools:checked="false" />
+
+        <!-- Long press ALT switch pill -->
+        <Switch
+            android:id="@+id/switch_long_press_alt"
+            style="@style/SwitchPill"
+            android:text="@string/pref_p_5_name"
+            tools:checked="true" />
+
+        <!-- PHONE & SYSTEM -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="PHONE &amp; SYSTEM" />
+
+        <!-- Phone Call Management switch pill -->
+        <Switch
+            android:id="@+id/switch_manage_call"
+            style="@style/SwitchPill"
+            android:text="@string/pref_p_6_name"
+            tools:checked="true" />
+
+        <!-- Notification icon switch pill -->
+        <Switch
             android:id="@+id/switch_notification_icon_system"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/divider12"
+            style="@style/SwitchPill"
             android:text="@string/pref_p_10_name"
-            android:textSize="20sp"
             tools:checked="true" />
-    <View
-        android:id="@+id/divider13"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/switch_notification_icon_system"
-        android:background="?android:attr/listDivider" />
-    <Switch
+
+        <!-- Vibration switch pill -->
+        <Switch
             android:id="@+id/switch_vibrate_on_key_down"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/divider13"
+            style="@style/SwitchPill"
             android:text="@string/pref_p_11_name"
-            android:textSize="20sp"
             tools:checked="true" />
-    <View
-            android:id="@+id/divider14"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@id/switch_vibrate_on_key_down"
-            android:background="?android:attr/listDivider" />
-    <Switch
+
+        <!-- Text safety switch pill -->
+        <Switch
             android:id="@+id/switch_ensure_entered_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/divider14"
+            style="@style/SwitchPill"
             android:text="@string/pref_p_12_name"
-            android:textSize="20sp"
             tools:checked="true" />
-    <TextView
-            android:id="@+id/text_help_p12"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/switch_ensure_entered_text"
-            android:text="@string/pref_p_12_hint" />
 
+        <!-- ON-SCREEN PANEL -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="ON-SCREEN PANEL" />
 
-    <View
-            android:id="@+id/divider15"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@id/text_help_p12"
-            android:background="?android:attr/listDivider" />
+        <!-- Panel button size seekbar pill -->
+        <LinearLayout style="@style/ItemPillSeek">
+            <TextView
+                style="@style/ItemPillSeekTitle"
+                android:text="@string/pref_p_7_name" />
+            <SeekBar
+                android:id="@+id/seekBarBtnPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="10"
+                android:progress="10"
+                android:progressTint="@color/colorPrimary"
+                android:thumbTint="@color/colorPrimary" />
+            <TextView
+                android:id="@+id/textViewBtnPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/pref_p_7_value"
+                android:textAlignment="center"
+                android:textColor="@color/textSecondary"
+                android:textSize="12sp" />
+        </LinearLayout>
 
-    <Switch
-            android:id="@+id/switch_pointer_mode_rect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/divider15"
-            android:text="@string/pref_p_13_name"
-            android:textSize="20sp"
+        <!-- Show default on-screen keyboard switch pill -->
+        <Switch
+            android:id="@+id/switch_show_default_onscreen_keyboard"
+            style="@style/SwitchPill"
+            android:text="@string/pref_p_8_name"
             tools:checked="true" />
-    <TextView
-            android:id="@+id/text_help_p13"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/switch_pointer_mode_rect"
-            android:text="@string/pref_p_13_hint" />
-    <Button android:id="@+id/button_pointer_mode_rect_color_picker"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/text_help_p13"
-            android:text="@string/pref_p_13a_name" />
-    <TextView
-            android:id="@+id/text_help_p13b"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/button_pointer_mode_rect_color_picker"
-            android:text="@string/pref_p_13a_hint" />
 
-    <View
-            android:id="@+id/divider16"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@id/text_help_p13b"
-            android:background="?android:attr/listDivider" />
-
-    <Switch
+        <!-- Nav pad on hold switch pill -->
+        <Switch
             android:id="@+id/switch_p14_nav_pad_on_hold"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/divider16"
+            style="@style/SwitchPill"
             android:text="@string/pref_p_14_name"
-            android:textSize="20sp"
             tools:checked="true" />
-    <TextView
-            android:id="@+id/text_help_p14"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/switch_p14_nav_pad_on_hold"
-            android:text="@string/pref_p_14_hint" />
 
+        <!-- GESTURES -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="GESTURES" />
 
-    <View
-            android:id="@+id/divider980"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@id/text_help_p14"
-            android:background="?android:attr/listDivider" />
-    <TextView
-        android:id="@+id/manual_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider980"
-        android:text="@string/pref_manual_name"
-        android:textSize="20sp"
-        tools:checked="true" />
-    <TextView
-        android:id="@+id/text_manual_link"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/manual_text"
-        android:autoLink="web"
-        android:text="@string/pref_manual_link"  />
-    <View
-        android:id="@+id/divider990"
-        android:layout_width="match_parent"
-        android:layout_height="6dp"
-        android:layout_below="@id/text_manual_link"
-        android:background="?android:attr/listDivider" />
+        <!-- Gesture mode spinner pill -->
+        <LinearLayout style="@style/ItemPillSpinner">
+            <TextView
+                android:id="@+id/text_title_p9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textPrimary"
+                android:textSize="15sp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/pref_p9_gesture_modes_title" />
+            <Spinner
+                android:id="@+id/static_spinner_p9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
 
+        <!-- Pointer mode rectangle switch pill -->
+        <Switch
+            android:id="@+id/switch_pointer_mode_rect"
+            style="@style/SwitchPill"
+            android:text="@string/pref_p_13_name"
+            tools:checked="true" />
 
-</RelativeLayout>
+        <!-- APPEARANCE -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="APPEARANCE" />
+
+        <!-- Pointer rectangle color picker pill -->
+        <LinearLayout style="@style/ItemPill">
+            <Button
+                android:id="@+id/button_pointer_mode_rect_color_picker"
+                style="@style/ItemPillText"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:text="@string/pref_p_13a_name"
+                android:textColor="@color/textPrimary"
+                android:textAllCaps="false" />
+            <TextView style="@style/Chevron" android:text="\u203A" />
+        </LinearLayout>
+
+        <!-- Wiki link -->
+        <TextView
+            android:id="@+id/text_manual_link"
+            style="@style/LinkText"
+            android:text="@string/pref_manual_link" />
+
+    </LinearLayout>
 </ScrollView>

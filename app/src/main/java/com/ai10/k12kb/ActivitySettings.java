@@ -26,7 +26,7 @@ public class ActivitySettings extends Activity {
 
     private K12KbSettings k12KbSettings;
 
-    private RelativeLayout layout;
+    private LinearLayout layout;
 
     private float touchY;
 
@@ -49,13 +49,14 @@ public class ActivitySettings extends Activity {
 
         setContentView(R.layout.activity_settings);
 
-        layout = (RelativeLayout) findViewById(R.id.activity_settings);
+        layout = (LinearLayout) findViewById(R.id.activity_settings);
+        LinearLayout containerKeyboardLayouts = (LinearLayout) findViewById(R.id.container_keyboard_layouts);
         try {
 
             ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayouts = KeyboardLayoutManager.LoadKeyboardLayoutsRes(getResources(), getApplicationContext());
 
             Switch defaultKeyboardLayoutSwitch = (Switch) findViewById(R.id.default_keyboard_layout);
-            int prevId = 0;
+            boolean isFirst = true;
             int enableCount = 0;
             deviceFullMODEL = getDeviceFullMODEL();
             for (KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayouts) {
@@ -65,27 +66,32 @@ public class ActivitySettings extends Activity {
                     continue;
 
                 Switch currentKeyboardLayoutSwitch;
-                //Первый язык будет по умолчанию всегда активирован
-                //Плюс на уровне загрузчика клав, будет хард код, чтобы первая клава всегда была сразу после установки
-                if(prevId == 0) {
+                if(isFirst) {
                     currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
-                    RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultKeyboardLayoutSwitch.getLayoutParams();
-                    RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
-                    currentKeyboardLayoutSwitch.setLayoutParams(llp2);
-                    prevId = currentKeyboardLayoutSwitch.getId();
+                    currentKeyboardLayoutSwitch.setVisibility(View.VISIBLE);
+                    ((ViewGroup)currentKeyboardLayoutSwitch.getParent()).removeView(currentKeyboardLayoutSwitch);
+                    isFirst = false;
                 } else {
                     currentKeyboardLayoutSwitch = new Switch(this);
-                    RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)defaultKeyboardLayoutSwitch.getLayoutParams();
-                    RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
-                    currentKeyboardLayoutSwitch.setLayoutParams(llp2);
-
-                    llp2.addRule(RelativeLayout.BELOW, prevId);
-                    prevId = keyboardLayoutOptions.getId();
-                    currentKeyboardLayoutSwitch.setId(prevId);
+                    currentKeyboardLayoutSwitch.setId(keyboardLayoutOptions.getId());
                     currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultKeyboardLayoutSwitch.getTextSize());
-                    layout.addView(currentKeyboardLayoutSwitch);
-
                 }
+
+                // Style as individual pill
+                LinearLayout.LayoutParams pillParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                int marginH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+                int marginT = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics());
+                pillParams.setMargins(marginH, marginT, marginH, 0);
+                currentKeyboardLayoutSwitch.setLayoutParams(pillParams);
+                currentKeyboardLayoutSwitch.setBackgroundResource(R.drawable.bg_item_pill);
+                int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+                int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+                currentKeyboardLayoutSwitch.setPadding(padH, pad, padH, pad);
+                currentKeyboardLayoutSwitch.setTextColor(getResources().getColor(R.color.textPrimary));
+                currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+
+                containerKeyboardLayouts.addView(currentKeyboardLayoutSwitch);
 
                 currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
                 k12KbSettings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), k12KbSettings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
@@ -102,15 +108,27 @@ public class ActivitySettings extends Activity {
 
             }
 
-            if(prevId == 0) {
-                Switch currentKeyboardLayoutSwitch;
-                currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
-                RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams) defaultKeyboardLayoutSwitch.getLayoutParams();
-                RelativeLayout.LayoutParams llp2 = new RelativeLayout.LayoutParams(llp);
-                currentKeyboardLayoutSwitch.setLayoutParams(llp2);
-                prevId = currentKeyboardLayoutSwitch.getId();
+            if(isFirst) {
+                Switch currentKeyboardLayoutSwitch = defaultKeyboardLayoutSwitch;
+                currentKeyboardLayoutSwitch.setVisibility(View.VISIBLE);
+                ((ViewGroup)currentKeyboardLayoutSwitch.getParent()).removeView(currentKeyboardLayoutSwitch);
 
                 KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions = keyboardLayouts.get(0);
+
+                LinearLayout.LayoutParams pillParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                int marginH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+                int marginT = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics());
+                pillParams.setMargins(marginH, marginT, marginH, 0);
+                currentKeyboardLayoutSwitch.setLayoutParams(pillParams);
+                currentKeyboardLayoutSwitch.setBackgroundResource(R.drawable.bg_item_pill);
+                int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+                int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+                currentKeyboardLayoutSwitch.setPadding(padH, pad, padH, pad);
+                currentKeyboardLayoutSwitch.setTextColor(getResources().getColor(R.color.textPrimary));
+                currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+
+                containerKeyboardLayouts.addView(currentKeyboardLayoutSwitch);
 
                 currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
                 k12KbSettings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), k12KbSettings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
@@ -132,10 +150,6 @@ public class ActivitySettings extends Activity {
                 k12KbSettings.SetBooleanValue(defLayout.getPreferenceName(), true);
                 SetSwitchStateOrDefault(defaultKeyboardLayoutSwitch, defLayout.getPreferenceName());
             }
-
-            View divider = findViewById(R.id.divider2);
-            RelativeLayout.LayoutParams llp = (RelativeLayout.LayoutParams)divider.getLayoutParams();
-            llp.addRule(RelativeLayout.BELOW, prevId);
 
         } catch (Throwable ex) {
             Toast.makeText(this, "", Toast.LENGTH_SHORT).show();
