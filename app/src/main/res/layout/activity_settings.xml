@@ -247,7 +247,8 @@
                 android:id="@+id/seekBarPredictionCount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="8"
+                android:min="1"
+                android:max="6"
                 android:progress="4"
                 android:progressTint="@color/colorPrimary"
                 android:thumbTint="@color/colorPrimary" />
