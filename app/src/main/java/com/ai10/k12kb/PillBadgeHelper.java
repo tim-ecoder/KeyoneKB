@@ -7,6 +7,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -61,6 +62,8 @@ public class PillBadgeHelper {
             } else if (child instanceof TextView) {
                 final TextView tv = (TextView) child;
                 if (tv.getBackground() == null) continue;
+                // Skip standalone CompoundButtons (Switch) — they handle their own toggle
+                if (tv instanceof CompoundButton) continue;
                 applyEllipsisToTextView(tv);
                 tv.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
@@ -73,8 +76,12 @@ public class PillBadgeHelper {
 
     private static void applyEllipsisToPill(final LinearLayout pill) {
         boolean hasLongText = false;
+        boolean hasSwitch = false;
         for (int j = 0; j < pill.getChildCount(); j++) {
             View c = pill.getChildAt(j);
+            if (c instanceof CompoundButton) {
+                hasSwitch = true;
+            }
             if (c instanceof TextView && !BADGE_TAG.equals(c.getTag())) {
                 TextView tv = (TextView) c;
                 // Skip chevrons and badges (short text)
@@ -85,11 +92,27 @@ public class PillBadgeHelper {
             }
         }
         if (hasLongText) {
-            pill.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    togglePillExpand(pill);
+            if (hasSwitch) {
+                // Set click listeners on non-Switch children only,
+                // so tapping text/badge expands pill, tapping switch toggles it
+                for (int j = 0; j < pill.getChildCount(); j++) {
+                    View c = pill.getChildAt(j);
+                    if (!(c instanceof CompoundButton)) {
+                        c.setClickable(true);
+                        c.setOnClickListener(new View.OnClickListener() {
+                            public void onClick(View v) {
+                                togglePillExpand(pill);
+                            }
+                        });
+                    }
                 }
-            });
+            } else {
+                pill.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        togglePillExpand(pill);
+                    }
+                });
+            }
         }
     }
 
