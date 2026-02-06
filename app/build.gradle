@@ -28,7 +28,7 @@ android {
 
     defaultConfig {
         applicationId "com.ai10.k12kb"
-        minSdkVersion 27
+        minSdkVersion 26
         targetSdkVersion 27
         //TODO: ---- Меняем versionCode, versionName каждый публичный выкат даже для тестеров ----
         // В номере билда build X.Y X<10 Y<10
