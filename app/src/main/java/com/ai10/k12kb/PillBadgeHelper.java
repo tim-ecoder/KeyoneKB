@@ -2,6 +2,7 @@ package com.ai10.k12kb;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -40,6 +41,79 @@ public class PillBadgeHelper {
                     LinearLayout wrapper = wrapInPill(container, tv, i);
                     applyToPill(wrapper);
                 }
+            }
+        }
+        // Second pass: apply ellipsis truncation + click-to-expand on all pills
+        applyEllipsisToContainer(container);
+    }
+
+    /**
+     * Walk all pill children, set single-line truncation with ellipsis on text views,
+     * and add click-to-expand/collapse toggle on the pill.
+     */
+    private static void applyEllipsisToContainer(ViewGroup container) {
+        for (int i = 0; i < container.getChildCount(); i++) {
+            View child = container.getChildAt(i);
+            if (child instanceof LinearLayout) {
+                final LinearLayout pill = (LinearLayout) child;
+                if (pill.getBackground() == null) continue;
+                applyEllipsisToPill(pill);
+            } else if (child instanceof TextView) {
+                final TextView tv = (TextView) child;
+                if (tv.getBackground() == null) continue;
+                applyEllipsisToTextView(tv);
+                tv.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        toggleExpand(tv);
+                    }
+                });
+            }
+        }
+    }
+
+    private static void applyEllipsisToPill(final LinearLayout pill) {
+        boolean hasLongText = false;
+        for (int j = 0; j < pill.getChildCount(); j++) {
+            View c = pill.getChildAt(j);
+            if (c instanceof TextView && !BADGE_TAG.equals(c.getTag())) {
+                TextView tv = (TextView) c;
+                // Skip chevrons and badges (short text)
+                if (tv.getText().length() > 2) {
+                    applyEllipsisToTextView(tv);
+                    hasLongText = true;
+                }
+            }
+        }
+        if (hasLongText) {
+            pill.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    togglePillExpand(pill);
+                }
+            });
+        }
+    }
+
+    private static void applyEllipsisToTextView(TextView tv) {
+        tv.setMaxLines(1);
+        tv.setEllipsize(TextUtils.TruncateAt.END);
+    }
+
+    private static void toggleExpand(TextView tv) {
+        if (tv.getMaxLines() == 1) {
+            tv.setMaxLines(Integer.MAX_VALUE);
+            tv.setEllipsize(null);
+        } else {
+            tv.setMaxLines(1);
+            tv.setEllipsize(TextUtils.TruncateAt.END);
+        }
+    }
+
+    private static void togglePillExpand(LinearLayout pill) {
+        for (int j = 0; j < pill.getChildCount(); j++) {
+            View c = pill.getChildAt(j);
+            if (c instanceof TextView && !BADGE_TAG.equals(c.getTag())
+                    && ((TextView) c).getText().length() > 2) {
+                toggleExpand((TextView) c);
             }
         }
     }
