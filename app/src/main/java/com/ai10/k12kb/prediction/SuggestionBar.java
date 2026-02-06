@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class SuggestionBar extends LinearLayout {
 
-    private static final int NUM_SLOTS = 3;
+    private static final int NUM_SLOTS = 4;
     private final TextView[] slots = new TextView[NUM_SLOTS];
     private OnSuggestionClickListener clickListener;
 

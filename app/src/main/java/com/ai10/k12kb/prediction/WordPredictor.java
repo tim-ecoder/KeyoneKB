@@ -188,7 +188,7 @@ public class WordPredictor {
             return;
         }
 
-        List<Suggestion> results = suggest(currentWord, 3);
+        List<Suggestion> results = suggest(currentWord, 4);
         latestSuggestions = results;
         if (listener != null) {
             listener.onSuggestionsUpdated(results);
