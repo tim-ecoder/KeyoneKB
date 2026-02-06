@@ -434,6 +434,8 @@ public class ActivitySettings extends Activity {
             JSONObject phone = new JSONObject();
             JSONObject navigation = new JSONObject();
             JSONObject keyboardLayouts = new JSONObject();
+            JSONObject jsonPatches = new JSONObject();
+            JSONObject swipeModes = new JSONObject();
             JSONObject other = new JSONObject();
 
             for (Map.Entry<String, ?> entry : all.entrySet()) {
@@ -451,7 +453,11 @@ public class ActivitySettings extends Activity {
                 }
 
                 // Categorize by key name
-                if (key.equals("sens_bottom_bar") || key.equals("height_bottom_bar")
+                if (key.endsWith(".js")) {
+                    jsonPatches.put(key, jsonVal);
+                } else if (key.startsWith("GESTURE_AT_VIEW_MODE_")) {
+                    swipeModes.put(key, jsonVal);
+                } else if (key.equals("sens_bottom_bar") || key.equals("height_bottom_bar")
                         || key.equals("show_default_onscreen_keyboard")
                         || key.equals("long_press_alt") || key.equals("alt_space")
                         || key.equals("vibrate_on_key_down") || key.equals("ensure_entered_text")) {
@@ -481,6 +487,12 @@ public class ActivitySettings extends Activity {
             settings.put("navigation", navigation);
             root.put("settings", settings);
             root.put("keyboard_layouts", keyboardLayouts);
+            if (jsonPatches.length() > 0) {
+                root.put("json_patches", jsonPatches);
+            }
+            if (swipeModes.length() > 0) {
+                root.put("swipe_modes", swipeModes);
+            }
             if (other.length() > 0) {
                 root.put("other", other);
             }
@@ -523,6 +535,12 @@ public class ActivitySettings extends Activity {
             }
             if (json.has("keyboard_layouts")) {
                 applyJsonToEditor(editor, json.getJSONObject("keyboard_layouts"));
+            }
+            if (json.has("json_patches")) {
+                applyJsonToEditor(editor, json.getJSONObject("json_patches"));
+            }
+            if (json.has("swipe_modes")) {
+                applyJsonToEditor(editor, json.getJSONObject("swipe_modes"));
             }
             if (json.has("other")) {
                 applyJsonToEditor(editor, json.getJSONObject("other"));
