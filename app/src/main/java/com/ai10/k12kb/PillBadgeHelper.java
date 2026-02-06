@@ -94,16 +94,17 @@ public class PillBadgeHelper {
     }
 
     private static void applyEllipsisToTextView(TextView tv) {
-        tv.setMaxLines(1);
+        tv.setSingleLine(true);
         tv.setEllipsize(TextUtils.TruncateAt.END);
     }
 
     private static void toggleExpand(TextView tv) {
         if (tv.getMaxLines() == 1) {
+            tv.setSingleLine(false);
             tv.setMaxLines(Integer.MAX_VALUE);
             tv.setEllipsize(null);
         } else {
-            tv.setMaxLines(1);
+            tv.setSingleLine(true);
             tv.setEllipsize(TextUtils.TruncateAt.END);
         }
     }
