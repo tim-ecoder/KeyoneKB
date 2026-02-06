@@ -190,7 +190,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             FileJsonUtils.LogErrorToGui("onCreate exception: "+ex +" "+sw.toString());
             isNotStarted = true;
             Instance = null;
-            //throw new RuntimeException("onCreate exception: ", ex);
+            throw new RuntimeException("onCreate exception: ", ex);
         }
     }
 
