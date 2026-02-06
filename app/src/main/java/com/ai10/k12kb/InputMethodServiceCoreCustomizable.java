@@ -506,10 +506,18 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     // Helper to create IActionMethod<Object> without lambdas (avoids invokedynamic/BootstrapMethodError)
     private ActionMethod<Object> objAction(final String methodName) {
+        final java.lang.reflect.Method m;
+        try {
+            m = this.getClass().getMethod(methodName);
+        } catch (Exception e) {
+            Log.e(TAG2, "objAction lookup error: " + methodName + " " + e);
+            return new ActionMethod<Object>(new IActionMethod<Object>() {
+                public boolean invoke(Object o) { return false; }
+            }, Object.class);
+        }
         return new ActionMethod<Object>(new IActionMethod<Object>() {
             public boolean invoke(Object o) {
                 try {
-                    java.lang.reflect.Method m = InputMethodServiceCoreCustomizable.this.getClass().getMethod(methodName);
                     return (Boolean) m.invoke(InputMethodServiceCoreCustomizable.this);
                 } catch (Exception e) {
                     Log.e(TAG2, "objAction invoke error: " + methodName + " " + e);
