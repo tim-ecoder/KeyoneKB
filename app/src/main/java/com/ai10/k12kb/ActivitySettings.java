@@ -378,7 +378,7 @@ public class ActivitySettings extends Activity {
             }
         });
 
-
+        PillBadgeHelper.applyToContainer(layout);
 
     }
 

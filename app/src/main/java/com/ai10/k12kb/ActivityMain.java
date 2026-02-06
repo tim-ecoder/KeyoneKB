@@ -13,6 +13,8 @@ import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import static com.ai10.k12kb.ActivitySettings.*;
@@ -160,6 +162,13 @@ public class ActivityMain extends Activity {
         UpdateKeyboardButton();
         UpdateAccessibilityButton();
         ChangeKeyboard();
+        applyPillBadges();
+    }
+
+    private void applyPillBadges() {
+        ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
+        LinearLayout rootLayout = (LinearLayout) scrollView.getChildAt(0);
+        PillBadgeHelper.applyToContainer(rootLayout);
     }
 
     private void CheckFilePermissions() {
@@ -219,6 +228,7 @@ public class ActivityMain extends Activity {
         UpdateKeyboardButton();
         UpdateAccessibilityButton();
         ChangeKeyboard();
+        applyPillBadges();
     }
 
     public void Redraw() {
