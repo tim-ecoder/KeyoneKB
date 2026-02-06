@@ -725,29 +725,33 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     }
 
     private void updatePredictorWordAtCursor() {
-        InputConnection ic = getCurrentInputConnection();
-        if (ic == null || wordPredictor == null) return;
-        CharSequence before = ic.getTextBeforeCursor(48, 0);
-        if (before == null || before.length() == 0) {
-            wordPredictor.reset();
-            return;
-        }
-        // Extract the word at cursor (characters before cursor until non-word char)
-        int end = before.length();
-        int start = end;
-        while (start > 0) {
-            char c = before.charAt(start - 1);
-            if (Character.isLetterOrDigit(c) || c == '\'') {
-                start--;
-            } else {
-                break;
+        try {
+            InputConnection ic = getCurrentInputConnection();
+            if (ic == null || wordPredictor == null) return;
+            CharSequence before = ic.getTextBeforeCursor(48, 0);
+            if (before == null || before.length() == 0) {
+                wordPredictor.reset();
+                return;
             }
-        }
-        if (start == end) {
-            wordPredictor.reset();
-        } else {
-            String word = before.subSequence(start, end).toString();
-            wordPredictor.setCurrentWord(word);
+            // Extract the word at cursor (characters before cursor until non-word char)
+            int end = before.length();
+            int start = end;
+            while (start > 0) {
+                char c = before.charAt(start - 1);
+                if (Character.isLetterOrDigit(c) || c == '\'') {
+                    start--;
+                } else {
+                    break;
+                }
+            }
+            if (start == end) {
+                wordPredictor.reset();
+            } else {
+                String word = before.subSequence(start, end).toString();
+                wordPredictor.setCurrentWord(word);
+            }
+        } catch (Throwable ex) {
+            Log.w(TAG2, "updatePredictorWordAtCursor error: " + ex);
         }
     }
 
@@ -1035,18 +1039,24 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     }
 
     private void reloadDictionaryForCurrentLanguage() {
-        if (wordPredictor == null) return;
-        String kbName = keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName;
-        String locale = "en"; // default
-        if (kbName != null) {
-            String lower = kbName.toLowerCase(java.util.Locale.ROOT);
-            if (lower.contains("русск") || lower.contains("russian")) {
-                locale = "ru";
-            } else if (lower.contains("украин") || lower.contains("ukrain")) {
-                locale = "ru"; // use Russian dictionary as fallback for Ukrainian
+        try {
+            if (wordPredictor == null) return;
+            KeyboardLayout kl = keyboardLayoutManager.GetCurrentKeyboardLayout();
+            if (kl == null) return;
+            String kbName = kl.KeyboardName;
+            String locale = "en"; // default
+            if (kbName != null) {
+                String lower = kbName.toLowerCase(java.util.Locale.ROOT);
+                if (lower.contains("русск") || lower.contains("russian")) {
+                    locale = "ru";
+                } else if (lower.contains("украин") || lower.contains("ukrain")) {
+                    locale = "ru"; // use Russian dictionary as fallback for Ukrainian
+                }
             }
+            wordPredictor.loadDictionary(getApplicationContext(), locale);
+        } catch (Throwable ex) {
+            Log.e(TAG2, "reloadDictionaryForCurrentLanguage error: " + ex);
         }
-        wordPredictor.loadDictionary(getApplicationContext(), locale);
     }
 
     private void acceptSuggestion(int index) {
