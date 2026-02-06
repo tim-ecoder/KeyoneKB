@@ -254,6 +254,9 @@ public class ViewSatedaKeyboard extends KeyboardView {
             for(Keyboard.Key key: keys) {
                 if (key == null)
                     continue;
+                // Skip special keys (like -7 emoji key) so they keep their code
+                if (key.codes[0] < 0)
+                    continue;
                 KeyboardLayout.KeyVariants keyVariants = null;
                 Double keyCode = ScanCodeKeyCodeMapping.get(String.format("%d", key.codes[0]));
                 if (keyCode == null) {
@@ -296,6 +299,9 @@ public class ViewSatedaKeyboard extends KeyboardView {
             List<Keyboard.Key> keys = getKeyboard().getKeys();
             for(Keyboard.Key key: keys) {
                 if (key == null)
+                    continue;
+                // Skip special keys (like -7 emoji key) so they keep their code
+                if (key.codes[0] < 0)
                     continue;
                 KeyboardLayout.KeyVariants keyVariants = null;
                 Double keyCode = ScanCodeKeyCodeMapping.get(String.format("%d", key.codes[0]));
