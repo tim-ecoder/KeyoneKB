@@ -88,7 +88,7 @@ public class SuggestionBar extends LinearLayout {
                 slots[i].setText("");
             }
         }
-        setVisibility(suggestions != null && !suggestions.isEmpty() ? VISIBLE : GONE);
+        // Visibility managed by setCandidatesViewShown() in K12KbIME
     }
 
     /**
@@ -98,6 +98,5 @@ public class SuggestionBar extends LinearLayout {
         for (int i = 0; i < NUM_SLOTS; i++) {
             slots[i].setText("");
         }
-        setVisibility(GONE);
     }
 }

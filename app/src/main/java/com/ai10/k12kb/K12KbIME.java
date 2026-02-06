@@ -26,7 +26,6 @@ import android.view.textservice.SentenceSuggestionsInfo;
 import android.view.textservice.SpellCheckerSession;
 import android.view.textservice.SuggestionsInfo;
 
-import android.widget.LinearLayout;
 import android.widget.Toast;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.ai10.k12kb.input.CallStateCallback;
@@ -99,7 +98,6 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     private String deviceFullMODEL;
 
     private SuggestionBar suggestionBar;
-    private LinearLayout inputViewWrapper;
 
     private boolean isNotStarted = true;
 
@@ -197,12 +195,12 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             wordPredictor = new WordPredictor();
             wordPredictor.loadDictionary(getApplicationContext(), "en");
             suggestionBar = new SuggestionBar(this);
-            suggestionBar.setVisibility(View.GONE);
             wordPredictor.setListener(new WordPredictor.SuggestionListener() {
                 public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
                     suggestionBar.post(new Runnable() {
                         public void run() {
                             suggestionBar.update(suggestions);
+                            setCandidatesViewShown(suggestions != null && !suggestions.isEmpty());
                         }
                     });
                 }
@@ -212,15 +210,6 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                     acceptSuggestion(index);
                 }
             });
-
-            // Create wrapper layout: SuggestionBar on top, keyboardView below
-            inputViewWrapper = new LinearLayout(this);
-            inputViewWrapper.setOrientation(LinearLayout.VERTICAL);
-            inputViewWrapper.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-            inputViewWrapper.addView(suggestionBar);
-            inputViewWrapper.addView(keyboardView);
 
             STEP = "keyboardNavigation";
             Log.i(TAG2, "onCreate STEP: " + STEP);
@@ -353,7 +342,16 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         }
         super.onCreateInputView();
         keyboardView.setOnKeyboardActionListener(this);
-        return inputViewWrapper;
+        return keyboardView;
+    }
+
+    @Override
+    public View onCreateCandidatesView() {
+        Log.d(TAG2, "onCreateCandidatesView");
+        if (suggestionBar != null) {
+            return suggestionBar;
+        }
+        return super.onCreateCandidatesView();
     }
 
     @Override
@@ -1062,6 +1060,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         ic.deleteSurroundingText(currentWord.length(), 0);
         ic.commitText(replacement + " ", 1);
         suggestionBar.clear();
+        setCandidatesViewShown(false);
     }
 
     protected void UpdateKeyboardVisibilityOnPrefChange() {
