@@ -193,29 +193,32 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
             STEP = "WordPredictor + SuggestionBar";
             Log.i(TAG2, "onCreate STEP: " + STEP);
-            wordPredictor = new WordPredictor();
-            wordPredictor.loadDictionary(getApplicationContext(), "en");
-            int predictionHeight = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
-            if (predictionHeight < 10) predictionHeight = 36;
-            predictionSlotCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT);
-            if (predictionSlotCount < 1) predictionSlotCount = 4;
-            suggestionBar = new SuggestionBar(this, predictionHeight, predictionSlotCount);
-            wordPredictor.setSuggestLimit(predictionSlotCount);
-            wordPredictor.setListener(new WordPredictor.SuggestionListener() {
-                public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
-                    suggestionBar.post(new Runnable() {
-                        public void run() {
-                            suggestionBar.update(suggestions);
-                            setCandidatesViewShown(true);
-                        }
-                    });
-                }
-            });
-            suggestionBar.setOnSuggestionClickListener(new SuggestionBar.OnSuggestionClickListener() {
-                public void onSuggestionClicked(int index, String word) {
-                    acceptSuggestion(index);
-                }
-            });
+            boolean predictionEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_17_PREDICTION_ENABLED);
+            if (predictionEnabled) {
+                wordPredictor = new WordPredictor();
+                wordPredictor.loadDictionary(getApplicationContext(), "en");
+                int predictionHeight = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
+                if (predictionHeight < 10) predictionHeight = 36;
+                predictionSlotCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT);
+                if (predictionSlotCount < 1) predictionSlotCount = 4;
+                suggestionBar = new SuggestionBar(this, predictionHeight, predictionSlotCount);
+                wordPredictor.setSuggestLimit(predictionSlotCount);
+                wordPredictor.setListener(new WordPredictor.SuggestionListener() {
+                    public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
+                        suggestionBar.post(new Runnable() {
+                            public void run() {
+                                suggestionBar.update(suggestions);
+                                setCandidatesViewShown(true);
+                            }
+                        });
+                    }
+                });
+                suggestionBar.setOnSuggestionClickListener(new SuggestionBar.OnSuggestionClickListener() {
+                    public void onSuggestionClicked(int index, String word) {
+                        acceptSuggestion(index);
+                    }
+                });
+            }
 
             STEP = "keyboardNavigation";
             Log.i(TAG2, "onCreate STEP: " + STEP);
@@ -370,8 +373,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         IsVisualKeyboardOpen = true;
         if (wordPredictor != null) {
             wordPredictor.reset();
+            setCandidatesViewShown(true);
         }
-        setCandidatesViewShown(true);
     }
 
     @Override

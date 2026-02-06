@@ -392,6 +392,15 @@ public class ActivitySettings extends Activity {
             }
         });
 
+        Switch switchPredictionEnabled = (Switch) findViewById(R.id.switch_prediction_enabled);
+        SetSwitchStateOrDefault(switchPredictionEnabled, k12KbSettings.APP_PREFERENCES_17_PREDICTION_ENABLED);
+        switchPredictionEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_17_PREDICTION_ENABLED, isChecked);
+            }
+        });
+
         SeekBar seekPredictionHeight = (SeekBar) findViewById(R.id.seekBarPredictionHeight);
         SetProgressOrDefault(seekPredictionHeight, k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
         seekPredictionHeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -534,7 +543,8 @@ public class ActivitySettings extends Activity {
                         || key.equals("show_default_onscreen_keyboard")
                         || key.equals("long_press_alt") || key.equals("alt_space")
                         || key.equals("vibrate_on_key_down") || key.equals("ensure_entered_text")
-                        || key.equals("prediction_height") || key.equals("prediction_count")) {
+                        || key.equals("prediction_height") || key.equals("prediction_count")
+                        || key.equals("prediction_enabled")) {
                     input.put(key, jsonVal);
                 } else if (key.equals("show_toast") || key.equals("flag")
                         || key.equals("notification_icon_system")) {

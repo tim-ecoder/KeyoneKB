@@ -225,6 +225,12 @@
             style="@style/SectionHeader"
             android:text="PREDICTION" />
 
+        <Switch
+            android:id="@+id/switch_prediction_enabled"
+            style="@style/SwitchPill"
+            android:text="Word prediction"
+            tools:checked="true" />
+
         <LinearLayout style="@style/ItemPillSeek">
             <TextView
                 style="@style/ItemPillSeekTitle"
