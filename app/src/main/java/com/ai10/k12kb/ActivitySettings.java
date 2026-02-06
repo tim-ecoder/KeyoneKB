@@ -33,12 +33,16 @@ import yuku.ambilwarna.AmbilWarnaDialog;
 public class ActivitySettings extends Activity {
 
     public static final int REQUEST_PERMISSION_CODE = 101;
+    private static final int REQUEST_STORAGE_PERMISSION_CODE = 102;
 
     private K12KbSettings k12KbSettings;
 
     private LinearLayout layout;
 
     private float touchY;
+
+    private boolean pendingSave = false;
+    private boolean pendingLoad = false;
 
     private boolean SetSwitchStateOrDefault(Switch switch1, String settingName) {
         boolean enabled = k12KbSettings.GetBooleanValue(settingName);
@@ -392,7 +396,12 @@ public class ActivitySettings extends Activity {
         btnSaveSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveSettingsToFile();
+                if (checkStoragePermission()) {
+                    saveSettingsToFile();
+                } else {
+                    pendingSave = true;
+                    requestStoragePermission();
+                }
             }
         });
 
@@ -400,7 +409,12 @@ public class ActivitySettings extends Activity {
         btnLoadSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loadSettingsFromFile();
+                if (checkStoragePermission()) {
+                    loadSettingsFromFile();
+                } else {
+                    pendingLoad = true;
+                    requestStoragePermission();
+                }
             }
         });
 
@@ -415,6 +429,37 @@ public class ActivitySettings extends Activity {
             dir.mkdirs();
         }
         return new File(dir, "settings.json");
+    }
+
+    private boolean checkStoragePermission() {
+        return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestStoragePermission() {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                REQUEST_STORAGE_PERMISSION_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_STORAGE_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (pendingSave) {
+                    pendingSave = false;
+                    saveSettingsToFile();
+                }
+                if (pendingLoad) {
+                    pendingLoad = false;
+                    loadSettingsFromFile();
+                }
+            } else {
+                pendingSave = false;
+                pendingLoad = false;
+                Toast.makeText(this, "Storage permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void saveSettingsToFile() {
