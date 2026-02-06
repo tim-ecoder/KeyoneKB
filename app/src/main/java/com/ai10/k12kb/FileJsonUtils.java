@@ -395,7 +395,7 @@ public class FileJsonUtils {
     }
 
     private static File[] findFilenamesMatchingRegex(String regex, File dir) {
-        return dir.listFiles(file -> file.getName().matches(regex));
+        return dir.listFiles(new java.io.FileFilter() { public boolean accept(File file) { return file.getName().matches(regex); } });
     }
 
 

@@ -134,10 +134,10 @@ public class K12KbAccessibilityService extends AccessibilityService {
             } catch(Throwable ex) {
                 Log.e(TAG3, "onServiceConnected Exception: "+ex);
                 LogErrorToGui("onServiceConnected Exception: "+ex);
-                new Thread(() -> {
+                new Thread(new Runnable() { public void run() {
                     FileJsonUtils.SleepWithWakes(300);
                     StopService();
-                }).start();
+                } }).start();
             }
     }
     @Override
@@ -163,10 +163,10 @@ public class K12KbAccessibilityService extends AccessibilityService {
             //executorService = Executors.newFixedThreadPool(2);
         } catch(Throwable ex) {
             Log.e(TAG3, "onCreate Exception: "+ex);
-            new Thread(() -> {
+            new Thread(new Runnable() { public void run() {
                 FileJsonUtils.SleepWithWakes(300);
                 StopService();
-            }).start();
+            } }).start();
         }
 
     }
@@ -688,17 +688,19 @@ public class K12KbAccessibilityService extends AccessibilityService {
         info.getBoundsInScreen(rect);
         float x = rect.centerX();
         float y = rect.centerY();
-        SetCurrentNodeInfo((boolean isLongClick) -> {
-            Path clickPath = new Path();
-            GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
-            clickPath.moveTo(x, y);
-            if(!isLongClick)
-                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, 1));
-            else {
-                int longPressTime = ViewConfiguration.getLongPressTimeout();
-                clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, longPressTime+longPressTime/2));
+        SetCurrentNodeInfo(new InputMethodServiceCoreCustomizable.AsNodeClicker() {
+            public void Click(boolean isLongClick) {
+                Path clickPath = new Path();
+                GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
+                clickPath.moveTo(x, y);
+                if(!isLongClick)
+                    clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, 1));
+                else {
+                    int longPressTime = ViewConfiguration.getLongPressTimeout();
+                    clickBuilder.addStroke(new GestureDescription.StrokeDescription(clickPath, 0, longPressTime+longPressTime/2));
+                }
+                dispatchGesture(clickBuilder.build(), null, null);
             }
-            dispatchGesture(clickBuilder.build(), null, null);
         });
 
     }
@@ -791,7 +793,12 @@ public class K12KbAccessibilityService extends AccessibilityService {
             else
                 shp.setEvents(STD_EVENTS);
             if (data.CustomClickAdapterClickParent)
-                shp.setConverter(AccessibilityNodeInfo::getParent);
+                shp.setConverter(new NodeClickableConverter() {
+                    @Override
+                    public AccessibilityNodeInfo getNode(AccessibilityNodeInfo info) {
+                        return info.getParent();
+                    }
+                });
             else if(data.CustomClickAdapterClickFirstChild)
                 shp.setConverter(new NodeClickableConverter() {
                     @Override

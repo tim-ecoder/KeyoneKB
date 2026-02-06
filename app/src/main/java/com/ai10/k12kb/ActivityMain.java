@@ -131,7 +131,7 @@ public class ActivityMain extends Activity {
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 if(imm != null) {
                     Handler handler = new Handler(Looper.getMainLooper());
-                    handler.postDelayed(imm::showInputMethodPicker, 200);
+                    handler.postDelayed(new Runnable() { public void run() { imm.showInputMethodPicker(); } }, 200);
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -234,7 +234,7 @@ public class ActivityMain extends Activity {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             if(imm != null) {
                 Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(imm::showInputMethodPicker, 200);
+                handler.postDelayed(new Runnable() { public void run() { imm.showInputMethodPicker(); } }, 200);
             }
         }
     }
