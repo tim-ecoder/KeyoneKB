@@ -421,24 +421,73 @@ public class ActivitySettings extends Activity {
         try {
             SharedPreferences prefs = getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE);
             Map<String, ?> all = prefs.getAll();
-            JSONObject json = new JSONObject();
+
+            JSONObject root = new JSONObject();
+            root.put("version", 1);
+            root.put("app", "K12KB");
+            root.put("exported_at", new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.ROOT).format(new java.util.Date()));
+            root.put("device", android.os.Build.MODEL);
+
+            JSONObject input = new JSONObject();
+            JSONObject display = new JSONObject();
+            JSONObject gesture = new JSONObject();
+            JSONObject phone = new JSONObject();
+            JSONObject navigation = new JSONObject();
+            JSONObject keyboardLayouts = new JSONObject();
+            JSONObject other = new JSONObject();
+
             for (Map.Entry<String, ?> entry : all.entrySet()) {
+                String key = entry.getKey();
                 Object val = entry.getValue();
+                Object jsonVal = val;
                 if (val instanceof Boolean) {
-                    json.put(entry.getKey(), ((Boolean) val).booleanValue());
+                    jsonVal = ((Boolean) val).booleanValue();
                 } else if (val instanceof Integer) {
-                    json.put(entry.getKey(), ((Integer) val).intValue());
+                    jsonVal = ((Integer) val).intValue();
                 } else if (val instanceof Long) {
-                    json.put(entry.getKey(), ((Long) val).longValue());
+                    jsonVal = ((Long) val).longValue();
                 } else if (val instanceof Float) {
-                    json.put(entry.getKey(), ((Float) val).floatValue());
-                } else if (val instanceof String) {
-                    json.put(entry.getKey(), (String) val);
+                    jsonVal = ((Float) val).floatValue();
+                }
+
+                // Categorize by key name
+                if (key.equals("sens_bottom_bar") || key.equals("height_bottom_bar")
+                        || key.equals("show_default_onscreen_keyboard")
+                        || key.equals("long_press_alt") || key.equals("alt_space")
+                        || key.equals("vibrate_on_key_down") || key.equals("ensure_entered_text")) {
+                    input.put(key, jsonVal);
+                } else if (key.equals("show_toast") || key.equals("flag")
+                        || key.equals("notification_icon_system")) {
+                    display.put(key, jsonVal);
+                } else if (key.equals("gesture_mode_at_view_mode")
+                        || key.equals("pointer_mode_rect") || key.equals("pointer_mode_rect_color")) {
+                    gesture.put(key, jsonVal);
+                } else if (key.equals("manage_call")) {
+                    phone.put(key, jsonVal);
+                } else if (key.equals("nav_pad_on_hold")) {
+                    navigation.put(key, jsonVal);
+                } else if (key.startsWith("keyboard_layout_") || key.startsWith("kl_")) {
+                    keyboardLayouts.put(key, jsonVal);
+                } else {
+                    other.put(key, jsonVal);
                 }
             }
+
+            JSONObject settings = new JSONObject();
+            settings.put("input", input);
+            settings.put("display", display);
+            settings.put("gesture", gesture);
+            settings.put("phone", phone);
+            settings.put("navigation", navigation);
+            root.put("settings", settings);
+            root.put("keyboard_layouts", keyboardLayouts);
+            if (other.length() > 0) {
+                root.put("other", other);
+            }
+
             File file = getSettingsFile();
             FileWriter writer = new FileWriter(file);
-            writer.write(json.toString(2));
+            writer.write(root.toString(2));
             writer.close();
             Toast.makeText(this, "Settings saved to " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
         } catch (Exception e) {
@@ -465,30 +514,44 @@ public class ActivitySettings extends Activity {
             SharedPreferences prefs = getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
 
-            Iterator<String> keys = json.keys();
-            while (keys.hasNext()) {
-                String key = keys.next();
-                Object val = json.get(key);
-                if (val instanceof Boolean) {
-                    editor.putBoolean(key, ((Boolean) val).booleanValue());
-                } else if (val instanceof Integer) {
-                    editor.putInt(key, ((Integer) val).intValue());
-                } else if (val instanceof Long) {
-                    editor.putInt(key, (int) ((Long) val).longValue());
-                } else if (val instanceof Double) {
-                    // JSON numbers can come back as Double for floats
-                    editor.putInt(key, (int) ((Double) val).doubleValue());
-                } else if (val instanceof String) {
-                    editor.putString(key, (String) val);
-                }
+            JSONObject settings = json.getJSONObject("settings");
+            Iterator<String> sections = settings.keys();
+            while (sections.hasNext()) {
+                String section = sections.next();
+                JSONObject sectionObj = settings.getJSONObject(section);
+                applyJsonToEditor(editor, sectionObj);
             }
-            editor.apply();
+            if (json.has("keyboard_layouts")) {
+                applyJsonToEditor(editor, json.getJSONObject("keyboard_layouts"));
+            }
+            if (json.has("other")) {
+                applyJsonToEditor(editor, json.getJSONObject("other"));
+            }
 
+            editor.apply();
             Toast.makeText(this, "Settings loaded. Restart app to apply.", Toast.LENGTH_LONG).show();
-            // Refresh the activity to show updated values
             recreate();
         } catch (Exception e) {
             Toast.makeText(this, "Load failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void applyJsonToEditor(SharedPreferences.Editor editor, JSONObject obj) throws org.json.JSONException {
+        Iterator<String> keys = obj.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object val = obj.get(key);
+            if (val instanceof Boolean) {
+                editor.putBoolean(key, ((Boolean) val).booleanValue());
+            } else if (val instanceof Integer) {
+                editor.putInt(key, ((Integer) val).intValue());
+            } else if (val instanceof Long) {
+                editor.putInt(key, (int) ((Long) val).longValue());
+            } else if (val instanceof Double) {
+                editor.putInt(key, (int) ((Double) val).doubleValue());
+            } else if (val instanceof String) {
+                editor.putString(key, (String) val);
+            }
         }
     }
 
