@@ -591,11 +591,11 @@ public class ActivitySettings extends Activity {
                 applyJsonToEditor(editor, json.getJSONObject("other"));
             }
 
-            editor.apply();
-            Toast.makeText(this, "Settings loaded. Restart app to apply.", Toast.LENGTH_LONG).show();
+            editor.commit();
+            Toast.makeText(this, "Settings loaded from " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
             recreate();
         } catch (Exception e) {
-            Toast.makeText(this, "Load failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Load failed: " + e.getClass().getSimpleName() + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
