@@ -7,6 +7,7 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +38,7 @@ public class WordPredictor {
     }
 
     private WordDictionary dictionary;
+    private final HashMap<String, WordDictionary> dictCache = new HashMap<>();
     private SuggestionListener listener;
     private String currentWord = "";
     private List<Suggestion> latestSuggestions = Collections.emptyList();
@@ -66,26 +68,32 @@ public class WordPredictor {
     }
 
     /**
-     * Load dictionary for a locale in a background thread.
-     * Skips reload if same locale is already loaded.
-     * Re-triggers suggestions after load if there's a current word.
+     * Load dictionary for a locale. Uses cached dictionary if already loaded,
+     * otherwise loads in a background thread.
      */
     public void loadDictionary(final Context context, final String locale) {
-        if (dictionary == null) {
-            dictionary = new WordDictionary();
-        }
-        // Skip if already loaded for this locale
-        if (dictionary.isReady() && locale.equals(dictionary.getLoadedLocale())) {
+        // Check if already active for this locale
+        if (dictionary != null && dictionary.isReady() && locale.equals(dictionary.getLoadedLocale())) {
             return;
         }
-        final WordPredictor self = this;
+        // Check cache - instant switch if already loaded before
+        WordDictionary cached = dictCache.get(locale);
+        if (cached != null && cached.isReady()) {
+            dictionary = cached;
+            if (currentWord.length() > 0) {
+                updateSuggestions();
+            }
+            return;
+        }
+        // Need to load from disk - do it in background
+        final WordDictionary newDict = new WordDictionary();
+        dictCache.put(locale, newDict);
+        dictionary = newDict;
         Thread t = new Thread(new Runnable() {
             public void run() {
-                synchronized (self) {
-                    dictionary.load(context, locale);
-                }
+                newDict.load(context, locale);
                 // Re-trigger suggestions if there's a current word
-                if (currentWord.length() > 0 && dictionary.isReady()) {
+                if (currentWord.length() > 0 && newDict.isReady()) {
                     updateSuggestions();
                 }
             }
