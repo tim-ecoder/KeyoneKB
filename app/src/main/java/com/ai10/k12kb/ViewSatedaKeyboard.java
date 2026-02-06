@@ -588,17 +588,6 @@ public class ViewSatedaKeyboard extends KeyboardView {
                 }
             }
 
-            // Draw EMO label on the -7 key
-            Keyboard.Key emoKey = FindKey(keys, -7);
-            if (emoKey != null) {
-                Paint paint_emo = new Paint();
-                paint_emo.setTextAlign(Paint.Align.CENTER);
-                paint_emo.setTextSize(Math.round(scaleWidthX * 35));
-                paint_emo.setColor(0xFF44AAFF);
-                paint_emo.setAntiAlias(true);
-                canvas.drawText("EMO", emoKey.x + emoKey.width / 2f,
-                        emoKey.y + emoKey.height / 2f + Math.round(scaleWidthX * 12), paint_emo);
-            }
 
             //если отображено меню сверху - прикрыть панель темной полоской
             if(mPopupKeyboard.isShowing()) {
