@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">KeyoneKB2</string>
+    <string name="app_name" translatable="false">K12KB</string>
     <string name="main_btn_settings">A. Settings</string>
     <string name="main_btn_power_manager_activated">E. Power saving requires configuration</string>
     <string name="main_btn_file_permissions_needed">F. Grant file access (json-s found)</string>
@@ -18,7 +18,7 @@
     <string name="main_btn_accessibility_reload">Reload accessibility service</string>
     <string name="main_btn_more_settings">Advanced Settings</string>
     <string name="main_manual_text">MANUAL</string>
-    <string name="main_manual_link" translatable="false">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
+    <string name="main_manual_link" translatable="false">https://github.com/tim-ecoder/K12KB/wiki</string>
     <string name="keyboard_test_input_hint" translatable="false">For keyboard test in TEXT_INPUT_MODE click here</string>
     <string name="keyboard_test_view_test" translatable="false">For keyboard test in VIEW_MODE click here</string>
     <string name="keyboard_test_view_test_active" translatable="false">Keyboard test in VIEW_MODE activated</string>
@@ -61,14 +61,14 @@
     <string name="pref_p_13_name">13. (Experimental) Show a frame around the selected element in Pointer mode in view mode</string>
     <string name="pref_p_13_hint">\tWhen the "native" backlight of the selected interface element is poorly visible.\n\tIn addition, without this, sometimes it is not at all clear where the focus is right now.</string>
     <string name="pref_p_13a_name">13A. Color of the frame choosing from settings item 13</string>
-    <string name="pref_p_13a_hint">\tIn order for the color settings to be applied, it is necessary to switch off/onn the special service KeyoneKB2</string>
+    <string name="pref_p_13a_hint">\tIn order for the color settings to be applied, it is necessary to switch off/onn the special service K12KB</string>
     <string name="pref_p_14_name">14. Show on-screen NAV-pad while holding SYM</string>
     <string name="pref_p_14_hint">\tYou can disable it when you use the NAV mode via the hard keyboard and remember everything.\n\tIn addition, if another function is hanging on the same button (for example, changing the language), so that the NAV-pad that comes out does not infuriate every time.</string>
     <string name="pref_first_install">\tFirst initialization after installation in strict sequence: A, B, C, D, E.\n
         \tIn the Settings item A, disable unnecessary layouts (because the keyboard comes out of the box for several devices). The rest of the Settings (default values) are made so that it is convenient to use as is.\n
         Do not forget to enable Visual Keyboard option in Hardware keyboard settings. This option is needed to show NAV, SYM and SWYPE on-screen keyboards.</string>
     <string name="pref_manual_name">Manual</string>
-    <string name="pref_manual_link" translatable="false">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
+    <string name="pref_manual_link" translatable="false">https://github.com/tim-ecoder/K12KB/wiki</string>
     <string name="notification_kb_state_nav_mode">Navigation</string>
     <string name="notification_kb_state_nav_fn_mode">Navigation + F1�F10</string>
     <string name="notification_kb_state_alt_mode">Symbols 1�9</string>
@@ -80,8 +80,8 @@
     <string name="notification_kb_state_gesture_input_list">Scroll mode</string>
     <string name="notification_kb_state_gesture_pointer">Cursor movement mode</string>
     <string name="notification_kb_state_digits_pad">Digital panel (dialer)</string>
-    <string name="keyonekb_accessibility_service_label" translatable="false">KeyoneKB2</string>
-    <string name="keyonekb_accessibility_service_description">It helps KeyoneKB2 to understand in which field the cursor is located for calling search windows (for searching when entering and typing in BB Contacts, Dialer, Telegram, etc.).\nIn addition, it is _mandatory_ to enable it to work SpeedKey as CTRL on non Russian market Blackberry Key2 phones.\nIn addition, the scroll mode works through it in the input fields, highlighting in the pointer mode and clicking on the highlighted by space key.</string>
+    <string name="k12kb_accessibility_service_label" translatable="false">K12KB</string>
+    <string name="k12kb_accessibility_service_description">It helps K12KB to understand in which field the cursor is located for calling search windows (for searching when entering and typing in BB Contacts, Dialer, Telegram, etc.).\nIn addition, it is _mandatory_ to enable it to work SpeedKey as CTRL on non Russian market Blackberry Key2 phones.\nIn addition, the scroll mode works through it in the input fields, highlighting in the pointer mode and clicking on the highlighted by space key.</string>
     <string name="pref_more_tv_search_plugins_title">SEARCH PLUGINS</string>
     <string name="pref_more_tv_js_patches_title" translatable="false">JS PATCHES</string>
 

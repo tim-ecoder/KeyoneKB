@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-                       android:description="@string/keyonekb_accessibility_service_description"
+                       android:description="@string/k12kb_accessibility_service_description"
                        android:accessibilityEventTypes="typeViewFocused|typeWindowStateChanged|typeWindowContentChanged|typeWindowsChanged"
                        android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents|flagRetrieveInteractiveWindows"
                        android:accessibilityFeedbackType="feedbackSpoken"

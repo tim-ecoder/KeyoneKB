@@ -14,8 +14,8 @@ public class IntentNotifications extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (KeyoneKb2AccessibilityService.Instance != null)
-            KeyoneKb2AccessibilityService.Instance.IntentNotifications();
+        if (K12KbAccessibilityService.Instance != null)
+            K12KbAccessibilityService.Instance.IntentNotifications();
 
         finish();
     }

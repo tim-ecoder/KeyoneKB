@@ -44,9 +44,9 @@
 -keep class com.ai10.k12kb.KeyboardLayout$* { *; }
 -keep class com.ai10.k12kb.SearchClickPlugin$SearchClickPluginData { *; }
 -keep class com.ai10.k12kb.SearchClickPlugin$SearchClickPluginData$* { *; }
--keep class com.ai10.k12kb.KeyoneKb2Settings$CoreKeyboardSettings { *; }
+-keep class com.ai10.k12kb.K12KbSettings$CoreKeyboardSettings { *; }
 -keep class com.ai10.k12kb.InputMethodServiceCoreCustomizable$KeyboardMechanics { *; }
 -keep class com.ai10.k12kb.InputMethodServiceCoreCustomizable$KeyboardMechanics$* { *; }
--keep class com.ai10.k12kb.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions { *; }
--keep class com.ai10.k12kb.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions$* { *; }
+-keep class com.ai10.k12kb.K12KbAccessibilityService$K12KbAccServiceOptions { *; }
+-keep class com.ai10.k12kb.K12KbAccessibilityService$K12KbAccServiceOptions$* { *; }
 -keep class org.mozilla.javascript.** { *; }

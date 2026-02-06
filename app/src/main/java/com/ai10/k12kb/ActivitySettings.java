@@ -24,20 +24,20 @@ public class ActivitySettings extends AppCompatActivity {
 
     public static final int REQUEST_PERMISSION_CODE = 101;
 
-    private KeyoneKb2Settings keyoneKb2Settings;
+    private K12KbSettings k12KbSettings;
 
     private RelativeLayout layout;
 
     private float touchY;
 
     private boolean SetSwitchStateOrDefault(Switch switch1, String settingName) {
-        boolean enabled = keyoneKb2Settings.GetBooleanValue(settingName);
+        boolean enabled = k12KbSettings.GetBooleanValue(settingName);
         switch1.setChecked(enabled);
         return enabled;
     }
 
     private void SetProgressOrDefault(SeekBar seekBar, String settingName) {
-        seekBar.setProgress(keyoneKb2Settings.GetIntValue(settingName));
+        seekBar.setProgress(k12KbSettings.GetIntValue(settingName));
     }
 
     private String deviceFullMODEL;
@@ -45,7 +45,7 @@ public class ActivitySettings extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
 
         setContentView(R.layout.activity_settings);
 
@@ -88,7 +88,7 @@ public class ActivitySettings extends AppCompatActivity {
                 }
 
                 currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
-                keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
+                k12KbSettings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), k12KbSettings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
                 boolean enabled = SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
                 if(enabled)
                     enableCount++;
@@ -96,7 +96,7 @@ public class ActivitySettings extends AppCompatActivity {
                 currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        keyoneKb2Settings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
+                        k12KbSettings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
                     }
                 });
 
@@ -113,7 +113,7 @@ public class ActivitySettings extends AppCompatActivity {
                 KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions = keyboardLayouts.get(0);
 
                 currentKeyboardLayoutSwitch.setText(keyboardLayoutOptions.OptionsName);
-                keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
+                k12KbSettings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), k12KbSettings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
                 boolean enabled = SetSwitchStateOrDefault(currentKeyboardLayoutSwitch, keyboardLayoutOptions.getPreferenceName());
                 if(enabled)
                     enableCount++;
@@ -121,7 +121,7 @@ public class ActivitySettings extends AppCompatActivity {
                 currentKeyboardLayoutSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        keyoneKb2Settings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
+                        k12KbSettings.SetBooleanValue(keyboardLayoutOptions.getPreferenceName(), isChecked);
                     }
                 });
 
@@ -129,7 +129,7 @@ public class ActivitySettings extends AppCompatActivity {
 
             if(enableCount == 0) {
                 KeyboardLayout.KeyboardLayoutOptions defLayout = keyboardLayouts.get(0);
-                keyoneKb2Settings.SetBooleanValue(defLayout.getPreferenceName(), true);
+                k12KbSettings.SetBooleanValue(defLayout.getPreferenceName(), true);
                 SetSwitchStateOrDefault(defaultKeyboardLayoutSwitch, defLayout.getPreferenceName());
             }
 
@@ -143,12 +143,12 @@ public class ActivitySettings extends AppCompatActivity {
         }
 
         SeekBar sens_bottom_bar = (SeekBar) findViewById(R.id.seekBar);
-        SetProgressOrDefault(sens_bottom_bar, keyoneKb2Settings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
+        SetProgressOrDefault(sens_bottom_bar, k12KbSettings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
 
         sens_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_1_SENS_BOTTOM_BAR, progress);
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_1_SENS_BOTTOM_BAR, progress);
             }
 
             @Override
@@ -163,49 +163,49 @@ public class ActivitySettings extends AppCompatActivity {
         });
 
         Switch toast_show_lang = (Switch) findViewById(R.id.toast_show_lang);
-        SetSwitchStateOrDefault(toast_show_lang, keyoneKb2Settings.APP_PREFERENCES_2_SHOW_TOAST);
+        SetSwitchStateOrDefault(toast_show_lang, k12KbSettings.APP_PREFERENCES_2_SHOW_TOAST);
         toast_show_lang.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_2_SHOW_TOAST, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_2_SHOW_TOAST, isChecked);
             }
         });
 
 
         Switch switch_alt_space = (Switch) findViewById(R.id.switch_alt_space);
-        SetSwitchStateOrDefault(switch_alt_space, keyoneKb2Settings.APP_PREFERENCES_3_ALT_SPACE);
+        SetSwitchStateOrDefault(switch_alt_space, k12KbSettings.APP_PREFERENCES_3_ALT_SPACE);
 
         switch_alt_space.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_3_ALT_SPACE, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_3_ALT_SPACE, isChecked);
 
             }
         });
 
         Switch switch_flag = (Switch) findViewById(R.id.switch_flag);
-        SetSwitchStateOrDefault(switch_flag, keyoneKb2Settings.APP_PREFERENCES_4_FLAG);
+        SetSwitchStateOrDefault(switch_flag, k12KbSettings.APP_PREFERENCES_4_FLAG);
 
         switch_flag.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_4_FLAG, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_4_FLAG, isChecked);
             }
         });
 
         Switch switch_long_press_alt = (Switch) findViewById(R.id.switch_long_press_alt);
-        SetSwitchStateOrDefault(switch_long_press_alt, keyoneKb2Settings.APP_PREFERENCES_5_LONG_PRESS_ALT);
+        SetSwitchStateOrDefault(switch_long_press_alt, k12KbSettings.APP_PREFERENCES_5_LONG_PRESS_ALT);
 
         switch_long_press_alt.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_5_LONG_PRESS_ALT, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_5_LONG_PRESS_ALT, isChecked);
             }
         });
 
         Switch switch_manage_call = (Switch) findViewById(R.id.switch_manage_call);
 
-        SetSwitchStateOrDefault(switch_manage_call, keyoneKb2Settings.APP_PREFERENCES_6_MANAGE_CALL);
+        SetSwitchStateOrDefault(switch_manage_call, k12KbSettings.APP_PREFERENCES_6_MANAGE_CALL);
         switch_manage_call.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -215,17 +215,17 @@ public class ActivitySettings extends AppCompatActivity {
                         ActivityCompat.requestPermissions(ActivitySettings.this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
                     }
                 }
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_6_MANAGE_CALL, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_6_MANAGE_CALL, isChecked);
             }
         });
 
         SeekBar height_bottom_bar = (SeekBar) findViewById(R.id.seekBarBtnPanel);
-        SetProgressOrDefault(height_bottom_bar, keyoneKb2Settings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
+        SetProgressOrDefault(height_bottom_bar, k12KbSettings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
 
         height_bottom_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR, progress);
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR, progress);
             }
 
             @Override
@@ -240,12 +240,12 @@ public class ActivitySettings extends AppCompatActivity {
         });
 
         Switch switch_show_default_onscreen_keyboard = (Switch) findViewById(R.id.switch_show_default_onscreen_keyboard);
-        SetSwitchStateOrDefault(switch_show_default_onscreen_keyboard, keyoneKb2Settings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
+        SetSwitchStateOrDefault(switch_show_default_onscreen_keyboard, k12KbSettings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
 
         switch_show_default_onscreen_keyboard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL, isChecked);
             }
         });
 
@@ -257,14 +257,14 @@ public class ActivitySettings extends AppCompatActivity {
         staticAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         staticSpinner.setAdapter(staticAdapter);
 
-        int spinner_p9_from_pref =  keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE);
+        int spinner_p9_from_pref =  k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE);
         staticSpinner.setSelection(spinner_p9_from_pref);
 
         staticSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
-                keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE, position);
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE, position);
             }
 
             @Override
@@ -275,47 +275,47 @@ public class ActivitySettings extends AppCompatActivity {
 
 
         Switch switch_notification_icon_system = (Switch) findViewById(R.id.switch_notification_icon_system);
-        SetSwitchStateOrDefault(switch_notification_icon_system, keyoneKb2Settings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
+        SetSwitchStateOrDefault(switch_notification_icon_system, k12KbSettings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
 
         switch_notification_icon_system.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM, isChecked);
             }
         });
 
         Switch switch_vibrate_on_key_down = (Switch) findViewById(R.id.switch_vibrate_on_key_down);
-        SetSwitchStateOrDefault(switch_vibrate_on_key_down, keyoneKb2Settings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN);
+        SetSwitchStateOrDefault(switch_vibrate_on_key_down, k12KbSettings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN);
 
         switch_vibrate_on_key_down.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN, isChecked);
             }
         });
 
         Switch switch_ensure_entered_text = (Switch) findViewById(R.id.switch_ensure_entered_text);
-        SetSwitchStateOrDefault(switch_ensure_entered_text, keyoneKb2Settings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT);
+        SetSwitchStateOrDefault(switch_ensure_entered_text, k12KbSettings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT);
 
         switch_ensure_entered_text.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT, isChecked);
             }
         });
 
 
         Switch switch_pointer_mode_rect = (Switch) findViewById(R.id.switch_pointer_mode_rect);
-        SetSwitchStateOrDefault(switch_pointer_mode_rect, keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT);
+        SetSwitchStateOrDefault(switch_pointer_mode_rect, k12KbSettings.APP_PREFERENCES_13_POINTER_MODE_RECT);
 
         switch_pointer_mode_rect.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_13_POINTER_MODE_RECT, isChecked);
             }
         });
 
-        int color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
+        int color = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
 
         AmbilWarnaDialog colorPicker = new AmbilWarnaDialog(
                 this,
@@ -324,7 +324,7 @@ public class ActivitySettings extends AppCompatActivity {
                     @Override
                     public void onOk(AmbilWarnaDialog dialog, int color) {
                         // User pressed OK
-                        keyoneKb2Settings.SetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR, color);
+                        k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR, color);
                     }
 
                     @Override
@@ -355,12 +355,12 @@ public class ActivitySettings extends AppCompatActivity {
 
 
         Switch switch_p14 = (Switch) findViewById(R.id.switch_p14_nav_pad_on_hold);
-        SetSwitchStateOrDefault(switch_p14, keyoneKb2Settings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD);
+        SetSwitchStateOrDefault(switch_p14, k12KbSettings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD);
 
         switch_p14.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                keyoneKb2Settings.SetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD, isChecked);
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD, isChecked);
             }
         });
 

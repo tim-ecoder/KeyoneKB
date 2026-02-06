@@ -22,13 +22,13 @@ import java.util.List;
 
 import static com.ai10.k12kb.FileJsonUtils.GetContext;
 import static com.ai10.k12kb.FileJsonUtils.LogErrorToGui;
-import static com.ai10.k12kb.KeyoneKb2Settings.RES_PLUGIN_DATA;
+import static com.ai10.k12kb.K12KbSettings.RES_PLUGIN_DATA;
 
 
-public class KeyoneKb2AccessibilityService extends AccessibilityService {
+public class K12KbAccessibilityService extends AccessibilityService {
 
-    public static KeyoneKb2AccessibilityService Instance;
-    public static String TAG3 = "KeyoneKb2-AS";
+    public static K12KbAccessibilityService Instance;
+    public static String TAG3 = "K12Kb-AS";
 
     interface NodeClickableConverter {
         AccessibilityNodeInfo getNode(AccessibilityNodeInfo info);
@@ -40,7 +40,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     public final ArrayList<SearchClickPlugin> clickerPlugins = new ArrayList<>();
 
-    KeyoneKb2Settings keyoneKb2Settings;
+    K12KbSettings k12KbSettings;
 
     //ExecutorService executorService;
 
@@ -50,12 +50,12 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     private final ArrayList<String> SearchClickPackages = new ArrayList<>();
 
-    KeyoneKb2AccServiceOptions keyoneKb2AccServiceOptions;
+    K12KbAccServiceOptions k12KbAccServiceOptions;
 
 
 
-    public static class KeyoneKb2AccServiceOptions {
-        public static final String ResName = "keyonekb2_as_options";
+    public static class K12KbAccServiceOptions {
+        public static final String ResName = "k12kb_as_options";
 
         public static class MetaKeyPlusKey {
             @JsonProperty(index=10)
@@ -105,22 +105,22 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         try {
 
             Context psc = GetContext(this);
-            keyoneKb2Settings = KeyoneKb2Settings.Get(psc.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
-            keyoneKb2AccServiceOptions = FileJsonUtils.DeserializeFromJsonApplyPatches(KeyoneKb2AccServiceOptions.ResName, new TypeReference<KeyoneKb2AccServiceOptions>() {}, this);
+            k12KbSettings = K12KbSettings.Get(psc.getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
+            k12KbAccServiceOptions = FileJsonUtils.DeserializeFromJsonApplyPatches(K12KbAccServiceOptions.ResName, new TypeReference<K12KbAccServiceOptions>() {}, this);
 
             LoadRetranslationData();
 
-            if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled) {
-                DigitsPadHackOptionsAppMarkers = keyoneKb2AccServiceOptions.DigitsPadPluginAppMarkers;
+            if(k12KbAccServiceOptions.DigitsPadPluginEnabled) {
+                DigitsPadHackOptionsAppMarkers = k12KbAccServiceOptions.DigitsPadPluginAppMarkers;
             }
 
-            if (!keyoneKb2AccServiceOptions.SearchPluginsEnabled)
+            if (!k12KbAccServiceOptions.SearchPluginsEnabled)
                 return;
             LoadSearchPluginData();
 
 
             AccessibilityServiceInfo info = getServiceInfo();
-            if (keyoneKb2AccServiceOptions.SearchPluginsEnabled) {
+            if (k12KbAccServiceOptions.SearchPluginsEnabled) {
                 //info.packageNames = SearchClickPackages.toArray(new String[SearchClickPackages.size()]);
                 info.packageNames = null;
                 //info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
@@ -187,7 +187,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType() +" "+event.getPackageName());
 
         try {
-            if(KeyoneIME.Instance == null)
+            if(K12KbIME.Instance == null)
                 return;
 
 
@@ -233,9 +233,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             //    return;
             //}
 
-            if(event.getPackageName() != null && !event.getPackageName().equals(KeyoneIME.Instance._lastPackageName))
+            if(event.getPackageName() != null && !event.getPackageName().equals(K12KbIME.Instance._lastPackageName))
                 return;
-            if(KeyoneIME.Instance.IsInputMode()) {
+            if(K12KbIME.Instance.IsInputMode()) {
                 if(CurFocus == null || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
                     CurFocus = GetFocusedNode(event.getSource());
                     if (CurFocus == null) {
@@ -272,19 +272,19 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             /** NOTE: Это затормаживает некоторые Web-приложения */
             //LogEventD(event);
 
-            if(keyoneKb2AccServiceOptions.DigitsPadPluginEnabled)
+            if(k12KbAccServiceOptions.DigitsPadPluginEnabled)
                 ProcessDigitsPadHack(event);
 
             if(
-                    (KeyoneIME.Instance._modeGestureAtViewMode == InputMethodServiceCoreGesture.GestureAtViewMode.Pointer
-                    || KeyoneIME.Instance.IsNavMode())
+                    (K12KbIME.Instance._modeGestureAtViewMode == InputMethodServiceCoreGesture.GestureAtViewMode.Pointer
+                    || K12KbIME.Instance.IsNavMode())
                     && (
-                    keyoneKb2AccServiceOptions.SelectedNodeClickHack
-                            || keyoneKb2AccServiceOptions.SelectedNodeHighlight
+                    k12KbAccServiceOptions.SelectedNodeClickHack
+                            || k12KbAccServiceOptions.SelectedNodeHighlight
             ))
                 ProcessGesturePointerModeAndNodeSelection(event);
 
-            if(keyoneKb2AccServiceOptions.SearchPluginsEnabled)
+            if(k12KbAccServiceOptions.SearchPluginsEnabled)
                 ProcessSearchPlugins(event);
 
         } catch (Throwable ex) {
@@ -302,14 +302,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     private void ProcessGesturePointerModeAndNodeSelection(AccessibilityEvent event) {
 
-        if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
-            Log.d(TAG3,"ProcessGesturePointerModeAndNodeSelection:KeyoneIME.Instance.IsInputMode()");
+        if(K12KbIME.Instance != null && K12KbIME.Instance.IsInputMode()) {
+            Log.d(TAG3,"ProcessGesturePointerModeAndNodeSelection:K12KbIME.Instance.IsInputMode()");
             SetCurrentNodeInfo(null);
             TryRemoveRectangle();
             return;
         }
 
-        if(KeyoneIME.Instance != null && !KeyoneIME.Instance.pref_pointer_mode_rect_and_autofocus) {
+        if(K12KbIME.Instance != null && !K12KbIME.Instance.pref_pointer_mode_rect_and_autofocus) {
             TryRemoveRectangleFast();
         }
 
@@ -349,14 +349,14 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             info = null;
         }
 
-        if (KeyoneIME.Instance != null
-                && (KeyoneIME.Instance._modeGestureAtViewMode == InputMethodServiceCoreGesture.GestureAtViewMode.Pointer || KeyoneIME.Instance.IsNavMode())
-                && !KeyoneIME.Instance.IsInputMode())
+        if (K12KbIME.Instance != null
+                && (K12KbIME.Instance._modeGestureAtViewMode == InputMethodServiceCoreGesture.GestureAtViewMode.Pointer || K12KbIME.Instance.IsNavMode())
+                && !K12KbIME.Instance.IsInputMode())
         {
 
             info = GetFocusedNode(info);
 
-            if(KeyoneIME.Instance != null && KeyoneIME.Instance.pref_pointer_mode_rect_and_autofocus && BrashFocuser) {
+            if(K12KbIME.Instance != null && K12KbIME.Instance.pref_pointer_mode_rect_and_autofocus && BrashFocuser) {
                 if (info == null) {
                     info = GetFocusedNode(getRootInActiveWindow());
                 }
@@ -377,7 +377,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 }
             }
 
-            if (keyoneKb2AccServiceOptions.SelectedNodeClickHack) {
+            if (k12KbAccServiceOptions.SelectedNodeClickHack) {
                 //Имитация click в приложениях (Telegram, BB.Hub) где не работает симуляция KEYCODE_ENTER/SPACE
                 if (info != null) {
                     PreparePointerClickHack(info);
@@ -385,8 +385,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     SetCurrentNodeInfo(null);
                 }
             }
-            if (keyoneKb2AccServiceOptions.SelectedNodeHighlight
-                    && KeyoneIME.Instance != null && KeyoneIME.Instance.pref_pointer_mode_rect_and_autofocus) {
+            if (k12KbAccServiceOptions.SelectedNodeHighlight
+                    && K12KbIME.Instance != null && K12KbIME.Instance.pref_pointer_mode_rect_and_autofocus) {
                 if (info != null) {
                     //if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
                     ProcessSelectionRectangle(info);
@@ -528,8 +528,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         public RectView(Context context) {
             super(context);
             int color = 0xFF86888A;
-            if(KeyoneIME.Instance != null)
-                color = KeyoneIME.Instance.pref_pointer_mode_rect_color;
+            if(K12KbIME.Instance != null)
+                color = K12KbIME.Instance.pref_pointer_mode_rect_color;
             paintMainer = new Paint();
             paintMainer.setColor(color);
             paintMainer.setStrokeWidth(3);
@@ -581,7 +581,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         @Override
         protected void onDraw(Canvas canvas) {
 
-            //Toast.makeText(KeyoneKb2AccessibilityService.Instance, "rectView.isHardwareAccelerated(): "+canvas.isHardwareAccelerated(), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(K12KbAccessibilityService.Instance, "rectView.isHardwareAccelerated(): "+canvas.isHardwareAccelerated(), Toast.LENGTH_SHORT).show();
             if(SelectedNode == null)
                 return;
 
@@ -706,8 +706,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
     private void SetCurrentNodeInfo(InputMethodServiceCoreCustomizable.AsNodeClicker info) {
-        if(KeyoneIME.Instance != null) {
-            KeyoneIME.Instance.SetCurrentNodeInfo(info);
+        if(K12KbIME.Instance != null) {
+            K12KbIME.Instance.SetCurrentNodeInfo(info);
         }
     }
 
@@ -718,8 +718,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     private void ProcessSearchPlugins(AccessibilityEvent event) {
 
-        if(KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
-            Log.d(TAG3, "ProcessSearchPlugins:KeyoneIME.Instance.IsInputMode()");
+        if(K12KbIME.Instance != null && K12KbIME.Instance.IsInputMode()) {
+            Log.d(TAG3, "ProcessSearchPlugins:K12KbIME.Instance.IsInputMode()");
             SetSearchHack(null);
             return;
         }
@@ -819,16 +819,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
     private String GetFromSetting(SearchClickPlugin plugin) {
-        keyoneKb2Settings.CheckSettingOrSetDefault(plugin.getPreferenceKey(), "");
-        return keyoneKb2Settings.GetStringValue(plugin.getPreferenceKey());
+        k12KbSettings.CheckSettingOrSetDefault(plugin.getPreferenceKey(), "");
+        return k12KbSettings.GetStringValue(plugin.getPreferenceKey());
     }
 
     private void SetToSetting(SearchClickPlugin plugin, String value) {
-        keyoneKb2Settings.SetStringValue(plugin.getPreferenceKey(), value);
+        k12KbSettings.SetStringValue(plugin.getPreferenceKey(), value);
     }
 
     public void ClearFromSettings(SearchClickPlugin plugin) {
-        keyoneKb2Settings.ClearFromSettings(plugin.getPreferenceKey());
+        k12KbSettings.ClearFromSettings(plugin.getPreferenceKey());
     }
 
     private void LogEventD(AccessibilityEvent event) {
@@ -906,31 +906,31 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
 
     private void SetSearchHack(SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData) {
-        if (KeyoneIME.Instance != null) {
-            KeyoneIME.Instance.SetSearchHack(searchPluginLaunchData);
+        if (K12KbIME.Instance != null) {
+            K12KbIME.Instance.SetSearchHack(searchPluginLaunchData);
         }
     }
 
     private void SetDigitsHack(boolean value) {
-        if (KeyoneIME.Instance != null) {
-            KeyoneIME.Instance.SetDigitsHack(value);
+        if (K12KbIME.Instance != null) {
+            K12KbIME.Instance.SetDigitsHack(value);
         }
     }
 
     private boolean IsSearchHackSet(String packageName, AccessibilityNodeInfo info) {
-        if (KeyoneIME.Instance == null)
+        if (K12KbIME.Instance == null)
             return false;
-        if(KeyoneIME.Instance.SearchPluginLauncher == null)
+        if(K12KbIME.Instance.SearchPluginLauncher == null)
             return false;
-        return KeyoneIME.Instance.SearchPluginLauncher.IsSameAsMine(packageName, info);
+        return K12KbIME.Instance.SearchPluginLauncher.IsSameAsMine(packageName, info);
     }
 
     private boolean IsSearchHackSet(String packageName) {
-        if (KeyoneIME.Instance == null)
+        if (K12KbIME.Instance == null)
             return false;
-        if(KeyoneIME.Instance.SearchPluginLauncher == null)
+        if(K12KbIME.Instance.SearchPluginLauncher == null)
             return false;
-        return KeyoneIME.Instance.SearchPluginLauncher.IsSameAsMine(packageName);
+        return K12KbIME.Instance.SearchPluginLauncher.IsSameAsMine(packageName);
     }
 
 
@@ -939,7 +939,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
     //region DIGITS-PAD
 
-    KeyoneKb2AccServiceOptions.DigitsPadHackOptionsAppMarker[] DigitsPadHackOptionsAppMarkers;
+    K12KbAccServiceOptions.DigitsPadHackOptionsAppMarker[] DigitsPadHackOptionsAppMarkers;
 
 
     private void ProcessDigitsPadHack(AccessibilityEvent event) {
@@ -948,8 +948,8 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                 event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
                         || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED
         ) {
-            if (KeyoneIME.Instance != null && KeyoneIME.Instance.IsInputMode()) {
-                Log.d(TAG3, " ProcessDigitsPadHack:KeyoneIME.Instance.IsInputMode()");
+            if (K12KbIME.Instance != null && K12KbIME.Instance.IsInputMode()) {
+                Log.d(TAG3, " ProcessDigitsPadHack:K12KbIME.Instance.IsInputMode()");
                 SetDigitsHack(false);
                 return;
             }
@@ -996,7 +996,7 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
         if(node == null)
             return false;
         for (int i = 0; i < DigitsPadHackOptionsAppMarkers.length; i++) {
-            KeyoneKb2AccServiceOptions.DigitsPadHackOptionsAppMarker marker = DigitsPadHackOptionsAppMarkers[i];
+            K12KbAccServiceOptions.DigitsPadHackOptionsAppMarker marker = DigitsPadHackOptionsAppMarkers[i];
             if(!marker.PackageName.equalsIgnoreCase(node.getPackageName().toString()))
                 continue;
             if(marker.DigitsPadMarkerNodeId == null)
@@ -1016,23 +1016,23 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     int[] RetranslateKeyCodes;
 
     private void LoadRetranslationData() throws NoSuchFieldException, IllegalAccessException {
-        if(keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty()) {
-            RetranslateKeyCodes = new int[keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.size()];
+        if(k12KbAccServiceOptions.RetranslateKeyboardKeyCodes != null && !k12KbAccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty()) {
+            RetranslateKeyCodes = new int[k12KbAccServiceOptions.RetranslateKeyboardKeyCodes.size()];
             int i = 0;
-            for (String keyCode: keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes) {
+            for (String keyCode: k12KbAccServiceOptions.RetranslateKeyboardKeyCodes) {
                 int keyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(keyCode);
 
                 //Не перехватываем HOME, BACK если не включена настройка защиты текста
                 //Т.к. этот перехват лишний раз может повлиять на отзывчивость этих функций
-                if(KeyoneIME.Instance != null && !KeyoneIME.Instance.pref_ensure_entered_text
+                if(K12KbIME.Instance != null && !K12KbIME.Instance.pref_ensure_entered_text
                     && (keyCodeInt == 3 || keyCodeInt == 4))
                     continue;
                 RetranslateKeyCodes[i] = keyCodeInt;
                 i++;
             }
         }
-        if(keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
-            for(KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList) {
+        if(k12KbAccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList != null && !k12KbAccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
+            for(K12KbAccServiceOptions.MetaKeyPlusKey pair : k12KbAccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList) {
                 pair.MetaKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.MetaKeyCode);
                 pair.KeyKeyCodeInt = FileJsonUtils.GetKeyCodeIntFromKeyEventOrInt(pair.KeyKeyCode);
             }
@@ -1043,9 +1043,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
     public synchronized boolean onKeyEvent(KeyEvent event) {
         Log.v(TAG3, "onKeyEvent() "+event);
 
-        if (KeyoneIME.Instance == null)
+        if (K12KbIME.Instance == null)
             return false;
-        if(keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes == null || keyoneKb2AccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty())
+        if(k12KbAccServiceOptions.RetranslateKeyboardKeyCodes == null || k12KbAccServiceOptions.RetranslateKeyboardKeyCodes.isEmpty())
             return false;
         try {
             //Это ХАК для BB Key2 НЕ_РСТ где кнопку SPEED_KEY переопределить нет возможности
@@ -1055,15 +1055,15 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
             if (IsRetranslateKeyCode(event)) {
                 KeyEvent event1 = GetCopy(event);
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                    return KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                    return K12KbIME.Instance.onKeyDown(event1.getKeyCode(), event1);
                 }
                 if (event.getAction() == KeyEvent.ACTION_UP) {
-                    return KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+                    return K12KbIME.Instance.onKeyUp(event1.getKeyCode(), event1);
                 }
             }
 
-            if(keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList != null && !keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
-                for (KeyoneKb2AccServiceOptions.MetaKeyPlusKey pair : keyoneKb2AccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList) {
+            if(k12KbAccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList != null && !k12KbAccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList.isEmpty()) {
+                for (K12KbAccServiceOptions.MetaKeyPlusKey pair : k12KbAccServiceOptions.RetranslateKeyboardMetaKeyPlusKeyList) {
                     if(pair.KeyKeyCodeInt != event.getKeyCode())
                         continue;
                     if(!IsMeta(event, pair.MetaKeyCodeInt))
@@ -1071,16 +1071,16 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
                     if (event.getAction() == KeyEvent.ACTION_DOWN) {
 
                         KeyEvent event1 = GetCopy(event);
-                        return KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                        return K12KbIME.Instance.onKeyDown(event1.getKeyCode(), event1);
 
                         /* Раньше работало только так, теперь заработало и по-нормальному
                         executorService.execute(
                                 () -> {
                                     try {
                                         KeyEvent event1 = GetCopy(event);
-                                        //Было sleep 100 из-за задержки в KeyoneIME относительно AS
+                                        //Было sleep 100 из-за задержки в K12KbIME относительно AS
                                         Thread.sleep(1);
-                                        KeyoneIME.Instance.onKeyDown(event1.getKeyCode(), event1);
+                                        K12KbIME.Instance.onKeyDown(event1.getKeyCode(), event1);
                                     } catch (Throwable ignored) {
                                     }
                                 });
@@ -1088,9 +1088,9 @@ public class KeyoneKb2AccessibilityService extends AccessibilityService {
 
                          */
                     } else if (event.getAction() == KeyEvent.ACTION_UP) {
-                        //executorService.execute(() -> {KeyoneIME.Instance.onKeyUp(event.getKeyCode(), event);});
+                        //executorService.execute(() -> {K12KbIME.Instance.onKeyUp(event.getKeyCode(), event);});
                         KeyEvent event1 = GetCopy(event);
-                        return KeyoneIME.Instance.onKeyUp(event1.getKeyCode(), event1);
+                        return K12KbIME.Instance.onKeyUp(event1.getKeyCode(), event1);
 
                     }
                 }

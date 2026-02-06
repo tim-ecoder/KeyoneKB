@@ -1479,8 +1479,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     }
 
     public boolean ActionTryRemoveSelectedNodeRectangle() {
-        if(KeyoneKb2AccessibilityService.Instance != null) {
-            return KeyoneKb2AccessibilityService.Instance.TryRemoveRectangle();
+        if(K12KbAccessibilityService.Instance != null) {
+            return K12KbAccessibilityService.Instance.TryRemoveRectangle();
             //return true;
         }
         return false;
@@ -1932,10 +1932,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if(!IsInputMode())
             return false;
         long methodCallTime = SystemClock.uptimeMillis();
-        if (KeyoneKb2AccessibilityService.Instance != null && KeyoneKb2AccessibilityService.Instance.CurFocus != null) {
+        if (K12KbAccessibilityService.Instance != null && K12KbAccessibilityService.Instance.CurFocus != null) {
 
             Log.v(TAG2, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK)");
-            boolean answer = KeyoneKb2AccessibilityService.Instance.CurFocus.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            boolean answer = K12KbAccessibilityService.Instance.CurFocus.performAction(AccessibilityNodeInfo.ACTION_CLICK);
             //Для случая уезжающего окна поиска как в Яндекс.Навигаторе плагин хватает поле, которое уже не существует
             if (!answer) {
                 Log.e(TAG2, "info.performAction(AccessibilityNodeInfo.ACTION_CLICK) == false");

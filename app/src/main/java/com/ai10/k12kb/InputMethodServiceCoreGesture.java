@@ -41,7 +41,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
 
     protected boolean KeyHoldPlusGestureEnabled;
 
-    protected KeyoneKb2Settings keyoneKb2Settings;
+    protected K12KbSettings k12KbSettings;
 
     //public boolean pref_keyboard_gestures_at_views_enable = true;
 
@@ -652,12 +652,12 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         if(_lastPackageName == null || _lastPackageName.equals(""))
             return GESTURE_MODE_AT_VIEW_MODE_DEFAULT;
         String prefName = GESTURE_AT_VIEW_MODE_PREFIX +_lastPackageName;
-        keyoneKb2Settings.CheckSettingOrSetDefault(prefName, GESTURE_MODE_AT_VIEW_MODE_DEFAULT.name());
-        return GestureAtViewMode.valueOf(keyoneKb2Settings.GetStringValue(prefName));
+        k12KbSettings.CheckSettingOrSetDefault(prefName, GESTURE_MODE_AT_VIEW_MODE_DEFAULT.name());
+        return GestureAtViewMode.valueOf(k12KbSettings.GetStringValue(prefName));
     }
 
     protected void SetGestureDefaultPointerMode(String packageName, GestureAtViewMode value) {
-        keyoneKb2Settings.SetStringValue(GESTURE_AT_VIEW_MODE_PREFIX +packageName, value.name());
+        k12KbSettings.SetStringValue(GESTURE_AT_VIEW_MODE_PREFIX +packageName, value.name());
     }
 
     public GestureAtViewMode _modeGestureAtViewMode = GESTURE_MODE_AT_VIEW_MODE_DEFAULT;

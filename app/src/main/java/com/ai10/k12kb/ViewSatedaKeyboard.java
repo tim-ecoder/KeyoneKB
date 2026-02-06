@@ -57,7 +57,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
     private boolean modeNavFn = false;
     private boolean showFlag = false;
 
-    private KeyoneIME mService;
+    private K12KbIME mService;
 
     private OverKeyboardPopupWindow mPopupKeyboard;
     private int mPopupLayout;
@@ -113,7 +113,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
             LoadMappingFile(context);
     }
 
-    public void setService(KeyoneIME listener) {
+    public void setService(K12KbIME listener) {
         mService = listener;
         mMiniKeyboard = new ViewPopupScreenKeyboard(context,attrs);
     }

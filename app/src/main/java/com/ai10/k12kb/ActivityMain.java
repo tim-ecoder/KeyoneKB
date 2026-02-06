@@ -19,7 +19,7 @@ import static com.ai10.k12kb.ActivitySettings.*;
 import static com.ai10.k12kb.BuildConfig.*;
 import static com.ai10.k12kb.KeyboardLayoutManager.Instance;
 import static com.ai10.k12kb.KeyboardLayoutManager.getDeviceFullMODEL;
-import static com.ai10.k12kb.KeyoneKb2Settings.*;
+import static com.ai10.k12kb.K12KbSettings.*;
 
 public class ActivityMain extends Activity {
 
@@ -27,7 +27,7 @@ public class ActivityMain extends Activity {
 
     private Button btn_sys_phone_permission;
 
-    private KeyoneKb2Settings keyoneKb2Settings;
+    private K12KbSettings k12KbSettings;
 
     Button btn_sys_kb_accessibility_setting;
 
@@ -45,7 +45,7 @@ public class ActivityMain extends Activity {
 
         _this_act = this;
         setContentView(R.layout.activity_main);
-        keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
         Button btn_settings = (Button) findViewById(R.id.btn_settings);
         Button btn_test_key = (Button) findViewById(R.id.btn_test_key);
         btn_power_manager = (Button) findViewById(R.id.btn_power_manager);
@@ -198,9 +198,9 @@ public class ActivityMain extends Activity {
     {
         if(FileJsonUtils.JsonsExist(RES_KEYBOARD_LAYOUTS)) return true;
         if(FileJsonUtils.JsonsExist(RES_KEYBOARD_CORE)) return true;
-        if(KeyoneIME.Instance != null)
-            if(FileJsonUtils.JsonsExist(KeyoneIME.Instance.keyboard_mechanics_res)) return true;
-        if(FileJsonUtils.JsonsExist(KeyoneKb2AccessibilityService.KeyoneKb2AccServiceOptions.ResName)) return true;
+        if(K12KbIME.Instance != null)
+            if(FileJsonUtils.JsonsExist(K12KbIME.Instance.keyboard_mechanics_res)) return true;
+        if(FileJsonUtils.JsonsExist(K12KbAccessibilityService.K12KbAccServiceOptions.ResName)) return true;
         if(Instance == null)
             return false;
         for (KeyboardLayout keyboardLayout: Instance.KeyboardLayoutList) {
@@ -230,7 +230,7 @@ public class ActivityMain extends Activity {
     void ChangeKeyboard() {
         if(!isKbEnabled())
             return;
-        if (!Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD).contains(".KeyoneIME")) {
+        if (!Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD).contains(".K12KbIME")) {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             if(imm != null) {
                 Handler handler = new Handler(Looper.getMainLooper());
@@ -300,7 +300,7 @@ public class ActivityMain extends Activity {
     }
 
     private void CheckCallPermissionState(boolean andRequest) {
-        if(keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_6_MANAGE_CALL)) {
+        if(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_6_MANAGE_CALL)) {
             //CALL_PHONE
 
             if (ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {

@@ -15,8 +15,8 @@ public class IntentQuickSettings extends AppCompatActivity {
         //final Intent intent = new Intent(Settings.System.);
         //sendBroadcast();
 
-        if(KeyoneKb2AccessibilityService.Instance != null)
-            KeyoneKb2AccessibilityService.Instance.IntentQuickSettings();
+        if(K12KbAccessibilityService.Instance != null)
+            K12KbAccessibilityService.Instance.IntentQuickSettings();
 
 
         //startActivity(intent);

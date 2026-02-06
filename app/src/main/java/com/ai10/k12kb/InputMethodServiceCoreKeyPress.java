@@ -60,7 +60,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
 
     List<KeyPressData> KeyDownList1 = new ArrayList<>();
 
-    public static final String TAG2 = "KeyoneKb2-IME";
+    public static final String TAG2 = "K12Kb-IME";
 
     protected HashMap<Integer, KeyProcessingMode> mainModeKeyProcessorsMap = new HashMap<Integer, KeyProcessingMode>();
     protected HashMap<Integer, KeyProcessingMode> navKeyProcessorsMap = new HashMap<Integer, KeyProcessingMode>();
@@ -71,7 +71,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
     KeyPressData LastShortPressKey1 = null;
     KeyPressData LastDoublePressKey = null;
 
-    KeyoneKb2Settings.CoreKeyboardSettings CoreKeyboardSettings;
+    K12KbSettings.CoreKeyboardSettings CoreKeyboardSettings;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("ClickableViewAccessibility")
@@ -80,7 +80,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         super.onCreate();
 
         try {
-            CoreKeyboardSettings = FileJsonUtils.DeserializeFromJsonApplyPatches(KeyoneKb2Settings.CoreKeyboardSettingsResFileName, new TypeReference<KeyoneKb2Settings.CoreKeyboardSettings>() {}, this);
+            CoreKeyboardSettings = FileJsonUtils.DeserializeFromJsonApplyPatches(K12KbSettings.CoreKeyboardSettingsResFileName, new TypeReference<K12KbSettings.CoreKeyboardSettings>() {}, this);
         } catch (Exception e) {
             Log.e(TAG2, "onCreate exception: "+e);
             FileJsonUtils.LogErrorToGui("onCreate exception: "+e);
@@ -304,7 +304,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         if (keyProcessingMode.IsShortPressOnly()) {
             KeyPressData keyPressData = FindAtKeyDownList(keyCode, scanCode);
             if(keyPressData == null) {
-                Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
+                Log.w(TAG2, "NO KEY_DOWN AT K12KB. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
                 return false;
             }
             RemoveFromKeyDownList(keyPressData);
@@ -315,7 +315,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         if(keyProcessingMode.IsShortDoublePressMode()) {
             KeyPressData keyPressData = FindAtKeyDownList(keyCode, scanCode);
             if(keyPressData == null) {
-                Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
+                Log.w(TAG2, "NO KEY_DOWN AT K12KB. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
                 return false;
             }
             RemoveFromKeyDownList(keyPressData);
@@ -329,7 +329,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         if(keyProcessingMode.IsLetterShortDoubleLongPressMode()) {
             KeyPressData keyPressData = FindAtKeyDownList(keyCode, scanCode);
             if(keyPressData == null) {
-                Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
+                Log.w(TAG2, "NO KEY_DOWN AT K12KB. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
                 return false;
             }
             RemoveFromKeyDownList(keyPressData);
@@ -343,7 +343,7 @@ public class InputMethodServiceCoreKeyPress extends InputMethodService {
         if(keyProcessingMode.IsMetaShortDoubleHoldPlusButtonPressMode()) {
             KeyPressData keyPressData = FindAtKeyDownList(keyCode, scanCode);
             if(keyPressData == null) {
-                Log.w(TAG2, "NO KEY_DOWN AT KEYONEKB2. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
+                Log.w(TAG2, "NO KEY_DOWN AT K12KB. FOREIGN (?) KEY. KEY_CODE: "+keyCode+" IGNORING.");
                 return false;
             }
 

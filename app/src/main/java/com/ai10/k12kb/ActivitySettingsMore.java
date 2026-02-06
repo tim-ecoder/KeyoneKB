@@ -20,10 +20,10 @@ import java.util.List;
 import static com.ai10.k12kb.ActivitySettings.REQUEST_PERMISSION_CODE;
 import static com.ai10.k12kb.FileJsonUtils.*;
 import static com.ai10.k12kb.KeyboardLayoutManager.Instance;
-import static com.ai10.k12kb.KeyoneKb2Settings.*;
+import static com.ai10.k12kb.K12KbSettings.*;
 
 public class ActivitySettingsMore extends Activity {
-    private KeyoneKb2Settings keyoneKb2Settings;
+    private K12KbSettings k12KbSettings;
 
     Button btSave;
     Button btSavePluginData;
@@ -34,7 +34,7 @@ public class ActivitySettingsMore extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        keyoneKb2Settings = KeyoneKb2Settings.Get(getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
 
         setContentView(R.layout.activity_more_settings);
 
@@ -102,15 +102,15 @@ public class ActivitySettingsMore extends Activity {
 
             }
 
-            keyoneKb2Settings.CheckSettingOrSetDefault(jsPatch, keyoneKb2Settings.JS_PATCH_IS_ENABLED_DEFAULT);
-            boolean enabled = keyoneKb2Settings.GetBooleanValue(jsPatch);
+            k12KbSettings.CheckSettingOrSetDefault(jsPatch, k12KbSettings.JS_PATCH_IS_ENABLED_DEFAULT);
+            boolean enabled = k12KbSettings.GetBooleanValue(jsPatch);
             jsPatchSwitch.setChecked(enabled);
             jsPatchSwitch.setText(jsPatch);
 
             jsPatchSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    keyoneKb2Settings.SetBooleanValue(jsPatch, isChecked);
+                    k12KbSettings.SetBooleanValue(jsPatch, isChecked);
                 }
             });
 
@@ -145,7 +145,7 @@ public class ActivitySettingsMore extends Activity {
 
     private void RedrawViewData() {
 
-        if(KeyoneKb2AccessibilityService.Instance == null) {
+        if(K12KbAccessibilityService.Instance == null) {
             btSavePluginData.setText("NEED ENABLE ACCESSIBILITY");
             btSavePluginData.setEnabled(false);
         } else {
@@ -163,7 +163,7 @@ public class ActivitySettingsMore extends Activity {
 
     private void SavePluginData() {
 
-        if(KeyoneKb2AccessibilityService.Instance == null) {
+        if(K12KbAccessibilityService.Instance == null) {
             return;
         }
 
@@ -172,10 +172,10 @@ public class ActivitySettingsMore extends Activity {
 
             SearchClickPlugin.SearchClickPluginData data = new SearchClickPlugin.SearchClickPluginData();
 
-            data.DefaultSearchWords = KeyoneKb2AccessibilityService.Instance.DefaultSearchWords;
+            data.DefaultSearchWords = K12KbAccessibilityService.Instance.DefaultSearchWords;
 
-            SaveSearchClickPluginData(KeyoneKb2AccessibilityService.Instance.DefaultSearchWords, KeyoneKb2AccessibilityService.Instance.searchClickPlugins, data.SearchPlugins);
-            SaveSearchClickPluginData(KeyoneKb2AccessibilityService.Instance.DefaultSearchWords, KeyoneKb2AccessibilityService.Instance.clickerPlugins, data.ClickerPlugins);
+            SaveSearchClickPluginData(K12KbAccessibilityService.Instance.DefaultSearchWords, K12KbAccessibilityService.Instance.searchClickPlugins, data.SearchPlugins);
+            SaveSearchClickPluginData(K12KbAccessibilityService.Instance.DefaultSearchWords, K12KbAccessibilityService.Instance.clickerPlugins, data.ClickerPlugins);
 
             FileJsonUtils.SerializeToFile(data, RES_PLUGIN_DATA + JsonFileExt);
             btSavePluginData.setText(FileJsonUtils.PATH_DEF);
@@ -269,8 +269,8 @@ public class ActivitySettingsMore extends Activity {
 
         path = FileJsonUtils.SaveJsonResToFile(RES_KEYBOARD_LAYOUTS, getApplicationContext());
         path = FileJsonUtils.SaveJsonResToFile(RES_KEYBOARD_CORE, getApplicationContext());
-        path = FileJsonUtils.SaveJsonResToFile(KeyoneIME.Instance.keyboard_mechanics_res, getApplicationContext());
-        path = FileJsonUtils.SaveJsonResToFile(KeyoneKb2AccessibilityService.KeyoneKb2AccServiceOptions.ResName, getApplicationContext());
+        path = FileJsonUtils.SaveJsonResToFile(K12KbIME.Instance.keyboard_mechanics_res, getApplicationContext());
+        path = FileJsonUtils.SaveJsonResToFile(K12KbAccessibilityService.K12KbAccServiceOptions.ResName, getApplicationContext());
         for (KeyboardLayout keyboardLayout: Instance.KeyboardLayoutList) {
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.Resources.KeyboardMapping, getApplicationContext());
             path = FileJsonUtils.SaveJsonResToFile(keyboardLayout.AltModeLayout, getApplicationContext());

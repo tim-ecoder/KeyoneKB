@@ -13,9 +13,9 @@ public class NotificationProcessor {
 
     public static final int NOTIFICATION_ID1 = 1;
     public static final int NOTIFICATION_ID2 = 2;
-    private final String gestureModeChannelId1 = "KeyoneKb2_NotificationChannel_GestureMode";
+    private final String gestureModeChannelId1 = "K12Kb_NotificationChannel_GestureMode";
     private String gestureModeChannelDescription;
-    private final String layoutModeChannelId1 = "KeyoneKb2_NotificationChannel_KeyboardLayout";
+    private final String layoutModeChannelId1 = "K12Kb_NotificationChannel_KeyboardLayout";
     private String layoutModeChannelDescription;
     private android.support.v4.app.NotificationCompat.Builder builderLayout;
     private Notification.Builder builder2Layout;

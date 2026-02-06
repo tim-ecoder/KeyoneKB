@@ -3,7 +3,7 @@ package com.ai10.k12kb;
 import android.content.SharedPreferences;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class KeyoneKb2Settings {
+public class K12KbSettings {
 
     public static final String APP_PREFERENCES = "kbsettings";
 
@@ -31,12 +31,12 @@ public class KeyoneKb2Settings {
 
     public final boolean KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT = false;
     public final boolean JS_PATCH_IS_ENABLED_DEFAULT = false;
-    private static KeyoneKb2Settings _instance;
+    private static K12KbSettings _instance;
     SharedPreferences _mSettings;
 
-    public static KeyoneKb2Settings Get(SharedPreferences mSettings) {
+    public static K12KbSettings Get(SharedPreferences mSettings) {
         if (_instance == null) {
-            _instance = new KeyoneKb2Settings(mSettings);
+            _instance = new K12KbSettings(mSettings);
         }
         return _instance;
     }
@@ -65,7 +65,7 @@ public class KeyoneKb2Settings {
         }
     }
 
-    private KeyoneKb2Settings(SharedPreferences mSettings) {
+    private K12KbSettings(SharedPreferences mSettings) {
         _mSettings = mSettings;
         CheckSettingOrSetDefault(APP_PREFERENCES_1_SENS_BOTTOM_BAR, 1);
         CheckSettingOrSetDefault(APP_PREFERENCES_2_SHOW_TOAST, false);

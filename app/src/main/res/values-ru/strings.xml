@@ -52,7 +52,7 @@
     <string name="pref_p_13_hint">\tКогда "родная" подсветка выделенного элемента интерфейса не очень видна.\n
         \tКроме того, без этого иногда совсем не понятно, где именно сейчас фокус.</string>
     <string name="pref_p_13a_name">13A. Выбор цвета рамки из п.13</string>
-    <string name="pref_p_13a_hint">\tЧтобы настройки цвета применились надо передернуть Спец.сервис KeyoneKB2</string>
+    <string name="pref_p_13a_hint">\tЧтобы настройки цвета применились надо передернуть Спец.сервис K12KB</string>
     <string name="pref_p_14_name">14. Показывать наэкранный NAV-pad при удержании SYM</string>
     <string name="pref_p_14_hint">\tМожно отключить, когда NAV-режимом пользуешься через хард-клаву и все запомнил.\n
     \tКроме того, если на этой же кнопке висит другая функция (например, смена языка), чтобы каждый раз не бесил вылезающий NAV-pad.</string>
@@ -71,7 +71,7 @@
     <string name="notification_kb_state_gesture_input_list">Режим перелистывания (scroll)</string>
     <string name="notification_kb_state_gesture_pointer">Режим перемещения указателя</string>
     <string name="notification_kb_state_digits_pad">Циферная панель (номеронабиратель)</string>
-    <string name="keyonekb_accessibility_service_description">Помогает KeyoneKB2 понять в каком поле находится курсор для вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.).\n
+    <string name="k12kb_accessibility_service_description">Помогает K12KB понять в каком поле находится курсор для вызова окон поиска (для поиска при входе и наборе в BB Contacts, Dialer, Telegram и пр.).\n
     Кроме того, _обязательно_ включить, чтобы на Blackberry Key2 _НЕ_ РСТ SpeedKey работал как CTRL.\n
     Кроме того, через него работает режим прокрутки (scroll) в полях ввода, выделение в режиме указателя и клик на выделенное пробелом.</string>
     <string name="pref_more_tv_search_plugins_title">ПОИСКОВЫЕ ПЛАГИНЫ</string>

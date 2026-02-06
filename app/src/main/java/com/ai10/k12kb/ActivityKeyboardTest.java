@@ -30,16 +30,16 @@ public class ActivityKeyboardTest extends Activity implements InputMethodService
 
 
     public void onStop() {
-        KeyoneIME.IS_KEYBOARD_TEST = false;
-        KeyoneIME.DEBUG_TEXT = "";
+        K12KbIME.IS_KEYBOARD_TEST = false;
+        K12KbIME.DEBUG_TEXT = "";
         super.onStop();
     }
 
     public void onCreate(Bundle paramBundle) {
         super.onCreate(paramBundle);
         setContentView(R.layout.activity_keyboard_test);
-        KeyoneIME.IS_KEYBOARD_TEST = true;
-        KeyoneIME.DEBUG_UPDATE = this;
+        K12KbIME.IS_KEYBOARD_TEST = true;
+        K12KbIME.DEBUG_UPDATE = this;
 
         this.debugView = (TextView)findViewById(R.id.debug_info_data);
         this.debugView.setMovementMethod(new ScrollingMovementMethod());
@@ -119,8 +119,8 @@ public class ActivityKeyboardTest extends Activity implements InputMethodService
     }
 
     private void RedrawDebug() {
-        if(!KeyoneIME.DEBUG_TEXT.isEmpty()) {
-            this.debugView.setText(KeyoneIME.DEBUG_TEXT);
+        if(!K12KbIME.DEBUG_TEXT.isEmpty()) {
+            this.debugView.setText(K12KbIME.DEBUG_TEXT);
             debugScrollView.post(new Runnable() {
                 @Override
                 public void run() {

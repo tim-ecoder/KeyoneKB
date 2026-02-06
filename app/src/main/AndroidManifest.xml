@@ -35,7 +35,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".KeyoneIME"
+            android:name=".K12KbIME"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:directBootAware="false"
@@ -45,17 +45,17 @@
             </intent-filter>
             <meta-data
                 android:name="android.view.im"
-                android:resource="@xml/keyonekb_input_method" />
+                android:resource="@xml/k12kb_input_method" />
         </service>
-        <service android:name=".KeyoneKb2AccessibilityService"
+        <service android:name=".K12KbAccessibilityService"
                  android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-                 android:label="@string/keyonekb_accessibility_service_label">
+                 android:label="@string/k12kb_accessibility_service_label">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data
                     android:name="android.accessibilityservice"
-                    android:resource="@xml/keyonekb_accessibility_service_config"
+                    android:resource="@xml/k12kb_accessibility_service_config"
                      />
         </service>
         <activity

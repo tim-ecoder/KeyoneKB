@@ -62,8 +62,8 @@ android {
     }
     applicationVariants.all { variant ->
         variant.outputs.all {
-            //outputFileName = "KeyoneKB2-${variant.name}-${variant.versionName}.apk"
-            outputFileName = "KeyoneKB2-${variant.versionName}.apk"
+            //outputFileName = "K12KB-${variant.name}-${variant.versionName}.apk"
+            outputFileName = "K12KB-${variant.versionName}.apk"
         }
     }
 

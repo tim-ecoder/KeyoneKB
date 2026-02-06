@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.ai10.k12kb.KeyoneKb2AccessibilityService.TAG3;
+import static com.ai10.k12kb.K12KbAccessibilityService.TAG3;
 
 public class SearchClickPlugin {
 
@@ -16,13 +16,13 @@ public class SearchClickPlugin {
 
     int _events = 0;
 
-    KeyoneKb2AccessibilityService.NodeClickableConverter _converter;
+    K12KbAccessibilityService.NodeClickableConverter _converter;
 
     public ArrayList<SearchClickPluginData.DynamicSearchMethod> DynamicSearchMethod;
 
     public int WaitBeforeSendChar;
 
-    public void setConverter(KeyoneKb2AccessibilityService.NodeClickableConverter converter) {
+    public void setConverter(K12KbAccessibilityService.NodeClickableConverter converter) {
         _converter = converter;
     }
 
@@ -91,7 +91,7 @@ public class SearchClickPlugin {
 
     private AccessibilityNodeInfo findIdAll(AccessibilityNodeInfo root) {
 
-        for (String searchWord : KeyoneKb2AccessibilityService.Instance.DefaultSearchWords) {
+        for (String searchWord : K12KbAccessibilityService.Instance.DefaultSearchWords) {
 
             AccessibilityNodeInfo info = FindFirstByTextRecursive(root, searchWord);
             if (info != null) {

@@ -30,7 +30,7 @@ public class FileJsonUtils {
 
     public static String PATH;
     public static String PATH_DEF;
-    public static String APP_FILES_DIR = "KeyoneKb2";
+    public static String APP_FILES_DIR = "K12Kb";
     public static String DEFAULT_FOLDER = "default";
     public static String JsonFileExt = ".json";
     public static String JsFileExt = ".js";
@@ -180,7 +180,7 @@ public class FileJsonUtils {
 
         T object = null;
         Context psc = GetContext(context);
-        KeyoneKb2Settings keyoneKb2Settings = KeyoneKb2Settings.Get(psc.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
+        K12KbSettings k12KbSettings = K12KbSettings.Get(psc.getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
         List<String> JsPatches = new ArrayList<>();
         JsPatchesMap.put(resName, JsPatches);
         String noFolderName = ResNameNoFolder(resName);
@@ -195,7 +195,7 @@ public class FileJsonUtils {
                 if(jsFiles != null) {
                     for (File jsPatch : jsFiles) {
                         JsPatches.add(jsPatch.getName());
-                        if (keyoneKb2Settings.GetBooleanValue(jsPatch.getName()))
+                        if (k12KbSettings.GetBooleanValue(jsPatch.getName()))
                             jsFilesActive.add(jsPatch);
                     }
                 }
@@ -324,7 +324,7 @@ public class FileJsonUtils {
             // move the existing preferences to the new device protected
             // storage area, which is where the data lives from now on.
             final Context deviceContext = context.createDeviceProtectedStorageContext();
-            if (!deviceContext.moveSharedPreferencesFrom(context, KeyoneKb2Settings.APP_PREFERENCES)) {
+            if (!deviceContext.moveSharedPreferencesFrom(context, K12KbSettings.APP_PREFERENCES)) {
                 Log.w(TAG, "Failed to migrate shared preferences.");
             }
             return deviceContext;
@@ -334,11 +334,11 @@ public class FileJsonUtils {
     }
 
     public static void LogErrorToGui(String text) {
-        KeyoneIME.DEBUG_TEXT += "\r\n";
-        KeyoneIME.DEBUG_TEXT += text;
-        KeyoneIME.DEBUG_TEXT += "\r\n";
-        if(KeyoneIME.DEBUG_UPDATE != null)
-            KeyoneIME.DEBUG_UPDATE.DebugUpdated();
+        K12KbIME.DEBUG_TEXT += "\r\n";
+        K12KbIME.DEBUG_TEXT += text;
+        K12KbIME.DEBUG_TEXT += "\r\n";
+        if(K12KbIME.DEBUG_UPDATE != null)
+            K12KbIME.DEBUG_UPDATE.DebugUpdated();
     }
 
     public static boolean SleepWithWakes(int sleep_lim) {

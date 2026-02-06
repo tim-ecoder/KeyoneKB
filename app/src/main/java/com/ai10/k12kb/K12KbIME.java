@@ -38,13 +38,13 @@ import static android.content.ContentValues.TAG;
 import static com.ai10.k12kb.FileJsonUtils.GetContext;
 import static com.ai10.k12kb.KeyboardLayoutManager.IsCurrentDevice;
 import static com.ai10.k12kb.KeyboardLayoutManager.getDeviceFullMODEL;
-import static com.ai10.k12kb.KeyoneKb2Settings.RES_KEYBOARD_MECHANICS_DEFAULT;
+import static com.ai10.k12kb.K12KbSettings.RES_KEYBOARD_MECHANICS_DEFAULT;
 
 @Keep
-public class KeyoneIME extends InputMethodServiceCoreCustomizable implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
+public class K12KbIME extends InputMethodServiceCoreCustomizable implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
 
 
-    public static KeyoneIME Instance;
+    public static K12KbIME Instance;
 
 
 
@@ -141,7 +141,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
             }
             Context psc = GetContext(this);
 
-            keyoneKb2Settings = KeyoneKb2Settings.Get(psc.getSharedPreferences(KeyoneKb2Settings.APP_PREFERENCES, Context.MODE_PRIVATE));
+            k12KbSettings = K12KbSettings.Get(psc.getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
 
             TIME_VIBRATE = CoreKeyboardSettings.TimeVibrate;
 
@@ -201,7 +201,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     private void LoadShortcuts() {
 
-        Context c = KeyoneIME.Instance;
+        Context c = K12KbIME.Instance;
 
         ShortcutInfo dsQuickSettings = new ShortcutInfo.Builder(c, "shct_id_QuickSettings")
                 .setShortLabel("Show quick settings")
@@ -1219,22 +1219,22 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
     private void LoadSettingsAndKeyboards(String deviceFullMODEL) throws Exception {
 
-        pref_gesture_motion_sensitivity = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
-        pref_show_toast = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_2_SHOW_TOAST);
-        pref_alt_space = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_3_ALT_SPACE);
-        preference_show_flag = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_4_FLAG);
-        pref_long_press_key_alt_symbol = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_5_LONG_PRESS_ALT);
-        pref_manage_call = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_6_MANAGE_CALL);
-        pref_swipe_panel_height = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
-        pref_show_default_onscreen_keyboard = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
-        pref_gesture_mode_at_view_mode = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE);
+        pref_gesture_motion_sensitivity = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_1_SENS_BOTTOM_BAR);
+        pref_show_toast = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_2_SHOW_TOAST);
+        pref_alt_space = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_3_ALT_SPACE);
+        preference_show_flag = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_4_FLAG);
+        pref_long_press_key_alt_symbol = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_5_LONG_PRESS_ALT);
+        pref_manage_call = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_6_MANAGE_CALL);
+        pref_swipe_panel_height = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_7_HEIGHT_BOTTOM_BAR);
+        pref_show_default_onscreen_keyboard = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_8_SHOW_SWIPE_PANEL);
+        pref_gesture_mode_at_view_mode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_9_GESTURE_MODE_AT_VIEW_MODE);
         SetGestureModeAtViewModeDefault();
-        pref_system_icon_no_notification_text = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
-        pref_vibrate_on_key_down = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN);
-        pref_ensure_entered_text = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT);
-        pref_pointer_mode_rect_and_autofocus = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_13_POINTER_MODE_RECT);
-        pref_pointer_mode_rect_color = keyoneKb2Settings.GetIntValue(keyoneKb2Settings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
-        pref_nav_pad_on_hold = keyoneKb2Settings.GetBooleanValue(keyoneKb2Settings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD);
+        pref_system_icon_no_notification_text = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_10_NOTIFICATION_ICON_SYSTEM);
+        pref_vibrate_on_key_down = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_11_VIBRATE_ON_KEY_DOWN);
+        pref_ensure_entered_text = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_12_ENSURE_ENTERED_TEXT);
+        pref_pointer_mode_rect_and_autofocus = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_13_POINTER_MODE_RECT);
+        pref_pointer_mode_rect_color = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
+        pref_nav_pad_on_hold = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD);
 
         keyboard_mechanics_res = null;
 
@@ -1251,7 +1251,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 if (!isDevice)
                     continue;
             }
-            keyoneKb2Settings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), keyoneKb2Settings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
+            k12KbSettings.CheckSettingOrSetDefault(keyboardLayoutOptions.getPreferenceName(), k12KbSettings.KEYBOARD_LAYOUT_IS_ENABLED_DEFAULT);
 
             if (keyboard_mechanics_res == null) {
                 if (keyboardLayoutOptions.CustomKeyboardMechanics != null && !keyboardLayoutOptions.CustomKeyboardMechanics.isEmpty()) {
@@ -1261,7 +1261,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 }
             }
 
-            boolean enabled = keyoneKb2Settings.GetBooleanValue(keyboardLayoutOptions.getPreferenceName());
+            boolean enabled = k12KbSettings.GetBooleanValue(keyboardLayoutOptions.getPreferenceName());
             if (enabled) {
                 activeLayouts.add(keyboardLayoutOptions);
             }
@@ -1273,7 +1273,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
 
         if(activeLayouts.isEmpty()) {
             KeyboardLayout.KeyboardLayoutOptions defLayout = allLayouts.get(0);
-            keyoneKb2Settings.SetBooleanValue(defLayout.getPreferenceName(), true);
+            k12KbSettings.SetBooleanValue(defLayout.getPreferenceName(), true);
             activeLayouts.add(defLayout);
         }
         keyboardLayoutManager.Initialize(activeLayouts, getResources(), getApplicationContext());

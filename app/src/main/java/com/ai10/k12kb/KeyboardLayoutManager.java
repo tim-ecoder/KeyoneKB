@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 import static com.ai10.k12kb.FileJsonUtils.DeserializeFromJsonApplyPatches;
 import static com.ai10.k12kb.InputMethodServiceCoreKeyPress.TAG2;
-import static com.ai10.k12kb.KeyoneKb2Settings.RES_KEYBOARD_LAYOUTS;
+import static com.ai10.k12kb.K12KbSettings.RES_KEYBOARD_LAYOUTS;
 
 public class KeyboardLayoutManager {
 
