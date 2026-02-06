@@ -40,7 +40,8 @@ public class ViewSatedaKeyboard extends KeyboardView {
     enum SatedaKeyboardMode {
         SwipePanel,
         NavPad,
-        SymPad
+        SymPad,
+        EmojiPad
     }
 
     private SatedaKeyboardMode mode;
@@ -358,10 +359,57 @@ public class ViewSatedaKeyboard extends KeyboardView {
         }
     }
     
+    // --- Emoji Pad ---
+    private int emojiPage = 0;
+    private HashMap<Integer, String> emojiKeyMap = new HashMap<>();
+
+    public void prepareEmojiLayer(int page) {
+        mode = SatedaKeyboardMode.EmojiPad;
+        emojiPage = page;
+        emojiKeyMap.clear();
+
+        String[] emojis = EmojiData.getPage(page);
+        List<Keyboard.Key> keys = getKeyboard().getKeys();
+        int emojiIndex = 0;
+
+        for (Keyboard.Key key : keys) {
+            if (key.codes == null || key.codes.length == 0) continue;
+            int code = key.codes[0];
+            if (code == -7 || code == -5 || code == -4) continue;
+
+            if (emojiIndex < emojis.length) {
+                emojiKeyMap.put(code, emojis[emojiIndex]);
+                key.label = " ";
+                emojiIndex++;
+            }
+        }
+
+        for (Keyboard.Key key : keys) {
+            if (key.codes != null && key.codes.length > 0 && key.codes[0] == -7) {
+                key.label = (page < EmojiData.getPageCount() - 1) ? "\u25B6" : "SYM";
+                key.icon = null;
+            }
+        }
+
+        invalidateAllKeys();
+    }
+
+    public boolean isEmojiMode() {
+        return mode == SatedaKeyboardMode.EmojiPad;
+    }
+
+    public int getEmojiPage() {
+        return emojiPage;
+    }
+
+    public String getEmojiForKey(int keyCode) {
+        return emojiKeyMap.get(keyCode);
+    }
+
     private int scaleX(int x) {
         return Math.round(scaleWidthX*x);
     }
-    
+
     private int scaleY(int y) {
         return Math.round(scaleHeightY*y);
     }
@@ -372,7 +420,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
         Log.d(TAG2, "onLongPress "+popupKey.label);
 
         if(mode != SatedaKeyboardMode.SymPad)
-            return false;
+            return mode == SatedaKeyboardMode.EmojiPad;
 
         int popupX = 0;
 
@@ -557,6 +605,34 @@ public class ViewSatedaKeyboard extends KeyboardView {
 
             for (NavKeyExtraData nkd: NavKeyDataList) {
                 canvas.drawText(nkd.KeyLabel, nkd.KeyLabelX, nkd.KeyLabelY, paint_gray);
+            }
+        }
+        else if(mode == SatedaKeyboardMode.EmojiPad) {
+
+            Paint emojiPaint = new Paint();
+            emojiPaint.setTextAlign(Paint.Align.CENTER);
+            emojiPaint.setTextSize(Math.round(scaleWidthX * 50));
+            emojiPaint.setAntiAlias(true);
+
+            for (Keyboard.Key key : keys) {
+                if (key.codes == null || key.codes.length == 0) continue;
+                String emoji = emojiKeyMap.get(key.codes[0]);
+                if (emoji != null) {
+                    canvas.drawText(emoji, key.x + key.width / 2f,
+                            key.y + key.height / 2f + Math.round(scaleWidthX * 18), emojiPaint);
+                }
+            }
+
+            Paint pagePaint = new Paint();
+            pagePaint.setTextAlign(Paint.Align.CENTER);
+            pagePaint.setTextSize(Math.round(scaleWidthX * 22));
+            pagePaint.setColor(Color.GRAY);
+
+            Keyboard.Key toggleKey = FindKey(keys, -7);
+            if (toggleKey != null) {
+                String pageText = (emojiPage + 1) + "/" + EmojiData.getPageCount();
+                canvas.drawText(pageText, toggleKey.x + toggleKey.width / 2f,
+                        toggleKey.y + toggleKey.height - Math.round(scaleWidthX * 4), pagePaint);
             }
         }
         else {

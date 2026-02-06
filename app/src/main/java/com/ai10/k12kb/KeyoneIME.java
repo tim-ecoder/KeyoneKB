@@ -692,6 +692,31 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 default:
 
             }
+        } else if (keyboardView.isEmojiMode()) {
+            switch (primaryCode) {
+                case -7:
+                    if (keyboardView.getEmojiPage() < EmojiData.getPageCount() - 1) {
+                        Keyboard ek = new Keyboard(this, keyboardLayoutManager.GetCurrentKeyboardLayout().SymXmlId);
+                        keyboardView.setKeyboard(ek);
+                        keyboardView.prepareEmojiLayer(keyboardView.getEmojiPage() + 1);
+                    } else {
+                        UpdateKeyboardModeVisualization();
+                    }
+                    break;
+                case Keyboard.KEYCODE_DELETE:
+                    inputConnection.deleteSurroundingText(1, 0);
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                    break;
+                case Keyboard.KEYCODE_DONE:
+                    keyDownUpKeepTouch2(KeyEvent.KEYCODE_ENTER, inputConnection, 0);
+                    ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                    break;
+                default:
+                    String emoji = keyboardView.getEmojiForKey(primaryCode);
+                    if (emoji != null) {
+                        inputConnection.commitText(emoji, 1);
+                    }
+            }
         } else {
             switch (primaryCode) {
                 //Хак чтобы не ставился пробел после свайпа по свайп-анели
@@ -705,6 +730,14 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 case 22: //RIGHT
                     keyDownUpKeepTouch2(KeyEvent.KEYCODE_DPAD_RIGHT, inputConnection, 0);
                     ProcessOnCursorMovement(getCurrentInputEditorInfo());
+                    break;
+
+                case -7:
+                    if (keyboardStateFixed_SymbolOnScreenKeyboard) {
+                        Keyboard ek = new Keyboard(this, keyboardLayoutManager.GetCurrentKeyboardLayout().SymXmlId);
+                        keyboardView.setKeyboard(ek);
+                        keyboardView.prepareEmojiLayer(0);
+                    }
                     break;
 
                 case Keyboard.KEYCODE_DELETE:
