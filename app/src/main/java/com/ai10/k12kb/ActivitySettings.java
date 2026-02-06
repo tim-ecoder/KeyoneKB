@@ -593,7 +593,9 @@ public class ActivitySettings extends Activity {
 
             editor.commit();
             Toast.makeText(this, "Settings loaded from " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
-            recreate();
+            Intent restart = new Intent(this, ActivitySettings.class);
+            finish();
+            startActivity(restart);
         } catch (Exception e) {
             Toast.makeText(this, "Load failed: " + e.getClass().getSimpleName() + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -606,12 +608,8 @@ public class ActivitySettings extends Activity {
             Object val = obj.get(key);
             if (val instanceof Boolean) {
                 editor.putBoolean(key, ((Boolean) val).booleanValue());
-            } else if (val instanceof Integer) {
-                editor.putInt(key, ((Integer) val).intValue());
-            } else if (val instanceof Long) {
-                editor.putInt(key, (int) ((Long) val).longValue());
-            } else if (val instanceof Double) {
-                editor.putInt(key, (int) ((Double) val).doubleValue());
+            } else if (val instanceof Number) {
+                editor.putInt(key, ((Number) val).intValue());
             } else if (val instanceof String) {
                 editor.putString(key, (String) val);
             }
