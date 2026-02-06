@@ -3,9 +3,11 @@ package com.ai10.k12kb;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.app.Activity;
 import android.os.Bundle;
@@ -13,7 +15,15 @@ import android.util.TypedValue;
 import android.view.*;
 import android.widget.*;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 
 import static com.ai10.k12kb.KeyboardLayoutManager.IsCurrentDevice;
 import static com.ai10.k12kb.KeyboardLayoutManager.getDeviceFullMODEL;
@@ -378,10 +388,109 @@ public class ActivitySettings extends Activity {
             }
         });
 
+        Button btnSaveSettings = (Button) findViewById(R.id.button_save_settings);
+        btnSaveSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveSettingsToFile();
+            }
+        });
+
+        Button btnLoadSettings = (Button) findViewById(R.id.button_load_settings);
+        btnLoadSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadSettingsFromFile();
+            }
+        });
+
         PillBadgeHelper.applyToContainer(layout);
 
     }
 
+
+    private File getSettingsFile() {
+        File dir = new File(Environment.getExternalStorageDirectory(), "keyonekb2");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        return new File(dir, "settings.json");
+    }
+
+    private void saveSettingsToFile() {
+        try {
+            SharedPreferences prefs = getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE);
+            Map<String, ?> all = prefs.getAll();
+            JSONObject json = new JSONObject();
+            for (Map.Entry<String, ?> entry : all.entrySet()) {
+                Object val = entry.getValue();
+                if (val instanceof Boolean) {
+                    json.put(entry.getKey(), ((Boolean) val).booleanValue());
+                } else if (val instanceof Integer) {
+                    json.put(entry.getKey(), ((Integer) val).intValue());
+                } else if (val instanceof Long) {
+                    json.put(entry.getKey(), ((Long) val).longValue());
+                } else if (val instanceof Float) {
+                    json.put(entry.getKey(), ((Float) val).floatValue());
+                } else if (val instanceof String) {
+                    json.put(entry.getKey(), (String) val);
+                }
+            }
+            File file = getSettingsFile();
+            FileWriter writer = new FileWriter(file);
+            writer.write(json.toString(2));
+            writer.close();
+            Toast.makeText(this, "Settings saved to " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void loadSettingsFromFile() {
+        try {
+            File file = getSettingsFile();
+            if (!file.exists()) {
+                Toast.makeText(this, "No settings file found at " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                return;
+            }
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            reader.close();
+
+            JSONObject json = new JSONObject(sb.toString());
+            SharedPreferences prefs = getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+
+            Iterator<String> keys = json.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                Object val = json.get(key);
+                if (val instanceof Boolean) {
+                    editor.putBoolean(key, ((Boolean) val).booleanValue());
+                } else if (val instanceof Integer) {
+                    editor.putInt(key, ((Integer) val).intValue());
+                } else if (val instanceof Long) {
+                    editor.putInt(key, (int) ((Long) val).longValue());
+                } else if (val instanceof Double) {
+                    // JSON numbers can come back as Double for floats
+                    editor.putInt(key, (int) ((Double) val).doubleValue());
+                } else if (val instanceof String) {
+                    editor.putString(key, (String) val);
+                }
+            }
+            editor.apply();
+
+            Toast.makeText(this, "Settings loaded. Restart app to apply.", Toast.LENGTH_LONG).show();
+            // Refresh the activity to show updated values
+            recreate();
+        } catch (Exception e) {
+            Toast.makeText(this, "Load failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event){

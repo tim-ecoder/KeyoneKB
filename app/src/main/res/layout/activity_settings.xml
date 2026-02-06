@@ -220,6 +220,35 @@
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
 
+        <!-- BACKUP -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="BACKUP" />
+
+        <LinearLayout style="@style/ItemPill">
+            <Button
+                android:id="@+id/button_save_settings"
+                style="@style/ItemPillText"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:text="Save settings to file"
+                android:textColor="@color/textPrimary"
+                android:textAllCaps="false" />
+            <TextView style="@style/Chevron" android:text="\u2913" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPill">
+            <Button
+                android:id="@+id/button_load_settings"
+                style="@style/ItemPillText"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:text="Load settings from file"
+                android:textColor="@color/textPrimary"
+                android:textAllCaps="false" />
+            <TextView style="@style/Chevron" android:text="\u2912" />
+        </LinearLayout>
+
         <!-- Wiki link -->
         <TextView
             android:id="@+id/text_manual_link"
