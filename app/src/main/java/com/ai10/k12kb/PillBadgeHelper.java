@@ -77,24 +77,57 @@ public class PillBadgeHelper {
     private static void applyEllipsisToPill(final LinearLayout pill) {
         boolean hasLongText = false;
         boolean hasSwitch = false;
+        CompoundButton switchChild = null;
         for (int j = 0; j < pill.getChildCount(); j++) {
             View c = pill.getChildAt(j);
             if (c instanceof CompoundButton) {
                 hasSwitch = true;
+                switchChild = (CompoundButton) c;
             }
             if (c instanceof TextView && !BADGE_TAG.equals(c.getTag())) {
                 TextView tv = (TextView) c;
                 // Skip chevrons and badges (short text)
                 if (tv.getText().length() > 2) {
-                    applyEllipsisToTextView(tv);
+                    // Don't apply ellipsis to Switch — we'll extract its text
+                    if (!(c instanceof CompoundButton)) {
+                        applyEllipsisToTextView(tv);
+                    }
                     hasLongText = true;
                 }
             }
         }
         if (hasLongText) {
+            if (hasSwitch && switchChild != null
+                    && switchChild.getText().length() > 0) {
+                // Extract Switch's text into a separate TextView so that
+                // tapping text expands pill, tapping switch toggles it
+                String switchText = switchChild.getText().toString();
+
+                final TextView textView = new TextView(pill.getContext());
+                textView.setText(switchText);
+                textView.setTag(R.id.pill_set_text,
+                        switchChild.getTag(R.id.pill_set_text));
+                textView.setTextColor(switchChild.getTextColors());
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                        switchChild.getTextSize());
+                LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(
+                        0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+                tvParams.gravity = Gravity.CENTER_VERTICAL;
+                textView.setLayoutParams(tvParams);
+                applyEllipsisToTextView(textView);
+
+                // Shrink Switch to just the toggle control
+                switchChild.setText("");
+                switchChild.setLayoutParams(new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT));
+
+                // Insert text before the Switch
+                int switchIndex = pill.indexOfChild(switchChild);
+                pill.addView(textView, switchIndex);
+            }
             if (hasSwitch) {
-                // Set click listeners on non-Switch children only,
-                // so tapping text/badge expands pill, tapping switch toggles it
+                // Click-to-expand on all non-Switch children (text + badge)
                 for (int j = 0; j < pill.getChildCount(); j++) {
                     View c = pill.getChildAt(j);
                     if (!(c instanceof CompoundButton)) {
@@ -229,14 +262,21 @@ public class PillBadgeHelper {
     }
 
     private static TextView findTextChild(LinearLayout pill) {
+        // Prefer non-CompoundButton TextViews (e.g. extracted text label)
+        TextView fallback = null;
         for (int i = 0; i < pill.getChildCount(); i++) {
             View child = pill.getChildAt(i);
             if (BADGE_TAG.equals(child.getTag())) continue;
             if (child instanceof TextView) {
-                return (TextView) child;
+                if (!(child instanceof CompoundButton)) {
+                    return (TextView) child;
+                }
+                if (fallback == null) {
+                    fallback = (TextView) child;
+                }
             }
         }
-        return null;
+        return fallback;
     }
 
     private static TextView findBadge(LinearLayout pill) {
