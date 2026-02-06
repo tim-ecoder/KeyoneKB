@@ -9,7 +9,7 @@
                        android:canRetrieveWindowContent="true"
                        android:canPerformGestures="true"
                        android:packageNames="@null"
-                       android:settingsActivity="com.sateda.keyonekb2.ActivityMain"
+                       android:settingsActivity="com.ai10.k12kb.ActivityMain"
                        >
 <!--
 typeWindowContentChanged

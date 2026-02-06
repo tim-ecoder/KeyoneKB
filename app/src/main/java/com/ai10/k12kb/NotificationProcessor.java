@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -34,7 +34,7 @@ public class NotificationProcessor {
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         Intent intent = new Intent(context, ActivityMain.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setClassName("com.sateda.keyonekb2.satedakeyboard", "com.sateda.keyboard.keyonekb2.MainActivity");
+        intent.setClassName("com.ai10.k12kb.satedakeyboard", "com.ai10.k12kb.MainActivity");
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 

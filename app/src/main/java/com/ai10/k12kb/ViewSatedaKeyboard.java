@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
+import static com.ai10.k12kb.InputMethodServiceCoreKeyPress.TAG2;
 
 public class ViewSatedaKeyboard extends KeyboardView {
 

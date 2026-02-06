@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.Manifest;
 import android.content.ClipboardManager;
@@ -21,7 +21,7 @@ import com.android.internal.telephony.ITelephony;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
-import com.sateda.keyonekb2.input.CallStateCallback;
+import com.ai10.k12kb.input.CallStateCallback;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import static com.sateda.keyonekb2.FileJsonUtils.LogErrorToGui;
+import static com.ai10.k12kb.FileJsonUtils.LogErrorToGui;
 
 public abstract class InputMethodServiceCoreCustomizable extends InputMethodServiceCoreGesture {
     protected boolean pref_show_toast = false;

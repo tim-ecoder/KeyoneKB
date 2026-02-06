@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.Manifest;
 import android.content.Context;
@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static android.content.ContentValues.TAG;
-import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
+import static com.ai10.k12kb.InputMethodServiceCoreKeyPress.TAG2;
 
 public class FileJsonUtils {
 

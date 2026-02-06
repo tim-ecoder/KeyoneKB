@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.view.View;
 import com.fasterxml.jackson.annotation.JsonProperty;

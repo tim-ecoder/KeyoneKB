@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 
 import android.app.Activity;
@@ -17,7 +17,7 @@ import android.widget.TextView;
 
 import java.util.Map;
 
-import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
+import static com.ai10.k12kb.InputMethodServiceCoreKeyPress.TAG2;
 
 public class ActivityKeyboardTest extends Activity implements InputMethodServiceCoreKeyPress.IDebugUpdate {
 

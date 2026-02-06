@@ -40,13 +40,13 @@
 -dontnote android.content.res.**
 -keep class org.xmlpull.** { *; }
 -keep class com.android.internal.telephony.** { *; }
--keep class com.sateda.keyonekb2.KeyboardLayout { *; }
--keep class com.sateda.keyonekb2.KeyboardLayout$* { *; }
--keep class com.sateda.keyonekb2.SearchClickPlugin$SearchClickPluginData { *; }
--keep class com.sateda.keyonekb2.SearchClickPlugin$SearchClickPluginData$* { *; }
--keep class com.sateda.keyonekb2.KeyoneKb2Settings$CoreKeyboardSettings { *; }
--keep class com.sateda.keyonekb2.InputMethodServiceCoreCustomizable$KeyboardMechanics { *; }
--keep class com.sateda.keyonekb2.InputMethodServiceCoreCustomizable$KeyboardMechanics$* { *; }
--keep class com.sateda.keyonekb2.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions { *; }
--keep class com.sateda.keyonekb2.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions$* { *; }
+-keep class com.ai10.k12kb.KeyboardLayout { *; }
+-keep class com.ai10.k12kb.KeyboardLayout$* { *; }
+-keep class com.ai10.k12kb.SearchClickPlugin$SearchClickPluginData { *; }
+-keep class com.ai10.k12kb.SearchClickPlugin$SearchClickPluginData$* { *; }
+-keep class com.ai10.k12kb.KeyoneKb2Settings$CoreKeyboardSettings { *; }
+-keep class com.ai10.k12kb.InputMethodServiceCoreCustomizable$KeyboardMechanics { *; }
+-keep class com.ai10.k12kb.InputMethodServiceCoreCustomizable$KeyboardMechanics$* { *; }
+-keep class com.ai10.k12kb.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions { *; }
+-keep class com.ai10.k12kb.KeyoneKb2AccessibilityService$KeyoneKb2AccServiceOptions$* { *; }
 -keep class org.mozilla.javascript.** { *; }

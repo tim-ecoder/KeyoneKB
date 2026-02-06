@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
@@ -20,9 +20,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.sateda.keyonekb2.FileJsonUtils.GetContext;
-import static com.sateda.keyonekb2.FileJsonUtils.LogErrorToGui;
-import static com.sateda.keyonekb2.KeyoneKb2Settings.RES_PLUGIN_DATA;
+import static com.ai10.k12kb.FileJsonUtils.GetContext;
+import static com.ai10.k12kb.FileJsonUtils.LogErrorToGui;
+import static com.ai10.k12kb.KeyoneKb2Settings.RES_PLUGIN_DATA;
 
 
 public class KeyoneKb2AccessibilityService extends AccessibilityService {

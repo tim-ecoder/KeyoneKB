@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.util.Log;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.sateda.keyonekb2.KeyoneKb2AccessibilityService.TAG3;
+import static com.ai10.k12kb.KeyoneKb2AccessibilityService.TAG3;
 
 public class SearchClickPlugin {
 

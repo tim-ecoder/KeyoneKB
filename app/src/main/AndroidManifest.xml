@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.sateda.keyonekb2">
+    package="com.ai10.k12kb">
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
@@ -68,7 +68,7 @@
             android:theme = "@style/AppTheme2.NoDisplay"
             -->
             <intent-filter>
-                <action android:name="com.sateda.keyonekb2.IntentQuickSettings"/>
+                <action android:name="com.ai10.k12kb.IntentQuickSettings"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -78,7 +78,7 @@
                 android:theme = "@android:style/Theme.Translucent.NoTitleBar"
         >
             <intent-filter>
-                <action android:name="com.sateda.keyonekb2.IntentNotifications"/>
+                <action android:name="com.ai10.k12kb.IntentNotifications"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

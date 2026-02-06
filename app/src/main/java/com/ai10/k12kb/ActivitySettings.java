@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.Manifest;
 import android.content.Context;
@@ -15,8 +15,8 @@ import android.widget.*;
 
 import java.util.ArrayList;
 
-import static com.sateda.keyonekb2.KeyboardLayoutManager.IsCurrentDevice;
-import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
+import static com.ai10.k12kb.KeyboardLayoutManager.IsCurrentDevice;
+import static com.ai10.k12kb.KeyboardLayoutManager.getDeviceFullMODEL;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
 

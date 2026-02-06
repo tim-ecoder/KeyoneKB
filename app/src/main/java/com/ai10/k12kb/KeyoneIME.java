@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -28,17 +28,17 @@ import android.view.textservice.SuggestionsInfo;
 
 import android.widget.Toast;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
-import com.sateda.keyonekb2.input.CallStateCallback;
+import com.ai10.k12kb.input.CallStateCallback;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
 import static android.content.ContentValues.TAG;
-import static com.sateda.keyonekb2.FileJsonUtils.GetContext;
-import static com.sateda.keyonekb2.KeyboardLayoutManager.IsCurrentDevice;
-import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
-import static com.sateda.keyonekb2.KeyoneKb2Settings.RES_KEYBOARD_MECHANICS_DEFAULT;
+import static com.ai10.k12kb.FileJsonUtils.GetContext;
+import static com.ai10.k12kb.KeyboardLayoutManager.IsCurrentDevice;
+import static com.ai10.k12kb.KeyboardLayoutManager.getDeviceFullMODEL;
+import static com.ai10.k12kb.KeyoneKb2Settings.RES_KEYBOARD_MECHANICS_DEFAULT;
 
 @Keep
 public class KeyoneIME extends InputMethodServiceCoreCustomizable implements KeyboardView.OnKeyboardActionListener, SpellCheckerSession.SpellCheckerSessionListener, View.OnTouchListener {
@@ -338,7 +338,7 @@ public class KeyoneIME extends InputMethodServiceCoreCustomizable implements Key
                 UpdateGestureModeVisualization();
             needUpdateGestureNotificationInsideSingleEvent = false;
             //TODO: Проверить как это работает
-            if (_lastPackageName.equals("com.sateda.keyonekb2")) LoadSettingsAndKeyboards(deviceFullMODEL);
+            if (_lastPackageName.equals("com.ai10.k12kb")) LoadSettingsAndKeyboards(deviceFullMODEL);
 
             //keyboardView.setShowFlag(preference_show_flag);
             //if (currentSoftKeyboard.getHeight() != GetSwipeKeyboardHeight())

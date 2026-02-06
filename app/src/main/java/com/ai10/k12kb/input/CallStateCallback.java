@@ -1,10 +1,10 @@
-package com.sateda.keyonekb2.input;
+package com.ai10.k12kb.input;
 
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
+import static com.ai10.k12kb.InputMethodServiceCoreKeyPress.TAG2;
 
 public class CallStateCallback extends PhoneStateListener {
 

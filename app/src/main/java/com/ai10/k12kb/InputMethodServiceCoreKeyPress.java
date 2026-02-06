@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.annotation.SuppressLint;
 import android.inputmethodservice.InputMethodService;

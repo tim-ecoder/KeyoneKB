@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.Manifest;
 import android.app.Activity;
@@ -15,11 +15,11 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-import static com.sateda.keyonekb2.ActivitySettings.*;
-import static com.sateda.keyonekb2.BuildConfig.*;
-import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
-import static com.sateda.keyonekb2.KeyboardLayoutManager.getDeviceFullMODEL;
-import static com.sateda.keyonekb2.KeyoneKb2Settings.*;
+import static com.ai10.k12kb.ActivitySettings.*;
+import static com.ai10.k12kb.BuildConfig.*;
+import static com.ai10.k12kb.KeyboardLayoutManager.Instance;
+import static com.ai10.k12kb.KeyboardLayoutManager.getDeviceFullMODEL;
+import static com.ai10.k12kb.KeyoneKb2Settings.*;
 
 public class ActivityMain extends Activity {
 

@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.os.Build;
 import android.support.annotation.RequiresApi;

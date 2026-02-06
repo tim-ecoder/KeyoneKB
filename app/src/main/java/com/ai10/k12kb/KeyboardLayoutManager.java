@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -11,9 +11,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static com.sateda.keyonekb2.FileJsonUtils.DeserializeFromJsonApplyPatches;
-import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
-import static com.sateda.keyonekb2.KeyoneKb2Settings.RES_KEYBOARD_LAYOUTS;
+import static com.ai10.k12kb.FileJsonUtils.DeserializeFromJsonApplyPatches;
+import static com.ai10.k12kb.InputMethodServiceCoreKeyPress.TAG2;
+import static com.ai10.k12kb.KeyoneKb2Settings.RES_KEYBOARD_LAYOUTS;
 
 public class KeyboardLayoutManager {
 

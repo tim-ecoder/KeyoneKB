@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.Manifest;
 import android.app.Activity;
@@ -17,10 +17,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.sateda.keyonekb2.ActivitySettings.REQUEST_PERMISSION_CODE;
-import static com.sateda.keyonekb2.FileJsonUtils.*;
-import static com.sateda.keyonekb2.KeyboardLayoutManager.Instance;
-import static com.sateda.keyonekb2.KeyoneKb2Settings.*;
+import static com.ai10.k12kb.ActivitySettings.REQUEST_PERMISSION_CODE;
+import static com.ai10.k12kb.FileJsonUtils.*;
+import static com.ai10.k12kb.KeyboardLayoutManager.Instance;
+import static com.ai10.k12kb.KeyoneKb2Settings.*;
 
 public class ActivitySettingsMore extends Activity {
     private KeyoneKb2Settings keyoneKb2Settings;

@@ -1,4 +1,4 @@
-package com.sateda.keyonekb2;
+package com.ai10.k12kb;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -11,7 +11,7 @@ import android.util.Log;
 
 import java.util.List;
 
-import static com.sateda.keyonekb2.InputMethodServiceCoreKeyPress.TAG2;
+import static com.ai10.k12kb.InputMethodServiceCoreKeyPress.TAG2;
 
 
 public class ViewPopupScreenKeyboard extends KeyboardView {

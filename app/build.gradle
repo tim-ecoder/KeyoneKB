@@ -27,7 +27,7 @@ android {
     compileSdkVersion 28
 
     defaultConfig {
-        applicationId "com.sateda.keyonekb2"
+        applicationId "com.ai10.k12kb"
         minSdkVersion 27
         targetSdkVersion 27
         //TODO: ---- Меняем versionCode, versionName каждый публичный выкат даже для тестеров ----
