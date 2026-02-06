@@ -67,14 +67,27 @@ public class WordPredictor {
 
     /**
      * Load dictionary for a locale in a background thread.
+     * Skips reload if same locale is already loaded.
+     * Re-triggers suggestions after load if there's a current word.
      */
     public void loadDictionary(final Context context, final String locale) {
         if (dictionary == null) {
             dictionary = new WordDictionary();
         }
+        // Skip if already loaded for this locale
+        if (dictionary.isReady() && locale.equals(dictionary.getLoadedLocale())) {
+            return;
+        }
+        final WordPredictor self = this;
         Thread t = new Thread(new Runnable() {
             public void run() {
-                dictionary.load(context, locale);
+                synchronized (self) {
+                    dictionary.load(context, locale);
+                }
+                // Re-trigger suggestions if there's a current word
+                if (currentWord.length() > 0 && dictionary.isReady()) {
+                    updateSuggestions();
+                }
             }
         });
         t.setPriority(Thread.MIN_PRIORITY);
