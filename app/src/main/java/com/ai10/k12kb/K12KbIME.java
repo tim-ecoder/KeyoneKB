@@ -98,6 +98,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     private String deviceFullMODEL;
 
     private SuggestionBar suggestionBar;
+    private int predictionSlotCount = 4;
 
     private boolean isNotStarted = true;
 
@@ -194,13 +195,18 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             Log.i(TAG2, "onCreate STEP: " + STEP);
             wordPredictor = new WordPredictor();
             wordPredictor.loadDictionary(getApplicationContext(), "en");
-            suggestionBar = new SuggestionBar(this);
+            int predictionHeight = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
+            if (predictionHeight < 10) predictionHeight = 36;
+            predictionSlotCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT);
+            if (predictionSlotCount < 1) predictionSlotCount = 4;
+            suggestionBar = new SuggestionBar(this, predictionHeight, predictionSlotCount);
+            wordPredictor.setSuggestLimit(predictionSlotCount);
             wordPredictor.setListener(new WordPredictor.SuggestionListener() {
                 public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
                     suggestionBar.post(new Runnable() {
                         public void run() {
                             suggestionBar.update(suggestions);
-                            setCandidatesViewShown(suggestions != null && !suggestions.isEmpty());
+                            setCandidatesViewShown(true);
                         }
                     });
                 }
@@ -365,6 +371,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         if (wordPredictor != null) {
             wordPredictor.reset();
         }
+        setCandidatesViewShown(true);
     }
 
     @Override
@@ -1070,7 +1077,6 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         ic.deleteSurroundingText(currentWord.length(), 0);
         ic.commitText(replacement + " ", 1);
         suggestionBar.clear();
-        setCandidatesViewShown(false);
     }
 
     protected void UpdateKeyboardVisibilityOnPrefChange() {

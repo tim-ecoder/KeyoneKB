@@ -392,6 +392,34 @@ public class ActivitySettings extends Activity {
             }
         });
 
+        SeekBar seekPredictionHeight = (SeekBar) findViewById(R.id.seekBarPredictionHeight);
+        SetProgressOrDefault(seekPredictionHeight, k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
+        seekPredictionHeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int val = Math.max(10, progress);
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT, val);
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        SeekBar seekPredictionCount = (SeekBar) findViewById(R.id.seekBarPredictionCount);
+        SetProgressOrDefault(seekPredictionCount, k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT);
+        seekPredictionCount.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int val = Math.max(1, progress);
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT, val);
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
         Button btnSaveSettings = (Button) findViewById(R.id.button_save_settings);
         btnSaveSettings.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -505,7 +533,8 @@ public class ActivitySettings extends Activity {
                 } else if (key.equals("sens_bottom_bar") || key.equals("height_bottom_bar")
                         || key.equals("show_default_onscreen_keyboard")
                         || key.equals("long_press_alt") || key.equals("alt_space")
-                        || key.equals("vibrate_on_key_down") || key.equals("ensure_entered_text")) {
+                        || key.equals("vibrate_on_key_down") || key.equals("ensure_entered_text")
+                        || key.equals("prediction_height") || key.equals("prediction_count")) {
                     input.put(key, jsonVal);
                 } else if (key.equals("show_toast") || key.equals("flag")
                         || key.equals("notification_icon_system")) {

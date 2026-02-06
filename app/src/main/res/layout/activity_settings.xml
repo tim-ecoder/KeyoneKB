@@ -220,6 +220,39 @@
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
 
+        <!-- PREDICTION -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="PREDICTION" />
+
+        <LinearLayout style="@style/ItemPillSeek">
+            <TextView
+                style="@style/ItemPillSeekTitle"
+                android:text="Prediction bar height (dp)" />
+            <SeekBar
+                android:id="@+id/seekBarPredictionHeight"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="80"
+                android:progress="36"
+                android:progressTint="@color/colorPrimary"
+                android:thumbTint="@color/colorPrimary" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPillSeek">
+            <TextView
+                style="@style/ItemPillSeekTitle"
+                android:text="Prediction slots count" />
+            <SeekBar
+                android:id="@+id/seekBarPredictionCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="8"
+                android:progress="4"
+                android:progressTint="@color/colorPrimary"
+                android:thumbTint="@color/colorPrimary" />
+        </LinearLayout>
+
         <!-- BACKUP -->
         <TextView
             style="@style/SectionHeader"

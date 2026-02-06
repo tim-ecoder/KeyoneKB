@@ -1,7 +1,6 @@
 package com.ai10.k12kb.prediction;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -12,39 +11,45 @@ import android.widget.TextView;
 import java.util.List;
 
 /**
- * Simple suggestion bar UI showing up to 3 word suggestions.
- * Displayed above the keyboard.
+ * Configurable suggestion bar UI showing word predictions above the keyboard.
  */
 public class SuggestionBar extends LinearLayout {
 
-    private static final int NUM_SLOTS = 4;
-    private final TextView[] slots = new TextView[NUM_SLOTS];
+    private TextView[] slots;
+    private int numSlots;
     private OnSuggestionClickListener clickListener;
 
     public interface OnSuggestionClickListener {
         void onSuggestionClicked(int index, String word);
     }
 
-    public SuggestionBar(Context context) {
+    public SuggestionBar(Context context, int heightDp, int slotCount) {
         super(context);
+        this.numSlots = Math.max(1, slotCount);
+        this.slots = new TextView[numSlots];
         setOrientation(HORIZONTAL);
         setBackgroundColor(0xFF1A1A1A);
         int height = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 36, getResources().getDisplayMetrics());
+                TypedValue.COMPLEX_UNIT_DIP, heightDp, getResources().getDisplayMetrics());
         setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, height));
         setGravity(Gravity.CENTER_VERTICAL);
 
-        for (int i = 0; i < NUM_SLOTS; i++) {
+        // Auto-compute font size: roughly 40% of height in dp
+        float fontSizeSp = heightDp * 0.4f;
+        if (fontSizeSp < 10) fontSizeSp = 10;
+        if (fontSizeSp > 24) fontSizeSp = 24;
+
+        for (int i = 0; i < numSlots; i++) {
             final int index = i;
             TextView tv = new TextView(context);
             LayoutParams lp = new LayoutParams(0, LayoutParams.MATCH_PARENT, 1.0f);
             if (i > 0) {
-                lp.setMargins(1, 0, 0, 0); // Thin separator
+                lp.setMargins(1, 0, 0, 0);
             }
             tv.setLayoutParams(lp);
             tv.setGravity(Gravity.CENTER);
             tv.setTextColor(0xFFCCCCCC);
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSizeSp);
             tv.setMaxLines(1);
             tv.setPadding(4, 0, 4, 0);
             tv.setBackgroundColor(0xFF2A2A2A);
@@ -68,13 +73,15 @@ public class SuggestionBar extends LinearLayout {
         this.clickListener = listener;
     }
 
+    public int getNumSlots() {
+        return numSlots;
+    }
+
     /**
      * Update displayed suggestions.
-     * Order: center (index 0) = best, right (index 1) = second, left (index 2) = third.
-     * For simplicity we display left-to-right: index 0, 1, 2.
      */
     public void update(List<WordPredictor.Suggestion> suggestions) {
-        for (int i = 0; i < NUM_SLOTS; i++) {
+        for (int i = 0; i < numSlots; i++) {
             if (suggestions != null && i < suggestions.size()) {
                 String word = suggestions.get(i).word;
                 slots[i].setText(word);
@@ -88,14 +95,13 @@ public class SuggestionBar extends LinearLayout {
                 slots[i].setText("");
             }
         }
-        // Visibility managed by setCandidatesViewShown() in K12KbIME
     }
 
     /**
      * Clear all suggestions.
      */
     public void clear() {
-        for (int i = 0; i < NUM_SLOTS; i++) {
+        for (int i = 0; i < numSlots; i++) {
             slots[i].setText("");
         }
     }

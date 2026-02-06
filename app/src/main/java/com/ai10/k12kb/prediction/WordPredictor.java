@@ -41,6 +41,7 @@ public class WordPredictor {
     private final HashMap<String, WordDictionary> dictCache = new HashMap<>();
     private SuggestionListener listener;
     private String currentWord = "";
+    private int suggestLimit = 4;
     private List<Suggestion> latestSuggestions = Collections.emptyList();
     private boolean enabled = true;
 
@@ -49,6 +50,10 @@ public class WordPredictor {
 
     public void setDictionary(WordDictionary dict) {
         this.dictionary = dict;
+    }
+
+    public void setSuggestLimit(int limit) {
+        this.suggestLimit = Math.max(1, limit);
     }
 
     public void setListener(SuggestionListener listener) {
@@ -188,7 +193,7 @@ public class WordPredictor {
             return;
         }
 
-        List<Suggestion> results = suggest(currentWord, 4);
+        List<Suggestion> results = suggest(currentWord, suggestLimit);
         latestSuggestions = results;
         if (listener != null) {
             listener.onSuggestionsUpdated(results);
