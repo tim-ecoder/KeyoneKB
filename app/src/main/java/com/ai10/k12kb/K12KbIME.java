@@ -98,17 +98,27 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     private boolean isNotStarted = true;
 
+    private String onCreateError = null;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     @Override
     public synchronized void onCreate() {
 
+        String STEP = "init";
         try {
+            STEP = "FileJsonUtils.Initialize";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             FileJsonUtils.Initialize();
+
+            STEP = "super.onCreate (keyboard_core.json)";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             super.onCreate();
 
             Instance = this;
 
+            STEP = "getString resources";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             TITLE_NAV_TEXT = getString(R.string.notification_kb_state_nav_mode);
             TITLE_NAV_FV_TEXT = getString(R.string.notification_kb_state_nav_fn_mode);
             TITLE_SYM_TEXT = getString(R.string.notification_kb_state_alt_mode);
@@ -121,6 +131,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             TITLE_GESTURE_VIEW_POINTER = getString(R.string.notification_kb_state_gesture_pointer);
             TITLE_DIGITS_TEXT = getString(R.string.notification_kb_state_digits_pad);
 
+            STEP = "CreateIconRes";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             AltOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
             AltAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt_all);
             AltHoldIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt);
@@ -132,24 +144,39 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             navFnIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav_fn, R.drawable.ic_kb_nav_fn);
             digitsPadIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_digits, R.drawable.ic_kb_digits);
 
+            STEP = "telephony setup";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             callStateCallback = new CallStateCallback();
             telephonyManager = getTelephonyManager();
             telecomManager = getTelecomManager();
 
             if (telephonyManager != null) {
-                telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_CALL_STATE);
+                try {
+                    telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_CALL_STATE);
+                } catch (Throwable texc) {
+                    Log.w(TAG2, "telephony listen failed (non-critical): " + texc);
+                }
             }
-            Context psc = GetContext(this);
 
+            STEP = "SharedPreferences";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
+            Context psc = GetContext(this);
             k12KbSettings = K12KbSettings.Get(psc.getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
 
             TIME_VIBRATE = CoreKeyboardSettings.TimeVibrate;
 
+            STEP = "LoadSettingsAndKeyboards";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             deviceFullMODEL = getDeviceFullMODEL();
-
+            Log.i(TAG2, "  deviceFullMODEL=" + deviceFullMODEL);
             LoadSettingsAndKeyboards(deviceFullMODEL);
+
+            STEP = "LoadKeyProcessingMechanics";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             LoadKeyProcessingMechanics(this);
 
+            STEP = "SatedaKeyboard + inflate keyboard view";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             keyboardSwipeOnScreen = new SatedaKeyboard(this, R.xml.space_empty, pref_swipe_panel_height);
 
             keyboardView = (ViewSatedaKeyboard) getLayoutInflater().inflate(R.layout.keyboard, null);
@@ -160,16 +187,41 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             keyboardView.clearAnimation();
             keyboardView.setShowFlag(preference_show_flag);
 
+            STEP = "keyboardNavigation";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             keyboardNavigation = new Keyboard(this, R.xml.navigation);
 
-            notificationProcessor.Initialize(getApplicationContext());
+            STEP = "notificationProcessor.Initialize";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
+            try {
+                notificationProcessor.Initialize(getApplicationContext());
+            } catch (Throwable nexc) {
+                Log.w(TAG2, "notification init failed (non-critical): " + nexc);
+            }
 
+            STEP = "vibratorService";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             vibratorService = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-            UpdateGestureModeVisualization(false);
-            UpdateKeyboardModeVisualization();
-            LoadShortcuts();
+            STEP = "UpdateVisualization";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
+            try {
+                UpdateGestureModeVisualization(false);
+                UpdateKeyboardModeVisualization();
+            } catch (Throwable vexc) {
+                Log.w(TAG2, "visualization update failed (non-critical): " + vexc);
+            }
 
+            STEP = "LoadShortcuts";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
+            try {
+                LoadShortcuts();
+            } catch (Throwable sexc) {
+                Log.w(TAG2, "LoadShortcuts failed (non-critical): " + sexc);
+            }
+
+            STEP = "VoiceRecognitionTrigger";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
             mVoiceRecognitionTrigger = new VoiceRecognitionTrigger(this);
             mVoiceRecognitionTrigger.register(new VoiceRecognitionTrigger.Listener() {
 
@@ -181,16 +233,18 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             });
 
             isNotStarted = false;
+            Log.i(TAG2, "onCreate COMPLETED SUCCESSFULLY");
 
         } catch(Throwable ex) {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             ex.printStackTrace(pw);
-            Log.e(TAG2, "onCreate exception: "+ex+" "+sw.toString());
-            FileJsonUtils.LogErrorToGui("onCreate exception: "+ex +" "+sw.toString());
+            onCreateError = "FAILED AT STEP [" + STEP + "]: " + ex + "\n" + sw.toString();
+            Log.e(TAG2, "onCreate " + onCreateError);
+            FileJsonUtils.LogErrorToGui("onCreate " + onCreateError);
             isNotStarted = true;
             Instance = null;
-            throw new RuntimeException("onCreate exception: ", ex);
+            // Do NOT throw - show error in keyboard view instead
         }
     }
 
@@ -247,9 +301,21 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     @SuppressLint("InflateParams")
     @Override
     public View onCreateInputView() {
-        Log.d(TAG2, "onCreateInputView");
-        if(isNotStarted)
+        Log.d(TAG2, "onCreateInputView isNotStarted=" + isNotStarted);
+        if(isNotStarted) {
+            // Show error message in keyboard area instead of returning null
+            if (onCreateError != null) {
+                android.widget.TextView errorView = new android.widget.TextView(this);
+                errorView.setText("K12KB INIT ERROR:\n" + onCreateError);
+                errorView.setTextSize(10);
+                errorView.setTextColor(0xFFFF4444);
+                errorView.setBackgroundColor(0xFF000000);
+                errorView.setPadding(8, 8, 8, 8);
+                errorView.setMaxLines(15);
+                return errorView;
+            }
             return null;
+        }
         super.onCreateInputView();
         keyboardView.setOnKeyboardActionListener(this);
         return keyboardView;
