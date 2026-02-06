@@ -44,7 +44,7 @@ public class NotificationProcessor {
     }
 
     private void InitializeKeyboardLayoutBuilder(Context context) {
-        if (Build.VERSION.SDK_INT >= 27) {
+        if (Build.VERSION.SDK_INT >= 26) {
             //Борьба с Warning для SDK_V=27 (KEY2 вестимо)
             //04-10 20:36:34.040 13838-13838/xxx.xxxx.xxxx W/Notification: Use of stream types is deprecated for operations other than volume control
             //See the documentation of setSound() for what to use instead with android.media.AudioAttributes to qualify your playback use case
@@ -76,7 +76,7 @@ public class NotificationProcessor {
     }
 
     private void InitializeGestureModeBuilder(Context context) {
-        if (Build.VERSION.SDK_INT >= 27) {
+        if (Build.VERSION.SDK_INT >= 26) {
             //Борьба с Warning для SDK_V=27 (KEY2 вестимо)
             //04-10 20:36:34.040 13838-13838/xxx.xxxx.xxxx W/Notification: Use of stream types is deprecated for operations other than volume control
             //See the documentation of setSound() for what to use instead with android.media.AudioAttributes to qualify your playback use case

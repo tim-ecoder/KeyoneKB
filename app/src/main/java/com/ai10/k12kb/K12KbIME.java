@@ -282,6 +282,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 +" editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions));
         if(isNotStarted)
             return;
+        try {
         super.onStartInput(editorInfo, restarting);
         if(restarting)
             return;
@@ -320,6 +321,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             UpdateGestureModeVisualization();
         needUpdateGestureNotificationInsideSingleEvent = false;
         isPackageChangedInsideSingleEvent = false;
+        } catch(Throwable ex) {
+            Log.e(TAG2, "onStartInput exception: "+ex);
+            FileJsonUtils.LogErrorToGui("onStartInput exception: "+ex);
+        }
     }
 
     @Override
