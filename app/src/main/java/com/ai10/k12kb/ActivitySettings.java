@@ -7,7 +7,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.*;
@@ -20,7 +20,7 @@ import static com.ai10.k12kb.KeyboardLayoutManager.getDeviceFullMODEL;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
 
-public class ActivitySettings extends AppCompatActivity {
+public class ActivitySettings extends Activity {
 
     public static final int REQUEST_PERMISSION_CODE = 101;
 

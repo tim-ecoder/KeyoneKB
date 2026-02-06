@@ -1,9 +1,9 @@
 package com.ai10.k12kb;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 
-public class IntentQuickSettings extends AppCompatActivity {
+public class IntentQuickSettings extends Activity {
 
     public static final String ACTION = "com.ai10.k12kb.IntentQuickSettings";
 

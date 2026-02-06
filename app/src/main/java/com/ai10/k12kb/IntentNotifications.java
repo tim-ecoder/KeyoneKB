@@ -1,9 +1,9 @@
 package com.ai10.k12kb;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 
-public class IntentNotifications extends AppCompatActivity {
+public class IntentNotifications extends Activity {
 
     public static final String ACTION = "com.ai10.k12kb.IntentNotifications";
 
