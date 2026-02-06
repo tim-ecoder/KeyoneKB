@@ -26,9 +26,12 @@ import android.view.textservice.SentenceSuggestionsInfo;
 import android.view.textservice.SpellCheckerSession;
 import android.view.textservice.SuggestionsInfo;
 
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.ai10.k12kb.input.CallStateCallback;
+import com.ai10.k12kb.prediction.SuggestionBar;
+import com.ai10.k12kb.prediction.WordPredictor;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -95,6 +98,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     private String deviceFullMODEL;
 
+    private SuggestionBar suggestionBar;
+    private LinearLayout inputViewWrapper;
 
     private boolean isNotStarted = true;
 
@@ -186,6 +191,36 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             keyboardView.setService(this);
             keyboardView.clearAnimation();
             keyboardView.setShowFlag(preference_show_flag);
+
+            STEP = "WordPredictor + SuggestionBar";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
+            wordPredictor = new WordPredictor();
+            wordPredictor.loadDictionary(getApplicationContext(), "en");
+            suggestionBar = new SuggestionBar(this);
+            suggestionBar.setVisibility(View.GONE);
+            wordPredictor.setListener(new WordPredictor.SuggestionListener() {
+                public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
+                    suggestionBar.post(new Runnable() {
+                        public void run() {
+                            suggestionBar.update(suggestions);
+                        }
+                    });
+                }
+            });
+            suggestionBar.setOnSuggestionClickListener(new SuggestionBar.OnSuggestionClickListener() {
+                public void onSuggestionClicked(int index, String word) {
+                    acceptSuggestion(index);
+                }
+            });
+
+            // Create wrapper layout: SuggestionBar on top, keyboardView below
+            inputViewWrapper = new LinearLayout(this);
+            inputViewWrapper.setOrientation(LinearLayout.VERTICAL);
+            inputViewWrapper.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+            inputViewWrapper.addView(suggestionBar);
+            inputViewWrapper.addView(keyboardView);
 
             STEP = "keyboardNavigation";
             Log.i(TAG2, "onCreate STEP: " + STEP);
@@ -318,7 +353,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         }
         super.onCreateInputView();
         keyboardView.setOnKeyboardActionListener(this);
-        return keyboardView;
+        return inputViewWrapper;
     }
 
     @Override
@@ -329,6 +364,9 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         super.onStartInputView(info, restarting);
         mVoiceRecognitionTrigger.onStartInputView();
         IsVisualKeyboardOpen = true;
+        if (wordPredictor != null) {
+            wordPredictor.reset();
+        }
     }
 
     @Override
@@ -681,6 +719,38 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         CurrentSelectionStart = newSelStart;
         CurrentSelectionEnd = newSelEnd;
         ProcessOnCursorMovement(getCurrentInputEditorInfo());
+
+        // Update word predictor when cursor moves (not just from typing)
+        if (wordPredictor != null && wordPredictor.isEnabled() && newSelStart == newSelEnd) {
+            updatePredictorWordAtCursor();
+        }
+    }
+
+    private void updatePredictorWordAtCursor() {
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null || wordPredictor == null) return;
+        CharSequence before = ic.getTextBeforeCursor(48, 0);
+        if (before == null || before.length() == 0) {
+            wordPredictor.reset();
+            return;
+        }
+        // Extract the word at cursor (characters before cursor until non-word char)
+        int end = before.length();
+        int start = end;
+        while (start > 0) {
+            char c = before.charAt(start - 1);
+            if (Character.isLetterOrDigit(c) || c == '\'') {
+                start--;
+            } else {
+                break;
+            }
+        }
+        if (start == end) {
+            wordPredictor.reset();
+        } else {
+            String word = before.subSequence(start, end).toString();
+            wordPredictor.setCurrentWord(word);
+        }
     }
 
 
@@ -950,6 +1020,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             mainToast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
             mainToast.show();
         }
+        reloadDictionaryForCurrentLanguage();
     }
 
     @Override
@@ -962,6 +1033,35 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             mainToast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
             mainToast.show();
         }
+        reloadDictionaryForCurrentLanguage();
+    }
+
+    private void reloadDictionaryForCurrentLanguage() {
+        if (wordPredictor == null) return;
+        String kbName = keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName;
+        String locale = "en"; // default
+        if (kbName != null) {
+            String lower = kbName.toLowerCase(java.util.Locale.ROOT);
+            if (lower.contains("русск") || lower.contains("russian")) {
+                locale = "ru";
+            } else if (lower.contains("украин") || lower.contains("ukrain")) {
+                locale = "ru"; // use Russian dictionary as fallback for Ukrainian
+            }
+        }
+        wordPredictor.loadDictionary(getApplicationContext(), locale);
+    }
+
+    private void acceptSuggestion(int index) {
+        if (wordPredictor == null) return;
+        String currentWord = wordPredictor.getCurrentWord();
+        String replacement = wordPredictor.acceptSuggestion(index);
+        if (replacement == null || currentWord == null || currentWord.isEmpty()) return;
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+        // Delete the current word being typed and insert the suggestion + space
+        ic.deleteSurroundingText(currentWord.length(), 0);
+        ic.commitText(replacement + " ", 1);
+        suggestionBar.clear();
     }
 
     protected void UpdateKeyboardVisibilityOnPrefChange() {

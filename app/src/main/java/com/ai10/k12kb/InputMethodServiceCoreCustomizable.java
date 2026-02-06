@@ -23,6 +23,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.ai10.k12kb.input.CallStateCallback;
 
+import com.ai10.k12kb.prediction.WordPredictor;
+
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,6 +71,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected Processable OnFinishInput;
     protected Processable BeforeSendChar;
     protected Processable AfterSendChar;
+    protected WordPredictor wordPredictor;
     protected int[] ViewModeExcludeKeyCodes;
 
     public String keyboard_mechanics_res;
@@ -2008,6 +2011,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         sendKeyChar((char) code2send);
 
         AfterSendChar.Process(null, null);
+
+        if (wordPredictor != null && wordPredictor.isEnabled()) {
+            wordPredictor.onCharacterTyped((char) code2send);
+        }
     }
 
     protected KeyboardLayoutManager keyboardLayoutManager = new KeyboardLayoutManager();
@@ -2176,6 +2183,9 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         InputConnection inputConnection = getCurrentInputConnection();
         if(inputConnection!=null) {
             inputConnection.deleteSurroundingText(1, 0);
+        }
+        if (wordPredictor != null && wordPredictor.isEnabled()) {
+            wordPredictor.onBackspace();
         }
     }
 
