@@ -207,12 +207,17 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 wordPredictor.setSuggestLimit(predictionSlotCount);
                 wordPredictor.setListener(new WordPredictor.SuggestionListener() {
                     public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
-                        suggestionBar.post(new Runnable() {
-                            public void run() {
-                                suggestionBar.update(suggestions);
-                                setCandidatesViewShown(true);
-                            }
-                        });
+                        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+                            suggestionBar.update(suggestions);
+                            setCandidatesViewShown(true);
+                        } else {
+                            suggestionBar.post(new Runnable() {
+                                public void run() {
+                                    suggestionBar.update(suggestions);
+                                    setCandidatesViewShown(true);
+                                }
+                            });
+                        }
                     }
                 });
                 suggestionBar.setOnSuggestionClickListener(new SuggestionBar.OnSuggestionClickListener() {
