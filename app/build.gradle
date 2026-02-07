@@ -30,6 +30,7 @@ android {
         applicationId "com.ai10.k12kb"
         minSdkVersion 26
         targetSdkVersion 27
+
         //TODO: ---- Меняем versionCode, versionName каждый публичный выкат даже для тестеров ----
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать

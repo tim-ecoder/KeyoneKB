@@ -196,6 +196,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             boolean predictionEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_17_PREDICTION_ENABLED);
             if (predictionEnabled) {
                 wordPredictor = new WordPredictor();
+                int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
+                wordPredictor.setEngineMode(engineMode);
                 wordPredictor.loadDictionary(getApplicationContext(), "en");
                 int predictionHeight = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
                 if (predictionHeight < 10) predictionHeight = 36;
@@ -738,9 +740,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         try {
             InputConnection ic = getCurrentInputConnection();
             if (ic == null || wordPredictor == null) return;
-            CharSequence before = ic.getTextBeforeCursor(48, 0);
+            CharSequence before = ic.getTextBeforeCursor(96, 0);
             if (before == null || before.length() == 0) {
-                wordPredictor.reset();
+                wordPredictor.setPreviousWord("");
+                wordPredictor.setCurrentWord("");
                 return;
             }
             // Extract the word at cursor (characters before cursor until non-word char)
@@ -754,12 +757,27 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                     break;
                 }
             }
-            if (start == end) {
-                wordPredictor.reset();
-            } else {
-                String word = before.subSequence(start, end).toString();
-                wordPredictor.setCurrentWord(word);
+            String currentWord = (start < end) ? before.subSequence(start, end).toString() : "";
+
+            // Extract previous word (word before the current word)
+            int prevEnd = start;
+            // Skip whitespace/punctuation between words
+            while (prevEnd > 0 && !Character.isLetterOrDigit(before.charAt(prevEnd - 1))
+                    && before.charAt(prevEnd - 1) != '\'') {
+                prevEnd--;
             }
+            int prevStart = prevEnd;
+            while (prevStart > 0) {
+                char c = before.charAt(prevStart - 1);
+                if (Character.isLetterOrDigit(c) || c == '\'') {
+                    prevStart--;
+                } else {
+                    break;
+                }
+            }
+            String previousWord = (prevStart < prevEnd) ? before.subSequence(prevStart, prevEnd).toString() : "";
+            wordPredictor.setPreviousWord(previousWord);
+            wordPredictor.setCurrentWord(currentWord);
         } catch (Throwable ex) {
             Log.w(TAG2, "updatePredictorWordAtCursor error: " + ex);
         }
@@ -1073,11 +1091,13 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         if (wordPredictor == null) return;
         String currentWord = wordPredictor.getCurrentWord();
         String replacement = wordPredictor.acceptSuggestion(index);
-        if (replacement == null || currentWord == null || currentWord.isEmpty()) return;
+        if (replacement == null) return;
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
-        // Delete the current word being typed and insert the suggestion + space
-        ic.deleteSurroundingText(currentWord.length(), 0);
+        // Delete the current word being typed (if any) and insert the suggestion + space
+        if (currentWord != null && !currentWord.isEmpty()) {
+            ic.deleteSurroundingText(currentWord.length(), 0);
+        }
         ic.commitText(replacement + " ", 1);
         suggestionBar.clear();
     }

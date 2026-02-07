@@ -53,44 +53,66 @@ public class WordDictionary {
     }
 
     /**
-     * Load dictionary from assets JSON file.
-     * Format: [{"w":"word","f":123}, ...]
+     * Load dictionary from assets file.
+     * Tries tab-separated txt format first (word\tfreq), falls back to JSON.
      * @param locale e.g. "en", "ru"
      */
     public void load(Context context, String locale) {
         long startTime = System.currentTimeMillis();
         ready = false;
-        symSpell.buildIndex(); // clear
         prefixCache.clear();
         normalizedIndex.clear();
+        symSpell.setBulkLoading(true);
 
-        String filename = "dictionaries/" + locale + "_base.json";
+        // Try fast txt format first, fall back to JSON
+        String txtFilename = "dictionaries/" + locale + "_base.txt";
+        String jsonFilename = "dictionaries/" + locale + "_base.json";
         try {
-            InputStream is = context.getAssets().open(filename);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-            StringBuilder sb = new StringBuilder();
-            char[] buf = new char[8192];
-            int read;
-            while ((read = reader.read(buf)) != -1) {
-                sb.append(buf, 0, read);
+            InputStream is;
+            boolean useTxt;
+            try {
+                is = context.getAssets().open(txtFilename);
+                useTxt = true;
+            } catch (java.io.FileNotFoundException e) {
+                is = context.getAssets().open(jsonFilename);
+                useTxt = false;
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 16384);
+
+            if (useTxt) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    int tab = line.indexOf('\t');
+                    if (tab <= 0) continue;
+                    String word = line.substring(0, tab);
+                    int freq;
+                    try { freq = Integer.parseInt(line.substring(tab + 1)); }
+                    catch (NumberFormatException e) { continue; }
+                    addEntry(word, freq);
+                }
+            } else {
+                StringBuilder sb = new StringBuilder();
+                char[] buf = new char[8192];
+                int read;
+                while ((read = reader.read(buf)) != -1) {
+                    sb.append(buf, 0, read);
+                }
+                JSONArray arr = new JSONArray(sb.toString());
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject obj = arr.getJSONObject(i);
+                    addEntry(obj.getString("w"), obj.getInt("f"));
+                }
             }
             reader.close();
 
-            JSONArray arr = new JSONArray(sb.toString());
-            for (int i = 0; i < arr.length(); i++) {
-                JSONObject obj = arr.getJSONObject(i);
-                String word = obj.getString("w");
-                int freq = obj.getInt("f");
-                addEntry(word, freq);
-            }
-
+            symSpell.setBulkLoading(false);
             symSpell.buildIndex();
             ready = true;
             loadedLocale = locale;
             long elapsed = System.currentTimeMillis() - startTime;
             Log.d(TAG, "Loaded " + locale + " dictionary: " + symSpell.size() + " words in " + elapsed + "ms");
         } catch (Exception e) {
-            Log.e(TAG, "Failed to load dictionary " + filename + ": " + e);
+            Log.e(TAG, "Failed to load dictionary: " + e);
         }
     }
 

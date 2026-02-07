@@ -13,13 +13,15 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Word prediction engine. Provides suggestions based on prefix matching
- * and SymSpell fuzzy matching with multi-factor scoring.
- * Ported from Pastiera SuggestionEngine, simplified for K12KB.
+ * Word prediction coordinator. Tracks input, casing, listeners and delegates
+ * suggestion generation to a pluggable PredictionEngine.
  */
 public class WordPredictor {
 
     private static final String TAG = "WordPredictor";
+
+    public static final int ENGINE_SYMSPELL = 0;
+    public static final int ENGINE_NGRAM = 1;
 
     public static class Suggestion {
         public final String word;
@@ -37,19 +39,18 @@ public class WordPredictor {
         void onSuggestionsUpdated(List<Suggestion> suggestions);
     }
 
-    private WordDictionary dictionary;
-    private final HashMap<String, WordDictionary> dictCache = new HashMap<>();
+    private PredictionEngine engine;
+    private int engineMode = ENGINE_SYMSPELL;
     private SuggestionListener listener;
     private String currentWord = "";
+    private String previousWord = "";
     private int suggestLimit = 4;
     private List<Suggestion> latestSuggestions = Collections.emptyList();
     private boolean enabled = true;
+    private Context appContext;
+    private String currentLocale = "";
 
     public WordPredictor() {
-    }
-
-    public void setDictionary(WordDictionary dict) {
-        this.dictionary = dict;
     }
 
     public void setSuggestLimit(int limit) {
@@ -72,34 +73,63 @@ public class WordPredictor {
         return latestSuggestions;
     }
 
+    public void setEngineMode(int mode) {
+        if (mode < ENGINE_SYMSPELL || mode > ENGINE_NGRAM) mode = ENGINE_SYMSPELL;
+        if (this.engineMode == mode && engine != null) return;
+        this.engineMode = mode;
+        // Recreate engine if we already have a context and locale
+        if (appContext != null && !currentLocale.isEmpty()) {
+            createAndLoadEngine(appContext, currentLocale);
+        }
+    }
+
+    public int getEngineMode() {
+        return engineMode;
+    }
+
+    public void setPreviousWord(String word) {
+        this.previousWord = (word != null) ? word : "";
+    }
+
+    public String getPreviousWord() {
+        return previousWord;
+    }
+
     /**
-     * Load dictionary for a locale. Uses cached dictionary if already loaded,
-     * otherwise loads in a background thread.
+     * Load dictionary for a locale. Creates the appropriate engine based on engineMode
+     * and loads in a background thread.
      */
     public void loadDictionary(final Context context, final String locale) {
-        // Check if already active for this locale
-        if (dictionary != null && dictionary.isReady() && locale.equals(dictionary.getLoadedLocale())) {
+        this.appContext = context;
+        this.currentLocale = locale;
+
+        // Check if engine already loaded for this locale
+        if (engine != null && engine.isReady() && locale.equals(engine.getLoadedLocale())) {
             return;
         }
-        // Check cache - instant switch if already loaded before
-        WordDictionary cached = dictCache.get(locale);
-        if (cached != null && cached.isReady()) {
-            dictionary = cached;
-            if (currentWord.length() > 0) {
-                updateSuggestions();
-            }
-            return;
+
+        createAndLoadEngine(context, locale);
+    }
+
+    private void createAndLoadEngine(final Context context, final String locale) {
+        final PredictionEngine newEngine;
+        switch (engineMode) {
+            case ENGINE_NGRAM:
+                newEngine = new NgramEngine();
+                break;
+            default:
+                newEngine = new SymSpellEngine();
+                break;
         }
-        // Need to load from disk - do it in background
-        final WordDictionary newDict = new WordDictionary();
-        dictCache.put(locale, newDict);
-        dictionary = newDict;
+        engine = newEngine;
+
         Thread t = new Thread(new Runnable() {
             public void run() {
-                newDict.load(context, locale);
-                // Re-trigger suggestions if there's a current word
-                if (currentWord.length() > 0 && newDict.isReady()) {
-                    updateSuggestions();
+                newEngine.loadDictionary(context, locale);
+                if (newEngine.isReady()) {
+                    if (currentWord.length() > 0 || previousWord.length() > 0) {
+                        updateSuggestions();
+                    }
                 }
             }
         });
@@ -138,7 +168,8 @@ public class WordPredictor {
             if (currentWord.length() > 0) {
                 updateSuggestions();
             } else {
-                reset();
+                // Word deleted back to empty — try next-word suggestions if we have previousWord
+                updateSuggestions();
             }
         }
     }
@@ -150,11 +181,7 @@ public class WordPredictor {
         if (!enabled) return;
         if (word == null) word = "";
         currentWord = word;
-        if (word.isEmpty()) {
-            reset();
-        } else {
-            updateSuggestions();
-        }
+        updateSuggestions();
     }
 
     public String getCurrentWord() {
@@ -162,9 +189,12 @@ public class WordPredictor {
     }
 
     /**
-     * Reset tracker and clear suggestions.
+     * Reset tracker and clear suggestions. Saves currentWord as previousWord.
      */
     public void reset() {
+        if (currentWord.length() > 0) {
+            previousWord = currentWord;
+        }
         currentWord = "";
         latestSuggestions = Collections.emptyList();
         if (listener != null) {
@@ -179,118 +209,31 @@ public class WordPredictor {
         if (index < 0 || index >= latestSuggestions.size()) return null;
         Suggestion s = latestSuggestions.get(index);
         String result = applyCasing(s.word, currentWord);
-        reset();
+        // Set previousWord to the accepted word (normalized form for bigram lookup)
+        String acceptedWord = s.word;
+        currentWord = "";
+        previousWord = acceptedWord;
+        latestSuggestions = Collections.emptyList();
+        if (listener != null) {
+            listener.onSuggestionsUpdated(latestSuggestions);
+        }
         return result;
     }
 
     /**
-     * Generate suggestions for the current word.
+     * Generate suggestions for the current word via the active engine.
      */
     private void updateSuggestions() {
-        if (dictionary == null || !dictionary.isReady()) {
+        if (engine == null || !engine.isReady()) {
             latestSuggestions = Collections.emptyList();
             if (listener != null) listener.onSuggestionsUpdated(latestSuggestions);
             return;
         }
 
-        List<Suggestion> results = suggest(currentWord, suggestLimit);
+        List<Suggestion> results = engine.suggest(currentWord, previousWord, suggestLimit);
         latestSuggestions = results;
         if (listener != null) {
             listener.onSuggestionsUpdated(results);
-        }
-    }
-
-    /**
-     * Core suggestion algorithm.
-     */
-    private List<Suggestion> suggest(String input, int limit) {
-        if (input == null || input.isEmpty()) return Collections.emptyList();
-
-        String normalized = WordDictionary.normalize(input);
-        if (normalized.isEmpty()) return Collections.emptyList();
-
-        HashSet<String> seen = new HashSet<>();
-        List<Suggestion> top = new ArrayList<>();
-
-        // 1. Prefix completions
-        List<WordDictionary.DictEntry> completions = dictionary.lookupByPrefix(normalized, 100);
-        for (WordDictionary.DictEntry entry : completions) {
-            String normEntry = WordDictionary.normalize(entry.word);
-            if (!normEntry.startsWith(normalized)) continue;
-            if (entry.word.length() <= input.length()) continue; // Only completions
-            if (entry.word.equalsIgnoreCase(input)) continue; // Skip exact match
-
-            int effFreq = WordDictionary.effectiveFrequency(entry.frequency);
-            // Filter rare words for short inputs
-            int minFreq = normalized.length() <= 2 ? 300 : (normalized.length() == 3 ? 250 : 150);
-            if (effFreq < minFreq) continue;
-
-            double score = computeScore(normalized, normEntry, entry, 0, true, input.length());
-            String key = entry.word.toLowerCase(Locale.ROOT);
-            if (seen.add(key)) {
-                insertSorted(top, new Suggestion(entry.word, 0, score), limit);
-            }
-        }
-
-        // 2. SymSpell fuzzy matches (skip for single char)
-        if (normalized.length() > 1) {
-            int symLimit = normalized.length() <= 3 ? limit * 2 : limit * 4;
-            List<SymSpell.SuggestItem> symResults = dictionary.symSpellLookup(normalized, symLimit);
-            for (SymSpell.SuggestItem item : symResults) {
-                if (normalized.length() <= 2 && item.distance > 1) continue;
-                List<WordDictionary.DictEntry> entries = dictionary.getByNormalized(item.term, 3);
-                for (WordDictionary.DictEntry entry : entries) {
-                    if (entry.word.equals(input)) continue; // Skip exact match
-                    double score = computeScore(normalized, item.term, entry, item.distance, false, input.length());
-                    String key = entry.word.toLowerCase(Locale.ROOT);
-                    if (seen.add(key)) {
-                        insertSorted(top, new Suggestion(entry.word, item.distance, score), limit);
-                    }
-                }
-            }
-        }
-
-        return top;
-    }
-
-    private double computeScore(String normalizedInput, String normalizedCandidate,
-                                WordDictionary.DictEntry entry, int distance,
-                                boolean isPrefix, int inputLen) {
-        int effFreq = WordDictionary.effectiveFrequency(entry.frequency);
-        double distanceScore = 1.0 / (1 + distance);
-        double frequencyScore = effFreq / 1600.0;
-        double prefixBonus = 0;
-        if (isPrefix) {
-            if (inputLen <= 2) prefixBonus = 2.0;
-            else prefixBonus = 5.0;
-        } else if (normalizedCandidate.startsWith(normalizedInput)) {
-            if (inputLen <= 2) prefixBonus = 1.5;
-            else prefixBonus = 3.0;
-        }
-
-        // Length similarity bonus
-        int lenDiff = Math.abs(entry.word.length() - inputLen);
-        double lengthBonus;
-        if (lenDiff == 0) lengthBonus = 0.35;
-        else if (lenDiff == 1) lengthBonus = 0.2;
-        else if (lenDiff == 2) lengthBonus = 0.05;
-        else lengthBonus = -0.15 * Math.min(lenDiff, 4);
-
-        return distanceScore + frequencyScore + prefixBonus + lengthBonus;
-    }
-
-    private void insertSorted(List<Suggestion> list, Suggestion item, int limit) {
-        list.add(item);
-        Collections.sort(list, new Comparator<Suggestion>() {
-            public int compare(Suggestion a, Suggestion b) {
-                // Higher score first
-                int s = Double.compare(b.score, a.score);
-                if (s != 0) return s;
-                return Integer.compare(a.distance, b.distance);
-            }
-        });
-        while (list.size() > limit) {
-            list.remove(list.size() - 1);
         }
     }
 

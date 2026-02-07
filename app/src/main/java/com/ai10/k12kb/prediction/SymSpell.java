@@ -32,6 +32,7 @@ public class SymSpell {
     private final int prefixLength;
     private final HashMap<String, Integer> dictionary = new HashMap<>();
     private final HashMap<String, List<String>> deletes = new HashMap<>();
+    private boolean bulkLoading = false;
 
     public SymSpell(int maxEditDistance, int prefixLength) {
         this.maxEditDistance = maxEditDistance;
@@ -48,8 +49,18 @@ public class SymSpell {
         if (existing == null || frequency > existing) {
             dictionary.put(term, frequency);
         }
-        String key = term.length() > prefixLength ? term.substring(0, prefixLength) : term;
-        generateDeletes(key, maxEditDistance);
+        if (!bulkLoading) {
+            String key = term.length() > prefixLength ? term.substring(0, prefixLength) : term;
+            generateDeletes(key, maxEditDistance);
+        }
+    }
+
+    /**
+     * Enable bulk loading mode - skips delete generation in addWord().
+     * Call buildIndex() when done to generate all deletes at once.
+     */
+    public void setBulkLoading(boolean bulk) {
+        this.bulkLoading = bulk;
     }
 
     private void generateDeletes(String term, int distance) {

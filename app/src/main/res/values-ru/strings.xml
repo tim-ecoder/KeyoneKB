@@ -100,6 +100,11 @@
     <string name="pref_prediction_enabled">Предиктивный ввод</string>
     <string name="pref_prediction_bar_height">Высота панели подсказок (dp)</string>
     <string name="pref_prediction_slots_count">Количество вариантов подсказок</string>
+    <string name="pref_prediction_engine_title">Движок предиктивного ввода</string>
+    <string-array name="pref_prediction_engine_array">
+        <item>SymSpell (нечёткий поиск)</item>
+        <item>N-gram (предсказание следующего слова)</item>
+    </string-array>
     <string name="pref_section_backup">РЕЗЕРВНОЕ КОПИРОВАНИЕ</string>
     <string name="pref_save_settings">Сохранить настройки в файл</string>
     <string name="pref_load_settings">Загрузить настройки из файла</string>

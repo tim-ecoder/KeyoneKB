@@ -266,6 +266,21 @@
                 android:thumbTint="@color/colorPrimary" />
         </LinearLayout>
 
+        <!-- Prediction engine spinner pill -->
+        <LinearLayout style="@style/ItemPillSpinner">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textPrimaryColor"
+                android:textSize="15sp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/pref_prediction_engine_title" />
+            <Spinner
+                android:id="@+id/spinner_prediction_engine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <!-- BACKUP -->
         <TextView
             style="@style/SectionHeader"

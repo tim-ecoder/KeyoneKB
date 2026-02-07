@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:gitlab.futo.org)",
+      "WebFetch(domain:docs.keyboard.futo.org)",
+      "WebFetch(domain:docs.fleksy.com)",
+      "Bash(ls -la \"e:\\\\SRC\\\\KeyoneKB\\\\tools\"\" 2>/dev/null || echo \"tools dir does not exist \")",
+      "Bash(python gen_bigrams.py:*)",
+      "Bash(python:*)",
+      "WebFetch(domain:mvnrepository.com)",
+      "WebFetch(domain:forum.languagetool.org)",
+      "WebFetch(domain:presage.sourceforge.io)",
+      "Bash(if [ -f \"e:/SRC/KeyoneKB/local.properties\" ])",
+      "Bash(then cat \"e:/SRC/KeyoneKB/local.properties\")",
+      "Bash(else echo \"local.properties not found\")",
+      "Bash(fi)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(java -version:*)",
+      "Bash(gradlew.bat assembleDebug:*)",
+      "Bash(cmd /c \"gradlew.bat assembleDebug 2>&1\")",
+      "Bash(./gradlew.bat assembleDebug:*)",
+      "WebFetch(domain:xdaforums.com)",
+      "WebFetch(domain:dev.languagetool.org)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:jitpack.io)",
+      "Bash(git clone:*)",
+      "Bash(gh release view:*)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(curl:*)",
+      "Bash(unzip:*)",
+      "Bash(python3:*)",
+      "WebFetch(domain:android.googlesource.com)"
+    ]
+  }
+}

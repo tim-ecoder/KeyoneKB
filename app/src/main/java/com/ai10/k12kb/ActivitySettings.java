@@ -445,6 +445,24 @@ public class ActivitySettings extends Activity {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
+        Spinner spinnerPredictionEngine = (Spinner) findViewById(R.id.spinner_prediction_engine);
+        ArrayAdapter<CharSequence> predEngineAdapter = ArrayAdapter
+                .createFromResource(this, R.array.pref_prediction_engine_array, android.R.layout.simple_spinner_item);
+        predEngineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerPredictionEngine.setAdapter(predEngineAdapter);
+        final int spinnerEngineFromPref = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
+        spinnerPredictionEngine.setSelection(spinnerEngineFromPref);
+        spinnerPredictionEngine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE, position);
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                spinnerPredictionEngine.setSelection(spinnerEngineFromPref);
+            }
+        });
+
         Button btnSaveSettings = (Button) findViewById(R.id.button_save_settings);
         btnSaveSettings.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -560,7 +578,8 @@ public class ActivitySettings extends Activity {
                         || key.equals("long_press_alt") || key.equals("alt_space")
                         || key.equals("vibrate_on_key_down") || key.equals("ensure_entered_text")
                         || key.equals("prediction_height") || key.equals("prediction_count")
-                        || key.equals("prediction_enabled")) {
+                        || key.equals("prediction_enabled")
+                        || key.equals("prediction_engine")) {
                     input.put(key, jsonVal);
                 } else if (key.equals("show_toast") || key.equals("flag")
                         || key.equals("notification_icon_system")
