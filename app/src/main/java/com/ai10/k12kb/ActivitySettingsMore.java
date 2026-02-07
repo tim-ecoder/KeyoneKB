@@ -70,6 +70,14 @@ public class ActivitySettingsMore extends Activity {
         if(FileJsonUtils.JsPatchesMap.isEmpty())
             return;
 
+        // Check if any group has actual patches
+        boolean hasAnyPatches = false;
+        for (List<String> pList : FileJsonUtils.JsPatchesMap.values()) {
+            if (!pList.isEmpty()) { hasAnyPatches = true; break; }
+        }
+        if (!hasAnyPatches)
+            return;
+
         layout = (LinearLayout) findViewById(R.id.activity_more_settings);
         LinearLayout containerJsPatches = (LinearLayout) findViewById(R.id.container_js_patches);
 
