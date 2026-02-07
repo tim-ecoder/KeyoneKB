@@ -34,6 +34,7 @@ public class SuggestionBar extends LinearLayout {
     private static final int DIVIDER_HEIGHT_DP     = 3;
 
     private TextView[] slots;
+    private int[] slotToSuggestion; // maps slot position to suggestion index
     private int numSlots;
     private OnSuggestionClickListener clickListener;
 
@@ -45,6 +46,7 @@ public class SuggestionBar extends LinearLayout {
         super(context);
         this.numSlots = Math.max(1, slotCount);
         this.slots = new TextView[numSlots];
+        this.slotToSuggestion = new int[numSlots];
         setOrientation(HORIZONTAL);
         setGravity(Gravity.CENTER_VERTICAL);
 
@@ -89,6 +91,7 @@ public class SuggestionBar extends LinearLayout {
             lp.setMargins(insetPx, insetTBPx, (i == numSlots - 1) ? insetPx : 0, insetTBPx);
             tv.setLayoutParams(lp);
             tv.setGravity(Gravity.CENTER);
+            tv.setIncludeFontPadding(false);
             tv.setTextColor(COLOR_TEXT);
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSizeSp);
             tv.setMaxLines(1);
@@ -101,7 +104,7 @@ public class SuggestionBar extends LinearLayout {
                     if (clickListener != null) {
                         String text = ((TextView) v).getText().toString();
                         if (!text.isEmpty()) {
-                            clickListener.onSuggestionClicked(index, text);
+                            clickListener.onSuggestionClicked(slotToSuggestion[index], text);
                         }
                     }
                 }
@@ -141,38 +144,62 @@ public class SuggestionBar extends LinearLayout {
      */
     public void update(List<WordPredictor.Suggestion> suggestions, String prefix) {
         String pfx = (prefix != null) ? prefix.toLowerCase() : "";
+        int count = (suggestions != null) ? suggestions.size() : 0;
+
+        // Build mapping: suggestion index -> slot position
+        // Priority (index 0) in center, rarer words toward left
+        int[] suggToSlot = new int[numSlots];
+        int center = numSlots / 2;
+        suggToSlot[0] = center;
+        int right = center + 1;
+        int left = center - 1;
+        for (int s = 1; s < numSlots; s++) {
+            if (right < numSlots) {
+                suggToSlot[s] = right++;
+            } else if (left >= 0) {
+                suggToSlot[s] = left--;
+            }
+        }
+        // Build reverse mapping for click handler
+        for (int s = 0; s < numSlots; s++) {
+            slotToSuggestion[suggToSlot[s]] = s;
+        }
+
+        // Clear all slots first
         for (int i = 0; i < numSlots; i++) {
-            if (suggestions != null && i < suggestions.size()) {
-                String word = suggestions.get(i).word;
-                slots[i].setText(word);
-                slots[i].setTextColor(COLOR_TEXT);
-                slots[i].setVisibility(View.VISIBLE);
-                // Weight proportional to text width; priority bonus for earlier slots
-                float textWidth = slots[i].getPaint().measureText(word);
-                float weight = Math.max(textWidth, 30f) + (numSlots - 1 - i) * 15f;
-                LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
-                lp.weight = weight;
-                lp.width = 0;
-                slots[i].setLayoutParams(lp);
-                if (i == 0) {
-                    slots[i].setTypeface(null, Typeface.BOLD);
-                    slots[i].setEllipsize(TextUtils.TruncateAt.END);
-                } else {
-                    slots[i].setTypeface(null, Typeface.NORMAL);
-                    // Truncate from start if word shares typed prefix
-                    if (pfx.length() > 0 && word.toLowerCase().startsWith(pfx)) {
-                        slots[i].setEllipsize(TextUtils.TruncateAt.START);
-                    } else {
-                        slots[i].setEllipsize(TextUtils.TruncateAt.END);
-                    }
-                }
+            slots[i].setText("");
+            slots[i].setVisibility(View.VISIBLE);
+            slots[i].setTypeface(null, Typeface.NORMAL);
+            slots[i].setEllipsize(TextUtils.TruncateAt.END);
+            LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
+            lp.weight = 1;
+            lp.width = 0;
+            slots[i].setLayoutParams(lp);
+        }
+
+        // Place suggestions into their mapped slots
+        for (int s = 0; s < count && s < numSlots; s++) {
+            String word = suggestions.get(s).word;
+            int slot = suggToSlot[s];
+            slots[slot].setText(word);
+            slots[slot].setTextColor(COLOR_TEXT);
+            // Weight proportional to text width; priority bonus for earlier suggestions
+            float textWidth = slots[slot].getPaint().measureText(word);
+            float weight = Math.max(textWidth, 30f) + (numSlots - 1 - s) * 15f;
+            LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
+            lp.weight = weight;
+            lp.width = 0;
+            slots[slot].setLayoutParams(lp);
+            if (s == 0) {
+                slots[slot].setTypeface(null, Typeface.BOLD);
+                slots[slot].setEllipsize(TextUtils.TruncateAt.END);
             } else {
-                slots[i].setText("");
-                slots[i].setVisibility(View.VISIBLE);
-                LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
-                lp.weight = 1;
-                lp.width = 0;
-                slots[i].setLayoutParams(lp);
+                // Truncate from start if word shares typed prefix
+                if (pfx.length() > 0 && word.toLowerCase().startsWith(pfx)) {
+                    slots[slot].setEllipsize(TextUtils.TruncateAt.START);
+                } else {
+                    slots[slot].setEllipsize(TextUtils.TruncateAt.END);
+                }
             }
         }
     }
