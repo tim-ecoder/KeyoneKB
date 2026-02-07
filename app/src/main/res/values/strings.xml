@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">K12KB</string>
     <string name="app_files_dir" translatable="false">K12Kb</string>
+    <string name="file_provider_authority" translatable="false">com.ai10.k12kb.fileprovider</string>
     <string name="main_btn_settings">A. Settings</string>
     <string name="main_btn_power_manager_activated">E. Power saving requires configuration</string>
     <string name="main_btn_file_permissions_needed">F. Grant file access (json-s found)</string>

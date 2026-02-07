@@ -214,7 +214,7 @@ public class ActivitySettingsMore extends Activity {
             return;
         }
         try {
-            Uri uri = FileProvider.getUriForFile(this, "com.ai10.k12kb.fileprovider", file);
+            Uri uri = FileProvider.getUriForFile(this, getString(R.string.file_provider_authority), file);
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(uri, "text/javascript");
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
