@@ -333,6 +333,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     @Override
     public void onDestroy() {
         Instance = null;
+        if (wordPredictor != null) {
+            wordPredictor.shutdown();
+            wordPredictor = null;
+        }
         notificationProcessor.CancelAll();
         if (telephonyManager != null) {
             telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_NONE);

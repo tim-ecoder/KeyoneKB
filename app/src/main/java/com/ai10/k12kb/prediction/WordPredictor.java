@@ -49,8 +49,23 @@ public class WordPredictor {
     private boolean enabled = true;
     private Context appContext;
     private String currentLocale = "";
+    private final List<Thread> loadingThreads = new ArrayList<>();
 
     public WordPredictor() {
+    }
+
+    /**
+     * Stop all background loading threads. Call from onDestroy().
+     */
+    public void shutdown() {
+        synchronized (loadingThreads) {
+            for (Thread t : loadingThreads) {
+                t.interrupt();
+            }
+            loadingThreads.clear();
+        }
+        engine = null;
+        listener = null;
     }
 
     public void setSuggestLimit(int limit) {
@@ -119,18 +134,23 @@ public class WordPredictor {
         // Reuse existing engine if possible — keeps cached dictionaries
         if (engine != null) {
             final PredictionEngine existingEngine = engine;
-            Thread t = new Thread(new Runnable() {
+            final Thread t = new Thread(new Runnable() {
                 public void run() {
-                    existingEngine.loadDictionary(context, locale);
-                    if (existingEngine.isReady()) {
-                        if (currentWord.length() > 0 || previousWord.length() > 0) {
-                            updateSuggestions();
+                    try {
+                        existingEngine.loadDictionary(context, locale);
+                        if (existingEngine.isReady()) {
+                            if (currentWord.length() > 0 || previousWord.length() > 0) {
+                                updateSuggestions();
+                            }
                         }
+                        if (onComplete != null) onComplete.run();
+                    } finally {
+                        synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
                     }
-                    if (onComplete != null) onComplete.run();
                 }
             });
             t.setPriority(Thread.MIN_PRIORITY);
+            synchronized (loadingThreads) { loadingThreads.add(t); }
             t.start();
             return;
         }
@@ -145,12 +165,17 @@ public class WordPredictor {
     public void preloadDictionary(final Context context, final String locale) {
         if (engine == null) return;
         final PredictionEngine existingEngine = engine;
-        Thread t = new Thread(new Runnable() {
+        final Thread t = new Thread(new Runnable() {
             public void run() {
-                existingEngine.preloadDictionary(context, locale);
+                try {
+                    existingEngine.preloadDictionary(context, locale);
+                } finally {
+                    synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
+                }
             }
         });
         t.setPriority(Thread.MIN_PRIORITY);
+        synchronized (loadingThreads) { loadingThreads.add(t); }
         t.start();
     }
 
@@ -170,18 +195,23 @@ public class WordPredictor {
         }
         engine = newEngine;
 
-        Thread t = new Thread(new Runnable() {
+        final Thread t = new Thread(new Runnable() {
             public void run() {
-                newEngine.loadDictionary(context, locale);
-                if (newEngine.isReady()) {
-                    if (currentWord.length() > 0 || previousWord.length() > 0) {
-                        updateSuggestions();
+                try {
+                    newEngine.loadDictionary(context, locale);
+                    if (newEngine.isReady()) {
+                        if (currentWord.length() > 0 || previousWord.length() > 0) {
+                            updateSuggestions();
+                        }
                     }
+                    if (onComplete != null) onComplete.run();
+                } finally {
+                    synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
                 }
-                if (onComplete != null) onComplete.run();
             }
         });
         t.setPriority(Thread.MIN_PRIORITY);
+        synchronized (loadingThreads) { loadingThreads.add(t); }
         t.start();
     }
 

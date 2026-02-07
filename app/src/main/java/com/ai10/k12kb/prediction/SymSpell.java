@@ -85,12 +85,12 @@ public class SymSpell {
         deletes.clear();
         int count = 0;
         for (Map.Entry<String, Integer> entry : dictionary.entrySet()) {
+            if (Thread.currentThread().isInterrupted()) break;
             String term = entry.getKey();
             String key = term.length() > prefixLength ? term.substring(0, prefixLength) : term;
             addDeletes(key, maxEditDistance, term);
-            // Yield CPU every 500 words to avoid lag on main thread
             if (++count % 500 == 0) {
-                try { Thread.sleep(1); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(1); } catch (InterruptedException e) { break; }
             }
         }
     }

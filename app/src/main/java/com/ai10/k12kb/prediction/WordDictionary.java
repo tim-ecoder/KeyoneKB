@@ -83,6 +83,7 @@ public class WordDictionary {
                 String line;
                 int lineCount = 0;
                 while ((line = reader.readLine()) != null) {
+                    if (Thread.currentThread().isInterrupted()) break;
                     int tab = line.indexOf('\t');
                     if (tab <= 0) continue;
                     String word = line.substring(0, tab);
@@ -90,9 +91,8 @@ public class WordDictionary {
                     try { freq = Integer.parseInt(line.substring(tab + 1)); }
                     catch (NumberFormatException e) { continue; }
                     addEntry(word, freq);
-                    // Yield CPU every 500 words to avoid lag on main thread
                     if (++lineCount % 500 == 0) {
-                        try { Thread.sleep(1); } catch (InterruptedException ignored) {}
+                        try { Thread.sleep(1); } catch (InterruptedException e) { break; }
                     }
                 }
             } else {
@@ -104,16 +104,20 @@ public class WordDictionary {
                 }
                 JSONArray arr = new JSONArray(sb.toString());
                 for (int i = 0; i < arr.length(); i++) {
+                    if (Thread.currentThread().isInterrupted()) break;
                     JSONObject obj = arr.getJSONObject(i);
                     addEntry(obj.getString("w"), obj.getInt("f"));
-                    // Yield CPU every 500 words to avoid lag on main thread
                     if (i % 500 == 499) {
-                        try { Thread.sleep(1); } catch (InterruptedException ignored) {}
+                        try { Thread.sleep(1); } catch (InterruptedException e) { break; }
                     }
                 }
             }
             reader.close();
 
+            if (Thread.currentThread().isInterrupted()) {
+                Log.d(TAG, "Dictionary loading interrupted for " + locale);
+                return;
+            }
             symSpell.setBulkLoading(false);
             symSpell.buildIndex();
             ready = true;
