@@ -108,7 +108,41 @@ public class WordPredictor {
             return;
         }
 
+        // Reuse existing engine if possible — keeps cached dictionaries
+        if (engine != null) {
+            final PredictionEngine existingEngine = engine;
+            Thread t = new Thread(new Runnable() {
+                public void run() {
+                    existingEngine.loadDictionary(context, locale);
+                    if (existingEngine.isReady()) {
+                        if (currentWord.length() > 0 || previousWord.length() > 0) {
+                            updateSuggestions();
+                        }
+                    }
+                }
+            });
+            t.setPriority(Thread.MIN_PRIORITY);
+            t.start();
+            return;
+        }
+
         createAndLoadEngine(context, locale);
+    }
+
+    /**
+     * Preload a dictionary for a locale without switching to it.
+     * The dictionary stays in the engine's cache for fast switching later.
+     */
+    public void preloadDictionary(final Context context, final String locale) {
+        if (engine == null) return;
+        final PredictionEngine existingEngine = engine;
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                existingEngine.preloadDictionary(context, locale);
+            }
+        });
+        t.setPriority(Thread.MIN_PRIORITY);
+        t.start();
     }
 
     private void createAndLoadEngine(final Context context, final String locale) {

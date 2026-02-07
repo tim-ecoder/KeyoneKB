@@ -177,6 +177,11 @@ public class NgramEngine implements PredictionEngine {
     }
 
     @Override
+    public void preloadDictionary(Context context, String locale) {
+        // NgramEngine does not support preloading; dictionaries load on switch
+    }
+
+    @Override
     public boolean isReady() {
         return ready;
     }
