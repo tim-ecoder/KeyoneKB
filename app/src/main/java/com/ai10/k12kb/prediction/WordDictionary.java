@@ -81,6 +81,7 @@ public class WordDictionary {
 
             if (useTxt) {
                 String line;
+                int lineCount = 0;
                 while ((line = reader.readLine()) != null) {
                     int tab = line.indexOf('\t');
                     if (tab <= 0) continue;
@@ -89,6 +90,10 @@ public class WordDictionary {
                     try { freq = Integer.parseInt(line.substring(tab + 1)); }
                     catch (NumberFormatException e) { continue; }
                     addEntry(word, freq);
+                    // Yield CPU every 500 words to avoid lag on main thread
+                    if (++lineCount % 500 == 0) {
+                        try { Thread.sleep(1); } catch (InterruptedException ignored) {}
+                    }
                 }
             } else {
                 StringBuilder sb = new StringBuilder();
@@ -101,6 +106,10 @@ public class WordDictionary {
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject obj = arr.getJSONObject(i);
                     addEntry(obj.getString("w"), obj.getInt("f"));
+                    // Yield CPU every 500 words to avoid lag on main thread
+                    if (i % 500 == 499) {
+                        try { Thread.sleep(1); } catch (InterruptedException ignored) {}
+                    }
                 }
             }
             reader.close();
