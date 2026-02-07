@@ -21,9 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -37,7 +34,7 @@ public class WordDictionary {
     private static final String TAG = "WordDictionary";
     private static final int MAX_PREFIX_CACHE = 4;
     private static final int CACHE_MAGIC = 0x4B313244;   // "K12D"
-    private static final int CACHE_VERSION = 1;
+    private static final int CACHE_VERSION = 2;  // v2: uncompressed (no GZIP)
 
     private final SymSpell symSpell = new SymSpell(2, 7);
     private final HashMap<String, List<DictEntry>> prefixCache = new HashMap<>();
@@ -160,7 +157,7 @@ public class WordDictionary {
         DataInputStream in = null;
         try {
             in = new DataInputStream(new BufferedInputStream(
-                    new GZIPInputStream(new FileInputStream(cacheFile)), 65536));
+                    new FileInputStream(cacheFile), 65536));
             int magic = in.readInt();
             if (magic != CACHE_MAGIC) { in.close(); return false; }
             int version = in.readInt();
@@ -215,7 +212,7 @@ public class WordDictionary {
             dir.mkdirs();
             File cacheFile = new File(dir, locale + ".bin");
             out = new DataOutputStream(new BufferedOutputStream(
-                    new GZIPOutputStream(new FileOutputStream(cacheFile)), 65536));
+                    new FileOutputStream(cacheFile), 65536));
 
             out.writeInt(CACHE_MAGIC);
             out.writeInt(CACHE_VERSION);
@@ -226,14 +223,19 @@ public class WordDictionary {
                 totalWords += entries.size();
             }
             out.writeInt(totalWords);
+            int written = 0;
             for (Map.Entry<String, List<DictEntry>> entry : normalizedIndex.entrySet()) {
+                if (Thread.currentThread().isInterrupted()) { out.close(); return; }
                 for (DictEntry de : entry.getValue()) {
                     out.writeUTF(de.word);
                     out.writeInt(de.frequency);
                 }
+                if (++written % 2000 == 0) {
+                    try { Thread.sleep(2); } catch (InterruptedException e) { out.close(); return; }
+                }
             }
 
-            // Write SymSpell deletes
+            // Write SymSpell deletes (yields internally every 5000 entries)
             symSpell.writeDeletesCache(out);
 
             out.close();

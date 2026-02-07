@@ -247,12 +247,17 @@ public class SymSpell {
      */
     public void writeDeletesCache(DataOutputStream out) throws IOException {
         out.writeInt(deletes.size());
+        int count = 0;
         for (Map.Entry<String, List<String>> entry : deletes.entrySet()) {
+            if (Thread.currentThread().isInterrupted()) return;
             out.writeUTF(entry.getKey());
             List<String> bucket = entry.getValue();
             out.writeInt(bucket.size());
             for (int i = 0; i < bucket.size(); i++) {
                 out.writeUTF(bucket.get(i));
+            }
+            if (++count % 5000 == 0) {
+                try { Thread.sleep(2); } catch (InterruptedException e) { return; }
             }
         }
     }
@@ -273,6 +278,9 @@ public class SymSpell {
                 bucket.add(in.readUTF());
             }
             deletes.put(key, bucket);
+            if (i % 5000 == 4999) {
+                try { Thread.sleep(1); } catch (InterruptedException e) { return; }
+            }
         }
     }
 }
