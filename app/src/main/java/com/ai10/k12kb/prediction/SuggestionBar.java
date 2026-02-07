@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -78,17 +79,21 @@ public class SuggestionBar extends LinearLayout {
         int cornerPx = (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, SLOT_CORNER_RADIUS_DP, getResources().getDisplayMetrics());
 
+        int padHPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 12, getResources().getDisplayMetrics());
+
         for (int i = 0; i < numSlots; i++) {
             final int index = i;
             TextView tv = new TextView(context);
-            LayoutParams lp = new LayoutParams(0, LayoutParams.MATCH_PARENT, 1.0f);
+            LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
             lp.setMargins(insetPx, insetTBPx, (i == numSlots - 1) ? insetPx : 0, insetTBPx);
             tv.setLayoutParams(lp);
             tv.setGravity(Gravity.CENTER);
             tv.setTextColor(COLOR_TEXT);
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSizeSp);
             tv.setMaxLines(1);
-            tv.setPadding(4, 0, 4, 0);
+            tv.setEllipsize(TextUtils.TruncateAt.END);
+            tv.setPadding(padHPx, 0, padHPx, 0);
             tv.setBackground(createSlotDrawable(cornerPx));
             tv.setClickable(true);
             tv.setOnClickListener(new OnClickListener() {
