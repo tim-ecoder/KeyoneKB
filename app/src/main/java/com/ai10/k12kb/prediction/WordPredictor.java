@@ -1,6 +1,8 @@
 package com.ai10.k12kb.prediction;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import java.text.Normalizer;
@@ -49,8 +51,14 @@ public class WordPredictor {
     private boolean enabled = true;
     private Context appContext;
     private String currentLocale = "";
+    private volatile int suggestVersion;
+    private HandlerThread suggestThread;
+    private Handler suggestHandler;
 
     public WordPredictor() {
+        suggestThread = new HandlerThread("predictor", Thread.MIN_PRIORITY);
+        suggestThread.start();
+        suggestHandler = new Handler(suggestThread.getLooper());
     }
 
     public void setSuggestLimit(int limit) {
@@ -230,11 +238,22 @@ public class WordPredictor {
             return;
         }
 
-        List<Suggestion> results = engine.suggest(currentWord, previousWord, suggestLimit);
-        latestSuggestions = results;
-        if (listener != null) {
-            listener.onSuggestionsUpdated(results);
-        }
+        final int version = ++suggestVersion;
+        final String word = currentWord;
+        final String prev = previousWord;
+        final int limit = suggestLimit;
+        suggestHandler.removeCallbacksAndMessages(null);
+        suggestHandler.post(new Runnable() {
+            public void run() {
+                List<Suggestion> results = engine.suggest(word, prev, limit);
+                if (version == suggestVersion) {
+                    latestSuggestions = results;
+                    if (listener != null) {
+                        listener.onSuggestionsUpdated(results);
+                    }
+                }
+            }
+        });
     }
 
     /**

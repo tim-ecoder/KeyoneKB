@@ -487,6 +487,11 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 //currentSoftKeyboard = new Keyboard(this, R.xml.space_empty, GetSwipeKeyboardHeight());
             //    currentSoftKeyboard = new Keyboard(this, R.xml.space_empty);
 
+            if (suggestionBar != null) {
+                suggestionBar.clear();
+                setCandidatesViewShown(false);
+            }
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 this.requestHideSelf(InputMethodManager.HIDE_NOT_ALWAYS);
             }
