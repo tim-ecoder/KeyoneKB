@@ -26,7 +26,8 @@ public class SuggestionBar extends LinearLayout {
     private static final int COLOR_DIVIDER        = 0xFF101012;
 
     private static final int SLOT_CORNER_RADIUS_DP = 6;
-    private static final int SLOT_INSET_DP         = 1;
+    private static final int SLOT_INSET_DP         = 3;
+    private static final int SLOT_INSET_TB_DP      = 1; // top/bottom margin inside slots (3 - 2)
     private static final int DIVIDER_HEIGHT_DP     = 3;
 
     private TextView[] slots;
@@ -64,6 +65,8 @@ public class SuggestionBar extends LinearLayout {
 
         int insetPx = (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, SLOT_INSET_DP, getResources().getDisplayMetrics());
+        int insetTBPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, SLOT_INSET_TB_DP, getResources().getDisplayMetrics());
         int cornerPx = (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, SLOT_CORNER_RADIUS_DP, getResources().getDisplayMetrics());
 
@@ -71,7 +74,7 @@ public class SuggestionBar extends LinearLayout {
             final int index = i;
             TextView tv = new TextView(context);
             LayoutParams lp = new LayoutParams(0, LayoutParams.MATCH_PARENT, 1.0f);
-            lp.setMargins(insetPx, insetPx, (i == numSlots - 1) ? insetPx : 0, insetPx);
+            lp.setMargins(insetPx, insetTBPx, (i == numSlots - 1) ? insetPx : 0, insetTBPx);
             tv.setLayoutParams(lp);
             tv.setGravity(Gravity.CENTER);
             tv.setTextColor(COLOR_TEXT);
