@@ -30,15 +30,16 @@ public class FileJsonUtils {
 
     public static String PATH;
     public static String PATH_DEF;
-    public static String APP_FILES_DIR = "K12Kb";
+    public static String APP_FILES_DIR;
     public static String DEFAULT_FOLDER = "default";
     public static String JsonFileExt = ".json";
     public static String JsFileExt = ".js";
     public static String JsPatchesAssetFolder = "js_patches";
 
-    public static void Initialize() {
+    public static void Initialize(Context context) {
 
         if(PATH == null || PATH.isEmpty()) {
+            APP_FILES_DIR = context.getString(R.string.app_files_dir);
             PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + APP_FILES_DIR + "/";
             PATH_DEF = PATH + DEFAULT_FOLDER + "/";
         }

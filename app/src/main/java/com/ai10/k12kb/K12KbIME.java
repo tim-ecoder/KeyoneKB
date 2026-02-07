@@ -113,7 +113,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         try {
             STEP = "FileJsonUtils.Initialize";
             Log.i(TAG2, "onCreate STEP: " + STEP);
-            FileJsonUtils.Initialize();
+            FileJsonUtils.Initialize(this);
 
             STEP = "super.onCreate (keyboard_core.json)";
             Log.i(TAG2, "onCreate STEP: " + STEP);

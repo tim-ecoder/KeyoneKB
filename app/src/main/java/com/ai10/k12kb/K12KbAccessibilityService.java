@@ -154,7 +154,7 @@ public class K12KbAccessibilityService extends AccessibilityService {
     public synchronized void onCreate() {
         Log.v(TAG3, "onCreate()");
         try {
-            FileJsonUtils.Initialize();
+            FileJsonUtils.Initialize(this);
             super.onCreate();
 
             Instance = this;

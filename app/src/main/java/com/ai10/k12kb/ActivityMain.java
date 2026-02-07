@@ -42,7 +42,7 @@ public class ActivityMain extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        FileJsonUtils.Initialize();
+        FileJsonUtils.Initialize(this);
         super.onCreate(savedInstanceState);
         k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
         if (k12KbSettings.isLightTheme()) {
