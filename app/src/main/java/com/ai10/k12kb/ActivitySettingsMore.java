@@ -16,6 +16,10 @@ import android.widget.*;
 import android.view.Gravity;
 import android.view.ViewGroup;
 
+import android.net.Uri;
+import android.support.v4.content.FileProvider;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,48 +120,64 @@ public class ActivitySettingsMore extends Activity {
             String prefix = groupName + ".";
 
             for (final String jsPatch : patches) {
-                Switch jsPatchSwitch;
-                if (isFirst) {
-                    jsPatchSwitch = defaultJsPatch;
-                    ((ViewGroup) jsPatchSwitch.getParent()).removeView(jsPatchSwitch);
-                    isFirst = false;
-                } else {
-                    jsPatchSwitch = new Switch(this);
-                    jsPatchSwitch.setId(View.generateViewId());
-                    jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultJsPatch.getTextSize());
-                }
+                // Build pill container: horizontal LinearLayout with TextView + Switch
+                LinearLayout pillRow = new LinearLayout(this);
+                pillRow.setOrientation(LinearLayout.HORIZONTAL);
+                pillRow.setGravity(Gravity.CENTER_VERTICAL);
+                pillRow.setBackgroundResource(R.drawable.bg_item_pill);
 
-                // Style as individual pill
                 LinearLayout.LayoutParams pillParams = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 int marginH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
                 int marginT = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics());
                 pillParams.setMargins(marginH, marginT, marginH, 0);
-                jsPatchSwitch.setLayoutParams(pillParams);
-                jsPatchSwitch.setBackgroundResource(R.drawable.bg_item_pill);
+                pillRow.setLayoutParams(pillParams);
+
                 int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
                 int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-                jsPatchSwitch.setPadding(padH, pad, padH, pad);
-                jsPatchSwitch.setTextColor(textColor);
-                jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                pillRow.setPadding(padH, pad, padH, pad);
 
-                containerJsPatches.addView(jsPatchSwitch);
-
-                k12KbSettings.CheckSettingOrSetDefault(jsPatch, k12KbSettings.JS_PATCH_IS_ENABLED_DEFAULT);
-                boolean enabled = k12KbSettings.GetBooleanValue(jsPatch);
-                jsPatchSwitch.setChecked(enabled);
+                // Text label — clickable, opens the JS file
+                TextView pillText = new TextView(this);
+                LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                        0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                pillText.setLayoutParams(textParams);
+                pillText.setTextColor(textColor);
+                pillText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
 
                 // Use @name description from JS file, or fall back to filename without prefix
                 String description = FileJsonUtils.JsPatchDescriptions.get(jsPatch);
                 if (description != null) {
-                    jsPatchSwitch.setText(description);
+                    pillText.setText(description);
                 } else {
                     String displayName = jsPatch;
                     if (jsPatch.startsWith(prefix)) {
                         displayName = jsPatch.substring(prefix.length());
                     }
-                    jsPatchSwitch.setText(displayName);
+                    pillText.setText(displayName);
                 }
+
+                // Clicking on text opens JS file in editor
+                pillText.setClickable(true);
+                pillText.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openJsPatchFile(jsPatch);
+                    }
+                });
+
+                pillRow.addView(pillText);
+
+                // Toggle switch — no text, only toggling
+                final Switch jsPatchSwitch = new Switch(this);
+                jsPatchSwitch.setId(View.generateViewId());
+                LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                jsPatchSwitch.setLayoutParams(switchParams);
+
+                k12KbSettings.CheckSettingOrSetDefault(jsPatch, k12KbSettings.JS_PATCH_IS_ENABLED_DEFAULT);
+                boolean enabled = k12KbSettings.GetBooleanValue(jsPatch);
+                jsPatchSwitch.setChecked(enabled);
 
                 jsPatchSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -165,6 +185,16 @@ public class ActivitySettingsMore extends Activity {
                         k12KbSettings.SetBooleanValue(jsPatch, isChecked);
                     }
                 });
+
+                pillRow.addView(jsPatchSwitch);
+
+                containerJsPatches.addView(pillRow);
+
+                if (isFirst) {
+                    // Remove the XML-defined default switch since we don't use it anymore
+                    ((ViewGroup) defaultJsPatch.getParent()).removeView(defaultJsPatch);
+                    isFirst = false;
+                }
             }
         }
 
@@ -175,6 +205,23 @@ public class ActivitySettingsMore extends Activity {
     public void onResume(){
         super.onResume();
         RedrawViewData();
+    }
+
+    private void openJsPatchFile(String jsPatchFileName) {
+        File file = new File(FileJsonUtils.PATH, jsPatchFileName);
+        if (!file.exists()) {
+            Toast.makeText(this, "File not found: " + jsPatchFileName, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            Uri uri = FileProvider.getUriForFile(this, "com.ai10.k12kb.fileprovider", file);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "text/javascript");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "No editor found for JS files", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private boolean isAccessibilityEnabled() {
