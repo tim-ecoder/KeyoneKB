@@ -204,7 +204,22 @@ public class PillBadgeHelper {
 
             if (badge == null) {
                 badge = createBadge(pill.getContext());
-                pill.addView(badge, 0);
+                if (pill.getOrientation() == LinearLayout.VERTICAL) {
+                    // Vertical pill (e.g. seekbar): wrap badge + title in a horizontal row
+                    int textIndex = pill.indexOfChild(textChild);
+                    LinearLayout row = new LinearLayout(pill.getContext());
+                    row.setOrientation(LinearLayout.HORIZONTAL);
+                    row.setGravity(Gravity.CENTER_VERTICAL);
+                    row.setLayoutParams(new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT));
+                    pill.removeView(textChild);
+                    row.addView(badge);
+                    row.addView(textChild);
+                    pill.addView(row, textIndex);
+                } else {
+                    pill.addView(badge, 0);
+                }
             }
             badge.setText(prefix);
             badge.setVisibility(View.VISIBLE);
