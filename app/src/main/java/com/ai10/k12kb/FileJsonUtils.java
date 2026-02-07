@@ -403,41 +403,6 @@ public class FileJsonUtils {
         return dir.listFiles(new java.io.FileFilter() { public boolean accept(File file) { return file.getName().matches(regex); } });
     }
 
-    /**
-     * Scan SD card for all .js patch files and add any not already in JsPatchesMap.
-     * This discovers patches for resources not yet loaded (e.g. accessibility service not running).
-     */
-    public static void scanAllJsPatchesFromSdCard() {
-        if (PATH == null) return;
-        File dir = new File(PATH);
-        File[] allJs = dir.listFiles(new java.io.FileFilter() {
-            public boolean accept(File file) {
-                return file.getName().endsWith(".js") && file.getName().contains(".");
-            }
-        });
-        if (allJs == null) return;
-        for (File jsFile : allJs) {
-            String name = jsFile.getName();
-            int firstDot = name.indexOf('.');
-            if (firstDot <= 0) continue;
-            String groupName = name.substring(0, firstDot);
-            List<String> list = JsPatchesMap.get(groupName);
-            if (list == null) {
-                list = new ArrayList<>();
-                JsPatchesMap.put(groupName, list);
-            }
-            if (!list.contains(name)) {
-                list.add(name);
-            }
-            if (!JsPatchDescriptions.containsKey(name)) {
-                String desc = readJsPatchName(jsFile);
-                if (desc != null) {
-                    JsPatchDescriptions.put(name, desc);
-                }
-            }
-        }
-    }
-
     private static final String JS_NAME_PREFIX = "// @name ";
 
     private static String readJsPatchName(File file) {
