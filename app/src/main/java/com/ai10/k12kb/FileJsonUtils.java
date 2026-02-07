@@ -182,8 +182,8 @@ public class FileJsonUtils {
         Context psc = GetContext(context);
         K12KbSettings k12KbSettings = K12KbSettings.Get(psc.getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
         List<String> JsPatches = new ArrayList<>();
-        JsPatchesMap.put(resName, JsPatches);
         String noFolderName = ResNameNoFolder(resName);
+        JsPatchesMap.put(noFolderName, JsPatches);
 
         try {
             if(ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
