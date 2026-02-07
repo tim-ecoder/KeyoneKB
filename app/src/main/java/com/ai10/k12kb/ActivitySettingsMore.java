@@ -67,8 +67,8 @@ public class ActivitySettingsMore extends Activity {
 
         RedrawViewData();
 
-        if(FileJsonUtils.JsPatchesMap.isEmpty())
-            return;
+        // Discover all JS patches on SD card (including ones not loaded by current services)
+        FileJsonUtils.scanAllJsPatchesFromSdCard();
 
         // Check if any group has actual patches
         boolean hasAnyPatches = false;
