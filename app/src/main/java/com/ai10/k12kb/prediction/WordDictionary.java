@@ -107,7 +107,7 @@ public class WordDictionary {
                     catch (NumberFormatException e) { continue; }
                     addEntry(word, freq);
                     if (++lineCount % 200 == 0) {
-                        try { Thread.sleep(10); } catch (InterruptedException e) { break; }
+                        try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
                     }
                 }
             } else {
@@ -123,7 +123,7 @@ public class WordDictionary {
                     JSONObject obj = arr.getJSONObject(i);
                     addEntry(obj.getString("w"), obj.getInt("f"));
                     if (i % 200 == 199) {
-                        try { Thread.sleep(10); } catch (InterruptedException e) { break; }
+                        try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
                     }
                 }
             }
@@ -176,7 +176,7 @@ public class WordDictionary {
                 int freq = in.readInt();
                 addEntry(word, freq);
                 if (i % 200 == 199) {
-                    try { Thread.sleep(10); } catch (InterruptedException e) { in.close(); return false; }
+                    try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); in.close(); return false; }
                 }
             }
 
@@ -231,7 +231,7 @@ public class WordDictionary {
                     out.writeInt(de.frequency);
                 }
                 if (++written % 200 == 0) {
-                    try { Thread.sleep(10); } catch (InterruptedException e) { out.close(); return; }
+                    try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); out.close(); return; }
                 }
             }
 

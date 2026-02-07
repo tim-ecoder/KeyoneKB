@@ -50,6 +50,7 @@ public class WordPredictor {
     private Context appContext;
     private String currentLocale = "";
     private final List<Thread> loadingThreads = new ArrayList<>();
+    private volatile boolean shuttingDown = false;
 
     public WordPredictor() {
     }
@@ -58,6 +59,7 @@ public class WordPredictor {
      * Stop all background loading threads. Call from onDestroy().
      */
     public void shutdown() {
+        shuttingDown = true;
         synchronized (loadingThreads) {
             for (Thread t : loadingThreads) {
                 t.interrupt();
@@ -126,6 +128,7 @@ public class WordPredictor {
      * Load dictionary with a completion callback that runs after loading finishes.
      */
     public void loadDictionary(final Context context, final String locale, final Runnable onComplete) {
+        if (shuttingDown) return;
         this.appContext = context;
         this.currentLocale = locale;
 
@@ -142,12 +145,13 @@ public class WordPredictor {
                 public void run() {
                     try {
                         existingEngine.loadDictionary(context, locale);
+                        if (shuttingDown) return;
                         if (existingEngine.isReady()) {
                             if (currentWord.length() > 0 || previousWord.length() > 0) {
                                 updateSuggestions();
                             }
                         }
-                        if (onComplete != null) onComplete.run();
+                        if (!shuttingDown && onComplete != null) onComplete.run();
                     } finally {
                         synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
                     }
@@ -167,7 +171,7 @@ public class WordPredictor {
      * The dictionary stays in the engine's cache for fast switching later.
      */
     public void preloadDictionary(final Context context, final String locale) {
-        if (engine == null) return;
+        if (shuttingDown || engine == null) return;
         final PredictionEngine existingEngine = engine;
         final Thread t = new Thread(new Runnable() {
             public void run() {
@@ -188,6 +192,7 @@ public class WordPredictor {
     }
 
     private void createAndLoadEngine(final Context context, final String locale, final Runnable onComplete) {
+        if (shuttingDown) return;
         final PredictionEngine newEngine;
         switch (engineMode) {
             case ENGINE_NGRAM:
@@ -203,12 +208,13 @@ public class WordPredictor {
             public void run() {
                 try {
                     newEngine.loadDictionary(context, locale);
+                    if (shuttingDown) return;
                     if (newEngine.isReady()) {
                         if (currentWord.length() > 0 || previousWord.length() > 0) {
                             updateSuggestions();
                         }
                     }
-                    if (onComplete != null) onComplete.run();
+                    if (!shuttingDown && onComplete != null) onComplete.run();
                 } finally {
                     synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
                 }
