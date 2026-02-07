@@ -92,8 +92,8 @@ public class SymSpell {
             String term = entry.getKey();
             String key = term.length() > prefixLength ? term.substring(0, prefixLength) : term;
             addDeletes(key, maxEditDistance, term);
-            if (++count % 500 == 0) {
-                try { Thread.sleep(1); } catch (InterruptedException e) { break; }
+            if (++count % 200 == 0) {
+                try { Thread.sleep(10); } catch (InterruptedException e) { break; }
             }
         }
     }
@@ -256,8 +256,8 @@ public class SymSpell {
             for (int i = 0; i < bucket.size(); i++) {
                 out.writeUTF(bucket.get(i));
             }
-            if (++count % 5000 == 0) {
-                try { Thread.sleep(2); } catch (InterruptedException e) { return; }
+            if (++count % 500 == 0) {
+                try { Thread.sleep(10); } catch (InterruptedException e) { return; }
             }
         }
     }
@@ -278,8 +278,8 @@ public class SymSpell {
                 bucket.add(in.readUTF());
             }
             deletes.put(key, bucket);
-            if (i % 5000 == 4999) {
-                try { Thread.sleep(1); } catch (InterruptedException e) { return; }
+            if (i % 500 == 499) {
+                try { Thread.sleep(10); } catch (InterruptedException e) { return; }
             }
         }
     }

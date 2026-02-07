@@ -106,8 +106,8 @@ public class WordDictionary {
                     try { freq = Integer.parseInt(line.substring(tab + 1)); }
                     catch (NumberFormatException e) { continue; }
                     addEntry(word, freq);
-                    if (++lineCount % 500 == 0) {
-                        try { Thread.sleep(1); } catch (InterruptedException e) { break; }
+                    if (++lineCount % 200 == 0) {
+                        try { Thread.sleep(10); } catch (InterruptedException e) { break; }
                     }
                 }
             } else {
@@ -122,8 +122,8 @@ public class WordDictionary {
                     if (Thread.currentThread().isInterrupted()) break;
                     JSONObject obj = arr.getJSONObject(i);
                     addEntry(obj.getString("w"), obj.getInt("f"));
-                    if (i % 500 == 499) {
-                        try { Thread.sleep(1); } catch (InterruptedException e) { break; }
+                    if (i % 200 == 199) {
+                        try { Thread.sleep(10); } catch (InterruptedException e) { break; }
                     }
                 }
             }
@@ -149,7 +149,7 @@ public class WordDictionary {
 
     /**
      * Load dictionary from binary cache. Much faster than parsing JSON + buildIndex.
-     * Format: GZIP( magic + version + word/freq pairs + SymSpell deletes )
+     * Format: magic + version + word/freq pairs + SymSpell deletes (uncompressed)
      */
     private boolean loadFromCache(Context context, String locale) {
         File cacheFile = new File(context.getFilesDir(), "dict_cache/" + locale + ".bin");
@@ -175,8 +175,8 @@ public class WordDictionary {
                 String word = in.readUTF();
                 int freq = in.readInt();
                 addEntry(word, freq);
-                if (i % 2000 == 1999) {
-                    try { Thread.sleep(1); } catch (InterruptedException e) { in.close(); return false; }
+                if (i % 200 == 199) {
+                    try { Thread.sleep(10); } catch (InterruptedException e) { in.close(); return false; }
                 }
             }
 
@@ -230,8 +230,8 @@ public class WordDictionary {
                     out.writeUTF(de.word);
                     out.writeInt(de.frequency);
                 }
-                if (++written % 2000 == 0) {
-                    try { Thread.sleep(2); } catch (InterruptedException e) { out.close(); return; }
+                if (++written % 200 == 0) {
+                    try { Thread.sleep(10); } catch (InterruptedException e) { out.close(); return; }
                 }
             }
 
