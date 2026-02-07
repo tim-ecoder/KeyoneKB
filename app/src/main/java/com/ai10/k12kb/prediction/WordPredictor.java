@@ -100,11 +100,19 @@ public class WordPredictor {
      * and loads in a background thread.
      */
     public void loadDictionary(final Context context, final String locale) {
+        loadDictionary(context, locale, null);
+    }
+
+    /**
+     * Load dictionary with a completion callback that runs after loading finishes.
+     */
+    public void loadDictionary(final Context context, final String locale, final Runnable onComplete) {
         this.appContext = context;
         this.currentLocale = locale;
 
         // Check if engine already loaded for this locale
         if (engine != null && engine.isReady() && locale.equals(engine.getLoadedLocale())) {
+            if (onComplete != null) onComplete.run();
             return;
         }
 
@@ -119,6 +127,7 @@ public class WordPredictor {
                             updateSuggestions();
                         }
                     }
+                    if (onComplete != null) onComplete.run();
                 }
             });
             t.setPriority(Thread.MIN_PRIORITY);
@@ -126,7 +135,7 @@ public class WordPredictor {
             return;
         }
 
-        createAndLoadEngine(context, locale);
+        createAndLoadEngine(context, locale, onComplete);
     }
 
     /**
@@ -146,6 +155,10 @@ public class WordPredictor {
     }
 
     private void createAndLoadEngine(final Context context, final String locale) {
+        createAndLoadEngine(context, locale, null);
+    }
+
+    private void createAndLoadEngine(final Context context, final String locale, final Runnable onComplete) {
         final PredictionEngine newEngine;
         switch (engineMode) {
             case ENGINE_NGRAM:
@@ -165,6 +178,7 @@ public class WordPredictor {
                         updateSuggestions();
                     }
                 }
+                if (onComplete != null) onComplete.run();
             }
         });
         t.setPriority(Thread.MIN_PRIORITY);
