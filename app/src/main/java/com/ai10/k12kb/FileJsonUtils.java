@@ -197,9 +197,6 @@ public class FileJsonUtils {
                     for (File jsPatch : jsFiles) {
                         JsPatches.add(jsPatch.getName());
                         String desc = readJsPatchName(jsPatch);
-                        if (desc == null) {
-                            desc = readJsPatchNameFromAsset(jsPatch.getName(), context);
-                        }
                         if (desc != null) {
                             JsPatchDescriptions.put(jsPatch.getName(), desc);
                         }
@@ -407,30 +404,11 @@ public class FileJsonUtils {
     }
 
     private static final String JS_NAME_PREFIX = "// @name ";
-    private static final String JS_PATCHES_ASSET_DIR = "js_patches/";
 
     private static String readJsPatchName(File file) {
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(file));
-            String firstLine = reader.readLine();
-            if (firstLine != null && firstLine.startsWith(JS_NAME_PREFIX)) {
-                return firstLine.substring(JS_NAME_PREFIX.length()).trim();
-            }
-        } catch (Exception ignored) {
-        } finally {
-            if (reader != null) {
-                try { reader.close(); } catch (Exception ignored) {}
-            }
-        }
-        return null;
-    }
-
-    private static String readJsPatchNameFromAsset(String fileName, Context context) {
-        BufferedReader reader = null;
-        try {
-            InputStream is = context.getAssets().open(JS_PATCHES_ASSET_DIR + fileName);
-            reader = new BufferedReader(new InputStreamReader(is));
             String firstLine = reader.readLine();
             if (firstLine != null && firstLine.startsWith(JS_NAME_PREFIX)) {
                 return firstLine.substring(JS_NAME_PREFIX.length()).trim();
