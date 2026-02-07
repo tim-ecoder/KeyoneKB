@@ -48,7 +48,7 @@ public class SuggestionBar extends LinearLayout {
         setOrientation(HORIZONTAL);
         setGravity(Gravity.CENTER_VERTICAL);
 
-        int totalHeightDp = heightDp + DIVIDER_HEIGHT_DP;
+        int totalHeightDp = heightDp + DIVIDER_HEIGHT_DP * 2; // top + bottom dividers
         int totalHeight = (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, totalHeightDp, getResources().getDisplayMetrics());
         int dividerPx = (int) TypedValue.applyDimension(
@@ -56,16 +56,16 @@ public class SuggestionBar extends LinearLayout {
 
         setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, totalHeight));
 
-        // Background: bar color on top, divider color stripe at bottom
+        // Background: divider color fills all, bar layer inset top+bottom for divider stripes
         ColorDrawable dividerLayer = new ColorDrawable(COLOR_DIVIDER);
         ColorDrawable barLayer = new ColorDrawable(COLOR_BAR_BG);
         LayerDrawable bg = new LayerDrawable(new android.graphics.drawable.Drawable[]{dividerLayer, barLayer});
-        bg.setLayerInset(0, 0, 0, 0, 0);              // divider fills all
-        bg.setLayerInset(1, 0, 0, 0, dividerPx);       // bar layer leaves bottom dividerPx for divider
+        bg.setLayerInset(0, 0, 0, 0, 0);                       // divider fills all
+        bg.setLayerInset(1, 0, dividerPx, 0, dividerPx);       // bar layer leaves top+bottom for divider
         setBackground(bg);
 
-        // Bottom padding so slots don't overlap the divider stripe
-        setPadding(0, 0, 0, dividerPx);
+        // Padding so slots don't overlap the divider stripes
+        setPadding(0, dividerPx, 0, dividerPx);
 
         // Auto-compute font size: roughly 40% of height in dp
         float fontSizeSp = heightDp * 0.4f;
