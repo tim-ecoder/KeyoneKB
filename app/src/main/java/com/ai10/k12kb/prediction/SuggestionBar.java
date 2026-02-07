@@ -2,7 +2,9 @@ package com.ai10.k12kb.prediction;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -27,7 +29,7 @@ public class SuggestionBar extends LinearLayout {
 
     private static final int SLOT_CORNER_RADIUS_DP = 6;
     private static final int SLOT_INSET_DP         = 3;
-    private static final int SLOT_INSET_TB_DP      = 1; // top/bottom margin inside slots (3 - 2)
+    private static final int SLOT_INSET_TB_DP      = 1;
     private static final int DIVIDER_HEIGHT_DP     = 3;
 
     private TextView[] slots;
@@ -42,21 +44,27 @@ public class SuggestionBar extends LinearLayout {
         super(context);
         this.numSlots = Math.max(1, slotCount);
         this.slots = new TextView[numSlots];
-        setOrientation(VERTICAL);
-        setBackgroundColor(COLOR_BAR_BG);
+        setOrientation(HORIZONTAL);
+        setGravity(Gravity.CENTER_VERTICAL);
 
+        int totalHeightDp = heightDp + DIVIDER_HEIGHT_DP;
         int totalHeight = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, heightDp + DIVIDER_HEIGHT_DP,
-                getResources().getDisplayMetrics());
+                TypedValue.COMPLEX_UNIT_DIP, totalHeightDp, getResources().getDisplayMetrics());
+        int dividerPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, DIVIDER_HEIGHT_DP, getResources().getDisplayMetrics());
+
         setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, totalHeight));
 
-        // Horizontal row for suggestion slots
-        int rowHeight = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, heightDp, getResources().getDisplayMetrics());
-        LinearLayout row = new LinearLayout(context);
-        row.setOrientation(HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, rowHeight));
+        // Background: bar color on top, divider color stripe at bottom
+        ColorDrawable dividerLayer = new ColorDrawable(COLOR_DIVIDER);
+        ColorDrawable barLayer = new ColorDrawable(COLOR_BAR_BG);
+        LayerDrawable bg = new LayerDrawable(new android.graphics.drawable.Drawable[]{dividerLayer, barLayer});
+        bg.setLayerInset(0, 0, 0, 0, 0);              // divider fills all
+        bg.setLayerInset(1, 0, 0, 0, dividerPx);       // bar layer leaves bottom dividerPx for divider
+        setBackground(bg);
+
+        // Bottom padding so slots don't overlap the divider stripe
+        setPadding(0, 0, 0, dividerPx);
 
         // Auto-compute font size: roughly 40% of height in dp
         float fontSizeSp = heightDp * 0.4f;
@@ -94,18 +102,8 @@ public class SuggestionBar extends LinearLayout {
                 }
             });
             slots[i] = tv;
-            row.addView(tv);
+            addView(tv);
         }
-
-        addView(row);
-
-        // 2dp dark divider at bottom
-        View divider = new View(context);
-        int dividerHeight = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, DIVIDER_HEIGHT_DP, getResources().getDisplayMetrics());
-        divider.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, dividerHeight));
-        divider.setBackgroundColor(COLOR_DIVIDER);
-        addView(divider);
     }
 
     private static StateListDrawable createSlotDrawable(int cornerPx) {
