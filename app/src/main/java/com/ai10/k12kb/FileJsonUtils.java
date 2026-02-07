@@ -191,9 +191,6 @@ public class FileJsonUtils {
 
                 // В первую очередь грузим js-патчи, чтобы они потом в морде показались
 
-                // Deploy bundled JS patches from assets to SD card if missing
-                deployBundledJsPatches(noFolderName, context);
-
                 File[] jsFiles = findFilenamesMatchingRegex(noFolderName + ".*\\.js", new File(PATH));
                 List<File> jsFilesActive = new ArrayList<>();
                 if(jsFiles != null) {
@@ -404,30 +401,6 @@ public class FileJsonUtils {
 
     private static File[] findFilenamesMatchingRegex(String regex, File dir) {
         return dir.listFiles(new java.io.FileFilter() { public boolean accept(File file) { return file.getName().matches(regex); } });
-    }
-
-    private static final String JS_PATCHES_ASSET_DIR = "js_patches";
-
-    private static void deployBundledJsPatches(String noFolderName, Context context) {
-        try {
-            CheckFoldersAndCreate();
-            String[] assetFiles = context.getAssets().list(JS_PATCHES_ASSET_DIR);
-            if (assetFiles == null) return;
-            String prefix = noFolderName + ".";
-            for (String assetName : assetFiles) {
-                if (!assetName.startsWith(prefix) || !assetName.endsWith(".js")) continue;
-                File target = new File(PATH + assetName);
-                if (target.exists()) continue;
-                InputStream is = context.getAssets().open(JS_PATCHES_ASSET_DIR + "/" + assetName);
-                FileOutputStream fOut = new FileOutputStream(target);
-                copyLarge(is, fOut);
-                fOut.flush();
-                fOut.close();
-                is.close();
-            }
-        } catch (Exception e) {
-            Log.w(TAG2, "deployBundledJsPatches: " + e);
-        }
     }
 
     private static final String JS_NAME_PREFIX = "// @name ";
