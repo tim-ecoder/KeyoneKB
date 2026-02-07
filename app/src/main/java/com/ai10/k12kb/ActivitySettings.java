@@ -105,7 +105,9 @@ public class ActivitySettings extends Activity {
                 int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
                 int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
                 currentKeyboardLayoutSwitch.setPadding(padH, pad, padH, pad);
-                currentKeyboardLayoutSwitch.setTextColor(getResources().getColor(R.color.textPrimary));
+                TypedValue _tv = new TypedValue();
+                getTheme().resolveAttribute(R.attr.textPrimaryColor, _tv, true);
+                currentKeyboardLayoutSwitch.setTextColor(_tv.data);
                 currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
 
                 containerKeyboardLayouts.addView(currentKeyboardLayoutSwitch);
@@ -142,7 +144,9 @@ public class ActivitySettings extends Activity {
                 int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
                 int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
                 currentKeyboardLayoutSwitch.setPadding(padH, pad, padH, pad);
-                currentKeyboardLayoutSwitch.setTextColor(getResources().getColor(R.color.textPrimary));
+                TypedValue _tv2 = new TypedValue();
+                getTheme().resolveAttribute(R.attr.textPrimaryColor, _tv2, true);
+                currentKeyboardLayoutSwitch.setTextColor(_tv2.data);
                 currentKeyboardLayoutSwitch.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
 
                 containerKeyboardLayouts.addView(currentKeyboardLayoutSwitch);

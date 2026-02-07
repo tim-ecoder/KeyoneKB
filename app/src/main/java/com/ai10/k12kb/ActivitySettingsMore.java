@@ -103,7 +103,9 @@ public class ActivitySettingsMore extends Activity {
             int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
             int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
             jsPatchSwitch.setPadding(padH, pad, padH, pad);
-            jsPatchSwitch.setTextColor(getResources().getColor(R.color.textPrimary));
+            TypedValue _tv = new TypedValue();
+            getTheme().resolveAttribute(R.attr.textPrimaryColor, _tv, true);
+            jsPatchSwitch.setTextColor(_tv.data);
             jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
 
             containerJsPatches.addView(jsPatchSwitch);
