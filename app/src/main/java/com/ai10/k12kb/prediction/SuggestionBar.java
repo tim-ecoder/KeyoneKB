@@ -145,6 +145,11 @@ public class SuggestionBar extends LinearLayout {
                 String word = suggestions.get(i).word;
                 slots[i].setText(word);
                 slots[i].setTextColor(COLOR_TEXT);
+                slots[i].setVisibility(View.VISIBLE);
+                LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
+                lp.weight = 1.0f;
+                lp.width = 0;
+                slots[i].setLayoutParams(lp);
                 if (i == 0) {
                     slots[i].setTypeface(null, Typeface.BOLD);
                 } else {
@@ -152,6 +157,7 @@ public class SuggestionBar extends LinearLayout {
                 }
             } else {
                 slots[i].setText("");
+                slots[i].setVisibility(View.GONE);
             }
         }
     }
@@ -162,6 +168,7 @@ public class SuggestionBar extends LinearLayout {
     public void clear() {
         for (int i = 0; i < numSlots; i++) {
             slots[i].setText("");
+            slots[i].setVisibility(View.GONE);
         }
     }
 }
