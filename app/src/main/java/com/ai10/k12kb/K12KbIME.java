@@ -477,9 +477,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             //    currentSoftKeyboard = new Keyboard(this, R.xml.space_empty);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                if (wordPredictor == null) {
-                    this.requestHideSelf(InputMethodManager.HIDE_NOT_ALWAYS);
-                }
+                this.requestHideSelf(InputMethodManager.HIDE_NOT_ALWAYS);
             }
         } catch(Throwable ex) {
             Log.e(TAG2, "onFinishInput exception: "+ex);
@@ -1181,7 +1179,16 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     private void HideSwipePanelOnHidePreferenceAndVisibleState() {
         if (!pref_show_default_onscreen_keyboard) {
-            HideKeyboard();
+            if (wordPredictor != null && IsInputMode()) {
+                // Hide swype-pad but keep IME window for prediction bar
+                keyboardView.setOnTouchListener(null);
+                if (keyboardView.getVisibility() == View.VISIBLE) {
+                    keyboardView.setVisibility(View.GONE);
+                }
+                setCandidatesViewShown(true);
+            } else {
+                HideKeyboard();
+            }
         }
     }
 
@@ -1191,11 +1198,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         if (keyboardView.getVisibility() == View.VISIBLE) {
             keyboardView.setVisibility(View.GONE);
         }
-        if (wordPredictor != null) {
-            setCandidatesViewShown(true);
-        } else {
-            this.hideWindow();
-        }
+        this.hideWindow();
 
     }
 
