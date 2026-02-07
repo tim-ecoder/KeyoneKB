@@ -193,9 +193,9 @@ public class SuggestionBar extends LinearLayout {
             if (s == 0) {
                 slots[slot].setTypeface(null, Typeface.BOLD);
                 slots[slot].setEllipsize(null);
-                // Full width — no truncation for priority word
-                lp.weight = 0;
-                lp.width = LayoutParams.WRAP_CONTENT;
+                // Priority word gets bigger weight so its pillow is never the smallest
+                lp.weight = Math.max(textWidth, 30f) + numSlots * 30f;
+                lp.width = 0;
                 slots[slot].setLayoutParams(lp);
             } else {
                 // Non-priority words truncate from start to show unique endings
