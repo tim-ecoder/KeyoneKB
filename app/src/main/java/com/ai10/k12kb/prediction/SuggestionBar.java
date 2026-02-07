@@ -146,8 +146,11 @@ public class SuggestionBar extends LinearLayout {
                 slots[i].setText(word);
                 slots[i].setTextColor(COLOR_TEXT);
                 slots[i].setVisibility(View.VISIBLE);
+                // Weight proportional to text width so longer words get wider pillows
+                float textWidth = slots[i].getPaint().measureText(word);
+                float weight = Math.max(textWidth, 30f); // minimum weight for short words
                 LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
-                lp.weight = 1.0f;
+                lp.weight = weight;
                 lp.width = 0;
                 slots[i].setLayoutParams(lp);
                 if (i == 0) {
