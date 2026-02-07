@@ -192,7 +192,11 @@ public class SuggestionBar extends LinearLayout {
             slots[slot].setLayoutParams(lp);
             if (s == 0) {
                 slots[slot].setTypeface(null, Typeface.BOLD);
-                slots[slot].setEllipsize(TextUtils.TruncateAt.END);
+                slots[slot].setEllipsize(null);
+                // Full width — no truncation for priority word
+                lp.weight = 0;
+                lp.width = LayoutParams.WRAP_CONTENT;
+                slots[slot].setLayoutParams(lp);
             } else {
                 // Truncate from start if word shares typed prefix
                 if (pfx.length() > 0 && word.toLowerCase().startsWith(pfx)) {
