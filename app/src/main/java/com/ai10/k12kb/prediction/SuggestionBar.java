@@ -26,8 +26,8 @@ public class SuggestionBar extends LinearLayout {
     private static final int COLOR_DIVIDER        = 0xFF101012;
 
     private static final int SLOT_CORNER_RADIUS_DP = 6;
-    private static final int SLOT_INSET_DP         = 3;
-    private static final int DIVIDER_HEIGHT_DP     = 2;
+    private static final int SLOT_INSET_DP         = 1;
+    private static final int DIVIDER_HEIGHT_DP     = 3;
 
     private TextView[] slots;
     private int numSlots;
