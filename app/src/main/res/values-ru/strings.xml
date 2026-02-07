@@ -94,5 +94,14 @@
     <string name="main_btn_keyboard_reload_need">G. Перезапустить клавиатуру</string>
     <string name="js_patch_file_not_found">Файл не найден: %s</string>
     <string name="js_patch_no_editor">Не найден редактор для JS файлов</string>
+    <string name="pref_section_appearance">ВНЕШНИЙ ВИД</string>
+    <string name="pref_light_theme">Светлая тема</string>
+    <string name="pref_section_prediction">ПРЕДИКТИВНЫЙ ВВОД</string>
+    <string name="pref_prediction_enabled">Предиктивный ввод</string>
+    <string name="pref_prediction_bar_height">Высота панели подсказок (dp)</string>
+    <string name="pref_prediction_slots_count">Количество вариантов подсказок</string>
+    <string name="pref_section_backup">РЕЗЕРВНОЕ КОПИРОВАНИЕ</string>
+    <string name="pref_save_settings">Сохранить настройки в файл</string>
+    <string name="pref_load_settings">Загрузить настройки из файла</string>
 
 </resources>

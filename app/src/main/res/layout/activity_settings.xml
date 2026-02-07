@@ -205,12 +205,12 @@
         <!-- APPEARANCE -->
         <TextView
             style="@style/SectionHeader"
-            android:text="APPEARANCE" />
+            android:text="@string/pref_section_appearance" />
 
         <Switch
             android:id="@+id/switch_light_theme"
             style="@style/SwitchPill"
-            android:text="Light theme"
+            android:text="@string/pref_light_theme"
             tools:checked="false" />
 
         <!-- Pointer rectangle color picker pill -->
@@ -229,18 +229,18 @@
         <!-- PREDICTION -->
         <TextView
             style="@style/SectionHeader"
-            android:text="PREDICTION" />
+            android:text="@string/pref_section_prediction" />
 
         <Switch
             android:id="@+id/switch_prediction_enabled"
             style="@style/SwitchPill"
-            android:text="Word prediction"
+            android:text="@string/pref_prediction_enabled"
             tools:checked="true" />
 
         <LinearLayout style="@style/ItemPillSeek">
             <TextView
                 style="@style/ItemPillSeekTitle"
-                android:text="Prediction bar height (dp)" />
+                android:text="@string/pref_prediction_bar_height" />
             <SeekBar
                 android:id="@+id/seekBarPredictionHeight"
                 android:layout_width="match_parent"
@@ -254,7 +254,7 @@
         <LinearLayout style="@style/ItemPillSeek">
             <TextView
                 style="@style/ItemPillSeekTitle"
-                android:text="Prediction slots count" />
+                android:text="@string/pref_prediction_slots_count" />
             <SeekBar
                 android:id="@+id/seekBarPredictionCount"
                 android:layout_width="match_parent"
@@ -269,7 +269,7 @@
         <!-- BACKUP -->
         <TextView
             style="@style/SectionHeader"
-            android:text="BACKUP" />
+            android:text="@string/pref_section_backup" />
 
         <LinearLayout style="@style/ItemPill">
             <Button
@@ -277,7 +277,7 @@
                 style="@style/ItemPillText"
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
-                android:text="Save settings to file"
+                android:text="@string/pref_save_settings"
                 android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u2913" />
@@ -289,7 +289,7 @@
                 style="@style/ItemPillText"
                 android:background="@android:color/transparent"
                 android:gravity="start|center_vertical"
-                android:text="Load settings from file"
+                android:text="@string/pref_load_settings"
                 android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u2912" />
