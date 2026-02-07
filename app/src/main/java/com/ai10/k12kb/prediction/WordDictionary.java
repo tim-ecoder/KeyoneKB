@@ -3,7 +3,14 @@ package com.ai10.k12kb.prediction;
 import android.content.Context;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.Normalizer;
@@ -14,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,6 +36,8 @@ public class WordDictionary {
 
     private static final String TAG = "WordDictionary";
     private static final int MAX_PREFIX_CACHE = 4;
+    private static final int CACHE_MAGIC = 0x4B313244;   // "K12D"
+    private static final int CACHE_VERSION = 1;
 
     private final SymSpell symSpell = new SymSpell(2, 7);
     private final HashMap<String, List<DictEntry>> prefixCache = new HashMap<>();
@@ -54,7 +65,7 @@ public class WordDictionary {
 
     /**
      * Load dictionary from assets file.
-     * Tries tab-separated txt format first (word\tfreq), falls back to JSON.
+     * Tries binary cache first (fast), falls back to txt/JSON assets (slow).
      * @param locale e.g. "en", "ru"
      */
     public void load(Context context, String locale) {
@@ -62,9 +73,16 @@ public class WordDictionary {
         ready = false;
         prefixCache.clear();
         normalizedIndex.clear();
-        symSpell.setBulkLoading(true);
 
-        // Try fast txt format first, fall back to JSON
+        // Try binary cache first (skips JSON parsing and buildIndex)
+        if (loadFromCache(context, locale)) {
+            long elapsed = System.currentTimeMillis() - startTime;
+            Log.d(TAG, "Loaded " + locale + " from cache: " + symSpell.size() + " words in " + elapsed + "ms");
+            return;
+        }
+
+        // Fall back to loading from assets
+        symSpell.setBulkLoading(true);
         String txtFilename = "dictionaries/" + locale + "_base.txt";
         String jsonFilename = "dictionaries/" + locale + "_base.json";
         try {
@@ -123,9 +141,106 @@ public class WordDictionary {
             ready = true;
             loadedLocale = locale;
             long elapsed = System.currentTimeMillis() - startTime;
-            Log.d(TAG, "Loaded " + locale + " dictionary: " + symSpell.size() + " words in " + elapsed + "ms");
+            Log.d(TAG, "Loaded " + locale + " from assets: " + symSpell.size() + " words in " + elapsed + "ms");
+
+            // Save binary cache for next startup
+            saveToCache(context, locale);
         } catch (Exception e) {
             Log.e(TAG, "Failed to load dictionary: " + e);
+        }
+    }
+
+    /**
+     * Load dictionary from binary cache. Much faster than parsing JSON + buildIndex.
+     * Format: GZIP( magic + version + word/freq pairs + SymSpell deletes )
+     */
+    private boolean loadFromCache(Context context, String locale) {
+        File cacheFile = new File(context.getFilesDir(), "dict_cache/" + locale + ".bin");
+        if (!cacheFile.exists()) return false;
+        DataInputStream in = null;
+        try {
+            in = new DataInputStream(new BufferedInputStream(
+                    new GZIPInputStream(new FileInputStream(cacheFile)), 65536));
+            int magic = in.readInt();
+            if (magic != CACHE_MAGIC) { in.close(); return false; }
+            int version = in.readInt();
+            if (version != CACHE_VERSION) {
+                in.close();
+                cacheFile.delete();
+                return false;
+            }
+
+            // Read word+freq pairs → rebuild normalizedIndex + prefixCache + symSpell.dictionary
+            symSpell.setBulkLoading(true);
+            int wordCount = in.readInt();
+            for (int i = 0; i < wordCount; i++) {
+                if (Thread.currentThread().isInterrupted()) { in.close(); return false; }
+                String word = in.readUTF();
+                int freq = in.readInt();
+                addEntry(word, freq);
+                if (i % 2000 == 1999) {
+                    try { Thread.sleep(1); } catch (InterruptedException e) { in.close(); return false; }
+                }
+            }
+
+            // Read SymSpell deletes directly (skip expensive buildIndex)
+            symSpell.readDeletesCache(in);
+            symSpell.setBulkLoading(false);
+
+            in.close();
+
+            if (Thread.currentThread().isInterrupted()) return false;
+            ready = true;
+            loadedLocale = locale;
+            return true;
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to load from cache, will reload from assets: " + e);
+            if (in != null) { try { in.close(); } catch (Exception ignored) {} }
+            // Delete corrupt cache
+            cacheFile.delete();
+            prefixCache.clear();
+            normalizedIndex.clear();
+            return false;
+        }
+    }
+
+    /**
+     * Save dictionary to binary cache for fast loading on next startup.
+     */
+    private void saveToCache(Context context, String locale) {
+        if (Thread.currentThread().isInterrupted()) return;
+        DataOutputStream out = null;
+        try {
+            File dir = new File(context.getFilesDir(), "dict_cache");
+            dir.mkdirs();
+            File cacheFile = new File(dir, locale + ".bin");
+            out = new DataOutputStream(new BufferedOutputStream(
+                    new GZIPOutputStream(new FileOutputStream(cacheFile)), 65536));
+
+            out.writeInt(CACHE_MAGIC);
+            out.writeInt(CACHE_VERSION);
+
+            // Collect and write all original word+freq pairs
+            int totalWords = 0;
+            for (List<DictEntry> entries : normalizedIndex.values()) {
+                totalWords += entries.size();
+            }
+            out.writeInt(totalWords);
+            for (Map.Entry<String, List<DictEntry>> entry : normalizedIndex.entrySet()) {
+                for (DictEntry de : entry.getValue()) {
+                    out.writeUTF(de.word);
+                    out.writeInt(de.frequency);
+                }
+            }
+
+            // Write SymSpell deletes
+            symSpell.writeDeletesCache(out);
+
+            out.close();
+            Log.d(TAG, "Saved " + locale + " cache: " + totalWords + " words, size: " + cacheFile.length());
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to save dictionary cache: " + e);
+            if (out != null) { try { out.close(); } catch (Exception ignored) {} }
         }
     }
 

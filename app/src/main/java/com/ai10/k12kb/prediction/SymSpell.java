@@ -1,5 +1,8 @@
 package com.ai10.k12kb.prediction;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -237,5 +240,39 @@ public class SymSpell {
     public int getFrequency(String word) {
         Integer f = dictionary.get(word);
         return f != null ? f : 0;
+    }
+
+    /**
+     * Write the precomputed deletes index to a binary stream.
+     */
+    public void writeDeletesCache(DataOutputStream out) throws IOException {
+        out.writeInt(deletes.size());
+        for (Map.Entry<String, List<String>> entry : deletes.entrySet()) {
+            out.writeUTF(entry.getKey());
+            List<String> bucket = entry.getValue();
+            out.writeInt(bucket.size());
+            for (int i = 0; i < bucket.size(); i++) {
+                out.writeUTF(bucket.get(i));
+            }
+        }
+    }
+
+    /**
+     * Read the precomputed deletes index from a binary stream.
+     * Replaces any existing deletes data.
+     */
+    public void readDeletesCache(DataInputStream in) throws IOException {
+        int size = in.readInt();
+        deletes.clear();
+        for (int i = 0; i < size; i++) {
+            if (Thread.currentThread().isInterrupted()) return;
+            String key = in.readUTF();
+            int bucketSize = in.readInt();
+            ArrayList<String> bucket = new ArrayList<String>(bucketSize);
+            for (int j = 0; j < bucketSize; j++) {
+                bucket.add(in.readUTF());
+            }
+            deletes.put(key, bucket);
+        }
     }
 }
