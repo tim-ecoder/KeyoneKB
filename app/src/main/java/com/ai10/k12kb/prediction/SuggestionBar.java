@@ -198,12 +198,8 @@ public class SuggestionBar extends LinearLayout {
                 lp.width = LayoutParams.WRAP_CONTENT;
                 slots[slot].setLayoutParams(lp);
             } else {
-                // Truncate from start if word shares typed prefix
-                if (pfx.length() > 0 && word.toLowerCase().startsWith(pfx)) {
-                    slots[slot].setEllipsize(TextUtils.TruncateAt.START);
-                } else {
-                    slots[slot].setEllipsize(TextUtils.TruncateAt.END);
-                }
+                // Non-priority words truncate from start to show unique endings
+                slots[slot].setEllipsize(TextUtils.TruncateAt.START);
             }
         }
     }
