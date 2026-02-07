@@ -357,6 +357,17 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     }
 
     @Override
+    public void onComputeInsets(Insets outInsets) {
+        super.onComputeInsets(outInsets);
+        if (suggestionBar != null && suggestionBar.getVisibility() == View.VISIBLE
+                && suggestionBar.getHeight() > 0) {
+            // Tell the system that the visible area includes the suggestion bar
+            // so the app content gets pushed up
+            outInsets.contentTopInsets = outInsets.visibleTopInsets;
+        }
+    }
+
+    @Override
     public View onCreateCandidatesView() {
         Log.d(TAG2, "onCreateCandidatesView");
         if (suggestionBar != null) {
