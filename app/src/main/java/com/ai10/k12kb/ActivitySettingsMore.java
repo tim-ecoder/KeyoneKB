@@ -13,9 +13,13 @@ import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.*;
 
+import android.view.Gravity;
+import android.view.ViewGroup;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.ai10.k12kb.ActivitySettings.REQUEST_PERMISSION_CODE;
 import static com.ai10.k12kb.FileJsonUtils.*;
@@ -63,13 +67,7 @@ public class ActivitySettingsMore extends Activity {
 
         RedrawViewData();
 
-        List<String> patches = new ArrayList<>();
-        for (List<String> value: FileJsonUtils.JsPatchesMap.values())
-        {
-            patches.addAll(value);
-        }
-
-        if(patches.size() == 0)
+        if(FileJsonUtils.JsPatchesMap.isEmpty())
             return;
 
         layout = (LinearLayout) findViewById(R.id.activity_more_settings);
@@ -78,50 +76,83 @@ public class ActivitySettingsMore extends Activity {
         Switch defaultJsPatch = (Switch) findViewById(R.id.default_js_patch);
         defaultJsPatch.setVisibility(View.VISIBLE);
 
+        // Resolve theme colors once
+        TypedValue _tv = new TypedValue();
+        getTheme().resolveAttribute(R.attr.textPrimaryColor, _tv, true);
+        int textColor = _tv.data;
+        TypedValue _tvSec = new TypedValue();
+        getTheme().resolveAttribute(R.attr.sectionHeaderColor, _tvSec, true);
+        int sectionColor = _tvSec.data;
+
         boolean isFirst = true;
 
-        for (String jsPatch: patches ) {
-            Switch jsPatchSwitch;
-            if(isFirst) {
-                jsPatchSwitch = defaultJsPatch;
-                ((android.view.ViewGroup)jsPatchSwitch.getParent()).removeView(jsPatchSwitch);
-                isFirst = false;
-            } else {
-                jsPatchSwitch = new Switch(this);
-                jsPatchSwitch.setId(View.generateViewId());
-                jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultJsPatch.getTextSize());
-            }
+        for (Map.Entry<String, List<String>> entry : FileJsonUtils.JsPatchesMap.entrySet()) {
+            String groupName = entry.getKey();
+            List<String> patches = entry.getValue();
+            if (patches.isEmpty()) continue;
 
-            // Style as individual pill
-            LinearLayout.LayoutParams pillParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            int marginH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
-            int marginT = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics());
-            pillParams.setMargins(marginH, marginT, marginH, 0);
-            jsPatchSwitch.setLayoutParams(pillParams);
-            jsPatchSwitch.setBackgroundResource(R.drawable.bg_item_pill);
-            int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
-            int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-            jsPatchSwitch.setPadding(padH, pad, padH, pad);
-            TypedValue _tv = new TypedValue();
-            getTheme().resolveAttribute(R.attr.textPrimaryColor, _tv, true);
-            jsPatchSwitch.setTextColor(_tv.data);
-            jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+            // Add group sub-header
+            TextView groupHeader = new TextView(this);
+            groupHeader.setText(groupName);
+            groupHeader.setTextColor(sectionColor);
+            groupHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+            groupHeader.setAllCaps(true);
+            int padStart = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 28, getResources().getDisplayMetrics());
+            int padEnd = padStart;
+            int padTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, getResources().getDisplayMetrics());
+            int padBottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, getResources().getDisplayMetrics());
+            groupHeader.setPadding(padStart, padTop, padEnd, padBottom);
+            containerJsPatches.addView(groupHeader);
 
-            containerJsPatches.addView(jsPatchSwitch);
+            // Strip prefix: "keyboard_mechanics." from "keyboard_mechanics.xxx.js"
+            String prefix = groupName + ".";
 
-            k12KbSettings.CheckSettingOrSetDefault(jsPatch, k12KbSettings.JS_PATCH_IS_ENABLED_DEFAULT);
-            boolean enabled = k12KbSettings.GetBooleanValue(jsPatch);
-            jsPatchSwitch.setChecked(enabled);
-            jsPatchSwitch.setText(jsPatch);
-
-            jsPatchSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    k12KbSettings.SetBooleanValue(jsPatch, isChecked);
+            for (final String jsPatch : patches) {
+                Switch jsPatchSwitch;
+                if (isFirst) {
+                    jsPatchSwitch = defaultJsPatch;
+                    ((ViewGroup) jsPatchSwitch.getParent()).removeView(jsPatchSwitch);
+                    isFirst = false;
+                } else {
+                    jsPatchSwitch = new Switch(this);
+                    jsPatchSwitch.setId(View.generateViewId());
+                    jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultJsPatch.getTextSize());
                 }
-            });
 
+                // Style as individual pill
+                LinearLayout.LayoutParams pillParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                int marginH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+                int marginT = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics());
+                pillParams.setMargins(marginH, marginT, marginH, 0);
+                jsPatchSwitch.setLayoutParams(pillParams);
+                jsPatchSwitch.setBackgroundResource(R.drawable.bg_item_pill);
+                int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+                int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+                jsPatchSwitch.setPadding(padH, pad, padH, pad);
+                jsPatchSwitch.setTextColor(textColor);
+                jsPatchSwitch.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+
+                containerJsPatches.addView(jsPatchSwitch);
+
+                k12KbSettings.CheckSettingOrSetDefault(jsPatch, k12KbSettings.JS_PATCH_IS_ENABLED_DEFAULT);
+                boolean enabled = k12KbSettings.GetBooleanValue(jsPatch);
+                jsPatchSwitch.setChecked(enabled);
+
+                // Show filename without the group prefix
+                String displayName = jsPatch;
+                if (jsPatch.startsWith(prefix)) {
+                    displayName = jsPatch.substring(prefix.length());
+                }
+                jsPatchSwitch.setText(displayName);
+
+                jsPatchSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        k12KbSettings.SetBooleanValue(jsPatch, isChecked);
+                    }
+                });
+            }
         }
 
 
