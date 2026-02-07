@@ -105,6 +105,7 @@
     <string name="pref_prediction_bar_height">Prediction bar height (dp)</string>
     <string name="pref_prediction_slots_count">Prediction slots count</string>
     <string name="pref_prediction_engine_title">Prediction engine</string>
+    <string name="prediction_loading_toast">Dictionary loading, please wait…</string>
     <string-array name="pref_prediction_engine_array">
         <item>SymSpell (fuzzy matching)</item>
         <item>N-gram (next-word prediction)</item>

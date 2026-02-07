@@ -84,6 +84,10 @@ public class WordPredictor {
         return enabled;
     }
 
+    public boolean isEngineReady() {
+        return engine != null && engine.isReady();
+    }
+
     public List<Suggestion> getLatestSuggestions() {
         return latestSuggestions;
     }

@@ -72,6 +72,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected Processable BeforeSendChar;
     protected Processable AfterSendChar;
     protected WordPredictor wordPredictor;
+    private boolean dictLoadingToastShown = false;
     protected int[] ViewModeExcludeKeyCodes;
 
     public String keyboard_mechanics_res;
@@ -2013,6 +2014,12 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         AfterSendChar.Process(null, null);
 
         if (wordPredictor != null && wordPredictor.isEnabled()) {
+            if (!wordPredictor.isEngineReady() && !dictLoadingToastShown) {
+                dictLoadingToastShown = true;
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.prediction_loading_toast),
+                        Toast.LENGTH_SHORT).show();
+            }
             wordPredictor.onCharacterTyped((char) code2send);
         }
     }
