@@ -495,7 +495,8 @@ public class ActivitySettings extends Activity {
 
 
     private File getSettingsFile() {
-        File dir = new File(Environment.getExternalStorageDirectory(), "keyonekb2");
+        FileJsonUtils.Initialize(this);
+        File dir = new File(FileJsonUtils.PATH);
         if (!dir.exists()) {
             dir.mkdirs();
         }
