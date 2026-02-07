@@ -139,28 +139,40 @@ public class SuggestionBar extends LinearLayout {
     /**
      * Update displayed suggestions.
      */
-    public void update(List<WordPredictor.Suggestion> suggestions) {
+    public void update(List<WordPredictor.Suggestion> suggestions, String prefix) {
+        String pfx = (prefix != null) ? prefix.toLowerCase() : "";
         for (int i = 0; i < numSlots; i++) {
             if (suggestions != null && i < suggestions.size()) {
                 String word = suggestions.get(i).word;
                 slots[i].setText(word);
                 slots[i].setTextColor(COLOR_TEXT);
                 slots[i].setVisibility(View.VISIBLE);
-                // Weight proportional to text width so longer words get wider pillows
+                // Weight proportional to text width; priority bonus for earlier slots
                 float textWidth = slots[i].getPaint().measureText(word);
-                float weight = Math.max(textWidth, 30f); // minimum weight for short words
+                float weight = Math.max(textWidth, 30f) + (numSlots - 1 - i) * 15f;
                 LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
                 lp.weight = weight;
                 lp.width = 0;
                 slots[i].setLayoutParams(lp);
                 if (i == 0) {
                     slots[i].setTypeface(null, Typeface.BOLD);
+                    slots[i].setEllipsize(TextUtils.TruncateAt.END);
                 } else {
                     slots[i].setTypeface(null, Typeface.NORMAL);
+                    // Truncate from start if word shares typed prefix
+                    if (pfx.length() > 0 && word.toLowerCase().startsWith(pfx)) {
+                        slots[i].setEllipsize(TextUtils.TruncateAt.START);
+                    } else {
+                        slots[i].setEllipsize(TextUtils.TruncateAt.END);
+                    }
                 }
             } else {
                 slots[i].setText("");
-                slots[i].setVisibility(View.GONE);
+                slots[i].setVisibility(View.VISIBLE);
+                LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
+                lp.weight = 1;
+                lp.width = 0;
+                slots[i].setLayoutParams(lp);
             }
         }
     }
@@ -171,7 +183,12 @@ public class SuggestionBar extends LinearLayout {
     public void clear() {
         for (int i = 0; i < numSlots; i++) {
             slots[i].setText("");
-            slots[i].setVisibility(View.GONE);
+            slots[i].setVisibility(View.VISIBLE);
+            slots[i].setEllipsize(TextUtils.TruncateAt.END);
+            LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
+            lp.weight = 1;
+            lp.width = 0;
+            slots[i].setLayoutParams(lp);
         }
     }
 }

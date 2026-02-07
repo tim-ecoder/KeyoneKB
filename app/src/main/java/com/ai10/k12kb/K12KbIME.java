@@ -208,12 +208,13 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 wordPredictor.setListener(new WordPredictor.SuggestionListener() {
                     public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
                         if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-                            suggestionBar.update(suggestions);
+                            suggestionBar.update(suggestions, wordPredictor.getCurrentWord());
                             setCandidatesViewShown(true);
                         } else {
+                            final String pfx = wordPredictor.getCurrentWord();
                             suggestionBar.post(new Runnable() {
                                 public void run() {
-                                    suggestionBar.update(suggestions);
+                                    suggestionBar.update(suggestions, pfx);
                                     setCandidatesViewShown(true);
                                 }
                             });
