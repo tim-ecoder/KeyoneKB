@@ -94,4 +94,6 @@
     <string name="gesture_mode_notification_text">Gesture modes (on input fields, disabled on viewing mode)</string>
     <string name="keyboard_layout_mode_notification_text">Keyboard layout (input languages, symbols, etc.)</string>
     <string name="pref_keyboard_layouts">Keyboard layouts</string>
+    <string name="js_patch_file_not_found">File not found: %s</string>
+    <string name="js_patch_no_editor">No editor found for JS files</string>
 </resources>

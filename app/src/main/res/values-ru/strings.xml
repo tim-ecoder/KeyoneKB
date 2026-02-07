@@ -92,5 +92,7 @@
     <string name="main_btn_file_permissions_not_need">Доступ к файлам не требуется</string>
     <string name="main_btn_file_permissions_activated">Доступ к файлам разрешен</string>
     <string name="main_btn_keyboard_reload_need">G. Перезапустить клавиатуру</string>
+    <string name="js_patch_file_not_found">Файл не найден: %s</string>
+    <string name="js_patch_no_editor">Не найден редактор для JS файлов</string>
 
 </resources>

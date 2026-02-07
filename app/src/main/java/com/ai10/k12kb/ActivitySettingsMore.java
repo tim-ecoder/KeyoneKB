@@ -210,7 +210,7 @@ public class ActivitySettingsMore extends Activity {
     private void openJsPatchFile(String jsPatchFileName) {
         File file = new File(FileJsonUtils.PATH, jsPatchFileName);
         if (!file.exists()) {
-            Toast.makeText(this, "File not found: " + jsPatchFileName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.js_patch_file_not_found, jsPatchFileName), Toast.LENGTH_SHORT).show();
             return;
         }
         try {
@@ -220,7 +220,7 @@ public class ActivitySettingsMore extends Activity {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(this, "No editor found for JS files", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.js_patch_no_editor), Toast.LENGTH_SHORT).show();
         }
     }
 
