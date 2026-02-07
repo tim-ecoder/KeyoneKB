@@ -1,3 +1,4 @@
+// @name Right Ctrl switches language
 //Добавляем смену раскладки на ctrl
 
 let kc_ctrl = json["key-group-processors"]

@@ -175,6 +175,7 @@ public class FileJsonUtils {
     public static Map<String, ResLoadVariant> CustomizationLoadVariants = new HashMap<>();
 
     public static Hashtable<String, List<String>> JsPatchesMap = new Hashtable<>();
+    public static Hashtable<String, String> JsPatchDescriptions = new Hashtable<>();
 
     public static <T> T DeserializeFromJsonApplyPatches(String resName, TypeReference<T> typeReference, Context context) throws Exception {
 
@@ -195,6 +196,10 @@ public class FileJsonUtils {
                 if(jsFiles != null) {
                     for (File jsPatch : jsFiles) {
                         JsPatches.add(jsPatch.getName());
+                        String desc = readJsPatchName(jsPatch);
+                        if (desc != null) {
+                            JsPatchDescriptions.put(jsPatch.getName(), desc);
+                        }
                         if (k12KbSettings.GetBooleanValue(jsPatch.getName()))
                             jsFilesActive.add(jsPatch);
                     }
@@ -396,6 +401,25 @@ public class FileJsonUtils {
 
     private static File[] findFilenamesMatchingRegex(String regex, File dir) {
         return dir.listFiles(new java.io.FileFilter() { public boolean accept(File file) { return file.getName().matches(regex); } });
+    }
+
+    private static final String JS_NAME_PREFIX = "// @name ";
+
+    private static String readJsPatchName(File file) {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String firstLine = reader.readLine();
+            if (firstLine != null && firstLine.startsWith(JS_NAME_PREFIX)) {
+                return firstLine.substring(JS_NAME_PREFIX.length()).trim();
+            }
+        } catch (Exception ignored) {
+        } finally {
+            if (reader != null) {
+                try { reader.close(); } catch (Exception ignored) {}
+            }
+        }
+        return null;
     }
 
 

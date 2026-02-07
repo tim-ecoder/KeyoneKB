@@ -139,12 +139,17 @@ public class ActivitySettingsMore extends Activity {
                 boolean enabled = k12KbSettings.GetBooleanValue(jsPatch);
                 jsPatchSwitch.setChecked(enabled);
 
-                // Show filename without the group prefix
-                String displayName = jsPatch;
-                if (jsPatch.startsWith(prefix)) {
-                    displayName = jsPatch.substring(prefix.length());
+                // Use @name description from JS file, or fall back to filename without prefix
+                String description = FileJsonUtils.JsPatchDescriptions.get(jsPatch);
+                if (description != null) {
+                    jsPatchSwitch.setText(description);
+                } else {
+                    String displayName = jsPatch;
+                    if (jsPatch.startsWith(prefix)) {
+                        displayName = jsPatch.substring(prefix.length());
+                    }
+                    jsPatchSwitch.setText(displayName);
                 }
-                jsPatchSwitch.setText(displayName);
 
                 jsPatchSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
