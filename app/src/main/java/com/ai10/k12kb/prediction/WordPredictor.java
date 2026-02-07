@@ -259,9 +259,7 @@ public class WordPredictor {
      */
     private void updateSuggestions() {
         if (engine == null || !engine.isReady()) {
-            latestSuggestions = Collections.emptyList();
-            if (listener != null) listener.onSuggestionsUpdated(latestSuggestions);
-            return;
+            return; // Dictionary not loaded yet — skip silently
         }
 
         List<Suggestion> results = engine.suggest(currentWord, previousWord, suggestLimit);
