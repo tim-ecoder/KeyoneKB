@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.ai10.k12kb.input.CallStateCallback;
 
+import com.ai10.k12kb.prediction.WordDictionary;
 import com.ai10.k12kb.prediction.WordPredictor;
 
 import java.lang.reflect.*;
@@ -2016,8 +2017,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if (wordPredictor != null && wordPredictor.isEnabled()) {
             if (!wordPredictor.isEngineReady() && !dictLoadingToastShown) {
                 dictLoadingToastShown = true;
+                boolean fromCache = WordDictionary.hasCacheFile(getApplicationContext(), "en");
                 Toast.makeText(getApplicationContext(),
-                        getString(R.string.prediction_loading_toast),
+                        getString(fromCache ? R.string.prediction_loading_cache_toast
+                                           : R.string.prediction_loading_fresh_toast),
                         Toast.LENGTH_SHORT).show();
             }
             wordPredictor.onCharacterTyped((char) code2send);

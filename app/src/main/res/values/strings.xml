@@ -106,6 +106,8 @@
     <string name="pref_prediction_slots_count">Prediction slots count</string>
     <string name="pref_prediction_engine_title">Prediction engine</string>
     <string name="prediction_loading_toast">Dictionary loading, please wait…</string>
+    <string name="prediction_loading_cache_toast">Loading dictionary from cache…</string>
+    <string name="prediction_loading_fresh_toast">Building dictionary for first time, please wait…</string>
     <string-array name="pref_prediction_engine_array">
         <item>SymSpell (fuzzy matching)</item>
         <item>N-gram (next-word prediction)</item>

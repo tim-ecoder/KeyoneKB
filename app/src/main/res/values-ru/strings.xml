@@ -102,6 +102,8 @@
     <string name="pref_prediction_slots_count">Количество вариантов подсказок</string>
     <string name="pref_prediction_engine_title">Движок предиктивного ввода</string>
     <string name="prediction_loading_toast">Словарь загружается, подождите…</string>
+    <string name="prediction_loading_cache_toast">Загрузка словаря из кеша…</string>
+    <string name="prediction_loading_fresh_toast">Первая загрузка словаря, подождите…</string>
     <string-array name="pref_prediction_engine_array">
         <item>SymSpell (нечёткий поиск)</item>
         <item>N-gram (предсказание следующего слова)</item>

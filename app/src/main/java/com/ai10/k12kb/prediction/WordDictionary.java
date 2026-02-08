@@ -61,6 +61,13 @@ public class WordDictionary {
     }
 
     /**
+     * Check if binary cache file exists for a locale.
+     */
+    public static boolean hasCacheFile(Context context, String locale) {
+        return new java.io.File(context.getFilesDir(), "dict_cache/" + locale + ".bin").exists();
+    }
+
+    /**
      * Load dictionary from assets file.
      * Tries binary cache first (fast), falls back to txt/JSON assets (slow).
      * @param locale e.g. "en", "ru"
