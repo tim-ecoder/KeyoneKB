@@ -39,6 +39,10 @@ public class WordPredictor {
         void onSuggestionsUpdated(List<Suggestion> suggestions);
     }
 
+    // Static engine survives across WordPredictor instances — dictionaries stay in memory
+    private static PredictionEngine sharedEngine;
+    private static int sharedEngineMode = -1;
+
     private PredictionEngine engine;
     private int engineMode = ENGINE_SYMSPELL;
     private SuggestionListener listener;
@@ -72,6 +76,7 @@ public class WordPredictor {
             }
             loadingThreads.clear();
         }
+        // Null instance refs but keep sharedEngine — dictionaries stay in memory
         engine = null;
         listener = null;
     }
@@ -97,7 +102,10 @@ public class WordPredictor {
     }
 
     public boolean isEngineReady() {
-        return engine != null && engine.isReady();
+        if (engine != null && engine.isReady()) return true;
+        // Check static engine — may have data from previous instance
+        if (sharedEngine != null && sharedEngineMode == engineMode && sharedEngine.isReady()) return true;
+        return false;
     }
 
     public List<Suggestion> getLatestSuggestions() {
@@ -106,8 +114,12 @@ public class WordPredictor {
 
     public void setEngineMode(int mode) {
         if (mode < ENGINE_SYMSPELL || mode > ENGINE_NGRAM) mode = ENGINE_SYMSPELL;
-        if (this.engineMode == mode && engine != null) return;
         this.engineMode = mode;
+        // Restore static engine if mode matches
+        if (engine == null && sharedEngine != null && sharedEngineMode == mode) {
+            engine = sharedEngine;
+        }
+        if (engine != null) return;
         // Recreate engine if we already have a context and locale
         if (appContext != null && !currentLocale.isEmpty()) {
             createAndLoadEngine(appContext, currentLocale);
@@ -142,8 +154,15 @@ public class WordPredictor {
         this.appContext = context;
         this.currentLocale = locale;
 
+        // Restore engine from static cache if available and mode matches
+        if (engine == null && sharedEngine != null && sharedEngineMode == engineMode) {
+            engine = sharedEngine;
+            Log.i(TAG, "Restored engine from static cache");
+        }
+
         // Check if engine already loaded for this locale
         if (engine != null && engine.isReady() && locale.equals(engine.getLoadedLocale())) {
+            Log.i(TAG, "Engine already ready for " + locale + ", skipping load");
             if (onComplete != null) onComplete.run();
             return;
         }
@@ -181,7 +200,12 @@ public class WordPredictor {
      * The dictionary stays in the engine's cache for fast switching later.
      */
     public void preloadDictionary(final Context context, final String locale) {
-        if (shuttingDown || engine == null) return;
+        if (shuttingDown) return;
+        // Restore engine from static cache if needed
+        if (engine == null && sharedEngine != null && sharedEngineMode == engineMode) {
+            engine = sharedEngine;
+        }
+        if (engine == null) return;
         final PredictionEngine existingEngine = engine;
         final Thread t = new Thread(new Runnable() {
             public void run() {
@@ -213,6 +237,8 @@ public class WordPredictor {
                 break;
         }
         engine = newEngine;
+        sharedEngine = newEngine;
+        sharedEngineMode = engineMode;
 
         final Thread t = new Thread(new Runnable() {
             public void run() {
@@ -322,6 +348,10 @@ public class WordPredictor {
      * Generate suggestions for the current word via the active engine.
      */
     private void updateSuggestions() {
+        // Restore engine from static cache if instance was cleared by shutdown
+        if (engine == null && sharedEngine != null && sharedEngineMode == engineMode) {
+            engine = sharedEngine;
+        }
         if (engine == null || !engine.isReady()) {
             return; // Dictionary not loaded yet — skip silently
         }
