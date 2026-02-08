@@ -191,18 +191,25 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
             STEP = "WordPredictor + SuggestionBar";
             Log.i(TAG2, "onCreate STEP: " + STEP);
+            com.ai10.k12kb.prediction.DebugLog.init(getApplicationContext());
+            com.ai10.k12kb.prediction.DebugLog.w("K12KbIME.onCreate() started");
             boolean predictionEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_17_PREDICTION_ENABLED);
+            com.ai10.k12kb.prediction.DebugLog.w("predictionEnabled=" + predictionEnabled);
             if (predictionEnabled) {
                 // Fresh predictor — but engine+dictionaries are static inside WordPredictor
                 // so if they were loaded before, they're reused instantly (no new threads)
                 wordPredictor = new WordPredictor();
                 int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
+                com.ai10.k12kb.prediction.DebugLog.w("setEngineMode(" + engineMode + ")");
                 wordPredictor.setEngineMode(engineMode);
+                com.ai10.k12kb.prediction.DebugLog.w("calling loadDictionary(en) + preload(ru)");
                 wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
                     public void run() {
+                        com.ai10.k12kb.prediction.DebugLog.w("onComplete(en): calling preloadDictionary(ru)");
                         wordPredictor.preloadDictionary(getApplicationContext(), "ru");
                     }
                 });
+                com.ai10.k12kb.prediction.DebugLog.w("onCreate: engineReady=" + wordPredictor.isEngineReady());
                 Log.i(TAG2, "onCreate: WordPredictor initialized (engine cached: " + wordPredictor.isEngineReady() + ")");
                 int predictionHeight = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
                 if (predictionHeight < 10) predictionHeight = 36;
@@ -332,8 +339,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     @Override
     public void onDestroy() {
+        com.ai10.k12kb.prediction.DebugLog.w("K12KbIME.onDestroy() called");
         Instance = null;
         if (wordPredictor != null) {
+            com.ai10.k12kb.prediction.DebugLog.w("calling wordPredictor.shutdown()");
             wordPredictor.shutdown();  // hard-kills threads, but static engine stays
             wordPredictor = null;
         }

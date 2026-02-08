@@ -86,16 +86,25 @@ public class SymSpell {
      */
     public void buildIndex() {
         deletes.clear();
+        int total = dictionary.size();
+        DebugLog.w("SymSpell.buildIndex() started, dictionary.size=" + total);
         int count = 0;
         for (Map.Entry<String, Integer> entry : dictionary.entrySet()) {
-            if (Thread.currentThread().isInterrupted()) break;
+            if (Thread.currentThread().isInterrupted()) {
+                DebugLog.w("SymSpell.buildIndex() INTERRUPTED at " + count + "/" + total);
+                break;
+            }
             String term = entry.getKey();
             String key = term.length() > prefixLength ? term.substring(0, prefixLength) : term;
             addDeletes(key, maxEditDistance, term);
             if (++count % 500 == 0) {
-                try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+                try { Thread.sleep(5); } catch (InterruptedException e) {
+                    DebugLog.w("SymSpell.buildIndex() SLEEP INTERRUPTED at " + count + "/" + total);
+                    Thread.currentThread().interrupt(); break;
+                }
             }
         }
+        DebugLog.w("SymSpell.buildIndex() done, deletes.size=" + deletes.size() + " processed=" + count + "/" + total);
     }
 
     private void addDeletes(String current, int distance, String originalTerm) {
@@ -246,10 +255,15 @@ public class SymSpell {
      * Write the precomputed deletes index to a binary stream.
      */
     public void writeDeletesCache(DataOutputStream out) throws IOException {
-        out.writeInt(deletes.size());
+        int total = deletes.size();
+        DebugLog.w("SymSpell.writeDeletesCache() started, deletes.size=" + total);
+        out.writeInt(total);
         int count = 0;
         for (Map.Entry<String, List<String>> entry : deletes.entrySet()) {
-            if (Thread.currentThread().isInterrupted()) return;
+            if (Thread.currentThread().isInterrupted()) {
+                DebugLog.w("SymSpell.writeDeletesCache() INTERRUPTED at " + count + "/" + total);
+                return;
+            }
             out.writeUTF(entry.getKey());
             List<String> bucket = entry.getValue();
             out.writeInt(bucket.size());
@@ -257,9 +271,13 @@ public class SymSpell {
                 out.writeUTF(bucket.get(i));
             }
             if (++count % 500 == 0) {
-                try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
+                try { Thread.sleep(5); } catch (InterruptedException e) {
+                    DebugLog.w("SymSpell.writeDeletesCache() SLEEP INTERRUPTED at " + count + "/" + total);
+                    Thread.currentThread().interrupt(); return;
+                }
             }
         }
+        DebugLog.w("SymSpell.writeDeletesCache() done, wrote " + count + " entries");
     }
 
     /**
@@ -268,9 +286,13 @@ public class SymSpell {
      */
     public void readDeletesCache(DataInputStream in) throws IOException {
         int size = in.readInt();
+        DebugLog.w("SymSpell.readDeletesCache() started, expected=" + size);
         deletes.clear();
         for (int i = 0; i < size; i++) {
-            if (Thread.currentThread().isInterrupted()) return;
+            if (Thread.currentThread().isInterrupted()) {
+                DebugLog.w("SymSpell.readDeletesCache() INTERRUPTED at " + i + "/" + size);
+                return;
+            }
             String key = in.readUTF();
             int bucketSize = in.readInt();
             ArrayList<String> bucket = new ArrayList<String>(bucketSize);
@@ -279,8 +301,12 @@ public class SymSpell {
             }
             deletes.put(key, bucket);
             if (i % 500 == 499) {
-                try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
+                try { Thread.sleep(5); } catch (InterruptedException e) {
+                    DebugLog.w("SymSpell.readDeletesCache() SLEEP INTERRUPTED at " + i + "/" + size);
+                    Thread.currentThread().interrupt(); return;
+                }
             }
         }
+        DebugLog.w("SymSpell.readDeletesCache() done, loaded " + deletes.size() + " entries");
     }
 }

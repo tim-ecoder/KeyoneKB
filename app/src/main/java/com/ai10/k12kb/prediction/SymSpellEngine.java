@@ -71,27 +71,39 @@ public class SymSpellEngine implements PredictionEngine {
 
     @Override
     public void loadDictionary(Context context, String locale) {
+        DebugLog.w("SymSpellEngine.loadDictionary(" + locale + ") dictionary=" + dictionary
+                + " dictCache.keys=" + dictCache.keySet());
         if (dictionary != null && dictionary.isReady() && locale.equals(dictionary.getLoadedLocale())) {
+            DebugLog.w("SymSpellEngine.loadDictionary: already ready for " + locale + ", skipping");
             return;
         }
         WordDictionary cached = dictCache.get(locale);
         if (cached != null && cached.isReady()) {
+            DebugLog.w("SymSpellEngine.loadDictionary: found in dictCache, ready=true");
             dictionary = cached;
             return;
         }
+        DebugLog.w("SymSpellEngine.loadDictionary: creating new WordDictionary for " + locale);
         final WordDictionary newDict = new WordDictionary();
         dictCache.put(locale, newDict);
         dictionary = newDict;
         newDict.load(context, locale);
+        DebugLog.w("SymSpellEngine.loadDictionary: done, ready=" + newDict.isReady());
     }
 
     @Override
     public void preloadDictionary(Context context, String locale) {
+        DebugLog.w("SymSpellEngine.preloadDictionary(" + locale + ") dictCache.keys=" + dictCache.keySet());
         WordDictionary cached = dictCache.get(locale);
-        if (cached != null) return;
+        if (cached != null) {
+            DebugLog.w("SymSpellEngine.preloadDictionary: already in cache, ready=" + cached.isReady());
+            return;
+        }
+        DebugLog.w("SymSpellEngine.preloadDictionary: creating new WordDictionary for " + locale);
         final WordDictionary newDict = new WordDictionary();
         dictCache.put(locale, newDict);
         newDict.load(context, locale);
+        DebugLog.w("SymSpellEngine.preloadDictionary: done, ready=" + newDict.isReady());
     }
 
     @Override

@@ -119,15 +119,19 @@ public class WordDictionary {
         // Mark as loading in progress
         boolean hasCache = hasCacheFile(context, locale);
         loadStatsMap.put(locale, new LoadStats(locale, "loading", 0, 0));
-        Log.d(TAG, "Starting dictionary load for " + locale + " (cache " + (hasCache ? "available" : "not found") + ")");
+        DebugLog.w("WordDictionary.load(" + locale + ") started, hasCache=" + hasCache
+                + " thread=" + Thread.currentThread().getName()
+                + " interrupted=" + Thread.currentThread().isInterrupted());
 
         // Try binary cache first (skips JSON parsing and buildIndex)
         if (loadFromCache(context, locale)) {
             long elapsed = System.currentTimeMillis() - startTime;
             loadStatsMap.put(locale, new LoadStats(locale, "cache", symSpell.size(), elapsed));
-            Log.d(TAG, "Loaded " + locale + " from cache: " + symSpell.size() + " words in " + elapsed + "ms");
+            DebugLog.w("WordDictionary.load(" + locale + ") FROM CACHE OK: " + symSpell.size() + " words in " + elapsed + "ms");
             return;
         }
+
+        DebugLog.w("WordDictionary.load(" + locale + ") cache failed, falling back to assets");
 
         // Fall back to loading from assets
         symSpell.setBulkLoading(true);
@@ -139,9 +143,11 @@ public class WordDictionary {
             try {
                 is = context.getAssets().open(txtFilename);
                 useTxt = true;
+                DebugLog.w("WordDictionary.load(" + locale + ") using TXT: " + txtFilename);
             } catch (java.io.FileNotFoundException e) {
                 is = context.getAssets().open(jsonFilename);
                 useTxt = false;
+                DebugLog.w("WordDictionary.load(" + locale + ") using JSON: " + jsonFilename);
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 16384);
 
@@ -161,6 +167,7 @@ public class WordDictionary {
                         try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
                     }
                 }
+                DebugLog.w("WordDictionary.load(" + locale + ") TXT read done: " + lineCount + " lines, interrupted=" + Thread.currentThread().isInterrupted());
             } else {
                 StringBuilder sb = new StringBuilder();
                 char[] buf = new char[8192];
@@ -168,7 +175,9 @@ public class WordDictionary {
                 while ((read = reader.read(buf)) != -1) {
                     sb.append(buf, 0, read);
                 }
+                DebugLog.w("WordDictionary.load(" + locale + ") JSON read done, size=" + sb.length());
                 JSONArray arr = new JSONArray(sb.toString());
+                DebugLog.w("WordDictionary.load(" + locale + ") JSON parsed, entries=" + arr.length());
                 for (int i = 0; i < arr.length(); i++) {
                     if (Thread.currentThread().isInterrupted()) break;
                     JSONObject obj = arr.getJSONObject(i);
@@ -177,24 +186,30 @@ public class WordDictionary {
                         try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
                     }
                 }
+                DebugLog.w("WordDictionary.load(" + locale + ") addEntry loop done, interrupted=" + Thread.currentThread().isInterrupted());
             }
             reader.close();
 
             if (Thread.currentThread().isInterrupted()) {
-                Log.d(TAG, "Dictionary loading interrupted for " + locale);
+                DebugLog.w("WordDictionary.load(" + locale + ") INTERRUPTED after reading, aborting");
                 return;
             }
             symSpell.setBulkLoading(false);
+            DebugLog.w("WordDictionary.load(" + locale + ") building SymSpell index...");
             symSpell.buildIndex();
+            DebugLog.w("WordDictionary.load(" + locale + ") buildIndex done, interrupted=" + Thread.currentThread().isInterrupted());
             ready = true;
             loadedLocale = locale;
             long elapsed = System.currentTimeMillis() - startTime;
             loadStatsMap.put(locale, new LoadStats(locale, "assets", symSpell.size(), elapsed));
-            Log.d(TAG, "Loaded " + locale + " from assets: " + symSpell.size() + " words in " + elapsed + "ms");
+            DebugLog.w("WordDictionary.load(" + locale + ") FROM ASSETS OK: " + symSpell.size() + " words in " + elapsed + "ms");
 
             // Save binary cache for next startup
+            DebugLog.w("WordDictionary.load(" + locale + ") saving to cache...");
             saveToCache(context, locale);
+            DebugLog.w("WordDictionary.load(" + locale + ") saveToCache done");
         } catch (Exception e) {
+            DebugLog.w("WordDictionary.load(" + locale + ") EXCEPTION: " + e);
             Log.e(TAG, "Failed to load dictionary: " + e);
         }
     }
@@ -205,32 +220,47 @@ public class WordDictionary {
      */
     private boolean loadFromCache(Context context, String locale) {
         File cacheFile = new File(context.getFilesDir(), "dict_cache/" + locale + ".bin");
+        DebugLog.w("loadFromCache(" + locale + ") file=" + cacheFile.getAbsolutePath()
+                + " exists=" + cacheFile.exists()
+                + (cacheFile.exists() ? " size=" + cacheFile.length() : ""));
         if (!cacheFile.exists()) return false;
         DataInputStream in = null;
         try {
             in = new DataInputStream(new BufferedInputStream(
                     new FileInputStream(cacheFile), 65536));
             int magic = in.readInt();
-            if (magic != CACHE_MAGIC) { in.close(); return false; }
+            DebugLog.w("loadFromCache(" + locale + ") magic=0x" + Integer.toHexString(magic)
+                    + " expected=0x" + Integer.toHexString(CACHE_MAGIC));
+            if (magic != CACHE_MAGIC) { in.close(); DebugLog.w("loadFromCache: BAD MAGIC"); return false; }
             int version = in.readInt();
+            DebugLog.w("loadFromCache(" + locale + ") version=" + version + " expected=" + CACHE_VERSION);
             if (version != CACHE_VERSION) {
                 in.close();
                 cacheFile.delete();
+                DebugLog.w("loadFromCache: BAD VERSION, deleted cache");
                 return false;
             }
 
             // Read word+freq pairs → rebuild normalizedIndex + prefixCache + symSpell.dictionary
             symSpell.setBulkLoading(true);
             int wordCount = in.readInt();
+            DebugLog.w("loadFromCache(" + locale + ") wordCount=" + wordCount + ", reading entries...");
             for (int i = 0; i < wordCount; i++) {
-                if (Thread.currentThread().isInterrupted()) { in.close(); return false; }
+                if (Thread.currentThread().isInterrupted()) {
+                    DebugLog.w("loadFromCache(" + locale + ") INTERRUPTED at entry " + i + "/" + wordCount);
+                    in.close(); return false;
+                }
                 String word = in.readUTF();
                 int freq = in.readInt();
                 addEntry(word, freq);
                 if (i % 500 == 499) {
-                    try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); in.close(); return false; }
+                    try { Thread.sleep(5); } catch (InterruptedException e) {
+                        DebugLog.w("loadFromCache(" + locale + ") SLEEP INTERRUPTED at entry " + i);
+                        Thread.currentThread().interrupt(); in.close(); return false;
+                    }
                 }
             }
+            DebugLog.w("loadFromCache(" + locale + ") entries read OK, reading SymSpell deletes...");
 
             // Read SymSpell deletes directly (skip expensive buildIndex)
             symSpell.readDeletesCache(in);
@@ -238,11 +268,16 @@ public class WordDictionary {
 
             in.close();
 
-            if (Thread.currentThread().isInterrupted()) return false;
+            if (Thread.currentThread().isInterrupted()) {
+                DebugLog.w("loadFromCache(" + locale + ") INTERRUPTED after deletes read");
+                return false;
+            }
             ready = true;
             loadedLocale = locale;
+            DebugLog.w("loadFromCache(" + locale + ") SUCCESS, ready=true");
             return true;
         } catch (Exception e) {
+            DebugLog.w("loadFromCache(" + locale + ") EXCEPTION: " + e);
             Log.e(TAG, "Failed to load from cache, will reload from assets: " + e);
             if (in != null) { try { in.close(); } catch (Exception ignored) {} }
             // Delete corrupt cache
@@ -257,7 +292,8 @@ public class WordDictionary {
      * Save dictionary to binary cache for fast loading on next startup.
      */
     private void saveToCache(Context context, String locale) {
-        if (Thread.currentThread().isInterrupted()) return;
+        DebugLog.w("saveToCache(" + locale + ") interrupted=" + Thread.currentThread().isInterrupted());
+        if (Thread.currentThread().isInterrupted()) { DebugLog.w("saveToCache: ABORTED (interrupted)"); return; }
         DataOutputStream out = null;
         try {
             File dir = new File(context.getFilesDir(), "dict_cache");
@@ -275,24 +311,33 @@ public class WordDictionary {
                 totalWords += entries.size();
             }
             out.writeInt(totalWords);
+            DebugLog.w("saveToCache(" + locale + ") writing " + totalWords + " word entries...");
             int written = 0;
             for (Map.Entry<String, List<DictEntry>> entry : normalizedIndex.entrySet()) {
-                if (Thread.currentThread().isInterrupted()) { out.close(); return; }
+                if (Thread.currentThread().isInterrupted()) {
+                    DebugLog.w("saveToCache(" + locale + ") INTERRUPTED at entry " + written);
+                    out.close(); return;
+                }
                 for (DictEntry de : entry.getValue()) {
                     out.writeUTF(de.word);
                     out.writeInt(de.frequency);
                 }
                 if (++written % 500 == 0) {
-                    try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); out.close(); return; }
+                    try { Thread.sleep(5); } catch (InterruptedException e) {
+                        DebugLog.w("saveToCache(" + locale + ") SLEEP INTERRUPTED at " + written);
+                        Thread.currentThread().interrupt(); out.close(); return;
+                    }
                 }
             }
+            DebugLog.w("saveToCache(" + locale + ") entries written, writing SymSpell deletes...");
 
             // Write SymSpell deletes (yields internally every 5000 entries)
             symSpell.writeDeletesCache(out);
 
             out.close();
-            Log.d(TAG, "Saved " + locale + " cache: " + totalWords + " words, size: " + cacheFile.length());
+            DebugLog.w("saveToCache(" + locale + ") SUCCESS: " + totalWords + " words, fileSize=" + cacheFile.length());
         } catch (Exception e) {
+            DebugLog.w("saveToCache(" + locale + ") EXCEPTION: " + e);
             Log.e(TAG, "Failed to save dictionary cache: " + e);
             if (out != null) { try { out.close(); } catch (Exception ignored) {} }
         }
