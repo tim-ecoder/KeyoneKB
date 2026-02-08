@@ -118,6 +118,7 @@
     <string name="pred_section_cache">CACHE</string>
     <string name="pred_status_engine">Engine</string>
     <string name="pred_status_loaded">loaded</string>
+    <string name="pred_status_loading">loading\u2026</string>
     <string name="pred_status_not_loaded">not loaded</string>
     <string name="pred_status_words">Words</string>
     <string name="pred_status_source">Source</string>

@@ -120,7 +120,17 @@ public class ActivityPredictionSettings extends Activity {
         String[] locales = {"en", "ru"};
         for (String locale : locales) {
             WordDictionary.LoadStats stats = allStats.get(locale);
-            if (stats != null) {
+            if (stats != null && "loading".equals(stats.source)) {
+                // Loading in progress
+                boolean hasCache = WordDictionary.hasCacheFile(getApplicationContext(), locale);
+                sb.append("\n").append(locale.toUpperCase()).append(": ")
+                  .append(getString(R.string.pred_status_loading));
+                if (hasCache) {
+                    sb.append(" (").append(getString(R.string.pred_status_source_cache)).append(")");
+                } else {
+                    sb.append(" (").append(getString(R.string.pred_status_source_assets)).append(")");
+                }
+            } else if (stats != null) {
                 String src = "cache".equals(stats.source)
                         ? getString(R.string.pred_status_source_cache)
                         : getString(R.string.pred_status_source_assets);
@@ -130,7 +140,7 @@ public class ActivityPredictionSettings extends Activity {
                   .append("  ").append(getString(R.string.pred_status_source)).append(": ").append(src).append("\n")
                   .append("  ").append(getString(R.string.pred_status_time)).append(": ").append(stats.timeMs).append(" ms");
             } else {
-                // Check if cache exists at least
+                // Never loaded
                 boolean hasCache = WordDictionary.hasCacheFile(getApplicationContext(), locale);
                 sb.append("\n").append(locale.toUpperCase()).append(": ")
                   .append(getString(R.string.pred_status_not_loaded));

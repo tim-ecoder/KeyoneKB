@@ -39,7 +39,7 @@ public class WordDictionary {
     /** Loading stats per locale — survives across instances (static). */
     public static class LoadStats {
         public final String locale;
-        public final String source;  // "cache" or "assets"
+        public final String source;  // "cache", "assets", or "loading"
         public final int wordCount;
         public final long timeMs;
         public final long timestamp;
@@ -115,6 +115,11 @@ public class WordDictionary {
         ready = false;
         prefixCache.clear();
         normalizedIndex.clear();
+
+        // Mark as loading in progress
+        boolean hasCache = hasCacheFile(context, locale);
+        loadStatsMap.put(locale, new LoadStats(locale, "loading", 0, 0));
+        Log.d(TAG, "Starting dictionary load for " + locale + " (cache " + (hasCache ? "available" : "not found") + ")");
 
         // Try binary cache first (skips JSON parsing and buildIndex)
         if (loadFromCache(context, locale)) {
