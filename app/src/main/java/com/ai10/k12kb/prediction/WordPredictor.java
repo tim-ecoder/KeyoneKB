@@ -293,17 +293,15 @@ public class WordPredictor {
     }
 
     /**
-     * Reset tracker and clear suggestions. Saves currentWord as previousWord.
+     * Reset tracker. Saves currentWord as previousWord, then requests
+     * next-word prediction (engine.suggest with empty input).
      */
     public void reset() {
         if (currentWord.length() > 0) {
             previousWord = currentWord;
         }
         currentWord = "";
-        latestSuggestions = Collections.emptyList();
-        if (listener != null) {
-            listener.onSuggestionsUpdated(latestSuggestions);
-        }
+        updateSuggestions();
     }
 
     /**
@@ -314,13 +312,9 @@ public class WordPredictor {
         Suggestion s = latestSuggestions.get(index);
         String result = applyCasing(s.word, currentWord);
         // Set previousWord to the accepted word (normalized form for bigram lookup)
-        String acceptedWord = s.word;
+        previousWord = s.word;
         currentWord = "";
-        previousWord = acceptedWord;
-        latestSuggestions = Collections.emptyList();
-        if (listener != null) {
-            listener.onSuggestionsUpdated(latestSuggestions);
-        }
+        updateSuggestions();
         return result;
     }
 
