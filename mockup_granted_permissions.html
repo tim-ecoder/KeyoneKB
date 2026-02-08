@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K12KB UI Mockup - Granted Permissions Group</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: #1a1a1a; color: #fff; padding: 16px; }
+
+  h2 { color: #aaa; font-size: 14px; margin: 24px 0 8px; text-transform: uppercase; letter-spacing: 1px; }
+  h3 { color: #4fc3f7; font-size: 18px; margin: 30px 0 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+
+  .phone { max-width: 400px; margin: 0 auto 40px; background: #222; border-radius: 16px; padding: 16px; border: 2px solid #444; }
+  .phone-title { text-align: center; color: #888; font-size: 12px; margin-bottom: 12px; }
+
+  .header { background: #4CAF50; border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center; }
+  .header h1 { font-size: 22px; font-weight: bold; }
+  .header p { font-size: 11px; opacity: 0.85; margin-top: 4px; }
+
+  .section-label { color: #4CAF50; font-size: 12px; font-weight: 600; letter-spacing: 1px; margin: 12px 0 6px 4px; }
+
+  .pill {
+    display: flex; align-items: center;
+    background: #2a2a2a; border-radius: 12px;
+    padding: 14px 16px; margin: 6px 0;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .pill:hover { background: #333; }
+  .pill .badge {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #2196F3; color: #fff; font-size: 13px; font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 12px; flex-shrink: 0;
+  }
+  .pill .text { flex: 1; font-size: 14px; }
+  .pill .arrow { color: #666; font-size: 16px; }
+
+  .pill.disabled { opacity: 0.5; cursor: default; }
+  .pill.disabled:hover { background: #2a2a2a; }
+  .pill.disabled .badge { background: #666; }
+
+  /* Granted group */
+  .granted-group {
+    background: #1e2a1e; border-radius: 12px;
+    margin: 6px 0; overflow: hidden;
+    border: 1px solid #2d4a2d;
+    transition: all 0.3s;
+  }
+  .granted-header {
+    display: flex; align-items: center;
+    padding: 14px 16px; cursor: pointer;
+  }
+  .granted-header:hover { background: rgba(76,175,80,0.1); }
+  .granted-header .icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #4CAF50; color: #fff; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 12px; flex-shrink: 0;
+  }
+  .granted-header .text { flex: 1; font-size: 14px; color: #81C784; }
+  .granted-header .count {
+    background: #4CAF50; color: #fff; font-size: 11px; font-weight: bold;
+    padding: 2px 8px; border-radius: 10px; margin-right: 8px;
+  }
+  .granted-header .chevron { color: #4CAF50; font-size: 18px; transition: transform 0.3s; }
+  .granted-header .chevron.open { transform: rotate(180deg); }
+
+  .granted-items { padding: 0 8px 8px; }
+  .granted-items .pill {
+    background: #253025; opacity: 0.7;
+    padding: 10px 14px; margin: 4px 0;
+  }
+  .granted-items .pill .badge { background: #4CAF50; width: 24px; height: 24px; font-size: 11px; }
+  .granted-items .pill .text { font-size: 13px; color: #a5d6a7; }
+
+  .collapsed .granted-items { display: none; }
+
+  .divider { height: 1px; background: #333; margin: 16px 0; }
+  .note { color: #888; font-size: 12px; text-align: center; margin-top: 8px; font-style: italic; }
+</style>
+</head>
+<body>
+
+<h3>STATE 1: All need setup (current - nothing changes)</h3>
+<div class="phone">
+  <div class="phone-title">No granted permissions yet</div>
+  <div class="header">
+    <h1>K12KB</h1>
+    <p>Device: BLACKBERRY UNKNOWN App: com.ai10.k12kb Version: v2.8b13...</p>
+  </div>
+
+  <div class="section-label">SETUP</div>
+
+  <div class="pill"><div class="badge">A</div><div class="text">Настройки</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">B</div><div class="text">Активировать клавиатуру</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">C</div><div class="text">Активировать спец. возможности</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">D</div><div class="text">Внимание! Требуется разрешение</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">E</div><div class="text">Энергосбережение требует настройки</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">F</div><div class="text">Требуется разрешение на доступ к файлам</div><div class="arrow">›</div></div>
+
+  <div class="section-label">ACTIONS</div>
+  <div class="pill"><div class="text">Переключить клавиатуру</div><div class="arrow">›</div></div>
+</div>
+
+<h3>STATE 2: B and C granted → collapsed (default view)</h3>
+<div class="phone">
+  <div class="phone-title">Tap green bar to expand</div>
+  <div class="header">
+    <h1>K12KB</h1>
+    <p>Device: BLACKBERRY UNKNOWN App: com.ai10.k12kb Version: v2.8b13...</p>
+  </div>
+
+  <div class="section-label">SETUP</div>
+
+  <div class="pill"><div class="badge">A</div><div class="text">Настройки</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">D</div><div class="text">Внимание! Требуется разрешение</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">E</div><div class="text">Энергосбережение требует настройки</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">F</div><div class="text">Требуется разрешение на доступ к файлам</div><div class="arrow">›</div></div>
+
+  <div class="granted-group collapsed" onclick="this.classList.toggle('collapsed')">
+    <div class="granted-header">
+      <div class="icon">✓</div>
+      <div class="text">Настроенные разрешения</div>
+      <div class="count">2</div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="granted-items">
+      <div class="pill"><div class="badge">B</div><div class="text">Клавиатура активирована</div></div>
+      <div class="pill"><div class="badge">C</div><div class="text">Спец. возможности активированы</div></div>
+    </div>
+  </div>
+
+  <div class="section-label">ACTIONS</div>
+  <div class="pill"><div class="text">Переключить клавиатуру</div><div class="arrow">›</div></div>
+</div>
+
+<h3>STATE 3: B and C granted → expanded (after tap)</h3>
+<div class="phone">
+  <div class="phone-title">Tap green bar to collapse</div>
+  <div class="header">
+    <h1>K12KB</h1>
+    <p>Device: BLACKBERRY UNKNOWN App: com.ai10.k12kb Version: v2.8b13...</p>
+  </div>
+
+  <div class="section-label">SETUP</div>
+
+  <div class="pill"><div class="badge">A</div><div class="text">Настройки</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">D</div><div class="text">Внимание! Требуется разрешение</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">E</div><div class="text">Энергосбережение требует настройки</div><div class="arrow">›</div></div>
+  <div class="pill"><div class="badge">F</div><div class="text">Требуется разрешение на доступ к файлам</div><div class="arrow">›</div></div>
+
+  <div class="granted-group">
+    <div class="granted-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <div class="icon">✓</div>
+      <div class="text">Настроенные разрешения</div>
+      <div class="count">2</div>
+      <div class="chevron open">▼</div>
+    </div>
+    <div class="granted-items">
+      <div class="pill"><div class="badge">B</div><div class="text">Клавиатура активирована</div></div>
+      <div class="pill"><div class="badge">C</div><div class="text">Спец. возможности активированы</div></div>
+    </div>
+  </div>
+
+  <div class="section-label">ACTIONS</div>
+  <div class="pill"><div class="text">Переключить клавиатуру</div><div class="arrow">›</div></div>
+</div>
+
+<h3>STATE 4: All granted → only grouped container visible</h3>
+<div class="phone">
+  <div class="phone-title">All permissions configured</div>
+  <div class="header">
+    <h1>K12KB</h1>
+    <p>Device: BLACKBERRY UNKNOWN App: com.ai10.k12kb Version: v2.8b13...</p>
+  </div>
+
+  <div class="section-label">SETUP</div>
+
+  <div class="pill"><div class="badge">A</div><div class="text">Настройки</div><div class="arrow">›</div></div>
+
+  <div class="granted-group collapsed" onclick="this.classList.toggle('collapsed')">
+    <div class="granted-header">
+      <div class="icon">✓</div>
+      <div class="text">Настроенные разрешения</div>
+      <div class="count">5</div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="granted-items">
+      <div class="pill"><div class="badge">B</div><div class="text">Клавиатура активирована</div></div>
+      <div class="pill"><div class="badge">C</div><div class="text">Спец. возможности активированы</div></div>
+      <div class="pill"><div class="badge">D</div><div class="text">Действий с разрешениями не требуется</div></div>
+      <div class="pill"><div class="badge">E</div><div class="text">Энергосбережение настроено</div></div>
+      <div class="pill"><div class="badge">F</div><div class="text">Доступ к файлам разрешен</div></div>
+    </div>
+  </div>
+
+  <div class="section-label">ACTIONS</div>
+  <div class="pill"><div class="text">Переключить клавиатуру</div><div class="arrow">›</div></div>
+</div>
+
+<p class="note" style="margin-top: 30px;">Click any green "Настроенные разрешения" bar to toggle expand/collapse</p>
+
+</body>
+</html>
