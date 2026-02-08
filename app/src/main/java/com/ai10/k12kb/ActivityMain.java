@@ -218,11 +218,19 @@ public class ActivityMain extends Activity {
     private void CheckFilePermissions() {
         PermissionDebugLog.logFilePermissionCheck(this);
 
-        boolean anyJson = AnyJsonExists();
         boolean permGranted = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        // When permission is denied, File.exists() can't see files inside the folder.
+        // Use directory existence as proxy: if K12Kb dir exists, JSONs may be there.
+        boolean anyJson;
+        if (permGranted) {
+            anyJson = AnyJsonExists();
+        } else {
+            anyJson = FileJsonUtils.PATH != null && new java.io.File(FileJsonUtils.PATH).exists();
+        }
 
         PermissionDebugLog.logPermissionCheck(this, "FILE_PERM",
-                "AnyJsonExists()=" + anyJson + " permGranted=" + permGranted
+                "anyJson=" + anyJson + " permGranted=" + permGranted
+                + " path=" + FileJsonUtils.PATH
                 + " → branch=" + (!anyJson && !permGranted ? "NOT_NEEDED" : permGranted ? "GRANTED" : "NEED_GRANT"));
 
         if(!anyJson && !permGranted) {
