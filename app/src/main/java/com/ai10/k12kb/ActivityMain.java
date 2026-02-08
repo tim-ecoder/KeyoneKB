@@ -216,10 +216,19 @@ public class ActivityMain extends Activity {
     }
 
     private void CheckFilePermissions() {
-        if(!AnyJsonExists() && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        PermissionDebugLog.logFilePermissionCheck(this);
+
+        boolean anyJson = AnyJsonExists();
+        boolean permGranted = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+
+        PermissionDebugLog.logPermissionCheck(this, "FILE_PERM",
+                "AnyJsonExists()=" + anyJson + " permGranted=" + permGranted
+                + " → branch=" + (!anyJson && !permGranted ? "NOT_NEEDED" : permGranted ? "GRANTED" : "NEED_GRANT"));
+
+        if(!anyJson && !permGranted) {
             btn_file_permissions.setEnabled(false);
             btn_file_permissions.setText(R.string.main_btn_file_permissions_not_need);
-        } else if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+        } else if (permGranted) {
             if(btn_file_permissions.isEnabled()) {
                 btn_file_permissions.setEnabled(false);
                 btn_file_permissions.setText(R.string.main_btn_file_permissions_activated);
@@ -354,10 +363,18 @@ public class ActivityMain extends Activity {
     }
 
     private void CheckCallPermissionState(boolean andRequest) {
-        if(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_6_MANAGE_CALL)) {
+        boolean manageCallEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_6_MANAGE_CALL);
+        PermissionDebugLog.logCallPermissionCheck(this, manageCallEnabled);
+
+        if(manageCallEnabled) {
             boolean needCallPhone = ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED;
             boolean needAnswerCalls = ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED;
             boolean needReadPhone = ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED;
+
+            PermissionDebugLog.logPermissionCheck(this, "CALL_PERM",
+                    "needCallPhone=" + needCallPhone + " needAnswerCalls=" + needAnswerCalls
+                    + " needReadPhone=" + needReadPhone + " andRequest=" + andRequest
+                    + " → " + (needCallPhone || needAnswerCalls || needReadPhone ? "ACTIVATE" : "DEACTIVATE"));
 
             if (needCallPhone || needAnswerCalls || needReadPhone) {
                 if (!andRequest) {

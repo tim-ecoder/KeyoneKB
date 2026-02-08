@@ -41,8 +41,8 @@ BUILD="$PROJECT/build_manual"
 LIBS="$SDK/libs"
 
 # Version info — update these for each release
-VERSION_CODE=2746
-VERSION_NAME="v2.8b05"
+VERSION_CODE=2750
+VERSION_NAME="v2.8b10s"
 
 # Validate tools exist
 for tool in "$AAPT2" "$ZIPALIGN" "$DX" "$JAVAC" "$JARSIGNER"; do
