@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,6 +21,7 @@ public class PermissionDebugLog {
 
     private static final String TAG = "K12KB_PermDebug";
     private static final String LOG_FILENAME = "permission_debug.log";
+    private static StringBuilder toastBuffer = new StringBuilder();
 
     public static void logPermissionCheck(Context context, String section, String message) {
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(new Date());
@@ -29,6 +31,7 @@ public class PermissionDebugLog {
     }
 
     public static void logFilePermissionCheck(Context context) {
+        toastBuffer.setLength(0);
         StringBuilder sb = new StringBuilder();
         sb.append("=== FILE PERMISSION CHECK ===\n");
 
@@ -39,6 +42,7 @@ public class PermissionDebugLog {
             PackageInfo pi = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             sb.append("  App targetSdk: ").append(pi.applicationInfo.targetSdkVersion).append("\n");
             sb.append("  App versionName: ").append(pi.versionName).append("\n");
+            toastBuffer.append("tgt=").append(pi.applicationInfo.targetSdkVersion);
         } catch (PackageManager.NameNotFoundException e) {
             sb.append("  App info: ERROR ").append(e.getMessage()).append("\n");
         }
@@ -55,11 +59,15 @@ public class PermissionDebugLog {
                 .append(resultCtx == PackageManager.PERMISSION_GRANTED ? "GRANTED" : "DENIED")
                 .append(" (raw=").append(resultCtx).append(")\n");
 
+        toastBuffer.append(" WRITE=").append(resultCtx == PackageManager.PERMISSION_GRANTED ? "G" : "D");
+
         // Check READ too
         int readResult = context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
         sb.append("  context.checkSelfPermission(READ_EXTERNAL_STORAGE) = ")
                 .append(readResult == PackageManager.PERMISSION_GRANTED ? "GRANTED" : "DENIED")
                 .append(" (raw=").append(readResult).append(")\n");
+
+        toastBuffer.append(" READ=").append(readResult == PackageManager.PERMISSION_GRANTED ? "G" : "D");
 
         // External storage state
         String state = Environment.getExternalStorageState();
@@ -75,15 +83,26 @@ public class PermissionDebugLog {
         sb.append("  K12Kb dir canRead: ").append(k12kbDir.canRead()).append("\n");
         sb.append("  K12Kb dir canWrite: ").append(k12kbDir.canWrite()).append("\n");
 
+        toastBuffer.append(" dir=").append(k12kbDir.exists() ? "Y" : "N");
+        toastBuffer.append(" w=").append(k12kbDir.canWrite() ? "Y" : "N");
+
         // Try to check if mkdir works
         if (!k12kbDir.exists()) {
             boolean mkdirResult = k12kbDir.mkdirs();
             sb.append("  K12Kb mkdirs() result: ").append(mkdirResult).append("\n");
             sb.append("  K12Kb dir exists after mkdirs: ").append(k12kbDir.exists()).append("\n");
+            toastBuffer.append(" mkdir=").append(mkdirResult ? "OK" : "FAIL");
         }
 
         // AnyJsonExists would be checked in the caller, just log the path
         sb.append("  FileJsonUtils.PATH: ").append(FileJsonUtils.PATH).append("\n");
+
+        // Internal files dir (always accessible)
+        sb.append("  context.getFilesDir: ").append(context.getFilesDir().getAbsolutePath()).append("\n");
+
+        // External files dir (no permission needed)
+        File extFilesDir = context.getExternalFilesDir(null);
+        sb.append("  context.getExternalFilesDir: ").append(extFilesDir != null ? extFilesDir.getAbsolutePath() : "null").append("\n");
 
         // Check package installer
         String installer = context.getPackageManager().getInstallerPackageName(context.getPackageName());
@@ -99,6 +118,11 @@ public class PermissionDebugLog {
         sb.append("=== END FILE PERMISSION CHECK ===");
 
         logPermissionCheck(context, "FILE_PERM", sb.toString());
+
+        // Show toast with key info
+        try {
+            Toast.makeText(context, "PermDbg: " + toastBuffer.toString(), Toast.LENGTH_LONG).show();
+        } catch (Exception ignored) {}
     }
 
     public static void logCallPermissionCheck(Context context, boolean manageCallEnabled) {
@@ -133,7 +157,19 @@ public class PermissionDebugLog {
     }
 
     private static void appendToFile(Context context, String text) {
-        // Try K12Kb directory first
+        // 1. Always write to internal storage (guaranteed to work)
+        try {
+            File internalDir = context.getFilesDir();
+            File logFile = new File(internalDir, LOG_FILENAME);
+            PrintWriter pw = new PrintWriter(new FileOutputStream(logFile, true));
+            pw.println(text);
+            pw.flush();
+            pw.close();
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to write to internal dir: " + e.getMessage());
+        }
+
+        // 2. Try K12Kb directory on external storage
         boolean wroteToK12Kb = false;
         try {
             String k12kbPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/K12Kb/";
@@ -151,7 +187,7 @@ public class PermissionDebugLog {
             Log.w(TAG, "Failed to write to K12Kb dir: " + e.getMessage());
         }
 
-        // Also write to app's external files dir (no permission needed)
+        // 3. Also write to app's external files dir (no permission needed)
         try {
             File extFilesDir = context.getExternalFilesDir(null);
             if (extFilesDir != null) {
