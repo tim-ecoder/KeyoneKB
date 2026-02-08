@@ -25,3 +25,4 @@ local.properties
 debug.keystore
 KeyoneKB2-*.apk
 K12KB-*.apk
+build_number.txt
