@@ -62,6 +62,16 @@ public class WordDictionary {
         return loadStatsMap;
     }
 
+    /** Record that loading has started for a locale (used by all engines). */
+    public static void recordLoadingStart(String locale) {
+        loadStatsMap.put(locale, new LoadStats(locale, "loading", 0, 0));
+    }
+
+    /** Record completed load stats for a locale (used by all engines). */
+    public static void recordLoadStats(String locale, String source, int wordCount, long timeMs) {
+        loadStatsMap.put(locale, new LoadStats(locale, source, wordCount, timeMs));
+    }
+
     public static void clearCacheFiles(Context context) {
         File dir = new File(context.getFilesDir(), "dict_cache");
         if (dir.exists()) {

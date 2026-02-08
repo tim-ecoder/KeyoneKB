@@ -113,6 +113,8 @@ public class NgramEngine implements PredictionEngine {
         long startTime = System.currentTimeMillis();
         ready = false;
 
+        WordDictionary.recordLoadingStart(locale);
+
         // Load base dictionary into trie - try fast txt format first, fall back to JSON
         String txtFilename = "dictionaries/" + locale + "_base.txt";
         String jsonFilename = "dictionaries/" + locale + "_base.json";
@@ -174,6 +176,8 @@ public class NgramEngine implements PredictionEngine {
 
         ready = true;
         loadedLocale = locale;
+        long elapsed = System.currentTimeMillis() - startTime;
+        WordDictionary.recordLoadStats(locale, "assets", trie.size(), elapsed);
     }
 
     @Override
