@@ -97,7 +97,13 @@ public class WordPredictor {
 
     public void setEngineMode(int mode) {
         if (mode < ENGINE_SYMSPELL || mode > ENGINE_NGRAM) mode = ENGINE_SYMSPELL;
+        boolean modeChanged = (this.engineMode != mode);
         this.engineMode = mode;
+        if (modeChanged) {
+            // Engine type changed — old loading threads are for wrong engine type,
+            // allow new loads for the new engine
+            synchronized (loadingLocales) { loadingLocales.clear(); }
+        }
         if (engine == null && sharedEngine != null && sharedEngineMode == mode) {
             engine = sharedEngine;
         }
