@@ -355,45 +355,28 @@ public class ActivityMain extends Activity {
 
     private void CheckCallPermissionState(boolean andRequest) {
         if(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_6_MANAGE_CALL)) {
-            //CALL_PHONE
+            boolean needCallPhone = ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED;
+            boolean needAnswerCalls = ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED;
+            boolean needReadPhone = ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED;
 
-            if (ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                if(!andRequest) {
+            if (needCallPhone || needAnswerCalls || needReadPhone) {
+                if (!andRequest) {
                     ButtonPermissionActivate(this);
-                }
-                else {
-                    ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.CALL_PHONE}, REQUEST_PERMISSION_CODE);
-                }
-            } else {
-                ButtonPermissionDeactivate(this);
-            }
-
-            if (ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) {
-                if(!andRequest) {
-                    ButtonPermissionActivate(this);
-                }
-                else {
-                    ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
+                } else {
+                    if (needCallPhone) {
+                        ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.CALL_PHONE}, REQUEST_PERMISSION_CODE);
+                    } else if (needAnswerCalls) {
+                        ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_PERMISSION_CODE);
+                    } else {
+                        ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_PERMISSION_CODE);
+                    }
                 }
             } else {
                 ButtonPermissionDeactivate(this);
             }
-            if (ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                if(!andRequest) {
-                    ButtonPermissionActivate(this);
-                }
-                else {
-                    ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_PERMISSION_CODE);
-                }
-            } else {
-                ButtonPermissionDeactivate(this);
-            }
-
-            } else {
-
-                ButtonPermissionDeactivate(this);
-            }
-
+        } else {
+            ButtonPermissionDeactivate(this);
+        }
     }
 
     private static void ButtonPermissionActivate(ActivityMain activityMain) {
