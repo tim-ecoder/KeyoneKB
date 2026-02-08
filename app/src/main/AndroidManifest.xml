@@ -24,6 +24,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".ActivitySettings"></activity>
         <activity android:name=".ActivitySettingsMore"></activity>
+        <activity android:name=".ActivityPredictionSettings"></activity>
         <activity android:name=".ActivityKeyboardTest"></activity>
         <activity
             android:name=".ActivityMain"

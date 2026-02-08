@@ -75,6 +75,15 @@ public class ActivityMain extends Activity {
             }
         });
 
+        Button btn_prediction_settings = (Button) findViewById(R.id.btn_prediction_settings);
+        btn_prediction_settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent switchActivityIntent = new Intent(ActivityMain.this, ActivityPredictionSettings.class);
+                startActivity(switchActivityIntent);
+            }
+        });
+
         btn_more_settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

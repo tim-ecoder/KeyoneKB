@@ -36,6 +36,44 @@ public class WordDictionary {
     private static final int CACHE_MAGIC = 0x4B313244;   // "K12D"
     private static final int CACHE_VERSION = 2;  // v2: uncompressed (no GZIP)
 
+    /** Loading stats per locale — survives across instances (static). */
+    public static class LoadStats {
+        public final String locale;
+        public final String source;  // "cache" or "assets"
+        public final int wordCount;
+        public final long timeMs;
+        public final long timestamp;
+
+        public LoadStats(String locale, String source, int wordCount, long timeMs) {
+            this.locale = locale;
+            this.source = source;
+            this.wordCount = wordCount;
+            this.timeMs = timeMs;
+            this.timestamp = System.currentTimeMillis();
+        }
+    }
+    private static final HashMap<String, LoadStats> loadStatsMap = new HashMap<>();
+
+    public static LoadStats getLoadStats(String locale) {
+        return loadStatsMap.get(locale);
+    }
+
+    public static HashMap<String, LoadStats> getAllLoadStats() {
+        return loadStatsMap;
+    }
+
+    public static void clearCacheFiles(Context context) {
+        File dir = new File(context.getFilesDir(), "dict_cache");
+        if (dir.exists()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    f.delete();
+                }
+            }
+        }
+    }
+
     private final SymSpell symSpell = new SymSpell(2, 7);
     private final HashMap<String, List<DictEntry>> prefixCache = new HashMap<>();
     private final HashMap<String, List<DictEntry>> normalizedIndex = new HashMap<>();
@@ -81,6 +119,7 @@ public class WordDictionary {
         // Try binary cache first (skips JSON parsing and buildIndex)
         if (loadFromCache(context, locale)) {
             long elapsed = System.currentTimeMillis() - startTime;
+            loadStatsMap.put(locale, new LoadStats(locale, "cache", symSpell.size(), elapsed));
             Log.d(TAG, "Loaded " + locale + " from cache: " + symSpell.size() + " words in " + elapsed + "ms");
             return;
         }
@@ -145,6 +184,7 @@ public class WordDictionary {
             ready = true;
             loadedLocale = locale;
             long elapsed = System.currentTimeMillis() - startTime;
+            loadStatsMap.put(locale, new LoadStats(locale, "assets", symSpell.size(), elapsed));
             Log.d(TAG, "Loaded " + locale + " from assets: " + symSpell.size() + " words in " + elapsed + "ms");
 
             // Save binary cache for next startup

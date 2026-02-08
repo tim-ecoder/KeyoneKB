@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/appBackgroundColor">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
+
+        <!-- Header -->
+        <LinearLayout style="@style/PillHeader">
+            <TextView
+                style="@style/PillHeaderTitle"
+                android:text="@string/pref_section_prediction" />
+        </LinearLayout>
+
+        <!-- SETTINGS -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/pred_section_settings" />
+
+        <Switch
+            android:id="@+id/switch_prediction_enabled"
+            style="@style/SwitchPill"
+            android:text="@string/pref_prediction_enabled"
+            tools:checked="true" />
+
+        <LinearLayout style="@style/ItemPillSeek">
+            <TextView
+                style="@style/ItemPillSeekTitle"
+                android:text="@string/pref_prediction_bar_height" />
+            <SeekBar
+                android:id="@+id/seekBarPredictionHeight"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="80"
+                android:progress="36"
+                android:progressTint="@color/colorPrimary"
+                android:thumbTint="@color/colorPrimary" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPillSeek">
+            <TextView
+                style="@style/ItemPillSeekTitle"
+                android:text="@string/pref_prediction_slots_count" />
+            <SeekBar
+                android:id="@+id/seekBarPredictionCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:min="1"
+                android:max="6"
+                android:progress="4"
+                android:progressTint="@color/colorPrimary"
+                android:thumbTint="@color/colorPrimary" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPillSpinner">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textPrimaryColor"
+                android:textSize="15sp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/pref_prediction_engine_title" />
+            <Spinner
+                android:id="@+id/spinner_prediction_engine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- STATUS -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/pred_section_status" />
+
+        <LinearLayout
+            style="@style/ItemPill"
+            android:orientation="vertical"
+            android:gravity="start">
+            <TextView
+                android:id="@+id/tv_dict_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textPrimaryColor"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:typeface="monospace"
+                android:text="@string/pred_status_not_loaded" />
+        </LinearLayout>
+
+        <!-- CACHE -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/pred_section_cache" />
+
+        <LinearLayout
+            style="@style/ItemPill"
+            android:orientation="vertical"
+            android:gravity="start">
+            <TextView
+                android:id="@+id/tv_cache_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textPrimaryColor"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:typeface="monospace"
+                android:text="" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPill">
+            <Button
+                android:id="@+id/btn_clear_cache"
+                style="@style/ItemPillText"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:text="@string/pred_btn_clear_cache"
+                android:textColor="#FF5252"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

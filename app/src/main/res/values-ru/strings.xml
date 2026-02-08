@@ -108,6 +108,23 @@
         <item>SymSpell (нечёткий поиск)</item>
         <item>N-gram (предсказание следующего слова)</item>
     </string-array>
+    <string name="main_btn_prediction_settings">Подсказки</string>
+    <string name="pred_section_settings">НАСТРОЙКИ</string>
+    <string name="pred_section_status">СТАТУС СЛОВАРЕЙ</string>
+    <string name="pred_section_cache">КЕШ</string>
+    <string name="pred_status_engine">Движок</string>
+    <string name="pred_status_loaded">загружен</string>
+    <string name="pred_status_not_loaded">не загружен</string>
+    <string name="pred_status_words">Слов</string>
+    <string name="pred_status_source">Источник</string>
+    <string name="pred_status_source_cache">кеш (быстро)</string>
+    <string name="pred_status_source_assets">файл (первая загрузка)</string>
+    <string name="pred_status_time">Время</string>
+    <string name="pred_status_cache_available">кеш доступен</string>
+    <string name="pred_btn_clear_cache">Очистить кеш словарей</string>
+    <string name="pred_clear_cache_confirm">Удалить кеш словарей? Они будут перестроены при следующей загрузке.</string>
+    <string name="pred_cache_cleared">Кеш словарей очищен</string>
+    <string name="pred_cache_missing">нет кеша</string>
     <string name="pref_section_backup">РЕЗЕРВНОЕ КОПИРОВАНИЕ</string>
     <string name="pref_save_settings">Сохранить настройки в файл</string>
     <string name="pref_load_settings">Загрузить настройки из файла</string>

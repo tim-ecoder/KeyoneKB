@@ -408,61 +408,6 @@ public class ActivitySettings extends Activity {
             }
         });
 
-        Switch switchPredictionEnabled = (Switch) findViewById(R.id.switch_prediction_enabled);
-        SetSwitchStateOrDefault(switchPredictionEnabled, k12KbSettings.APP_PREFERENCES_17_PREDICTION_ENABLED);
-        switchPredictionEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_17_PREDICTION_ENABLED, isChecked);
-            }
-        });
-
-        SeekBar seekPredictionHeight = (SeekBar) findViewById(R.id.seekBarPredictionHeight);
-        SetProgressOrDefault(seekPredictionHeight, k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
-        seekPredictionHeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                int val = Math.max(10, progress);
-                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT, val);
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        SeekBar seekPredictionCount = (SeekBar) findViewById(R.id.seekBarPredictionCount);
-        SetProgressOrDefault(seekPredictionCount, k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT);
-        seekPredictionCount.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                int val = Math.max(1, progress);
-                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT, val);
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        Spinner spinnerPredictionEngine = (Spinner) findViewById(R.id.spinner_prediction_engine);
-        ArrayAdapter<CharSequence> predEngineAdapter = ArrayAdapter
-                .createFromResource(this, R.array.pref_prediction_engine_array, android.R.layout.simple_spinner_item);
-        predEngineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerPredictionEngine.setAdapter(predEngineAdapter);
-        final int spinnerEngineFromPref = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
-        spinnerPredictionEngine.setSelection(spinnerEngineFromPref);
-        spinnerPredictionEngine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE, position);
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                spinnerPredictionEngine.setSelection(spinnerEngineFromPref);
-            }
-        });
-
         Button btnSaveSettings = (Button) findViewById(R.id.button_save_settings);
         btnSaveSettings.setOnClickListener(new View.OnClickListener() {
             @Override

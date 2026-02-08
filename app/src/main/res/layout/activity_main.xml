@@ -133,6 +133,18 @@
 
         <LinearLayout style="@style/ItemPill">
             <Button
+                android:id="@+id/btn_prediction_settings"
+                style="@style/ItemPillText"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:text="@string/main_btn_prediction_settings"
+                android:textColor="?attr/textPrimaryColor"
+                android:textAllCaps="false" />
+            <TextView style="@style/Chevron" android:text="\u203A" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPill">
+            <Button
                 android:id="@+id/btn_more_settings"
                 style="@style/ItemPillText"
                 android:background="@android:color/transparent"

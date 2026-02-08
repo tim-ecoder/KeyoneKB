@@ -112,6 +112,23 @@
         <item>SymSpell (fuzzy matching)</item>
         <item>N-gram (next-word prediction)</item>
     </string-array>
+    <string name="main_btn_prediction_settings">Suggestions</string>
+    <string name="pred_section_settings">SETTINGS</string>
+    <string name="pred_section_status">DICTIONARY STATUS</string>
+    <string name="pred_section_cache">CACHE</string>
+    <string name="pred_status_engine">Engine</string>
+    <string name="pred_status_loaded">loaded</string>
+    <string name="pred_status_not_loaded">not loaded</string>
+    <string name="pred_status_words">Words</string>
+    <string name="pred_status_source">Source</string>
+    <string name="pred_status_source_cache">cache (fast)</string>
+    <string name="pred_status_source_assets">assets (first load)</string>
+    <string name="pred_status_time">Time</string>
+    <string name="pred_status_cache_available">cache available</string>
+    <string name="pred_btn_clear_cache">Clear dictionary cache</string>
+    <string name="pred_clear_cache_confirm">Delete cached dictionaries? They will be rebuilt on next load.</string>
+    <string name="pred_cache_cleared">Dictionary cache cleared</string>
+    <string name="pred_cache_missing">no cache</string>
     <string name="pref_section_backup">BACKUP</string>
     <string name="pref_save_settings">Save settings to file</string>
     <string name="pref_load_settings">Load settings from file</string>
