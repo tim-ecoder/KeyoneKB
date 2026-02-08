@@ -198,8 +198,11 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 wordPredictor = new WordPredictor();
                 int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
                 wordPredictor.setEngineMode(engineMode);
-                wordPredictor.loadDictionary(getApplicationContext(), "en");
-                wordPredictor.preloadDictionary(getApplicationContext(), "ru");
+                wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
+                    public void run() {
+                        wordPredictor.preloadDictionary(getApplicationContext(), "ru");
+                    }
+                });
                 Log.i(TAG2, "onCreate: WordPredictor initialized (engine cached: " + wordPredictor.isEngineReady() + ")");
                 int predictionHeight = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
                 if (predictionHeight < 10) predictionHeight = 36;
