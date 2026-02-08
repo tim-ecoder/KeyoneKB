@@ -57,7 +57,8 @@
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
 
-        <LinearLayout style="@style/ItemPill">
+        <LinearLayout style="@style/ItemPill"
+            android:id="@+id/pill_sys_kb_setting">
             <Button
                 android:id="@+id/btn_sys_kb_setting"
                 style="@style/ItemPillText"
@@ -69,7 +70,8 @@
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
 
-        <LinearLayout style="@style/ItemPill">
+        <LinearLayout style="@style/ItemPill"
+            android:id="@+id/pill_sys_kb_accessibility_setting">
             <Button
                 android:id="@+id/btn_sys_kb_accessibility_setting"
                 style="@style/ItemPillText"
@@ -81,7 +83,8 @@
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
 
-        <LinearLayout style="@style/ItemPill">
+        <LinearLayout style="@style/ItemPill"
+            android:id="@+id/pill_sys_phone_permission">
             <Button
                 android:id="@+id/btn_sys_phone_permission"
                 style="@style/ItemPillText"
@@ -93,7 +96,8 @@
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
 
-        <LinearLayout style="@style/ItemPill">
+        <LinearLayout style="@style/ItemPill"
+            android:id="@+id/pill_power_manager">
             <Button
                 android:id="@+id/btn_power_manager"
                 style="@style/ItemPillText"
@@ -116,6 +120,49 @@
                 android:textColor="?attr/textPrimaryColor"
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
+        </LinearLayout>
+
+        <!-- Granted permissions collapsible group -->
+        <LinearLayout
+            android:id="@+id/granted_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Header pill (clickable to toggle) -->
+            <LinearLayout
+                android:id="@+id/granted_group_header"
+                style="@style/ItemPill"
+                android:background="@drawable/bg_granted_group_header">
+                <TextView
+                    android:id="@+id/granted_group_title"
+                    style="@style/ItemPillText"
+                    android:textColor="#999999"
+                    android:text="@string/main_granted_permissions" />
+                <TextView
+                    android:id="@+id/granted_group_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#999999"
+                    android:textSize="13sp"
+                    android:layout_marginEnd="6dp" />
+                <TextView
+                    android:id="@+id/granted_group_chevron"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#666666"
+                    android:textSize="14sp"
+                    android:text="\u25BC" />
+            </LinearLayout>
+
+            <!-- Container for granted pill items (hidden by default) -->
+            <LinearLayout
+                android:id="@+id/granted_group_items"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- ACTIONS section -->

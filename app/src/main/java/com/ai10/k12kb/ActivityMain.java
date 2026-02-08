@@ -11,6 +11,7 @@ import android.os.*;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -183,6 +184,7 @@ public class ActivityMain extends Activity {
         UpdateAccessibilityButton();
         ChangeKeyboard();
         applyPillBadges();
+        updateGrantedGroup();
         setupLanguageSpinner();
     }
 
@@ -215,9 +217,99 @@ public class ActivityMain extends Activity {
         PillBadgeHelper.applyToContainer(rootLayout);
     }
 
-    private void CheckFilePermissions() {
-        PermissionDebugLog.logFilePermissionCheck(this);
+    private boolean grantedGroupExpanded = false;
 
+    private void updateGrantedGroup() {
+        final LinearLayout grantedGroup = (LinearLayout) findViewById(R.id.granted_group);
+        final LinearLayout grantedItems = (LinearLayout) findViewById(R.id.granted_group_items);
+        final LinearLayout grantedHeader = (LinearLayout) findViewById(R.id.granted_group_header);
+        final TextView grantedCount = (TextView) findViewById(R.id.granted_group_count);
+        final TextView grantedChevron = (TextView) findViewById(R.id.granted_group_chevron);
+
+        // Return any previously moved pills back to their original positions
+        restoreGrantedPills(grantedItems);
+
+        // Collect pills that are disabled (granted/configured)
+        int[] pillIds = new int[] {
+            R.id.pill_sys_kb_setting,
+            R.id.pill_sys_kb_accessibility_setting,
+            R.id.pill_sys_phone_permission,
+            R.id.pill_power_manager,
+            R.id.pill_file_permissions
+        };
+
+        ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
+        final LinearLayout rootLayout = (LinearLayout) scrollView.getChildAt(0);
+
+        int grantedCount_ = 0;
+        for (int id : pillIds) {
+            LinearLayout pill = (LinearLayout) findViewById(id);
+            if (pill == null) continue;
+            // Check if the button inside is disabled (= granted/configured)
+            Button btn = findButtonInPill(pill);
+            if (btn != null && !btn.isEnabled()) {
+                // Store original index for restoring later
+                pill.setTag(R.id.pill_original_index, Integer.valueOf(rootLayout.indexOfChild(pill)));
+                rootLayout.removeView(pill);
+                // Dim the pill slightly for the granted group
+                pill.setAlpha(0.6f);
+                grantedItems.addView(pill);
+                grantedCount_++;
+            }
+        }
+
+        if (grantedCount_ > 0) {
+            grantedGroup.setVisibility(View.VISIBLE);
+            grantedCount.setText("(" + grantedCount_ + ")");
+
+            // Apply collapsed/expanded state
+            grantedItems.setVisibility(grantedGroupExpanded ? View.VISIBLE : View.GONE);
+            grantedChevron.setText(grantedGroupExpanded ? "\u25B2" : "\u25BC");
+
+            grantedHeader.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    grantedGroupExpanded = !grantedGroupExpanded;
+                    grantedItems.setVisibility(grantedGroupExpanded ? View.VISIBLE : View.GONE);
+                    grantedChevron.setText(grantedGroupExpanded ? "\u25B2" : "\u25BC");
+                }
+            });
+        } else {
+            grantedGroup.setVisibility(View.GONE);
+        }
+    }
+
+    private void restoreGrantedPills(LinearLayout grantedItems) {
+        ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
+        LinearLayout rootLayout = (LinearLayout) scrollView.getChildAt(0);
+
+        while (grantedItems.getChildCount() > 0) {
+            View pill = grantedItems.getChildAt(0);
+            grantedItems.removeViewAt(0);
+            pill.setAlpha(1.0f);
+            Object savedIndex = pill.getTag(R.id.pill_original_index);
+            if (savedIndex instanceof Integer) {
+                int idx = (Integer) savedIndex;
+                if (idx <= rootLayout.getChildCount()) {
+                    rootLayout.addView(pill, idx);
+                } else {
+                    rootLayout.addView(pill);
+                }
+            } else {
+                rootLayout.addView(pill);
+            }
+        }
+    }
+
+    private static Button findButtonInPill(LinearLayout pill) {
+        for (int i = 0; i < pill.getChildCount(); i++) {
+            View child = pill.getChildAt(i);
+            if (child instanceof Button) return (Button) child;
+        }
+        return null;
+    }
+
+    private void CheckFilePermissions() {
         boolean permGranted = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         // When permission is denied, File.exists() can't see files inside the folder.
         // Use directory existence as proxy: if K12Kb dir exists, JSONs may be there.
@@ -227,11 +319,6 @@ public class ActivityMain extends Activity {
         } else {
             anyJson = FileJsonUtils.PATH != null && new java.io.File(FileJsonUtils.PATH).exists();
         }
-
-        PermissionDebugLog.logPermissionCheck(this, "FILE_PERM",
-                "anyJson=" + anyJson + " permGranted=" + permGranted
-                + " path=" + FileJsonUtils.PATH
-                + " → branch=" + (!anyJson && !permGranted ? "NOT_NEEDED" : permGranted ? "GRANTED" : "NEED_GRANT"));
 
         if(!anyJson && !permGranted) {
             btn_file_permissions.setEnabled(false);
@@ -290,6 +377,7 @@ public class ActivityMain extends Activity {
         UpdateAccessibilityButton();
         ChangeKeyboard();
         applyPillBadges();
+        updateGrantedGroup();
     }
 
     public void Redraw() {
@@ -372,17 +460,11 @@ public class ActivityMain extends Activity {
 
     private void CheckCallPermissionState(boolean andRequest) {
         boolean manageCallEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_6_MANAGE_CALL);
-        PermissionDebugLog.logCallPermissionCheck(this, manageCallEnabled);
 
         if(manageCallEnabled) {
             boolean needCallPhone = ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED;
             boolean needAnswerCalls = ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED;
             boolean needReadPhone = ActivityCompat.checkSelfPermission(ActivityMain.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED;
-
-            PermissionDebugLog.logPermissionCheck(this, "CALL_PERM",
-                    "needCallPhone=" + needCallPhone + " needAnswerCalls=" + needAnswerCalls
-                    + " needReadPhone=" + needReadPhone + " andRequest=" + andRequest
-                    + " → " + (needCallPhone || needAnswerCalls || needReadPhone ? "ACTIVATE" : "DEACTIVATE"));
 
             if (needCallPhone || needAnswerCalls || needReadPhone) {
                 if (!andRequest) {

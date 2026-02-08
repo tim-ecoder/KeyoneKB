@@ -133,6 +133,7 @@
     <string name="pref_section_backup">BACKUP</string>
     <string name="pref_save_settings">Save settings to file</string>
     <string name="pref_load_settings">Load settings from file</string>
+    <string name="main_granted_permissions">Configured permissions</string>
     <string name="main_interface_language">Interface language</string>
     <string-array name="interface_language_array" translatable="false">
         <item>System</item>
