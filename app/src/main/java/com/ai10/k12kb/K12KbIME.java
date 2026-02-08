@@ -344,11 +344,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     public void onDestroy() {
         Instance = null;
         if (wordPredictor != null) {
-            // Don't shutdown static predictor — just disconnect listener
-            // so dictionaries stay loaded for next IME restart
-            wordPredictor.setListener(null);
+            wordPredictor.shutdown();  // hard-kills all loading threads via Thread.stop()
             wordPredictor = null;
         }
+        sharedPredictor = null;
         notificationProcessor.CancelAll();
         if (telephonyManager != null) {
             telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_NONE);

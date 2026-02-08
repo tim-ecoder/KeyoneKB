@@ -57,12 +57,18 @@ public class WordPredictor {
 
     /**
      * Stop all background loading threads. Call from onDestroy().
+     * Uses Thread.stop() for immediate hard kill — threads die instantly
+     * regardless of what they're doing (I/O, sleep, computation).
      */
+    @SuppressWarnings("deprecation")
     public void shutdown() {
         shuttingDown = true;
         synchronized (loadingThreads) {
             for (Thread t : loadingThreads) {
-                t.interrupt();
+                try {
+                    t.interrupt();
+                    t.stop();  // hard kill — deprecated but effective on Android 8.x
+                } catch (Throwable ignored) {}
             }
             loadingThreads.clear();
         }

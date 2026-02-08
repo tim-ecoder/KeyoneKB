@@ -106,8 +106,8 @@ public class WordDictionary {
                     try { freq = Integer.parseInt(line.substring(tab + 1)); }
                     catch (NumberFormatException e) { continue; }
                     addEntry(word, freq);
-                    if (++lineCount % 200 == 0) {
-                        try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+                    if (++lineCount % 500 == 0) {
+                        try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
                     }
                 }
             } else {
@@ -122,8 +122,8 @@ public class WordDictionary {
                     if (Thread.currentThread().isInterrupted()) break;
                     JSONObject obj = arr.getJSONObject(i);
                     addEntry(obj.getString("w"), obj.getInt("f"));
-                    if (i % 200 == 199) {
-                        try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+                    if (i % 500 == 499) {
+                        try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
                     }
                 }
             }
@@ -175,8 +175,8 @@ public class WordDictionary {
                 String word = in.readUTF();
                 int freq = in.readInt();
                 addEntry(word, freq);
-                if (i % 200 == 199) {
-                    try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); in.close(); return false; }
+                if (i % 500 == 499) {
+                    try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); in.close(); return false; }
                 }
             }
 
@@ -230,8 +230,8 @@ public class WordDictionary {
                     out.writeUTF(de.word);
                     out.writeInt(de.frequency);
                 }
-                if (++written % 200 == 0) {
-                    try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); out.close(); return; }
+                if (++written % 500 == 0) {
+                    try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); out.close(); return; }
                 }
             }
 
