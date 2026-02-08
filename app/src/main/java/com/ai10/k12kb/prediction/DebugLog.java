@@ -1,6 +1,7 @@
 package com.ai10.k12kb.prediction;
 
 import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -12,7 +13,7 @@ import java.util.Locale;
 
 /**
  * Debug logger that writes to a file for diagnosing dictionary loading issues.
- * File: /data/data/com.ai10.k12kb/files/debug_log.txt
+ * File: /sdcard/k12kb/debug_log.txt
  */
 public class DebugLog {
 
@@ -21,7 +22,9 @@ public class DebugLog {
     private static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
 
     public static void init(Context context) {
-        logFile = new File(context.getFilesDir(), "debug_log.txt");
+        File dir = new File(Environment.getExternalStorageDirectory(), "k12kb");
+        dir.mkdirs();
+        logFile = new File(dir, "debug_log.txt");
         w("=== DEBUG LOG STARTED === pid=" + android.os.Process.myPid()
                 + " tid=" + Thread.currentThread().getId());
     }
