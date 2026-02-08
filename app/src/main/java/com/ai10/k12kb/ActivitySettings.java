@@ -32,6 +32,11 @@ import yuku.ambilwarna.AmbilWarnaDialog;
 
 public class ActivitySettings extends Activity {
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
+
     public static final int REQUEST_PERMISSION_CODE = 101;
     private static final int REQUEST_STORAGE_PERMISSION_CODE = 102;
 

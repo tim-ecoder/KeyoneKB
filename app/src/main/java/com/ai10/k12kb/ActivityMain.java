@@ -12,9 +12,12 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import static com.ai10.k12kb.ActivitySettings.*;
@@ -39,6 +42,11 @@ public class ActivityMain extends Activity {
     TextView tv_version;
 
     Activity _this_act;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -175,6 +183,30 @@ public class ActivityMain extends Activity {
         UpdateAccessibilityButton();
         ChangeKeyboard();
         applyPillBadges();
+        setupLanguageSpinner();
+    }
+
+    private void setupLanguageSpinner() {
+        final Spinner spinnerLang = (Spinner) findViewById(R.id.spinner_interface_language);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this, R.array.interface_language_array, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerLang.setAdapter(adapter);
+
+        final int langFromPref = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_20_INTERFACE_LANG);
+        spinnerLang.setSelection(langFromPref);
+
+        spinnerLang.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position != langFromPref) {
+                    k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_20_INTERFACE_LANG, position);
+                    _this_act.recreate();
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
     }
 
     private void applyPillBadges() {

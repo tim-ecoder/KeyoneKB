@@ -15,11 +15,18 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import android.content.Context;
+
 import java.util.Map;
 
 import static com.ai10.k12kb.InputMethodServiceCoreKeyPress.TAG2;
 
 public class ActivityKeyboardTest extends Activity implements InputMethodServiceCoreKeyPress.IDebugUpdate {
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
 
     private TextView codeView;
     private TextView codeMetaView;

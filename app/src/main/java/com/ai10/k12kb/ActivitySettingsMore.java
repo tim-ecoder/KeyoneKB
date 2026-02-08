@@ -31,6 +31,12 @@ import static com.ai10.k12kb.KeyboardLayoutManager.Instance;
 import static com.ai10.k12kb.K12KbSettings.*;
 
 public class ActivitySettingsMore extends Activity {
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
+
     private K12KbSettings k12KbSettings;
 
     Button btSave;

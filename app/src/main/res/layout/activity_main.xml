@@ -24,6 +24,22 @@
                 android:text="K12KB Version: unversioned" />
         </LinearLayout>
 
+        <!-- Language switcher -->
+        <LinearLayout style="@style/ItemPillSpinner"
+            android:layout_marginTop="10dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textPrimaryColor"
+                android:textSize="15sp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/main_interface_language" />
+            <Spinner
+                android:id="@+id/spinner_interface_language"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <!-- SETUP section -->
         <TextView
             style="@style/SectionHeader"

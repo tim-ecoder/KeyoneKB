@@ -129,5 +129,6 @@
     <string name="pref_section_backup">РЕЗЕРВНОЕ КОПИРОВАНИЕ</string>
     <string name="pref_save_settings">Сохранить настройки в файл</string>
     <string name="pref_load_settings">Загрузить настройки из файла</string>
+    <string name="main_interface_language">Язык интерфейса</string>
 
 </resources>

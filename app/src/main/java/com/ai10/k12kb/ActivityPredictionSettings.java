@@ -24,6 +24,11 @@ import java.util.HashMap;
 
 public class ActivityPredictionSettings extends Activity {
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
+
     private K12KbSettings k12KbSettings;
     private TextView tvDictStatus;
     private TextView tvCacheStatus;
