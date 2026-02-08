@@ -12,4 +12,7 @@
     <attr name="sectionHeaderColor" format="color" />
     <attr name="chevronTextColor" format="color" />
     <attr name="hintBoxBgColor" format="color" />
+    <attr name="grantedHeaderBgColor" format="color" />
+    <attr name="grantedHeaderTextColor" format="color" />
+    <attr name="grantedHeaderChevronColor" format="color" />
 </resources>

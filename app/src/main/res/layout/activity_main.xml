@@ -138,20 +138,20 @@
                 <TextView
                     android:id="@+id/granted_group_title"
                     style="@style/ItemPillText"
-                    android:textColor="#999999"
+                    android:textColor="?attr/grantedHeaderTextColor"
                     android:text="@string/main_granted_permissions" />
                 <TextView
                     android:id="@+id/granted_group_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#999999"
+                    android:textColor="?attr/grantedHeaderTextColor"
                     android:textSize="13sp"
                     android:layout_marginEnd="6dp" />
                 <TextView
                     android:id="@+id/granted_group_chevron"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#666666"
+                    android:textColor="?attr/grantedHeaderChevronColor"
                     android:textSize="14sp"
                     android:text="\u25BC" />
             </LinearLayout>

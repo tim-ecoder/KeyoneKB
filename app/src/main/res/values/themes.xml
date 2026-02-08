@@ -14,6 +14,9 @@
         <item name="sectionHeaderColor">@color/sectionHeader</item>
         <item name="chevronTextColor">@color/chevronColor</item>
         <item name="hintBoxBgColor">@color/hintBoxBg</item>
+        <item name="grantedHeaderBgColor">@color/grantedHeaderBg</item>
+        <item name="grantedHeaderTextColor">@color/grantedHeaderText</item>
+        <item name="grantedHeaderChevronColor">@color/grantedHeaderChevron</item>
     </style>
 
     <style name="AppTheme.Light" parent="@android:style/Theme.Material.Light.NoActionBar">
@@ -31,5 +34,8 @@
         <item name="sectionHeaderColor">@color/sectionHeaderLight</item>
         <item name="chevronTextColor">@color/chevronColorLight</item>
         <item name="hintBoxBgColor">@color/hintBoxBgLight</item>
+        <item name="grantedHeaderBgColor">@color/grantedHeaderBgLight</item>
+        <item name="grantedHeaderTextColor">@color/grantedHeaderTextLight</item>
+        <item name="grantedHeaderChevronColor">@color/grantedHeaderChevronLight</item>
     </style>
 </resources>

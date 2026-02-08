@@ -21,6 +21,9 @@
     <color name="chevronColor">#555555</color>
     <color name="hintBoxBg">#1F4CAF50</color>
     <color name="switchOff">#444444</color>
+    <color name="grantedHeaderBg">#252525</color>
+    <color name="grantedHeaderText">#999999</color>
+    <color name="grantedHeaderChevron">#666666</color>
 
     <!-- Light Pills UI palette -->
     <color name="colorBackgroundLight">#F2F2F7</color>
@@ -30,6 +33,9 @@
     <color name="sectionHeaderLight">#8E8E93</color>
     <color name="chevronColorLight">#C7C7CC</color>
     <color name="hintBoxBgLight">#1A4CAF50</color>
+    <color name="grantedHeaderBgLight">#E5E5EA</color>
+    <color name="grantedHeaderTextLight">#8E8E93</color>
+    <color name="grantedHeaderChevronLight">#AEAEB2</color>
 
     <color name="candidate_normal">#FF000000</color>
     <color name="candidate_recommended">#000000</color>
