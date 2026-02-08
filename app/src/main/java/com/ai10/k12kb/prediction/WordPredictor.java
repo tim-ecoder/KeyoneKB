@@ -64,10 +64,6 @@ public class WordPredictor {
      * static sharedEngine which survives across IME restarts.
      */
     public void shutdown() {
-        synchronized (loadingThreads) {
-            DebugLog.w("WordPredictor.shutdown() threads=" + loadingThreads.size()
-                    + " loadingLocales=" + loadingLocales + " sharedEngine=" + sharedEngine);
-        }
         engine = null;
         listener = null;
     }
@@ -102,14 +98,11 @@ public class WordPredictor {
     public void setEngineMode(int mode) {
         if (mode < ENGINE_SYMSPELL || mode > ENGINE_NGRAM) mode = ENGINE_SYMSPELL;
         this.engineMode = mode;
-        DebugLog.w("setEngineMode(" + mode + ") engine=" + engine + " sharedEngine=" + sharedEngine + " sharedMode=" + sharedEngineMode);
         if (engine == null && sharedEngine != null && sharedEngineMode == mode) {
             engine = sharedEngine;
-            DebugLog.w("setEngineMode: restored engine from sharedEngine, ready=" + engine.isReady());
         }
         if (engine != null) return;
         if (appContext != null && !currentLocale.isEmpty()) {
-            DebugLog.w("setEngineMode: recreating engine for " + currentLocale);
             createAndLoadEngine(appContext, currentLocale);
         }
     }
@@ -138,19 +131,16 @@ public class WordPredictor {
      * Load dictionary with a completion callback that runs after loading finishes.
      */
     public void loadDictionary(final Context context, final String locale, final Runnable onComplete) {
-        DebugLog.w("loadDictionary(" + locale + ") engine=" + engine + " sharedEngine=" + sharedEngine);
         this.appContext = context;
         this.currentLocale = locale;
 
         // Restore engine from static cache if available and mode matches
         if (engine == null && sharedEngine != null && sharedEngineMode == engineMode) {
             engine = sharedEngine;
-            DebugLog.w("loadDictionary: restored engine from sharedEngine, ready=" + engine.isReady() + " locale=" + engine.getLoadedLocale());
         }
 
         // Check if engine already loaded for this locale
         if (engine != null && engine.isReady() && locale.equals(engine.getLoadedLocale())) {
-            DebugLog.w("loadDictionary: engine already ready for " + locale + ", skipping");
             if (onComplete != null) onComplete.run();
             return;
         }
@@ -158,19 +148,16 @@ public class WordPredictor {
         // Skip if this locale is already being loaded by a background thread
         synchronized (loadingLocales) {
             if (loadingLocales.contains(locale)) {
-                DebugLog.w("loadDictionary: " + locale + " already loading, skipping");
                 return;
             }
         }
 
         // Reuse existing engine if possible — keeps cached dictionaries
         if (engine != null) {
-            DebugLog.w("loadDictionary: reusing engine, spawning load thread for " + locale);
             spawnLoadThread(context, locale, engine, onComplete);
             return;
         }
 
-        DebugLog.w("loadDictionary: no engine, calling createAndLoadEngine(" + locale + ")");
         createAndLoadEngine(context, locale, onComplete);
     }
 
@@ -182,12 +169,9 @@ public class WordPredictor {
         synchronized (loadingLocales) { loadingLocales.add(locale); }
         final Thread t = new Thread(new Runnable() {
             public void run() {
-                DebugLog.w("THREAD-LOAD[" + locale + "] started");
                 try {
                     targetEngine.loadDictionary(context, locale);
-                    DebugLog.w("THREAD-LOAD[" + locale + "] done, ready=" + targetEngine.isReady());
                     if (onComplete != null) {
-                        DebugLog.w("THREAD-LOAD[" + locale + "] calling onComplete");
                         onComplete.run();
                     }
                 } finally {
@@ -206,18 +190,15 @@ public class WordPredictor {
      * The dictionary stays in the engine's cache for fast switching later.
      */
     public void preloadDictionary(final Context context, final String locale) {
-        DebugLog.w("preloadDictionary(" + locale + ") engine=" + engine + " sharedEngine=" + sharedEngine);
         // Restore engine from static cache if needed
         if (engine == null && sharedEngine != null && sharedEngineMode == engineMode) {
             engine = sharedEngine;
-            DebugLog.w("preloadDictionary: restored engine from sharedEngine");
         }
-        if (engine == null) { DebugLog.w("preloadDictionary: ABORTED (no engine)"); return; }
+        if (engine == null) return;
 
         // Skip if this locale is already being loaded
         synchronized (loadingLocales) {
             if (loadingLocales.contains(locale)) {
-                DebugLog.w("preloadDictionary: " + locale + " already loading, skipping");
                 return;
             }
             loadingLocales.add(locale);
@@ -225,10 +206,8 @@ public class WordPredictor {
         final PredictionEngine existingEngine = engine;
         final Thread t = new Thread(new Runnable() {
             public void run() {
-                DebugLog.w("THREAD-PRELOAD[" + locale + "] started");
                 try {
                     existingEngine.preloadDictionary(context, locale);
-                    DebugLog.w("THREAD-PRELOAD[" + locale + "] done");
                 } finally {
                     synchronized (loadingLocales) { loadingLocales.remove(locale); }
                     synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
@@ -245,7 +224,6 @@ public class WordPredictor {
     }
 
     private void createAndLoadEngine(final Context context, final String locale, final Runnable onComplete) {
-        DebugLog.w("createAndLoadEngine(" + locale + ") engineMode=" + engineMode);
         final PredictionEngine newEngine;
         switch (engineMode) {
             case ENGINE_NGRAM:
@@ -258,7 +236,6 @@ public class WordPredictor {
         engine = newEngine;
         sharedEngine = newEngine;
         sharedEngineMode = engineMode;
-        DebugLog.w("createAndLoadEngine: created " + newEngine.getClass().getSimpleName() + ", spawning load thread");
 
         // Use spawnLoadThread which tracks loadingLocales
         spawnLoadThread(context, locale, newEngine, onComplete);
