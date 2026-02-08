@@ -86,6 +86,10 @@ public class WordPredictor {
         return enabled;
     }
 
+    public boolean isShutDown() {
+        return shuttingDown;
+    }
+
     public boolean isEngineReady() {
         return engine != null && engine.isReady();
     }

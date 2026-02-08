@@ -48,7 +48,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     public static K12KbIME Instance;
 
-
+    // Static predictor survives IME restarts — avoids reloading dictionaries
+    private static WordPredictor sharedPredictor;
 
     public String TITLE_NAV_TEXT;
     public String TITLE_NAV_FV_TEXT;
@@ -195,15 +196,24 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             Log.i(TAG2, "onCreate STEP: " + STEP);
             boolean predictionEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_17_PREDICTION_ENABLED);
             if (predictionEnabled) {
-                wordPredictor = new WordPredictor();
-                int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
-                wordPredictor.setEngineMode(engineMode);
-                // Load default dictionary, then preload others sequentially (not concurrent)
-                wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
-                    public void run() {
-                        wordPredictor.preloadDictionary(getApplicationContext(), "ru");
-                    }
-                });
+                // Reuse existing predictor if dictionaries already loaded/loading
+                if (sharedPredictor != null && !sharedPredictor.isShutDown()) {
+                    wordPredictor = sharedPredictor;
+                    Log.i(TAG2, "onCreate: reusing existing WordPredictor");
+                } else {
+                    if (sharedPredictor != null) sharedPredictor.shutdown();
+                    wordPredictor = new WordPredictor();
+                    sharedPredictor = wordPredictor;
+                    int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
+                    wordPredictor.setEngineMode(engineMode);
+                    // Load default dictionary, then preload others sequentially (not concurrent)
+                    wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
+                        public void run() {
+                            wordPredictor.preloadDictionary(getApplicationContext(), "ru");
+                        }
+                    });
+                    Log.i(TAG2, "onCreate: created new WordPredictor, loading dictionaries");
+                }
                 int predictionHeight = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
                 if (predictionHeight < 10) predictionHeight = 36;
                 predictionSlotCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT);
@@ -334,7 +344,9 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     public void onDestroy() {
         Instance = null;
         if (wordPredictor != null) {
-            wordPredictor.shutdown();
+            // Don't shutdown static predictor — just disconnect listener
+            // so dictionaries stay loaded for next IME restart
+            wordPredictor.setListener(null);
             wordPredictor = null;
         }
         notificationProcessor.CancelAll();
