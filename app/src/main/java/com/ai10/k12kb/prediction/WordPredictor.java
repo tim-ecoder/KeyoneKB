@@ -3,11 +3,9 @@ package com.ai10.k12kb.prediction;
 import android.content.Context;
 import android.util.Log;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -39,9 +37,12 @@ public class WordPredictor {
         void onSuggestionsUpdated(List<Suggestion> suggestions);
     }
 
-    // Static engine survives across WordPredictor instances — dictionaries stay in memory
+    // Static — survives across WordPredictor instances (IME restarts)
     private static PredictionEngine sharedEngine;
     private static int sharedEngineMode = -1;
+    // Static thread tracking — loading threads keep running across IME restarts
+    private static final List<Thread> loadingThreads = new ArrayList<>();
+    private static final HashSet<String> loadingLocales = new HashSet<>();
 
     private PredictionEngine engine;
     private int engineMode = ENGINE_SYMSPELL;
@@ -53,35 +54,20 @@ public class WordPredictor {
     private boolean enabled = true;
     private Context appContext;
     private String currentLocale = "";
-    private final List<Thread> loadingThreads = new ArrayList<>();
-    private volatile boolean shuttingDown = false;
 
     public WordPredictor() {
     }
 
     /**
-     * Stop all background loading threads. Call from onDestroy().
-     * Uses Thread.stop() for immediate hard kill — threads die instantly
-     * regardless of what they're doing (I/O, sleep, computation).
+     * Release instance references. Call from onDestroy().
+     * Loading threads keep running in background — they write into
+     * static sharedEngine which survives across IME restarts.
      */
-    @SuppressWarnings("deprecation")
     public void shutdown() {
-        DebugLog.w("WordPredictor.shutdown() shuttingDown=true");
-        shuttingDown = true;
         synchronized (loadingThreads) {
-            DebugLog.w("shutdown: killing " + loadingThreads.size() + " threads");
-            for (Thread t : loadingThreads) {
-                try {
-                    DebugLog.w("shutdown: interrupt+stop thread " + t.getName() + " alive=" + t.isAlive());
-                    t.interrupt();
-                    t.stop();
-                } catch (Throwable e) {
-                    DebugLog.w("shutdown: thread kill error: " + e);
-                }
-            }
-            loadingThreads.clear();
+            DebugLog.w("WordPredictor.shutdown() threads=" + loadingThreads.size()
+                    + " loadingLocales=" + loadingLocales + " sharedEngine=" + sharedEngine);
         }
-        DebugLog.w("shutdown: engine=" + engine + " sharedEngine=" + sharedEngine);
         engine = null;
         listener = null;
     }
@@ -100,10 +86,6 @@ public class WordPredictor {
 
     public boolean isEnabled() {
         return enabled;
-    }
-
-    public boolean isShutDown() {
-        return shuttingDown;
     }
 
     public boolean isEngineReady() {
@@ -156,8 +138,7 @@ public class WordPredictor {
      * Load dictionary with a completion callback that runs after loading finishes.
      */
     public void loadDictionary(final Context context, final String locale, final Runnable onComplete) {
-        DebugLog.w("loadDictionary(" + locale + ") shuttingDown=" + shuttingDown + " engine=" + engine + " sharedEngine=" + sharedEngine);
-        if (shuttingDown) { DebugLog.w("loadDictionary: ABORTED (shuttingDown)"); return; }
+        DebugLog.w("loadDictionary(" + locale + ") engine=" + engine + " sharedEngine=" + sharedEngine);
         this.appContext = context;
         this.currentLocale = locale;
 
@@ -174,31 +155,18 @@ public class WordPredictor {
             return;
         }
 
+        // Skip if this locale is already being loaded by a background thread
+        synchronized (loadingLocales) {
+            if (loadingLocales.contains(locale)) {
+                DebugLog.w("loadDictionary: " + locale + " already loading, skipping");
+                return;
+            }
+        }
+
         // Reuse existing engine if possible — keeps cached dictionaries
         if (engine != null) {
             DebugLog.w("loadDictionary: reusing engine, spawning load thread for " + locale);
-            final PredictionEngine existingEngine = engine;
-            final Thread t = new Thread(new Runnable() {
-                public void run() {
-                    DebugLog.w("THREAD-LOAD-REUSE[" + locale + "] started");
-                    try {
-                        existingEngine.loadDictionary(context, locale);
-                        DebugLog.w("THREAD-LOAD-REUSE[" + locale + "] done, ready=" + existingEngine.isReady() + " shuttingDown=" + shuttingDown);
-                        if (shuttingDown) return;
-                        if (existingEngine.isReady()) {
-                            if (currentWord.length() > 0 || previousWord.length() > 0) {
-                                updateSuggestions();
-                            }
-                        }
-                        if (!shuttingDown && onComplete != null) onComplete.run();
-                    } finally {
-                        synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
-                    }
-                }
-            });
-            t.setPriority(Thread.MIN_PRIORITY);
-            synchronized (loadingThreads) { loadingThreads.add(t); }
-            t.start();
+            spawnLoadThread(context, locale, engine, onComplete);
             return;
         }
 
@@ -207,26 +175,62 @@ public class WordPredictor {
     }
 
     /**
+     * Spawn a thread to load a locale into an existing engine.
+     */
+    private void spawnLoadThread(final Context context, final String locale,
+                                  final PredictionEngine targetEngine, final Runnable onComplete) {
+        synchronized (loadingLocales) { loadingLocales.add(locale); }
+        final Thread t = new Thread(new Runnable() {
+            public void run() {
+                DebugLog.w("THREAD-LOAD[" + locale + "] started");
+                try {
+                    targetEngine.loadDictionary(context, locale);
+                    DebugLog.w("THREAD-LOAD[" + locale + "] done, ready=" + targetEngine.isReady());
+                    if (onComplete != null) {
+                        DebugLog.w("THREAD-LOAD[" + locale + "] calling onComplete");
+                        onComplete.run();
+                    }
+                } finally {
+                    synchronized (loadingLocales) { loadingLocales.remove(locale); }
+                    synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
+                }
+            }
+        });
+        t.setPriority(Thread.MIN_PRIORITY);
+        synchronized (loadingThreads) { loadingThreads.add(t); }
+        t.start();
+    }
+
+    /**
      * Preload a dictionary for a locale without switching to it.
      * The dictionary stays in the engine's cache for fast switching later.
      */
     public void preloadDictionary(final Context context, final String locale) {
-        DebugLog.w("preloadDictionary(" + locale + ") shuttingDown=" + shuttingDown + " engine=" + engine + " sharedEngine=" + sharedEngine);
-        if (shuttingDown) { DebugLog.w("preloadDictionary: ABORTED (shuttingDown)"); return; }
+        DebugLog.w("preloadDictionary(" + locale + ") engine=" + engine + " sharedEngine=" + sharedEngine);
         // Restore engine from static cache if needed
         if (engine == null && sharedEngine != null && sharedEngineMode == engineMode) {
             engine = sharedEngine;
             DebugLog.w("preloadDictionary: restored engine from sharedEngine");
         }
         if (engine == null) { DebugLog.w("preloadDictionary: ABORTED (no engine)"); return; }
+
+        // Skip if this locale is already being loaded
+        synchronized (loadingLocales) {
+            if (loadingLocales.contains(locale)) {
+                DebugLog.w("preloadDictionary: " + locale + " already loading, skipping");
+                return;
+            }
+            loadingLocales.add(locale);
+        }
         final PredictionEngine existingEngine = engine;
         final Thread t = new Thread(new Runnable() {
             public void run() {
                 DebugLog.w("THREAD-PRELOAD[" + locale + "] started");
                 try {
                     existingEngine.preloadDictionary(context, locale);
-                    DebugLog.w("THREAD-PRELOAD[" + locale + "] done, shuttingDown=" + shuttingDown);
+                    DebugLog.w("THREAD-PRELOAD[" + locale + "] done");
                 } finally {
+                    synchronized (loadingLocales) { loadingLocales.remove(locale); }
                     synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
                 }
             }
@@ -241,8 +245,7 @@ public class WordPredictor {
     }
 
     private void createAndLoadEngine(final Context context, final String locale, final Runnable onComplete) {
-        DebugLog.w("createAndLoadEngine(" + locale + ") shuttingDown=" + shuttingDown + " engineMode=" + engineMode);
-        if (shuttingDown) { DebugLog.w("createAndLoadEngine: ABORTED (shuttingDown)"); return; }
+        DebugLog.w("createAndLoadEngine(" + locale + ") engineMode=" + engineMode);
         final PredictionEngine newEngine;
         switch (engineMode) {
             case ENGINE_NGRAM:
@@ -257,30 +260,8 @@ public class WordPredictor {
         sharedEngineMode = engineMode;
         DebugLog.w("createAndLoadEngine: created " + newEngine.getClass().getSimpleName() + ", spawning load thread");
 
-        final Thread t = new Thread(new Runnable() {
-            public void run() {
-                DebugLog.w("THREAD-CREATE[" + locale + "] started");
-                try {
-                    newEngine.loadDictionary(context, locale);
-                    DebugLog.w("THREAD-CREATE[" + locale + "] loadDictionary done, ready=" + newEngine.isReady() + " shuttingDown=" + shuttingDown);
-                    if (shuttingDown) return;
-                    if (newEngine.isReady()) {
-                        if (currentWord.length() > 0 || previousWord.length() > 0) {
-                            updateSuggestions();
-                        }
-                    }
-                    if (!shuttingDown && onComplete != null) {
-                        DebugLog.w("THREAD-CREATE[" + locale + "] calling onComplete");
-                        onComplete.run();
-                    }
-                } finally {
-                    synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
-                }
-            }
-        });
-        t.setPriority(Thread.MIN_PRIORITY);
-        synchronized (loadingThreads) { loadingThreads.add(t); }
-        t.start();
+        // Use spawnLoadThread which tracks loadingLocales
+        spawnLoadThread(context, locale, newEngine, onComplete);
     }
 
     /**

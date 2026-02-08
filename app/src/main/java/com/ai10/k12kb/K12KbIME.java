@@ -203,12 +203,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 com.ai10.k12kb.prediction.DebugLog.w("setEngineMode(" + engineMode + ")");
                 wordPredictor.setEngineMode(engineMode);
                 com.ai10.k12kb.prediction.DebugLog.w("calling loadDictionary(en) + preload(ru)");
-                wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
-                    public void run() {
-                        com.ai10.k12kb.prediction.DebugLog.w("onComplete(en): calling preloadDictionary(ru)");
-                        wordPredictor.preloadDictionary(getApplicationContext(), "ru");
-                    }
-                });
+                wordPredictor.loadDictionary(getApplicationContext(), "en");
+                wordPredictor.preloadDictionary(getApplicationContext(), "ru");
                 com.ai10.k12kb.prediction.DebugLog.w("onCreate: engineReady=" + wordPredictor.isEngineReady());
                 Log.i(TAG2, "onCreate: WordPredictor initialized (engine cached: " + wordPredictor.isEngineReady() + ")");
                 int predictionHeight = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);

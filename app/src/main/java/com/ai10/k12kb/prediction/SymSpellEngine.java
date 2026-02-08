@@ -78,9 +78,16 @@ public class SymSpellEngine implements PredictionEngine {
             return;
         }
         WordDictionary cached = dictCache.get(locale);
-        if (cached != null && cached.isReady()) {
-            DebugLog.w("SymSpellEngine.loadDictionary: found in dictCache, ready=true");
+        if (cached != null) {
             dictionary = cached;
+            if (cached.isReady()) {
+                DebugLog.w("SymSpellEngine.loadDictionary: found in dictCache, ready=true");
+                return;
+            }
+            // Dictionary exists but still loading — don't create new, just load into it
+            DebugLog.w("SymSpellEngine.loadDictionary: found in dictCache but not ready, loading into existing");
+            cached.load(context, locale);
+            DebugLog.w("SymSpellEngine.loadDictionary: done, ready=" + cached.isReady());
             return;
         }
         DebugLog.w("SymSpellEngine.loadDictionary: creating new WordDictionary for " + locale);
@@ -96,7 +103,14 @@ public class SymSpellEngine implements PredictionEngine {
         DebugLog.w("SymSpellEngine.preloadDictionary(" + locale + ") dictCache.keys=" + dictCache.keySet());
         WordDictionary cached = dictCache.get(locale);
         if (cached != null) {
-            DebugLog.w("SymSpellEngine.preloadDictionary: already in cache, ready=" + cached.isReady());
+            if (cached.isReady()) {
+                DebugLog.w("SymSpellEngine.preloadDictionary: already in cache, ready=true");
+                return;
+            }
+            // Not ready — load into existing dictionary
+            DebugLog.w("SymSpellEngine.preloadDictionary: found but not ready, loading into existing");
+            cached.load(context, locale);
+            DebugLog.w("SymSpellEngine.preloadDictionary: done, ready=" + cached.isReady());
             return;
         }
         DebugLog.w("SymSpellEngine.preloadDictionary: creating new WordDictionary for " + locale);
