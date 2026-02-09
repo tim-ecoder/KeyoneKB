@@ -73,7 +73,7 @@ public class ActivityMain extends Activity {
         btn_keyboard_reload = (Button) findViewById(R.id.btn_keyboard_reload);
         Button btn_accessibility_reload = (Button) findViewById(R.id.btn_accessibility_reload);
 
-        String text = String.format("\nDevice: %s\nApp: %s\nVersion: %s\nBuild type: %s", getDeviceFullMODEL(), APPLICATION_ID, VERSION_NAME, BUILD_TYPE);
+        String text = String.format("App: %s\nVersion: %s\nBuild type: %s\nDevice: %s", APPLICATION_ID, VERSION_NAME, BUILD_TYPE, getDeviceFullMODEL());
         tv_version.setText(text);
 
         btn_settings.setOnClickListener(new View.OnClickListener() {
