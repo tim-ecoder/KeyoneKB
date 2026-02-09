@@ -9,8 +9,8 @@
     <string name="main_btn_test_keyboard">Проверка работы</string>
     <string name="main_btn_sys_kb_accessibility_setting_enabled">C. Активировать спец. возможности</string>
     <string name="main_btn_sys_kb_accessibility_setting_disabled">Cпец. возможности активированы</string>
-    <string name="main_btn_keyboard_reload">Передернуть клавиатуру</string>
-    <string name="main_btn_accessibility_reload">Передернуть спец. сервис</string>
+    <string name="main_btn_keyboard_reload">Перезагрузить клавиатуру</string>
+    <string name="main_btn_accessibility_reload">Перезагрузить спец. сервис</string>
     <string name="main_btn_more_settings">Расширенные настройки</string>
     <string name="main_manual_text">ИНСТРУКЦИЯ</string>
     <string name="pref_p_1_name">1. Чувствительность сенсора клавиатуры и свайпов:</string>
@@ -108,7 +108,7 @@
         <item>SymSpell (нечёткий поиск)</item>
         <item>N-gram (предсказание следующего слова)</item>
     </string-array>
-    <string name="main_btn_prediction_settings">Подсказки</string>
+    <string name="main_btn_prediction_settings">Предективный ввод</string>
     <string name="pred_section_settings">НАСТРОЙКИ</string>
     <string name="pred_section_status">СТАТУС СЛОВАРЕЙ</string>
     <string name="pred_section_cache">КЕШ</string>

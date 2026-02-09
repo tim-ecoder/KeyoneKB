@@ -20,7 +20,7 @@
     <string name="main_btn_accessibility_reload">Reload accessibility service</string>
     <string name="main_btn_more_settings">Advanced Settings</string>
     <string name="main_manual_text">MANUAL</string>
-    <string name="main_manual_link" translatable="false">https://github.com/tim-ecoder/K12KB/wiki</string>
+    <string name="main_manual_link" translatable="false">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
     <string name="keyboard_test_input_hint" translatable="false">For keyboard test in TEXT_INPUT_MODE click here</string>
     <string name="keyboard_test_view_test" translatable="false">For keyboard test in VIEW_MODE click here</string>
     <string name="keyboard_test_view_test_active" translatable="false">Keyboard test in VIEW_MODE activated</string>
