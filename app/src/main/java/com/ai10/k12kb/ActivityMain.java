@@ -242,19 +242,19 @@ public class ActivityMain extends Activity {
         final LinearLayout rootLayout = (LinearLayout) scrollView.getChildAt(0);
 
         int grantedCount_ = 0;
+        int visiblePermCount = 0;
         for (int id : pillIds) {
             LinearLayout pill = (LinearLayout) findViewById(id);
             if (pill == null) continue;
-            // Check if the button inside is disabled (= granted/configured)
             Button btn = findButtonInPill(pill);
             if (btn != null && !btn.isEnabled()) {
-                // Store original index for restoring later
                 pill.setTag(R.id.pill_original_index, Integer.valueOf(rootLayout.indexOfChild(pill)));
                 rootLayout.removeView(pill);
-                // Dim the pill slightly for the granted group
                 pill.setAlpha(0.6f);
                 grantedItems.addView(pill);
                 grantedCount_++;
+            } else {
+                visiblePermCount++;
             }
         }
 
@@ -262,7 +262,6 @@ public class ActivityMain extends Activity {
             grantedGroup.setVisibility(View.VISIBLE);
             grantedCount.setText("(" + grantedCount_ + ")");
 
-            // Apply collapsed/expanded state
             grantedItems.setVisibility(grantedGroupExpanded ? View.VISIBLE : View.GONE);
             grantedChevron.setText(grantedGroupExpanded ? "\u25B2" : "\u25BC");
 
@@ -276,6 +275,45 @@ public class ActivityMain extends Activity {
             });
         } else {
             grantedGroup.setVisibility(View.GONE);
+        }
+
+        // Dynamic layout positioning based on whether permission buttons are visible
+        repositionDynamicElements(rootLayout, visiblePermCount > 0);
+    }
+
+    private void repositionDynamicElements(LinearLayout rootLayout, boolean hasVisiblePermissions) {
+        View hintBox = findViewById(R.id.tv_initial_hint);
+        View pillSuggestions = findViewById(R.id.pill_prediction_settings);
+        View pillAdvSettings = findViewById(R.id.pill_more_settings);
+        View sectionSetup = findViewById(R.id.section_setup);
+        View sectionActions = findViewById(R.id.section_actions);
+        View grantedGroup = findViewById(R.id.granted_group);
+        View langSwitcher = findViewById(R.id.pill_language_switcher);
+
+        // Remove dynamic elements from current positions
+        rootLayout.removeView(hintBox);
+        rootLayout.removeView(pillSuggestions);
+        rootLayout.removeView(pillAdvSettings);
+
+        if (hasVisiblePermissions) {
+            // Green hint at top: right before SETUP section header
+            int setupIdx = rootLayout.indexOfChild(sectionSetup);
+            rootLayout.addView(hintBox, setupIdx);
+
+            // Suggestions + Advanced Settings after last visible permission button
+            // (which is right before ACTIONS section header)
+            int actionsIdx = rootLayout.indexOfChild(sectionActions);
+            rootLayout.addView(pillSuggestions, actionsIdx);
+            rootLayout.addView(pillAdvSettings, actionsIdx + 1);
+        } else {
+            // Green hint at bottom: right before language switcher
+            int langIdx = rootLayout.indexOfChild(langSwitcher);
+            rootLayout.addView(hintBox, langIdx);
+
+            // Suggestions + Advanced Settings right after SETUP section + Settings button
+            int setupIdx = rootLayout.indexOfChild(sectionSetup);
+            rootLayout.addView(pillSuggestions, setupIdx + 2); // +1 for section, +1 for Settings btn
+            rootLayout.addView(pillAdvSettings, setupIdx + 3);
         }
     }
 
