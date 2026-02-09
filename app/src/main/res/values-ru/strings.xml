@@ -129,6 +129,14 @@
     <string name="pred_clear_cache_confirm">Удалить кеш словарей? Они будут перестроены при следующей загрузке.</string>
     <string name="pred_cache_cleared">Кеш словарей очищен</string>
     <string name="pred_cache_missing">нет кеша</string>
+    <string name="pref_word_learning">Обучение на вводимых текстах</string>
+    <string name="pref_word_learning_hint">Клавиатура запоминает набираемые слова и использует их в подсказках</string>
+    <string name="pred_section_learned">ОБУЧЕННЫЕ СЛОВА</string>
+    <string name="pred_learned_words_count">Слов выучено: %d</string>
+    <string name="pred_learned_file_path">Файл: %s</string>
+    <string name="pred_btn_clear_learned">Очистить обученные слова</string>
+    <string name="pred_clear_learned_confirm">Удалить все обученные слова?</string>
+    <string name="pred_learned_cleared">Обученные слова очищены</string>
     <string name="pref_section_backup">РЕЗЕРВНОЕ КОПИРОВАНИЕ</string>
     <string name="pref_save_settings">Сохранить настройки в файл</string>
     <string name="pref_load_settings">Загрузить настройки из файла</string>

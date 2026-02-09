@@ -134,6 +134,14 @@
     <string name="pred_clear_cache_confirm">Delete cached dictionaries? They will be rebuilt on next load.</string>
     <string name="pred_cache_cleared">Dictionary cache cleared</string>
     <string name="pred_cache_missing">no cache</string>
+    <string name="pref_word_learning">Learn words from typing</string>
+    <string name="pref_word_learning_hint">Keyboard learns words you type and uses them in suggestions</string>
+    <string name="pred_section_learned">LEARNED WORDS</string>
+    <string name="pred_learned_words_count">Words learned: %d</string>
+    <string name="pred_learned_file_path">File: %s</string>
+    <string name="pred_btn_clear_learned">Clear learned words</string>
+    <string name="pred_clear_learned_confirm">Delete all learned words?</string>
+    <string name="pred_learned_cleared">Learned words cleared</string>
     <string name="pref_section_backup">BACKUP</string>
     <string name="pref_save_settings">Save settings to file</string>
     <string name="pref_load_settings">Load settings from file</string>

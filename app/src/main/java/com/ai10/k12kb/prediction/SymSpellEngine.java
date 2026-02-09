@@ -17,6 +17,7 @@ public class SymSpellEngine implements PredictionEngine {
 
     private WordDictionary dictionary;
     private final HashMap<String, WordDictionary> dictCache = new HashMap<>();
+    private LearnedDictionary learnedDict;
 
     @Override
     public List<WordPredictor.Suggestion> suggest(String input, String previousWord, int limit) {
@@ -69,6 +70,10 @@ public class SymSpellEngine implements PredictionEngine {
         return top;
     }
 
+    public void setLearnedDictionary(LearnedDictionary learned) {
+        this.learnedDict = learned;
+    }
+
     @Override
     public void loadDictionary(Context context, String locale) {
         if (dictionary != null && dictionary.isReady() && locale.equals(dictionary.getLoadedLocale())) {
@@ -79,10 +84,12 @@ public class SymSpellEngine implements PredictionEngine {
             dictionary = cached;
             if (cached.isReady()) {
                 cached.loadUserWords(context);
+                cached.loadLearnedWords(learnedDict);
                 return;
             }
             cached.load(context, locale);
             cached.loadUserWords(context);
+            cached.loadLearnedWords(learnedDict);
             return;
         }
         final WordDictionary newDict = new WordDictionary();
@@ -90,6 +97,7 @@ public class SymSpellEngine implements PredictionEngine {
         dictionary = newDict;
         newDict.load(context, locale);
         newDict.loadUserWords(context);
+        newDict.loadLearnedWords(learnedDict);
     }
 
     @Override

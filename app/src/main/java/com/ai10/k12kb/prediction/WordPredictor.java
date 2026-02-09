@@ -43,6 +43,8 @@ public class WordPredictor {
     // Static thread tracking — loading threads keep running across IME restarts
     private static final List<Thread> loadingThreads = new ArrayList<>();
     private static final HashSet<String> loadingLocales = new HashSet<>();
+    // Static learned dictionary — persists across IME restarts
+    private static LearnedDictionary sharedLearnedDict;
 
     private PredictionEngine engine;
     private int engineMode = ENGINE_SYMSPELL;
@@ -52,8 +54,11 @@ public class WordPredictor {
     private int suggestLimit = 4;
     private List<Suggestion> latestSuggestions = Collections.emptyList();
     private boolean enabled = true;
+    private boolean learningEnabled = true;
     private Context appContext;
     private String currentLocale = "";
+    private int unsavedLearnCount = 0;
+    private static final int SAVE_INTERVAL = 10; // save every N learned words
 
     public WordPredictor() {
     }
@@ -62,8 +67,10 @@ public class WordPredictor {
      * Release instance references. Call from onDestroy().
      * Loading threads keep running in background — they write into
      * static sharedEngine which survives across IME restarts.
+     * Saves learned words before shutting down.
      */
     public void shutdown() {
+        saveLearnedWords();
         engine = null;
         listener = null;
     }
@@ -82,6 +89,74 @@ public class WordPredictor {
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public void setLearningEnabled(boolean enabled) {
+        this.learningEnabled = enabled;
+    }
+
+    public boolean isLearningEnabled() {
+        return learningEnabled;
+    }
+
+    /**
+     * Initialize the learned dictionary. Call once from IME onCreate.
+     * Loads persisted learned words from file.
+     */
+    public void initLearnedDictionary(Context context) {
+        this.appContext = context;
+        if (sharedLearnedDict == null) {
+            sharedLearnedDict = new LearnedDictionary();
+            sharedLearnedDict.load(context);
+            Log.d(TAG, "Loaded learned dictionary: " + sharedLearnedDict.size() + " words");
+        }
+    }
+
+    /**
+     * Get the learned dictionary (for status display in settings).
+     */
+    public static LearnedDictionary getLearnedDictionary() {
+        return sharedLearnedDict;
+    }
+
+    /**
+     * Learn a completed word. Called when user finishes typing a word
+     * (space, punctuation, or suggestion acceptance).
+     */
+    public void learnWord(String word) {
+        if (!learningEnabled || word == null || word.isEmpty()) return;
+        if (sharedLearnedDict == null) return;
+        sharedLearnedDict.learnWord(word);
+        unsavedLearnCount++;
+        if (unsavedLearnCount >= SAVE_INTERVAL && appContext != null) {
+            unsavedLearnCount = 0;
+            // Save in background to avoid blocking UI
+            final Context ctx = appContext;
+            new Thread(new Runnable() {
+                public void run() {
+                    sharedLearnedDict.save(ctx);
+                }
+            }).start();
+        }
+    }
+
+    /**
+     * Force save learned words to file.
+     */
+    public void saveLearnedWords() {
+        if (sharedLearnedDict != null && appContext != null) {
+            sharedLearnedDict.save(appContext);
+            unsavedLearnCount = 0;
+        }
+    }
+
+    /**
+     * Clear all learned words.
+     */
+    public void clearLearnedWords() {
+        if (sharedLearnedDict != null && appContext != null) {
+            sharedLearnedDict.clear(appContext);
+        }
     }
 
     public boolean isEngineReady() {
@@ -233,10 +308,14 @@ public class WordPredictor {
         final PredictionEngine newEngine;
         switch (engineMode) {
             case ENGINE_NGRAM:
-                newEngine = new NgramEngine();
+                NgramEngine ngramEng = new NgramEngine();
+                ngramEng.setLearnedDictionary(sharedLearnedDict);
+                newEngine = ngramEng;
                 break;
             default:
-                newEngine = new SymSpellEngine();
+                SymSpellEngine symEng = new SymSpellEngine();
+                symEng.setLearnedDictionary(sharedLearnedDict);
+                newEngine = symEng;
                 break;
         }
         engine = newEngine;
@@ -296,11 +375,13 @@ public class WordPredictor {
     }
 
     /**
-     * Reset tracker. Saves currentWord as previousWord, then requests
-     * next-word prediction (engine.suggest with empty input).
+     * Reset tracker. Saves currentWord as previousWord, learns the word,
+     * then requests next-word prediction (engine.suggest with empty input).
      */
     public void reset() {
         if (currentWord.length() > 0) {
+            // Learn the completed word
+            learnWord(currentWord);
             previousWord = currentWord;
         }
         currentWord = "";
@@ -309,11 +390,14 @@ public class WordPredictor {
 
     /**
      * Accept a suggestion - replace current word in input.
+     * Also learns the accepted word.
      */
     public String acceptSuggestion(int index) {
         if (index < 0 || index >= latestSuggestions.size()) return null;
         Suggestion s = latestSuggestions.get(index);
         String result = applyCasing(s.word, currentWord);
+        // Learn the accepted word
+        learnWord(s.word);
         // Set previousWord to the accepted word (normalized form for bigram lookup)
         previousWord = s.word;
         currentWord = "";

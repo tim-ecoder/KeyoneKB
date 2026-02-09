@@ -443,6 +443,33 @@ public class WordDictionary {
     }
 
     /**
+     * Load learned words into this dictionary.
+     * Should be called after the base dictionary is loaded.
+     * Learned words get a frequency boost based on usage count.
+     */
+    public void loadLearnedWords(LearnedDictionary learned) {
+        if (learned == null) return;
+        List<LearnedDictionary.LearnedWord> learnedWords = learned.getSuggestionWords();
+        if (learnedWords.isEmpty()) return;
+
+        symSpell.setBulkLoading(true);
+        int added = 0;
+        for (LearnedDictionary.LearnedWord lw : learnedWords) {
+            // Scale frequency by usage count: base 180, +5 per extra use, max 240
+            int freq = Math.min(240, LearnedDictionary.getBaseFrequency() + (lw.count - 1) * 5);
+            addEntry(lw.word, freq);
+            added++;
+        }
+        if (added > 0) {
+            symSpell.setBulkLoading(false);
+            symSpell.buildIndex();
+            Log.d(TAG, "Added " + added + " learned words");
+        } else {
+            symSpell.setBulkLoading(false);
+        }
+    }
+
+    /**
      * Check if a character is a "word character" for prediction purposes.
      * Includes letters, digits, apostrophe, and email-like chars (@, ., -, _).
      */
