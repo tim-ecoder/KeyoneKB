@@ -324,21 +324,22 @@ with open(filepath, 'w') as f:
     f.write(content)
 PYEOF
 
-# Patch Notification.Builder(context, channelId) -> API 26, wrap in reflection
+# Patch Notification.Builder(context, channelId) -> use reflection for 2-arg constructor (API 26+)
+# The 2-arg constructor is API 26+ and not in API 23 android.jar,
+# so we use reflection to call it, preserving the channel ID for proper notification display.
 python3 - "$SRC_PATCHED/com/ai10/k12kb/NotificationProcessor.java" << 'PYEOF'
 import sys
 filepath = sys.argv[1]
 with open(filepath, 'r') as f:
     content = f.read()
-# Replace Notification.Builder(context, channelId) with one-arg constructor
-# The 2-arg constructor is API 26+; the 1-arg is API 11+
+# Replace 2-arg Notification.Builder with reflection that passes channelId
 content = content.replace(
-    'new Notification.Builder(context, layoutModeChannelId1)',
-    'new Notification.Builder(context)'
+    'builder2Layout = new Notification.Builder(context, layoutModeChannelId1);',
+    'try { builder2Layout = (Notification.Builder) Notification.Builder.class.getConstructor(Context.class, String.class).newInstance(context, layoutModeChannelId1); } catch (Exception _nb) { builder2Layout = new Notification.Builder(context); }'
 )
 content = content.replace(
-    'new Notification.Builder(context, gestureModeChannelId1)',
-    'new Notification.Builder(context)'
+    'builder2Gesture = new Notification.Builder(context, gestureModeChannelId1);',
+    'try { builder2Gesture = (Notification.Builder) Notification.Builder.class.getConstructor(Context.class, String.class).newInstance(context, gestureModeChannelId1); } catch (Exception _nb) { builder2Gesture = new Notification.Builder(context); }'
 )
 with open(filepath, 'w') as f:
     f.write(content)
