@@ -10,8 +10,8 @@
     <string name="main_btn_power_manager_deactivated">Power saving is configured</string>
     <string name="main_btn_sys_kb_setting_enabled">B. Activate keyboard</string>
     <string name="main_btn_sys_kb_setting_disabled">Keyboard is activated</string>
-    <string name="main_btn_sys_phone_permission_activated">D. Attention! Permission required</string>
-    <string name="main_btn_sys_phone_permission_deactivated">No actions with permissions required</string>
+    <string name="main_btn_sys_phone_permission_activated">D. Permission required for call management</string>
+    <string name="main_btn_sys_phone_permission_deactivated">Call management permitted</string>
     <string name="main_btn_test_keyboard">Operation checking</string>
     <string name="main_btn_sys_kb_accessibility_setting_enabled">C. Activate accessibility service</string>
     <string name="main_btn_sys_kb_accessibility_setting_disabled">Accessibility service activated</string>

@@ -4,8 +4,8 @@
     <string name="main_btn_power_manager_deactivated">Энергосбережение настроено</string>
     <string name="main_btn_sys_kb_setting_enabled">B. Активировать клавиатуру</string>
     <string name="main_btn_sys_kb_setting_disabled">Клавиатура активирована</string>
-    <string name="main_btn_sys_phone_permission_activated">D. Внимание! Требуется разрешение</string>
-    <string name="main_btn_sys_phone_permission_deactivated">Действий с разрешениями не требуется</string>
+    <string name="main_btn_sys_phone_permission_activated">D. Требуется разрешение на управление звонками</string>
+    <string name="main_btn_sys_phone_permission_deactivated">Управление звонками разрешено</string>
     <string name="main_btn_test_keyboard">Проверка работы</string>
     <string name="main_btn_sys_kb_accessibility_setting_enabled">C. Активировать спец. возможности</string>
     <string name="main_btn_sys_kb_accessibility_setting_disabled">Cпец. возможности активированы</string>
