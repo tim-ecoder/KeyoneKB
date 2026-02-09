@@ -101,7 +101,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
     //implementation 'com.pes.materialcolorpicker:library:1.2.5'
     implementation 'com.faendir.rhino:rhino-android:1.6.0'
-    implementation "com.github.yukuku:ambilwarna:2.0.1"
+    //implementation "com.github.yukuku:ambilwarna:2.0.1" // source included in project
     //implementation "com.github.skydoves:colorpickerview:2.3.0"
 
 }
