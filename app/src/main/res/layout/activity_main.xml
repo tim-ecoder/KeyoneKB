@@ -29,6 +29,7 @@
             android:id="@+id/section_setup"
             style="@style/SectionHeader"
             android:text="SETUP" />
+
         <!-- Hint box (moves to top when permissions visible, bottom when hidden) -->
         <TextView
                 android:id="@+id/tv_initial_hint"
@@ -181,6 +182,12 @@
                 android:textAllCaps="false" />
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
+
+        <!-- OTHERS section -->
+        <TextView
+                android:id="@+id/section_others"
+                style="@style/SectionHeader"
+                android:text="OTHERS" />
 
         <!-- Granted permissions collapsible group -->
         <LinearLayout

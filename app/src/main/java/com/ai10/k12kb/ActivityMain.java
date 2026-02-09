@@ -54,8 +54,8 @@ public class ActivityMain extends Activity {
         FileJsonUtils.Initialize(this);
         super.onCreate(savedInstanceState);
         k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        if (k12KbSettings.isLightTheme()) {
-            setTheme(R.style.AppTheme_Light);
+        if (k12KbSettings.isDarkTheme()) {
+            setTheme(R.style.AppTheme_Dark);
         }
 
         _this_act = this;
@@ -277,12 +277,15 @@ public class ActivityMain extends Activity {
             grantedGroup.setVisibility(View.GONE);
         }
 
+        // Hide "A." badge on Settings when all permissions are granted
+        PillBadgeHelper.setBadgeVisible(rootLayout, R.id.btn_settings, visiblePermCount > 0);
+
         // Dynamic layout positioning based on whether permission buttons are visible
         repositionDynamicElements(rootLayout, visiblePermCount > 0);
     }
 
     private void repositionDynamicElements(LinearLayout rootLayout, boolean hasVisiblePermissions) {
-        View hintBox = findViewById(R.id.tv_initial_hint);
+        final TextView hintBox = (TextView) findViewById(R.id.tv_initial_hint);
         View pillSuggestions = findViewById(R.id.pill_prediction_settings);
         View pillAdvSettings = findViewById(R.id.pill_more_settings);
         View sectionSetup = findViewById(R.id.section_setup);
@@ -296,9 +299,28 @@ public class ActivityMain extends Activity {
         rootLayout.removeView(pillAdvSettings);
 
         if (hasVisiblePermissions) {
-            // Green hint at top: right before SETUP section header
+            // Green hint right after SETUP section header, collapsed to 3 lines
             int setupIdx = rootLayout.indexOfChild(sectionSetup);
-            rootLayout.addView(hintBox, setupIdx);
+            rootLayout.addView(hintBox, setupIdx + 1);
+
+            hintBox.setText(R.string.pref_first_install);
+            hintBox.setSingleLine(false);
+            hintBox.setMaxLines(3);
+            hintBox.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            hintBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (hintBox.getMaxLines() == 3) {
+                        hintBox.setSingleLine(false);
+                        hintBox.setMaxLines(Integer.MAX_VALUE);
+                        hintBox.setEllipsize(null);
+                    } else {
+                        hintBox.setSingleLine(false);
+                        hintBox.setMaxLines(3);
+                        hintBox.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                    }
+                }
+            });
 
             // Suggestions + Advanced Settings after last visible permission button
             // (which is right before ACTIONS section header)
@@ -306,7 +328,14 @@ public class ActivityMain extends Activity {
             rootLayout.addView(pillSuggestions, actionsIdx);
             rootLayout.addView(pillAdvSettings, actionsIdx + 1);
         } else {
-            // Green hint at bottom: right before language switcher
+            // Green hint at bottom: different text, fully expanded, right before language switcher
+            hintBox.setText(R.string.pref_hint_ready);
+            hintBox.setSingleLine(false);
+            hintBox.setMaxLines(Integer.MAX_VALUE);
+            hintBox.setEllipsize(null);
+            hintBox.setOnClickListener(null);
+            hintBox.setClickable(false);
+
             int langIdx = rootLayout.indexOfChild(langSwitcher);
             rootLayout.addView(hintBox, langIdx);
 

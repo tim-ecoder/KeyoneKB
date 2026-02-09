@@ -37,8 +37,8 @@ public class ActivityPredictionSettings extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        if (k12KbSettings.isLightTheme()) {
-            setTheme(R.style.AppTheme_Light);
+        if (k12KbSettings.isDarkTheme()) {
+            setTheme(R.style.AppTheme_Dark);
         }
         setContentView(R.layout.activity_prediction_settings);
 

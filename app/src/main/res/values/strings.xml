@@ -15,7 +15,7 @@
     <string name="main_btn_test_keyboard">Operation checking</string>
     <string name="main_btn_sys_kb_accessibility_setting_enabled">C. Activate accessibility service</string>
     <string name="main_btn_sys_kb_accessibility_setting_disabled">Accessibility service activated</string>
-    <string name="main_btn_keyboard_reload">Reload keyboard</string>
+    <string name="main_btn_keyboard_reload">Switch keyboard</string>
     <string name="main_btn_keyboard_reload_need">G. Reload keyboard (json-s reload)</string>
     <string name="main_btn_accessibility_reload">Reload accessibility service</string>
     <string name="main_btn_more_settings">Advanced Settings</string>
@@ -66,11 +66,15 @@
     <string name="pref_p_13a_hint">\tIn order for the color settings to be applied, it is necessary to switch off/onn the special service K12KB</string>
     <string name="pref_p_14_name">14. Show on-screen NAV-pad while holding SYM</string>
     <string name="pref_p_14_hint">\tYou can disable it when you use the NAV mode via the hard keyboard and remember everything.\n\tIn addition, if another function is hanging on the same button (for example, changing the language), so that the NAV-pad that comes out does not infuriate every time.</string>
-    <string name="pref_first_install">\tFirst initialization after installation in strict sequence: A, B, C, D, E.\n
-        \tIn the Settings item A, disable unnecessary layouts (because the keyboard comes out of the box for several devices). The rest of the Settings (default values) are made so that it is convenient to use as is.\n
-        Do not forget to enable Visual Keyboard option in Hardware keyboard settings. This option is needed to show NAV, SYM and SWYPE on-screen keyboards.</string>
+    <string name="pref_first_install">First initialization after installation in strict sequence: A, B, C, D, E.\n
+        In the Settings item A, disable unnecessary layouts (because the keyboard comes out of the box for several devices). The rest of the Settings (default values) are made so that it is convenient to use as is.\n
+        \n
+        Do not forget to enable Visual Keyboard option in Android Hardware keyboard settings. This option is needed to show NAV, SYM and SWYPE on-screen keyboards.\n
+        It your device has keyboard-touch sensor, you need to enable it in your Android Hardware keyboard settings.</string>
+    <string name="pref_hint_ready">Do not forget to enable Visual Keyboard option in Android Hardware keyboard settings. This option is needed to show NAV, SYM and SWYPE on-screen keyboards.\n
+        It your device has keyboard-touch sensor, you need to enable it in your Android Hardware keyboard settings.</string>
     <string name="pref_manual_name">Manual</string>
-    <string name="pref_manual_link" translatable="false">https://github.com/tim-ecoder/K12KB/wiki</string>
+    <string name="pref_manual_link" translatable="false">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
     <string name="notification_kb_state_nav_mode">Navigation</string>
     <string name="notification_kb_state_nav_fn_mode">Navigation + F1�F10</string>
     <string name="notification_kb_state_alt_mode">Symbols 1�9</string>
@@ -99,7 +103,7 @@
     <string name="js_patch_file_not_found">File not found: %s</string>
     <string name="js_patch_no_editor">No editor found for JS files</string>
     <string name="pref_section_appearance">APPEARANCE</string>
-    <string name="pref_light_theme">Light theme</string>
+    <string name="pref_light_theme">Dark theme</string>
     <string name="pref_section_prediction">PREDICTION</string>
     <string name="pref_prediction_enabled">Word prediction</string>
     <string name="pref_prediction_bar_height">Prediction bar height (dp)</string>
@@ -112,7 +116,7 @@
         <item>SymSpell (fuzzy matching)</item>
         <item>N-gram (next-word prediction)</item>
     </string-array>
-    <string name="main_btn_prediction_settings">Suggestions</string>
+    <string name="main_btn_prediction_settings">Word prediction</string>
     <string name="pred_section_settings">SETTINGS</string>
     <string name="pred_section_status">DICTIONARY STATUS</string>
     <string name="pred_section_cache">CACHE</string>

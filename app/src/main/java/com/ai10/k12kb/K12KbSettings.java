@@ -115,7 +115,7 @@ public class K12KbSettings {
     public void SetIntValue(String name, int value) {
         _mSettings.edit().putInt(name, value).apply();
     }
-    public boolean isLightTheme() {
+    public boolean isDarkTheme() {
         return _mSettings.getBoolean(APP_PREFERENCES_18_LIGHT_THEME, false);
     }
 

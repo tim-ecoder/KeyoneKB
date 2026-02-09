@@ -65,8 +65,8 @@ public class ActivitySettings extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        if (k12KbSettings.isLightTheme()) {
-            setTheme(R.style.AppTheme_Light);
+        if (k12KbSettings.isDarkTheme()) {
+            setTheme(R.style.AppTheme_Dark);
         }
 
         setContentView(R.layout.activity_settings);
@@ -357,31 +357,34 @@ public class ActivitySettings extends Activity {
 
         int color = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
 
-        AmbilWarnaDialog colorPicker = new AmbilWarnaDialog(
-                this,
-                color,
-                new AmbilWarnaDialog.OnAmbilWarnaListener() {
-                    @Override
-                    public void onOk(AmbilWarnaDialog dialog, int color) {
-                        // User pressed OK
-                        k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR, color);
-                    }
+        final View colorSwatch = findViewById(R.id.color_swatch_p13a);
+        android.graphics.drawable.GradientDrawable swatchBg = new android.graphics.drawable.GradientDrawable();
+        swatchBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        swatchBg.setCornerRadius(6 * getResources().getDisplayMetrics().density);
+        swatchBg.setColor(color);
+        colorSwatch.setBackground(swatchBg);
 
-                    @Override
-                    public void onCancel(AmbilWarnaDialog dialog) {
-                        // User pressed Cancel
-                    }
-                }
-        );
-        //final ColorPicker cp = new ColorPicker(this, Color.red(color), Color.green(color), Color.blue(color));
-
-        Button btSave = (Button)findViewById(R.id.button_pointer_mode_rect_color_picker);
-
-
-        btSave.setOnClickListener(new View.OnClickListener() {
+        colorSwatch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                colorPicker.show();
+                int currentColor = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
+                new AmbilWarnaDialog(
+                        ActivitySettings.this,
+                        currentColor,
+                        new AmbilWarnaDialog.OnAmbilWarnaListener() {
+                            @Override
+                            public void onOk(AmbilWarnaDialog dialog, int color) {
+                                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR, color);
+                                android.graphics.drawable.GradientDrawable bg =
+                                        (android.graphics.drawable.GradientDrawable) colorSwatch.getBackground();
+                                bg.setColor(color);
+                            }
+
+                            @Override
+                            public void onCancel(AmbilWarnaDialog dialog) {
+                            }
+                        }
+                ).show();
             }
         });
 
@@ -440,6 +443,19 @@ public class ActivitySettings extends Activity {
         });
 
         PillBadgeHelper.applyToContainer(layout);
+
+        PillBadgeHelper.applyHints(layout, new int[][] {
+            {R.id.toast_show_lang, R.string.pref_p_2_hint},
+            {R.id.switch_alt_space, R.string.pref_p_3_hint},
+            {R.id.switch_long_press_alt, R.string.pref_p_5_hint},
+            {R.id.switch_manage_call, R.string.pref_p_6_hint},
+            {R.id.switch_show_default_onscreen_keyboard, R.string.pref_p_8_hint},
+            {R.id.static_spinner_p9, R.string.pref_p9_gesture_modes_comment},
+            {R.id.switch_ensure_entered_text, R.string.pref_p_12_hint},
+            {R.id.switch_pointer_mode_rect, R.string.pref_p_13_hint},
+            {R.id.button_pointer_mode_rect_color_picker, R.string.pref_p_13a_hint},
+            {R.id.switch_p14_nav_pad_on_hold, R.string.pref_p_14_hint},
+        });
 
     }
 

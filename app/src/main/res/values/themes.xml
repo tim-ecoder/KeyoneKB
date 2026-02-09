@@ -1,25 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
-        <item name="android:colorPrimary">@color/colorPrimary</item>
-        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="android:colorAccent">@color/colorAccent</item>
-        <item name="android:windowBackground">@color/colorBackground</item>
-        <item name="android:textColorPrimary">@color/textPrimary</item>
-        <item name="android:textColorSecondary">@color/textSecondary</item>
-        <item name="android:colorControlActivated">@color/colorAccent</item>
-        <item name="appBackgroundColor">@color/colorBackground</item>
-        <item name="itemPillColor">@color/colorItemPill</item>
-        <item name="textPrimaryColor">@color/textPrimary</item>
-        <item name="textSecondaryColor">@color/textSecondary</item>
-        <item name="sectionHeaderColor">@color/sectionHeader</item>
-        <item name="chevronTextColor">@color/chevronColor</item>
-        <item name="hintBoxBgColor">@color/hintBoxBg</item>
-        <item name="grantedHeaderBgColor">@color/grantedHeaderBg</item>
-        <item name="grantedHeaderTextColor">@color/grantedHeaderText</item>
-        <item name="grantedHeaderChevronColor">@color/grantedHeaderChevron</item>
-    </style>
-
-    <style name="AppTheme.Light" parent="@android:style/Theme.Material.Light.NoActionBar">
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:colorPrimary">@color/colorPrimary</item>
         <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="android:colorAccent">@color/colorAccent</item>
@@ -37,5 +17,25 @@
         <item name="grantedHeaderBgColor">@color/grantedHeaderBgLight</item>
         <item name="grantedHeaderTextColor">@color/grantedHeaderTextLight</item>
         <item name="grantedHeaderChevronColor">@color/grantedHeaderChevronLight</item>
+    </style>
+
+    <style name="AppTheme.Dark" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:textColorPrimary">@color/textPrimary</item>
+        <item name="android:textColorSecondary">@color/textSecondary</item>
+        <item name="android:colorControlActivated">@color/colorAccent</item>
+        <item name="appBackgroundColor">@color/colorBackground</item>
+        <item name="itemPillColor">@color/colorItemPill</item>
+        <item name="textPrimaryColor">@color/textPrimary</item>
+        <item name="textSecondaryColor">@color/textSecondary</item>
+        <item name="sectionHeaderColor">@color/sectionHeader</item>
+        <item name="chevronTextColor">@color/chevronColor</item>
+        <item name="hintBoxBgColor">@color/hintBoxBg</item>
+        <item name="grantedHeaderBgColor">@color/grantedHeaderBg</item>
+        <item name="grantedHeaderTextColor">@color/grantedHeaderText</item>
+        <item name="grantedHeaderChevronColor">@color/grantedHeaderChevron</item>
     </style>
 </resources>

@@ -9,7 +9,7 @@
     <string name="main_btn_test_keyboard">Проверка работы</string>
     <string name="main_btn_sys_kb_accessibility_setting_enabled">C. Активировать спец. возможности</string>
     <string name="main_btn_sys_kb_accessibility_setting_disabled">Cпец. возможности активированы</string>
-    <string name="main_btn_keyboard_reload">Перезагрузить клавиатуру</string>
+    <string name="main_btn_keyboard_reload">Переключить клавиатуру</string>
     <string name="main_btn_accessibility_reload">Перезагрузить спец. сервис</string>
     <string name="main_btn_more_settings">Расширенные настройки</string>
     <string name="main_manual_text">ИНСТРУКЦИЯ</string>
@@ -57,8 +57,11 @@
     <string name="pref_p_14_hint">\tМожно отключить, когда NAV-режимом пользуешься через хард-клаву и все запомнил.\n
     \tКроме того, если на этой же кнопке висит другая функция (например, смена языка), чтобы каждый раз не бесил вылезающий NAV-pad.</string>
     <string name="pref_first_install">\tПервичная инициализация после установки в строгой последовательности: A, B, C, D, E.\n
-        \tВ Настройках (п.А) <b>включить</b> необходимые раскладки (т.к. клавиатура из коробки поставляется для нескольких устройств). (Остальные) Настройки (значения по умолчанию) расчитаны так, чтобы можно было удобно пользоваться как есть.\n
-        Не забывайте активировать опцию Виртуальная кливиатура в настройках Физической клавиатуры. Это нужно чтобы работали SYN, NAV и SWYPE наэкранные клавиатуры.</string>
+        В Настройках (п.А) <b>включить</b> необходимые раскладки (т.к. клавиатура из коробки поставляется для нескольких устройств). (Остальные) Настройки (значения по умолчанию) расчитаны так, чтобы можно было удобно пользоваться как есть.\n
+        Не забывайте активировать опцию Виртуальная кливиатура в настройках Физической клавиатуры. Это нужно чтобы работали SYN, NAV и SWYPE наэкранные клавиатуры.\n
+        Если на вашем устройстве есть сенсор на клавиатуре, его тоже нужно включить в настройках Физической клавиатуры Android.В нуДля</string>
+    <string name="pref_hint_ready">Не забывайте активировать опцию Виртуальная клавиатура в настройках Физической клавиатуры. Это нужно чтобы работали SYN, NAV и SWYPE наэкранные клавиатуры.\n
+        Если на вашем устройстве есть сенсор на клавиатуре, его тоже нужно включить в настройках Физической клавиатуры Android.</string>
     <string name="pref_manual_name">Инструкция</string>
     <string name="notification_kb_state_nav_mode">Навигация</string>
     <string name="notification_kb_state_nav_fn_mode">Навигация + F1–F10</string>
@@ -95,7 +98,7 @@
     <string name="js_patch_file_not_found">Файл не найден: %s</string>
     <string name="js_patch_no_editor">Не найден редактор для JS файлов</string>
     <string name="pref_section_appearance">ВНЕШНИЙ ВИД</string>
-    <string name="pref_light_theme">Светлая тема</string>
+    <string name="pref_light_theme">Тёмная тема</string>
     <string name="pref_section_prediction">ПРЕДИКТИВНЫЙ ВВОД</string>
     <string name="pref_prediction_enabled">Предиктивный ввод</string>
     <string name="pref_prediction_bar_height">Высота панели подсказок (dp)</string>

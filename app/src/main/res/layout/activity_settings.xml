@@ -191,8 +191,9 @@
                 android:text="@string/pref_p9_gesture_modes_title" />
             <Spinner
                 android:id="@+id/static_spinner_p9"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end" />
         </LinearLayout>
 
         <!-- Pointer mode rectangle switch pill -->
@@ -201,6 +202,22 @@
             style="@style/SwitchPill"
             android:text="@string/pref_p_13_name"
             tools:checked="true" />
+
+        <!-- Pointer rectangle color picker pill -->
+        <LinearLayout style="@style/ItemPill">
+            <TextView
+                    android:id="@+id/button_pointer_mode_rect_color_picker"
+                    style="@style/ItemPillText"
+                    android:gravity="start|center_vertical"
+                    android:text="@string/pref_p_13a_name"
+                    android:textColor="?attr/textPrimaryColor" />
+            <View
+                    android:id="@+id/color_swatch_p13a"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/bg_badge_circle" />
+        </LinearLayout>
 
         <!-- APPEARANCE -->
         <TextView
@@ -213,18 +230,6 @@
             android:text="@string/pref_light_theme"
             tools:checked="false" />
 
-        <!-- Pointer rectangle color picker pill -->
-        <LinearLayout style="@style/ItemPill">
-            <Button
-                android:id="@+id/button_pointer_mode_rect_color_picker"
-                style="@style/ItemPillText"
-                android:background="@android:color/transparent"
-                android:gravity="start|center_vertical"
-                android:text="@string/pref_p_13a_name"
-                android:textColor="?attr/textPrimaryColor"
-                android:textAllCaps="false" />
-            <TextView style="@style/Chevron" android:text="\u203A" />
-        </LinearLayout>
 
         <!-- BACKUP -->
         <TextView

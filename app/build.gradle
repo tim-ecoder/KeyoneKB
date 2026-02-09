@@ -34,8 +34,8 @@ android {
         //TODO: ---- Меняем versionCode, versionName каждый публичный выкат даже для тестеров ----
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
-        versionCode 2746
-        versionName "v2.8b07s"
+        versionCode 3007
+        versionName "v3.0b07b"
         //TODO: ----------------------------
 
         /**

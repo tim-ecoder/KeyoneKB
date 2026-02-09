@@ -31,7 +31,8 @@
       "Bash(curl:*)",
       "Bash(unzip:*)",
       "Bash(python3:*)",
-      "WebFetch(domain:android.googlesource.com)"
+      "WebFetch(domain:android.googlesource.com)",
+      "Bash(start:*)"
     ]
   }
 }
