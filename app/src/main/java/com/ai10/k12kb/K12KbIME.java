@@ -1332,7 +1332,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         } else
             HideSwipePanelOnHidePreferenceAndVisibleState();
 
-        if (changed && !pref_system_icon_no_notification_text)
+        if (changed && (!pref_system_icon_no_notification_text || Build.VERSION.SDK_INT >= 26))
             notificationProcessor.UpdateNotificationLayoutMode();
     }
 
@@ -1376,9 +1376,12 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     }
 
     private boolean UpdateNotification(KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes, String notificationText) {
-        if(!pref_system_icon_no_notification_text) {
+        if(!pref_system_icon_no_notification_text || Build.VERSION.SDK_INT >= 26) {
+            // showStatusIcon() is deprecated and ignored on API 26+,
+            // so always use notification on Android 8+
             boolean changed = notificationProcessor.SetSmallIconLayout(iconRes.MipmapResId);
-            changed |= notificationProcessor.SetContentTitleLayout(notificationText);
+            changed |= notificationProcessor.SetContentTitleLayout(
+                    pref_system_icon_no_notification_text ? "" : notificationText);
             return changed;
         }
         this.showStatusIcon(iconRes.DrawableResId);
