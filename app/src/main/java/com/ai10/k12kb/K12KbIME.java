@@ -30,6 +30,7 @@ import android.widget.Toast;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.ai10.k12kb.input.CallStateCallback;
 import com.ai10.k12kb.prediction.SuggestionBar;
+import com.ai10.k12kb.prediction.WordDictionary;
 import com.ai10.k12kb.prediction.WordPredictor;
 
 import java.io.PrintWriter;
@@ -794,7 +795,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             int start = end;
             while (start > 0) {
                 char c = before.charAt(start - 1);
-                if (Character.isLetterOrDigit(c) || c == '\'') {
+                if (WordDictionary.isWordChar(c)) {
                     start--;
                 } else {
                     break;
@@ -805,14 +806,13 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             // Extract previous word (word before the current word)
             int prevEnd = start;
             // Skip whitespace/punctuation between words
-            while (prevEnd > 0 && !Character.isLetterOrDigit(before.charAt(prevEnd - 1))
-                    && before.charAt(prevEnd - 1) != '\'') {
+            while (prevEnd > 0 && !WordDictionary.isWordChar(before.charAt(prevEnd - 1))) {
                 prevEnd--;
             }
             int prevStart = prevEnd;
             while (prevStart > 0) {
                 char c = before.charAt(prevStart - 1);
-                if (Character.isLetterOrDigit(c) || c == '\'') {
+                if (WordDictionary.isWordChar(c)) {
                     prevStart--;
                 } else {
                     break;

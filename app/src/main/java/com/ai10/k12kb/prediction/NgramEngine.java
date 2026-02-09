@@ -174,10 +174,29 @@ public class NgramEngine implements PredictionEngine {
         // Load bigrams (optional, graceful fallback)
         bigramDict.load(context, locale);
 
+        // Load user dictionary words into trie
+        loadUserWords(context);
+
         ready = true;
         loadedLocale = locale;
         long elapsed = System.currentTimeMillis() - startTime;
         WordDictionary.recordLoadStats(locale, "assets", trie.size(), elapsed);
+    }
+
+    private void loadUserWords(Context context) {
+        java.util.List<UserDictionaryBridge.UserWord> userWords = UserDictionaryBridge.readAll(context);
+        int added = 0;
+        for (UserDictionaryBridge.UserWord uw : userWords) {
+            String normalized = WordDictionary.normalize(uw.word);
+            if (!normalized.isEmpty()) {
+                int freq = Math.max(uw.frequency, 200);
+                trie.insert(normalized, freq);
+                added++;
+            }
+        }
+        if (added > 0) {
+            Log.d(TAG, "Added " + added + " user dictionary words to trie");
+        }
     }
 
     @Override

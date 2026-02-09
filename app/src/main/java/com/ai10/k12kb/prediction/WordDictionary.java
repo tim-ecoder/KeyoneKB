@@ -411,7 +411,48 @@ public class WordDictionary {
     }
 
     /**
-     * Normalize a word: lowercase, strip accents, remove non-letter chars (keep apostrophe).
+     * Load words from Android's system UserDictionary into this dictionary.
+     * Should be called after the base dictionary is loaded.
+     * User words are added with high frequency to ensure they appear in suggestions.
+     */
+    public void loadUserWords(Context context) {
+        List<UserDictionaryBridge.UserWord> userWords = UserDictionaryBridge.readAll(context);
+        if (userWords.isEmpty()) return;
+
+        symSpell.setBulkLoading(true);
+        int added = 0;
+        for (UserDictionaryBridge.UserWord uw : userWords) {
+            // User dictionary words get high frequency to appear prominently
+            int freq = Math.max(uw.frequency, 200);
+            addEntry(uw.word, freq);
+
+            // Also add shortcut as an alias if present (e.g. "em" -> "myemail@gmail.com")
+            if (uw.shortcut != null && !uw.shortcut.isEmpty()) {
+                addEntry(uw.shortcut, freq);
+            }
+            added++;
+        }
+        if (added > 0) {
+            symSpell.setBulkLoading(false);
+            // Rebuild SymSpell index to include new user words
+            symSpell.buildIndex();
+            Log.d(TAG, "Added " + added + " user dictionary words");
+        } else {
+            symSpell.setBulkLoading(false);
+        }
+    }
+
+    /**
+     * Check if a character is a "word character" for prediction purposes.
+     * Includes letters, digits, apostrophe, and email-like chars (@, ., -, _).
+     */
+    public static boolean isWordChar(char c) {
+        return Character.isLetterOrDigit(c) || c == '\'' || c == '@' || c == '.' || c == '-' || c == '_';
+    }
+
+    /**
+     * Normalize a word: lowercase, strip accents, keep letters/digits/apostrophe
+     * and email-like characters (@, ., -, _).
      */
     public static String normalize(String word) {
         if (word == null || word.isEmpty()) return "";
@@ -424,7 +465,7 @@ public class WordDictionary {
         for (int i = 0; i < decomposed.length(); i++) {
             char c = decomposed.charAt(i);
             if (Character.getType(c) != Character.NON_SPACING_MARK) {
-                if (Character.isLetterOrDigit(c) || c == '\'') {
+                if (isWordChar(c)) {
                     sb.append(c);
                 }
             }

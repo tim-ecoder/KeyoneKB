@@ -255,10 +255,7 @@ public class WordPredictor {
         // Normalize apostrophe variants
         if (c == '\u2018' || c == '\u2019' || c == '\u02BC') c = '\'';
 
-        boolean isWordChar = Character.isLetterOrDigit(c)
-                || (c == '\'' && currentWord.length() > 0
-                && Character.isLetterOrDigit(currentWord.charAt(currentWord.length() - 1)));
-        if (isWordChar) {
+        if (WordDictionary.isWordChar(c)) {
             if (currentWord.length() < 48) {
                 currentWord += c;
                 updateSuggestions();

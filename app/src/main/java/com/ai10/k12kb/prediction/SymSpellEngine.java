@@ -78,15 +78,18 @@ public class SymSpellEngine implements PredictionEngine {
         if (cached != null) {
             dictionary = cached;
             if (cached.isReady()) {
+                cached.loadUserWords(context);
                 return;
             }
             cached.load(context, locale);
+            cached.loadUserWords(context);
             return;
         }
         final WordDictionary newDict = new WordDictionary();
         dictCache.put(locale, newDict);
         dictionary = newDict;
         newDict.load(context, locale);
+        newDict.loadUserWords(context);
     }
 
     @Override
