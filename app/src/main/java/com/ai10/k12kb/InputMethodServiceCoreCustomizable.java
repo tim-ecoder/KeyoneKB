@@ -2015,15 +2015,17 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         AfterSendChar.Process(null, null);
 
         if (wordPredictor != null && wordPredictor.isEnabled()) {
-            if (!wordPredictor.isEngineReady() && !dictLoadingToastShown) {
-                dictLoadingToastShown = true;
-                boolean fromCache = WordDictionary.hasCacheFile(getApplicationContext(), "en");
-                Toast.makeText(getApplicationContext(),
-                        getString(fromCache ? R.string.prediction_loading_cache_toast
-                                           : R.string.prediction_loading_fresh_toast),
-                        Toast.LENGTH_SHORT).show();
-            }
+            ShowDictLoadingToast();
             wordPredictor.onCharacterTyped((char) code2send);
+        }
+    }
+
+    private void ShowDictLoadingToast() {
+        if (!wordPredictor.isEngineReady() && !dictLoadingToastShown) {
+            dictLoadingToastShown = true;
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.prediction_loading_toast),
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -2195,6 +2197,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             inputConnection.deleteSurroundingText(1, 0);
         }
         if (wordPredictor != null && wordPredictor.isEnabled()) {
+            ShowDictLoadingToast();
             wordPredictor.onBackspace();
         }
     }
