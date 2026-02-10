@@ -612,6 +612,7 @@ public class ActivitySettings extends Activity {
             JSONObject json = new JSONObject(sb.toString());
             SharedPreferences prefs = getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
+            editor.clear().apply();
 
             JSONObject settings = json.getJSONObject("settings");
             Iterator<String> sections = settings.keys();

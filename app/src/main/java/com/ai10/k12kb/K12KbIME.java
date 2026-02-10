@@ -436,7 +436,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         if (!editorInfo.packageName.equals(_lastPackageName)) {
 
             //TODO: Перенести в keyboard_mechanics с использованием PackageHistory
-            SetGestureDefaultPointerMode(_lastPackageName, _modeGestureAtViewMode);
+            // Не надо сохранять это каждый раз
+            //SetGestureDefaultPointerMode(_lastPackageName, _modeGestureAtViewMode);
 
             //PackageHistory.add(_lastPackageName);
             _lastPackageName = editorInfo.packageName;
