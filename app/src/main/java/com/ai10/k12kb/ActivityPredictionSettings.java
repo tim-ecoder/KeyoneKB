@@ -195,13 +195,28 @@ public class ActivityPredictionSettings extends Activity {
             String assetName = "dict/" + pair + ".tsv";
             try {
                 java.io.InputStream is = getAssets().open(assetName);
-                // Count lines
                 java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(is));
-                int count = 0;
-                while (br.readLine() != null) count++;
+                int wordCount = 0;
+                int phraseCount = 0;
+                String line;
+                while ((line = br.readLine()) != null) {
+                    int tab = line.indexOf('\t');
+                    if (tab > 0) {
+                        String key = line.substring(0, tab);
+                        if (key.indexOf(' ') >= 0) {
+                            phraseCount++;
+                        } else {
+                            wordCount++;
+                        }
+                    }
+                }
                 br.close();
                 sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
-                  .append(count).append(" ").append(getString(R.string.pred_translation_words)).append("\n");
+                  .append(wordCount).append(" ").append(getString(R.string.pred_translation_words));
+                if (phraseCount > 0) {
+                    sb.append(" + ").append(phraseCount).append(" ").append(getString(R.string.pred_translation_phrases));
+                }
+                sb.append("\n");
             } catch (Exception e) {
                 sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
                   .append(getString(R.string.pred_translation_not_found)).append("\n");

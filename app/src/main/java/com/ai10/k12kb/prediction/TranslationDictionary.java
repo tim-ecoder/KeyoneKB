@@ -17,12 +17,16 @@ import java.util.Map;
  * Offline bilingual dictionary loaded from TSV files.
  * Format: word\ttranslation1,translation2,...
  *
+ * Supports single-word and phrase (bigram) lookups.
+ * Phrase entries use space-separated words as key: "hot dog\tхот-дог"
+ *
  * Supports loading from assets (bundled) or from external file (user-provided).
  */
 public class TranslationDictionary {
     private static final String TAG = "TranslationDict";
 
     private final Map<String, String[]> dictionary = new HashMap<>();
+    private final Map<String, String[]> phraseDictionary = new HashMap<>();
     private String sourceLang;
     private String targetLang;
     private boolean loaded = false;
@@ -38,6 +42,7 @@ public class TranslationDictionary {
         this.sourceLang = fromLang;
         this.targetLang = toLang;
         dictionary.clear();
+        phraseDictionary.clear();
         loaded = false;
 
         String assetName = "dict/" + fromLang + "_" + toLang + ".tsv";
@@ -48,7 +53,8 @@ public class TranslationDictionary {
             try {
                 InputStream is = new FileInputStream(externalFile);
                 loadFromStream(is);
-                Log.i(TAG, "Loaded external dict " + externalFile + ": " + dictionary.size() + " entries");
+                Log.i(TAG, "Loaded external dict " + externalFile + ": " + dictionary.size() +
+                        " words, " + phraseDictionary.size() + " phrases");
                 loaded = true;
                 return;
             } catch (Exception e) {
@@ -60,7 +66,8 @@ public class TranslationDictionary {
         try {
             InputStream is = context.getAssets().open(assetName);
             loadFromStream(is);
-            Log.i(TAG, "Loaded asset dict " + assetName + ": " + dictionary.size() + " entries");
+            Log.i(TAG, "Loaded asset dict " + assetName + ": " + dictionary.size() +
+                    " words, " + phraseDictionary.size() + " phrases");
             loaded = true;
         } catch (Exception e) {
             Log.w(TAG, "No dictionary found for " + fromLang + " -> " + toLang + ": " + e);
@@ -73,10 +80,16 @@ public class TranslationDictionary {
         while ((line = br.readLine()) != null) {
             int tab = line.indexOf('\t');
             if (tab <= 0 || tab >= line.length() - 1) continue;
-            String word = line.substring(0, tab).trim().toLowerCase();
+            String key = line.substring(0, tab).trim().toLowerCase();
             String translations = line.substring(tab + 1).trim();
-            if (!word.isEmpty() && !translations.isEmpty()) {
-                dictionary.put(word, translations.split(","));
+            if (!key.isEmpty() && !translations.isEmpty()) {
+                String[] values = translations.split(",");
+                if (key.indexOf(' ') >= 0) {
+                    // Phrase entry (contains space)
+                    phraseDictionary.put(key, values);
+                } else {
+                    dictionary.put(key, values);
+                }
             }
         }
         br.close();
@@ -84,15 +97,33 @@ public class TranslationDictionary {
     }
 
     /**
-     * Look up translations for a word.
+     * Look up translations for a word with optional previous word context.
+     * First tries phrase lookup ("prevWord currentWord"), then single word.
      * Returns list of translation strings, or empty list if not found.
      */
-    public synchronized List<String> translate(String word) {
+    public synchronized List<String> translate(String word, String previousWord) {
         List<String> result = new ArrayList<>();
         if (!loaded || word == null || word.isEmpty()) return result;
 
-        String key = word.trim().toLowerCase();
-        String[] translations = dictionary.get(key);
+        String currentKey = word.trim().toLowerCase();
+
+        // Try phrase lookup first (context-aware)
+        if (previousWord != null && !previousWord.isEmpty()) {
+            String phraseKey = previousWord.trim().toLowerCase() + " " + currentKey;
+            String[] phraseTranslations = phraseDictionary.get(phraseKey);
+            if (phraseTranslations != null) {
+                for (String t : phraseTranslations) {
+                    String trimmed = t.trim();
+                    if (!trimmed.isEmpty()) {
+                        result.add(trimmed);
+                    }
+                }
+                return result;
+            }
+        }
+
+        // Fall back to single-word lookup
+        String[] translations = dictionary.get(currentKey);
         if (translations != null) {
             for (String t : translations) {
                 String trimmed = t.trim();
@@ -104,12 +135,23 @@ public class TranslationDictionary {
         return result;
     }
 
+    /**
+     * Look up translations for a word (no context).
+     */
+    public synchronized List<String> translate(String word) {
+        return translate(word, null);
+    }
+
     public boolean isLoaded() {
         return loaded;
     }
 
     public int size() {
         return dictionary.size();
+    }
+
+    public int phraseSize() {
+        return phraseDictionary.size();
     }
 
     public String getSourceLang() {

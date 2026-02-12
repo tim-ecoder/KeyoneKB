@@ -66,13 +66,21 @@ public class TranslationManager {
     }
 
     /**
-     * Translate a word. Returns translations or empty list.
+     * Translate a word with context of previous word. Returns translations or empty list.
+     * Tries phrase lookup first ("previousWord currentWord"), then single word.
      */
-    public synchronized List<String> translate(String word) {
+    public synchronized List<String> translate(String word, String previousWord) {
         if (!enabled || !dictionary.isLoaded()) {
             return java.util.Collections.emptyList();
         }
-        return dictionary.translate(word);
+        return dictionary.translate(word, previousWord);
+    }
+
+    /**
+     * Translate a word without context. Returns translations or empty list.
+     */
+    public synchronized List<String> translate(String word) {
+        return translate(word, null);
     }
 
     /**
