@@ -100,6 +100,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     private SuggestionBar suggestionBar;
     private TranslationManager translationManager;
     private int predictionSlotCount = 4;
+    private int translationSlotCount = 4;
 
     private boolean isNotStarted = true;
 
@@ -215,7 +216,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 if (predictionHeight < 10) predictionHeight = 36;
                 predictionSlotCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT);
                 if (predictionSlotCount < 1) predictionSlotCount = 4;
-                suggestionBar = new SuggestionBar(this, predictionHeight, predictionSlotCount);
+                translationSlotCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_22_TRANSLATION_COUNT);
+                if (translationSlotCount < 1) translationSlotCount = 4;
+                int barSlots = Math.max(predictionSlotCount, translationSlotCount);
+                suggestionBar = new SuggestionBar(this, predictionHeight, barSlots);
                 wordPredictor.setSuggestLimit(predictionSlotCount);
                 wordPredictor.setListener(new WordPredictor.SuggestionListener() {
                     public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
@@ -1160,19 +1164,25 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     private void updateSuggestionBarWithTranslation(java.util.List<WordPredictor.Suggestion> suggestions) {
         if (translationManager != null && translationManager.isEnabled()) {
-            // Try to translate the current word or the top suggestion
             String word = wordPredictor.getCurrentWord();
             java.util.List<String> translations = null;
             if (word != null && !word.isEmpty()) {
                 translations = translationManager.translate(word);
             }
             if (translations != null && !translations.isEmpty()) {
-                suggestionBar.updateTranslation(translations, word);
+                // Limit to translationSlotCount
+                if (translations.size() > translationSlotCount) {
+                    translations = translations.subList(0, translationSlotCount);
+                }
+                suggestionBar.updateTranslation(translations, word, translationSlotCount);
                 setCandidatesViewShown(true);
                 return;
             }
         }
-        // Fall back to normal suggestions
+        // Fall back to normal predictions (limited to predictionSlotCount)
+        if (suggestions != null && suggestions.size() > predictionSlotCount) {
+            suggestions = suggestions.subList(0, predictionSlotCount);
+        }
         suggestionBar.update(suggestions, wordPredictor.getCurrentWord());
         setCandidatesViewShown(true);
     }
@@ -1210,7 +1220,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             if (word != null && !word.isEmpty()) {
                 java.util.List<String> translations = translationManager.translate(word);
                 if (!translations.isEmpty()) {
-                    suggestionBar.updateTranslation(translations, word);
+                    if (translations.size() > translationSlotCount) {
+                        translations = translations.subList(0, translationSlotCount);
+                    }
+                    suggestionBar.updateTranslation(translations, word, translationSlotCount);
                     setCandidatesViewShown(true);
                 }
             }

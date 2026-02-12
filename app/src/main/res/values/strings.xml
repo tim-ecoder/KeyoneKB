@@ -142,6 +142,7 @@
     <string name="pred_learned_cleared">Learned words cleared</string>
     <string name="pred_section_translation">TRANSLATION DICTIONARY</string>
     <string name="pred_translation_hint">Ctrl+T to toggle translation mode.\nTranslates current word in suggestion bar.\nSource: current layout, target: next layout.</string>
+    <string name="pref_translation_slots_count">Translation pillows count</string>
     <string name="pred_translation_words">words</string>
     <string name="pred_translation_not_found">not found</string>
     <string name="pred_translation_external">External dictionaries</string>

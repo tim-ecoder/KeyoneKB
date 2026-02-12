@@ -170,6 +170,19 @@ public class ActivityPredictionSettings extends Activity {
     }
 
     private void setupTranslation() {
+        // Translation pillows count
+        SeekBar seekTransCount = (SeekBar) findViewById(R.id.seekBarTranslationCount);
+        int transCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_22_TRANSLATION_COUNT);
+        if (transCount < 1) transCount = 4;
+        seekTransCount.setProgress(transCount);
+        seekTransCount.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_22_TRANSLATION_COUNT, Math.max(1, progress));
+            }
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
         tvTranslationStatus = (TextView) findViewById(R.id.tv_translation_status);
         refreshTranslationStatus();
     }

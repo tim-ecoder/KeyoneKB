@@ -127,6 +127,21 @@
                 android:text="@string/pred_translation_hint" />
         </LinearLayout>
 
+        <LinearLayout style="@style/ItemPillSeek">
+            <TextView
+                style="@style/ItemPillSeekTitle"
+                android:text="@string/pref_translation_slots_count" />
+            <SeekBar
+                android:id="@+id/seekBarTranslationCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:min="1"
+                android:max="6"
+                android:progress="4"
+                android:progressTint="@color/colorPrimary"
+                android:thumbTint="@color/colorPrimary" />
+        </LinearLayout>
+
         <LinearLayout
             style="@style/ItemPill"
             android:orientation="vertical"
