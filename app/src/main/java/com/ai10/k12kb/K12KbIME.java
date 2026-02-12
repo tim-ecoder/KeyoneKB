@@ -1165,9 +1165,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     private void updateSuggestionBarWithTranslation(java.util.List<WordPredictor.Suggestion> suggestions) {
         if (translationManager != null && translationManager.isEnabled()) {
             String word = wordPredictor.getCurrentWord();
+            String prevWord = wordPredictor.getPreviousWord();
             java.util.List<String> translations = null;
             if (word != null && !word.isEmpty()) {
-                translations = translationManager.translate(word);
+                translations = translationManager.translate(word, prevWord);
             }
             if (translations != null && !translations.isEmpty()) {
                 // Limit to translationSlotCount
@@ -1217,8 +1218,9 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         // If enabled and we have a current word, translate immediately
         if (enabled && wordPredictor != null) {
             String word = wordPredictor.getCurrentWord();
+            String prevWord = wordPredictor.getPreviousWord();
             if (word != null && !word.isEmpty()) {
-                java.util.List<String> translations = translationManager.translate(word);
+                java.util.List<String> translations = translationManager.translate(word, prevWord);
                 if (!translations.isEmpty()) {
                     if (translations.size() > translationSlotCount) {
                         translations = translations.subList(0, translationSlotCount);
