@@ -1171,11 +1171,12 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 translations = translationManager.translate(word, prevWord);
             }
             if (translations != null && !translations.isEmpty()) {
+                boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
                 // Limit to translationSlotCount
                 if (translations.size() > translationSlotCount) {
                     translations = translations.subList(0, translationSlotCount);
                 }
-                suggestionBar.updateTranslation(translations, word, translationSlotCount);
+                suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch);
                 setCandidatesViewShown(true);
                 return;
             }
@@ -1192,10 +1193,20 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         if (translatedWord == null || translatedWord.isEmpty()) return;
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
-        // Replace the current word with the translation
+        // Replace the current word (and previous word if phrase match) with the translation
         if (wordPredictor != null) {
             String currentWord = wordPredictor.getCurrentWord();
-            if (currentWord != null && !currentWord.isEmpty()) {
+            String previousWord = wordPredictor.getPreviousWord();
+            boolean isPhraseMatch = suggestionBar != null && suggestionBar.isPhraseMatch();
+            if (isPhraseMatch && previousWord != null && !previousWord.isEmpty()) {
+                // Delete current word + separator + previous word
+                // Text before cursor is: "previousWord currentWord"
+                // We need to delete: currentWord.length() + 1 (space) + previousWord.length()
+                int deleteLen = (currentWord != null ? currentWord.length() : 0)
+                        + 1 // space/separator between words
+                        + previousWord.length();
+                ic.deleteSurroundingText(deleteLen, 0);
+            } else if (currentWord != null && !currentWord.isEmpty()) {
                 ic.deleteSurroundingText(currentWord.length(), 0);
             }
             wordPredictor.reset();
@@ -1222,10 +1233,11 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             if (word != null && !word.isEmpty()) {
                 java.util.List<String> translations = translationManager.translate(word, prevWord);
                 if (!translations.isEmpty()) {
+                    boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
                     if (translations.size() > translationSlotCount) {
                         translations = translations.subList(0, translationSlotCount);
                     }
-                    suggestionBar.updateTranslation(translations, word, translationSlotCount);
+                    suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch);
                     setCandidatesViewShown(true);
                 }
             }

@@ -92,6 +92,10 @@ public class TranslationManager {
                 targetLang.equals(dictionary.getTargetLang());
     }
 
+    public boolean wasLastPhraseMatch() {
+        return dictionary.wasLastPhraseMatch();
+    }
+
     public String getSourceLang() { return sourceLang; }
     public String getTargetLang() { return targetLang; }
     public int getDictionarySize() { return dictionary.size(); }

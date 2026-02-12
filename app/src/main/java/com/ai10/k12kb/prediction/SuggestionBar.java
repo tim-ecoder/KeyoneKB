@@ -38,6 +38,7 @@ public class SuggestionBar extends LinearLayout {
     private int[] slotToSuggestion; // maps slot position to suggestion index
     private int numSlots;
     private boolean showingTranslations = false;
+    private boolean phraseMatch = false;
     private OnSuggestionClickListener clickListener;
 
     public interface OnSuggestionClickListener {
@@ -211,7 +212,12 @@ public class SuggestionBar extends LinearLayout {
      * Update displayed translations (blue text).
      */
     public void updateTranslation(List<String> translations, String sourceWord, int maxSlots) {
+        updateTranslation(translations, sourceWord, maxSlots, false);
+    }
+
+    public void updateTranslation(List<String> translations, String sourceWord, int maxSlots, boolean isPhraseMatch) {
         showingTranslations = true;
+        phraseMatch = isPhraseMatch;
         int limit = Math.min(numSlots, maxSlots);
         int count = (translations != null) ? Math.min(translations.size(), limit) : 0;
 
@@ -254,11 +260,16 @@ public class SuggestionBar extends LinearLayout {
         return showingTranslations;
     }
 
+    public boolean isPhraseMatch() {
+        return phraseMatch;
+    }
+
     /**
      * Clear all suggestions.
      */
     public void clear() {
         showingTranslations = false;
+        phraseMatch = false;
         for (int i = 0; i < numSlots; i++) {
             slots[i].setText("");
             slots[i].setVisibility(View.VISIBLE);

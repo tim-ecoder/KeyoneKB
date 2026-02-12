@@ -30,6 +30,7 @@ public class TranslationDictionary {
     private String sourceLang;
     private String targetLang;
     private boolean loaded = false;
+    private boolean lastWasPhraseMatch = false;
 
     public TranslationDictionary() {
     }
@@ -103,6 +104,7 @@ public class TranslationDictionary {
      */
     public synchronized List<String> translate(String word, String previousWord) {
         List<String> result = new ArrayList<>();
+        lastWasPhraseMatch = false;
         if (!loaded || word == null || word.isEmpty()) return result;
 
         String currentKey = word.trim().toLowerCase();
@@ -112,6 +114,7 @@ public class TranslationDictionary {
             String phraseKey = previousWord.trim().toLowerCase() + " " + currentKey;
             String[] phraseTranslations = phraseDictionary.get(phraseKey);
             if (phraseTranslations != null) {
+                lastWasPhraseMatch = true;
                 for (String t : phraseTranslations) {
                     String trimmed = t.trim();
                     if (!trimmed.isEmpty()) {
@@ -133,6 +136,10 @@ public class TranslationDictionary {
             }
         }
         return result;
+    }
+
+    public boolean wasLastPhraseMatch() {
+        return lastWasPhraseMatch;
     }
 
     /**
