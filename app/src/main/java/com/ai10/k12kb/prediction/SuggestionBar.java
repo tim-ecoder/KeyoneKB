@@ -27,6 +27,7 @@ public class SuggestionBar extends LinearLayout {
     private static final int COLOR_SLOT_PRESSED  = 0xFF5F6368; // keyboard_pressed
     private static final int COLOR_TEXT           = 0xFFE8EAED; // keyboard_text_color
     private static final int COLOR_DIVIDER        = 0xFF101012;
+    private static final int COLOR_TRANSLATION    = 0xFF8AB4F8; // light blue for translations
 
     private static final int SLOT_CORNER_RADIUS_DP = 6;
     private static final int SLOT_INSET_DP         = 3;
@@ -36,6 +37,7 @@ public class SuggestionBar extends LinearLayout {
     private TextView[] slots;
     private int[] slotToSuggestion; // maps slot position to suggestion index
     private int numSlots;
+    private boolean showingTranslations = false;
     private OnSuggestionClickListener clickListener;
 
     public interface OnSuggestionClickListener {
@@ -143,6 +145,7 @@ public class SuggestionBar extends LinearLayout {
      * Update displayed suggestions.
      */
     public void update(List<WordPredictor.Suggestion> suggestions, String prefix) {
+        showingTranslations = false;
         String pfx = (prefix != null) ? prefix.toLowerCase() : "";
         int count = (suggestions != null) ? suggestions.size() : 0;
 
@@ -205,9 +208,50 @@ public class SuggestionBar extends LinearLayout {
     }
 
     /**
+     * Update displayed translations (blue text).
+     */
+    public void updateTranslation(List<String> translations, String sourceWord) {
+        showingTranslations = true;
+        int count = (translations != null) ? translations.size() : 0;
+
+        // Clear all slots first
+        for (int i = 0; i < numSlots; i++) {
+            slots[i].setText("");
+            slots[i].setVisibility(View.VISIBLE);
+            slots[i].setTypeface(null, Typeface.NORMAL);
+            slots[i].setEllipsize(TextUtils.TruncateAt.END);
+            slots[i].setTextColor(COLOR_TRANSLATION);
+            LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
+            lp.weight = 1;
+            lp.width = 0;
+            slots[i].setLayoutParams(lp);
+        }
+
+        // Place translations left-to-right
+        for (int i = 0; i < count && i < numSlots; i++) {
+            String word = translations.get(i);
+            slots[i].setText(word);
+            float textWidth = slots[i].getPaint().measureText(word);
+            float weight = Math.max(textWidth, 30f) + (numSlots - i) * 10f;
+            LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
+            lp.weight = weight;
+            lp.width = 0;
+            slots[i].setLayoutParams(lp);
+            if (i == 0) {
+                slots[i].setTypeface(null, Typeface.BOLD);
+            }
+        }
+    }
+
+    public boolean isShowingTranslations() {
+        return showingTranslations;
+    }
+
+    /**
      * Clear all suggestions.
      */
     public void clear() {
+        showingTranslations = false;
         for (int i = 0; i < numSlots; i++) {
             slots[i].setText("");
             slots[i].setVisibility(View.VISIBLE);

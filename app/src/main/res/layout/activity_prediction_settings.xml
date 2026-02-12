@@ -109,6 +109,39 @@
                 android:textAllCaps="false" />
         </LinearLayout>
 
+        <!-- TRANSLATION DICTIONARY -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/pred_section_translation" />
+
+        <LinearLayout
+            style="@style/ItemPill"
+            android:orientation="vertical"
+            android:gravity="start">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textSecondaryColor"
+                android:textSize="13sp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/pred_translation_hint" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/ItemPill"
+            android:orientation="vertical"
+            android:gravity="start">
+            <TextView
+                android:id="@+id/tv_translation_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textPrimaryColor"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:typeface="monospace"
+                android:text="" />
+        </LinearLayout>
+
         <!-- STATUS -->
         <TextView
             style="@style/SectionHeader"

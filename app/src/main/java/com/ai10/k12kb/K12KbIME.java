@@ -30,6 +30,7 @@ import android.widget.Toast;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.ai10.k12kb.input.CallStateCallback;
 import com.ai10.k12kb.prediction.SuggestionBar;
+import com.ai10.k12kb.prediction.TranslationManager;
 import com.ai10.k12kb.prediction.WordDictionary;
 import com.ai10.k12kb.prediction.WordPredictor;
 
@@ -97,6 +98,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     private String deviceFullMODEL;
 
     private SuggestionBar suggestionBar;
+    private TranslationManager translationManager;
     private int predictionSlotCount = 4;
 
     private boolean isNotStarted = true;
@@ -218,14 +220,12 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 wordPredictor.setListener(new WordPredictor.SuggestionListener() {
                     public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
                         if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-                            suggestionBar.update(suggestions, wordPredictor.getCurrentWord());
-                            setCandidatesViewShown(true);
+                            updateSuggestionBarWithTranslation(suggestions);
                         } else {
                             final String pfx = wordPredictor.getCurrentWord();
                             suggestionBar.post(new Runnable() {
                                 public void run() {
-                                    suggestionBar.update(suggestions, pfx);
-                                    setCandidatesViewShown(true);
+                                    updateSuggestionBarWithTranslation(suggestions);
                                 }
                             });
                         }
@@ -233,9 +233,15 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 });
                 suggestionBar.setOnSuggestionClickListener(new SuggestionBar.OnSuggestionClickListener() {
                     public void onSuggestionClicked(int index, String word) {
-                        acceptSuggestion(index);
+                        if (suggestionBar.isShowingTranslations()) {
+                            acceptTranslation(word);
+                        } else {
+                            acceptSuggestion(index);
+                        }
                     }
                 });
+                // Initialize translation manager
+                translationManager = new TranslationManager(getApplicationContext());
             }
 
             STEP = "keyboardNavigation";
@@ -1099,6 +1105,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             mainToast.show();
         }
         reloadDictionaryForCurrentLanguage();
+        updateTranslationLanguages();
     }
 
     @Override
@@ -1112,6 +1119,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             mainToast.show();
         }
         reloadDictionaryForCurrentLanguage();
+        updateTranslationLanguages();
     }
 
     private void reloadDictionaryForCurrentLanguage() {
@@ -1148,6 +1156,92 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         }
         ic.commitText(replacement + " ", 1);
         suggestionBar.clear();
+    }
+
+    private void updateSuggestionBarWithTranslation(java.util.List<WordPredictor.Suggestion> suggestions) {
+        if (translationManager != null && translationManager.isEnabled()) {
+            // Try to translate the current word or the top suggestion
+            String word = wordPredictor.getCurrentWord();
+            java.util.List<String> translations = null;
+            if (word != null && !word.isEmpty()) {
+                translations = translationManager.translate(word);
+            }
+            if (translations != null && !translations.isEmpty()) {
+                suggestionBar.updateTranslation(translations, word);
+                setCandidatesViewShown(true);
+                return;
+            }
+        }
+        // Fall back to normal suggestions
+        suggestionBar.update(suggestions, wordPredictor.getCurrentWord());
+        setCandidatesViewShown(true);
+    }
+
+    private void acceptTranslation(String translatedWord) {
+        if (translatedWord == null || translatedWord.isEmpty()) return;
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+        // Replace the current word with the translation
+        if (wordPredictor != null) {
+            String currentWord = wordPredictor.getCurrentWord();
+            if (currentWord != null && !currentWord.isEmpty()) {
+                ic.deleteSurroundingText(currentWord.length(), 0);
+            }
+            wordPredictor.reset();
+        }
+        ic.commitText(translatedWord + " ", 1);
+        suggestionBar.clear();
+    }
+
+    public boolean ActionToggleTranslationMode(KeyPressData keyPressData) {
+        // Only trigger on key T (KEYCODE_T = 48)
+        if (keyPressData.KeyCode != 48) return false;
+        if (translationManager == null || suggestionBar == null) return false;
+        boolean enabled = translationManager.toggle();
+        // Update languages based on current layout
+        updateTranslationLanguages();
+        String msg = enabled ?
+                "\uD83C\uDF10 " + translationManager.getSourceLang().toUpperCase() + " \u2192 " + translationManager.getTargetLang().toUpperCase() :
+                "\uD83C\uDF10 OFF";
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+        // If enabled and we have a current word, translate immediately
+        if (enabled && wordPredictor != null) {
+            String word = wordPredictor.getCurrentWord();
+            if (word != null && !word.isEmpty()) {
+                java.util.List<String> translations = translationManager.translate(word);
+                if (!translations.isEmpty()) {
+                    suggestionBar.updateTranslation(translations, word);
+                    setCandidatesViewShown(true);
+                }
+            }
+        } else {
+            suggestionBar.clear();
+        }
+        return true;
+    }
+
+    private void updateTranslationLanguages() {
+        if (translationManager == null || keyboardLayoutManager == null) return;
+        try {
+            String currentLang = layoutToLangCode(keyboardLayoutManager.GetCurrentKeyboardLayout());
+            String nextLang = layoutToLangCode(keyboardLayoutManager.GetNextKeyboardLayout());
+            translationManager.updateLanguages(currentLang, nextLang);
+        } catch (Throwable ex) {
+            Log.w(TAG2, "updateTranslationLanguages error: " + ex);
+        }
+    }
+
+    private String layoutToLangCode(KeyboardLayout kl) {
+        if (kl == null) return "en";
+        String name = kl.KeyboardName;
+        if (name == null) return "en";
+        String lower = name.toLowerCase(java.util.Locale.ROOT);
+        if (lower.contains("русск") || lower.contains("russian")) return "ru";
+        if (lower.contains("украин") || lower.contains("ukrain")) return "uk";
+        if (lower.contains("deutsch") || lower.contains("german")) return "de";
+        if (lower.contains("français") || lower.contains("french")) return "fr";
+        if (lower.contains("español") || lower.contains("spanish")) return "es";
+        return "en";
     }
 
     protected void UpdateKeyboardVisibilityOnPrefChange() {

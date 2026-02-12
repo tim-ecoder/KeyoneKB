@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ai10.k12kb.prediction.LearnedDictionary;
+import com.ai10.k12kb.prediction.TranslationDictionary;
 import com.ai10.k12kb.prediction.WordDictionary;
 import com.ai10.k12kb.prediction.WordPredictor;
 
@@ -34,6 +35,7 @@ public class ActivityPredictionSettings extends Activity {
     private TextView tvDictStatus;
     private TextView tvCacheStatus;
     private TextView tvLearnedStatus;
+    private TextView tvTranslationStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,7 @@ public class ActivityPredictionSettings extends Activity {
 
         setupPredictionSettings();
         setupLearning();
+        setupTranslation();
         setupStatus();
         setupCache();
     }
@@ -56,6 +59,7 @@ public class ActivityPredictionSettings extends Activity {
         refreshStatus();
         refreshCacheStatus();
         refreshLearnedStatus();
+        refreshTranslationStatus();
     }
 
     private void setupPredictionSettings() {
@@ -163,6 +167,48 @@ public class ActivityPredictionSettings extends Activity {
         }
 
         tvLearnedStatus.setText(sb.toString());
+    }
+
+    private void setupTranslation() {
+        tvTranslationStatus = (TextView) findViewById(R.id.tv_translation_status);
+        refreshTranslationStatus();
+    }
+
+    private void refreshTranslationStatus() {
+        StringBuilder sb = new StringBuilder();
+        // Check which dictionary files exist in assets
+        String[] pairs = {"ru_en", "en_ru"};
+        for (String pair : pairs) {
+            String assetName = "dict/" + pair + ".tsv";
+            try {
+                java.io.InputStream is = getAssets().open(assetName);
+                // Count lines
+                java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(is));
+                int count = 0;
+                while (br.readLine() != null) count++;
+                br.close();
+                sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
+                  .append(count).append(" ").append(getString(R.string.pred_translation_words)).append("\n");
+            } catch (Exception e) {
+                sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
+                  .append(getString(R.string.pred_translation_not_found)).append("\n");
+            }
+        }
+        // Check for external dict overrides
+        File extDir = new File("/sdcard/k12kb/dict/");
+        if (extDir.exists() && extDir.isDirectory()) {
+            File[] files = extDir.listFiles();
+            if (files != null && files.length > 0) {
+                sb.append("\n").append(getString(R.string.pred_translation_external)).append(":\n");
+                for (File f : files) {
+                    if (f.getName().endsWith(".tsv")) {
+                        sb.append("  ").append(f.getName()).append(" (")
+                          .append(f.length() / 1024).append(" KB)\n");
+                    }
+                }
+            }
+        }
+        tvTranslationStatus.setText(sb.toString().trim());
     }
 
     private void setupStatus() {

@@ -509,6 +509,29 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return new ActionMethod<T>(IActionMethod, class1);
     }
 
+    // Helper for KeyPressData methods resolved via reflection (for methods in subclasses)
+    private ActionMethod<KeyPressData> objActionKeyPress(final String methodName) {
+        final java.lang.reflect.Method m;
+        try {
+            m = this.getClass().getMethod(methodName, KeyPressData.class);
+        } catch (Exception e) {
+            Log.e(TAG2, "objActionKeyPress lookup error: " + methodName + " " + e);
+            return new ActionMethod<KeyPressData>(new IActionMethod<KeyPressData>() {
+                public boolean invoke(KeyPressData p) { return false; }
+            }, KeyPressData.class);
+        }
+        return new ActionMethod<KeyPressData>(new IActionMethod<KeyPressData>() {
+            public boolean invoke(KeyPressData p) {
+                try {
+                    return (Boolean) m.invoke(InputMethodServiceCoreCustomizable.this, p);
+                } catch (Exception e) {
+                    Log.e(TAG2, "objActionKeyPress invoke error: " + methodName + " " + e);
+                    return false;
+                }
+            }
+        }, KeyPressData.class);
+    }
+
     // Helper to create IActionMethod<Object> without lambdas (avoids invokedynamic/BootstrapMethodError)
     private ActionMethod<Object> objAction(final String methodName) {
         final java.lang.reflect.Method m;
@@ -573,6 +596,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionSendCharSinglePressSymMode", InitializeMethod3(new IActionMethod<KeyPressData>() { public boolean invoke(KeyPressData p) { return ActionSendCharSinglePressSymMode(p); } }, KeyPressData.class));
         Methods.put("ActionSendCharToInput", InitializeMethod3(new IActionMethod<Character>() { public boolean invoke(Character p) { return ActionSendCharToInput(p); } }, Character.class));
         Methods.put("ActionSendCtrlPlusKey", InitializeMethod3(new IActionMethod<KeyPressData>() { public boolean invoke(KeyPressData p) { return ActionSendCtrlPlusKey(p); } }, KeyPressData.class));
+        Methods.put("ActionToggleTranslationMode", objActionKeyPress("ActionToggleTranslationMode"));
         Methods.put("ActionSetNeedUpdateVisualState", objAction("ActionSetNeedUpdateVisualState"));
         Methods.put("ActionTryAcceptCall", objAction("ActionTryAcceptCall"));
         Methods.put("ActionTryCapitalizeFirstLetter", objAction("ActionTryCapitalizeFirstLetter"));
