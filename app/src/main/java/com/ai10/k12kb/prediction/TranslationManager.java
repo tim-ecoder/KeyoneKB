@@ -96,6 +96,10 @@ public class TranslationManager {
         return dictionary.wasLastPhraseMatch();
     }
 
+    public int getLastPhraseResultCount() {
+        return dictionary.getLastPhraseResultCount();
+    }
+
     public String getSourceLang() { return sourceLang; }
     public String getTargetLang() { return targetLang; }
     public int getDictionarySize() { return dictionary.size(); }

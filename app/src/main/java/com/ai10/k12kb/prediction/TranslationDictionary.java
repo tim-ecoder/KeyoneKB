@@ -31,6 +31,7 @@ public class TranslationDictionary {
     private String targetLang;
     private boolean loaded = false;
     private boolean lastWasPhraseMatch = false;
+    private int lastPhraseResultCount = 0;
 
     public TranslationDictionary() {
     }
@@ -105,11 +106,12 @@ public class TranslationDictionary {
     public synchronized List<String> translate(String word, String previousWord) {
         List<String> result = new ArrayList<>();
         lastWasPhraseMatch = false;
+        lastPhraseResultCount = 0;
         if (!loaded || word == null || word.isEmpty()) return result;
 
         String currentKey = word.trim().toLowerCase();
 
-        // Try phrase lookup first (context-aware)
+        // Try bigram/phrase lookup first (context-aware)
         if (previousWord != null && !previousWord.isEmpty()) {
             String phraseKey = previousWord.trim().toLowerCase() + " " + currentKey;
             String[] phraseTranslations = phraseDictionary.get(phraseKey);
@@ -121,16 +123,16 @@ public class TranslationDictionary {
                         result.add(trimmed);
                     }
                 }
-                return result;
+                lastPhraseResultCount = result.size();
             }
         }
 
-        // Fall back to single-word lookup
+        // Also add single-word translations (after phrase results)
         String[] translations = dictionary.get(currentKey);
         if (translations != null) {
             for (String t : translations) {
                 String trimmed = t.trim();
-                if (!trimmed.isEmpty()) {
+                if (!trimmed.isEmpty() && !result.contains(trimmed)) {
                     result.add(trimmed);
                 }
             }
@@ -140,6 +142,10 @@ public class TranslationDictionary {
 
     public boolean wasLastPhraseMatch() {
         return lastWasPhraseMatch;
+    }
+
+    public int getLastPhraseResultCount() {
+        return lastPhraseResultCount;
     }
 
     /**

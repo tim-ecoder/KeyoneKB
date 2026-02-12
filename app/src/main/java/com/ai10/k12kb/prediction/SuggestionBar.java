@@ -39,6 +39,7 @@ public class SuggestionBar extends LinearLayout {
     private int numSlots;
     private boolean showingTranslations = false;
     private boolean phraseMatch = false;
+    private int phraseResultCount = 0;
     private OnSuggestionClickListener clickListener;
 
     public interface OnSuggestionClickListener {
@@ -212,12 +213,18 @@ public class SuggestionBar extends LinearLayout {
      * Update displayed translations (blue text).
      */
     public void updateTranslation(List<String> translations, String sourceWord, int maxSlots) {
-        updateTranslation(translations, sourceWord, maxSlots, false);
+        updateTranslation(translations, sourceWord, maxSlots, false, 0);
     }
 
     public void updateTranslation(List<String> translations, String sourceWord, int maxSlots, boolean isPhraseMatch) {
+        updateTranslation(translations, sourceWord, maxSlots, isPhraseMatch, isPhraseMatch ? translations.size() : 0);
+    }
+
+    public void updateTranslation(List<String> translations, String sourceWord, int maxSlots,
+                                   boolean isPhraseMatch, int numPhraseResults) {
         showingTranslations = true;
         phraseMatch = isPhraseMatch;
+        phraseResultCount = numPhraseResults;
         int limit = Math.min(numSlots, maxSlots);
         int count = (translations != null) ? Math.min(translations.size(), limit) : 0;
 
@@ -227,6 +234,7 @@ public class SuggestionBar extends LinearLayout {
             slots[i].setTypeface(null, Typeface.NORMAL);
             slots[i].setEllipsize(TextUtils.TruncateAt.END);
             slots[i].setTextColor(COLOR_TRANSLATION);
+            slotToSuggestion[i] = i;
             LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
             if (i < limit) {
                 slots[i].setVisibility(View.VISIBLE);
@@ -244,15 +252,20 @@ public class SuggestionBar extends LinearLayout {
         for (int i = 0; i < count; i++) {
             String word = translations.get(i);
             slots[i].setText(word);
+            // Bigram results: blue bold; single-word results: lighter color
+            if (i < numPhraseResults) {
+                slots[i].setTextColor(COLOR_TRANSLATION);
+                slots[i].setTypeface(null, Typeface.BOLD);
+            } else {
+                slots[i].setTextColor(COLOR_TEXT);
+                slots[i].setTypeface(null, Typeface.NORMAL);
+            }
             float textWidth = slots[i].getPaint().measureText(word);
             float weight = Math.max(textWidth, 30f) + (limit - i) * 10f;
             LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
             lp.weight = weight;
             lp.width = 0;
             slots[i].setLayoutParams(lp);
-            if (i == 0) {
-                slots[i].setTypeface(null, Typeface.BOLD);
-            }
         }
     }
 
@@ -265,11 +278,19 @@ public class SuggestionBar extends LinearLayout {
     }
 
     /**
+     * Check if a specific clicked index is a phrase (bigram) result.
+     */
+    public boolean isPhraseResult(int index) {
+        return phraseMatch && index < phraseResultCount;
+    }
+
+    /**
      * Clear all suggestions.
      */
     public void clear() {
         showingTranslations = false;
         phraseMatch = false;
+        phraseResultCount = 0;
         for (int i = 0; i < numSlots; i++) {
             slots[i].setText("");
             slots[i].setVisibility(View.VISIBLE);
