@@ -238,7 +238,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 suggestionBar.setOnSuggestionClickListener(new SuggestionBar.OnSuggestionClickListener() {
                     public void onSuggestionClicked(int index, String word) {
                         if (suggestionBar.isShowingTranslations()) {
-                            acceptTranslation(word);
+                            acceptTranslation(word, suggestionBar.isPhraseResult(index));
                         } else {
                             acceptSuggestion(index);
                         }
@@ -1171,11 +1171,13 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 translations = translationManager.translate(word, prevWord);
             }
             if (translations != null && !translations.isEmpty()) {
+                boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
+                int phraseResultCount = translationManager.getLastPhraseResultCount();
                 // Limit to translationSlotCount
                 if (translations.size() > translationSlotCount) {
                     translations = translations.subList(0, translationSlotCount);
                 }
-                suggestionBar.updateTranslation(translations, word, translationSlotCount);
+                suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseResultCount);
                 setCandidatesViewShown(true);
                 return;
             }
@@ -1188,14 +1190,22 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         setCandidatesViewShown(true);
     }
 
-    private void acceptTranslation(String translatedWord) {
+    private void acceptTranslation(String translatedWord, boolean isPhraseResult) {
         if (translatedWord == null || translatedWord.isEmpty()) return;
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
-        // Replace the current word with the translation
+        // Replace the current word (and previous word if bigram phrase match) with the translation
         if (wordPredictor != null) {
             String currentWord = wordPredictor.getCurrentWord();
-            if (currentWord != null && !currentWord.isEmpty()) {
+            String previousWord = wordPredictor.getPreviousWord();
+            if (isPhraseResult && previousWord != null && !previousWord.isEmpty()) {
+                // Bigram match: delete current word + space + previous word
+                int deleteLen = (currentWord != null ? currentWord.length() : 0)
+                        + 1 // space between words
+                        + previousWord.length();
+                ic.deleteSurroundingText(deleteLen, 0);
+            } else if (currentWord != null && !currentWord.isEmpty()) {
+                // Single word: delete only current word
                 ic.deleteSurroundingText(currentWord.length(), 0);
             }
             wordPredictor.reset();
@@ -1222,10 +1232,12 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             if (word != null && !word.isEmpty()) {
                 java.util.List<String> translations = translationManager.translate(word, prevWord);
                 if (!translations.isEmpty()) {
+                    boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
+                    int phraseCount = translationManager.getLastPhraseResultCount();
                     if (translations.size() > translationSlotCount) {
                         translations = translations.subList(0, translationSlotCount);
                     }
-                    suggestionBar.updateTranslation(translations, word, translationSlotCount);
+                    suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseCount);
                     setCandidatesViewShown(true);
                 }
             }
