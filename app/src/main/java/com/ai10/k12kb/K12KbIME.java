@@ -1222,8 +1222,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         // Update languages based on current layout
         updateTranslationLanguages();
         String msg = enabled ?
-                "\uD83C\uDF10 " + translationManager.getSourceLang().toUpperCase() + " \u2192 " + translationManager.getTargetLang().toUpperCase() :
-                "\uD83C\uDF10 OFF";
+                "\uD83C\uDF10 Translation " + translationManager.getSourceLang().toUpperCase() + " \u2192 " + translationManager.getTargetLang().toUpperCase() :
+                "\uD83C\uDF10 Translation OFF";
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
         // If enabled and we have a current word, translate immediately
         if (enabled && wordPredictor != null) {
