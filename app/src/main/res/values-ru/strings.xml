@@ -137,6 +137,7 @@
     <string name="pred_learned_cleared">Обученные слова очищены</string>
     <string name="pred_section_translation">СЛОВАРЬ ПЕРЕВОДА</string>
     <string name="pred_translation_hint">Ctrl+T для переключения режима перевода.\nПереводит текущее слово в строке подсказок.\nИсточник: текущая раскладка, цель: следующая раскладка.</string>
+    <string name="pref_translation_slots_count">Количество подушек перевода</string>
     <string name="pred_translation_words">слов</string>
     <string name="pred_translation_not_found">не найден</string>
     <string name="pred_translation_external">Внешние словари</string>

@@ -210,29 +210,36 @@ public class SuggestionBar extends LinearLayout {
     /**
      * Update displayed translations (blue text).
      */
-    public void updateTranslation(List<String> translations, String sourceWord) {
+    public void updateTranslation(List<String> translations, String sourceWord, int maxSlots) {
         showingTranslations = true;
-        int count = (translations != null) ? translations.size() : 0;
+        int limit = Math.min(numSlots, maxSlots);
+        int count = (translations != null) ? Math.min(translations.size(), limit) : 0;
 
-        // Clear all slots first
+        // Setup all slots
         for (int i = 0; i < numSlots; i++) {
             slots[i].setText("");
-            slots[i].setVisibility(View.VISIBLE);
             slots[i].setTypeface(null, Typeface.NORMAL);
             slots[i].setEllipsize(TextUtils.TruncateAt.END);
             slots[i].setTextColor(COLOR_TRANSLATION);
             LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
-            lp.weight = 1;
-            lp.width = 0;
+            if (i < limit) {
+                slots[i].setVisibility(View.VISIBLE);
+                lp.weight = 1;
+                lp.width = 0;
+            } else {
+                slots[i].setVisibility(View.GONE);
+                lp.weight = 0;
+                lp.width = 0;
+            }
             slots[i].setLayoutParams(lp);
         }
 
         // Place translations left-to-right
-        for (int i = 0; i < count && i < numSlots; i++) {
+        for (int i = 0; i < count; i++) {
             String word = translations.get(i);
             slots[i].setText(word);
             float textWidth = slots[i].getPaint().measureText(word);
-            float weight = Math.max(textWidth, 30f) + (numSlots - i) * 10f;
+            float weight = Math.max(textWidth, 30f) + (limit - i) * 10f;
             LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
             lp.weight = weight;
             lp.width = 0;
