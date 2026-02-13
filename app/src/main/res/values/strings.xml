@@ -26,22 +26,26 @@
     <string name="keyboard_test_view_test_active" translatable="false">Keyboard test in VIEW_MODE activated</string>
     <string name="keyboard_test_code_title" translatable="false">KeyCode</string>
     <string name="keyboard_test_key_meta_title" translatable="false">MetaState</string>
-    <string name="pref_p_1_name">1. Sensitivity of the keyboard sensor and swipes:</string>
+    <string name="pref_p_1_name">1. Keyboard sensor sensitivity:</string>
     <string name="pref_p_1_value">Lower | Higher</string>
-    <string name="pref_p_2_name">2. Displaying toast when changing the input language</string>
+    <string name="pref_p_2_name">2. Display Toast on language change</string>
     <string name="pref_p_2_hint">It is necessary to enable for correct operation of Text Layout Tools </string>
-    <string name="pref_p_3_name">3. Turn off ALT-mode with spacebar</string>
-    <string name="pref_p_3_hint">ON: ALT-mode characters/numbers will be typed until the space bar is pressed;\n OFF: ALT characters/numbers will be disabled immediately after entering the first character (Blackberry keyboard like behaviour).\n For more useful features for working with symbols, see the Manual in chapter �-�</string>
-    <string name="pref_p_4_name">4. Flag on the bottom swipe-panel</string>
-    <string name="pref_p_5_name">5. By holding a letter, enter the corresponding characters from the ALT/SYM layout</string>
-    <string name="pref_p_5_hint">If the setting is disabled, a capital letter will be entered by holding the button;\n For more utilities for working with Capital letters, see the Manual in chapter B</string>
+    <string name="pref_p_3_name">3. 1xALT -> Alt-symbols till spacebar pressed</string>
+    <string name="pref_p_3_hint">ON: ALT-mode characters/numbers will be typed until the space bar is pressed;\n
+OFF: ALT characters/numbers will be disabled immediately after entering the first character (Blackberry keyboard like behaviour).\n
+2xALT: Alt symbols entering till alt-mode is disabled.\n
+For more useful features for working with symbols, see the Manual.</string>
+    <string name="pref_p_4_name">4. Flag on swipe-panel</string>
+    <string name="pref_p_5_name">5. Holding letter -> ALT/SYM symbol</string>
+    <string name="pref_p_5_hint">If the setting is disabled, a Capital letter will be entered by holding the button;\n
+For more utilities for working with Capital letters, see the Manual in chapter B</string>
     <string name="pref_p_6_name">6. Phone Call Management</string>
     <string name="pref_p_6_hint">Answer call: Key1|2 2хSpace; Pocket|Slim: 1xShift;\nDecline/End call: Key1|2 2хSYM Pocket|Slim: 1xAlt.</string>
     <string name="pref_p_7_name">7. Bottom swipe-panel height:</string>
     <string name="pref_p_7_value">Less | More</string>
-    <string name="pref_p_8_name">8. Show the bottom on-screen swipe-panel</string>
+    <string name="pref_p_8_name">8. Enable on-screen swipe-panel</string>
     <string name="pref_p_8_hint">The panel (showing at input) with arrows and swipes to move cursor and the input layout (with flag)\n Opening the on-screen SYM-pad, NAV-pad keyboard will work anyway.\n You can open/close the swipe-panel with any setting by Shift+Ctrl.</string>
-    <string name="pref_p9_gesture_modes_title">9. Setting up the keyboard sensor (keyboard gestures) in the viewing mode</string>
+    <string name="pref_p9_gesture_modes_title">9. Keyboard gestures mode in the viewing mode</string>
     <string-array name="pref_p9_gesture_modes_array">
         <item>Disabled</item>
         <item>Default Off->Swipe</item>
@@ -56,23 +60,25 @@
         \tDefault Swipe - the default keyboard sensor is in swipe mode. Switch via 2xCTRL (K1: 2xR_SHIFT)\n
         \tDefault Pointer - keyboard sensor in default pointer mode (moving focus/highlighting by icons, controls). Switch via 2xCTRL (K1: 2xR_SHIFT).\n
         \tFor more useful features for working with gestures and text, see the manual in chapter �</string>
-    <string name="pref_p_10_name">10. Layout icon on the right (without text in notifications)</string>
-    <string name="pref_p_11_name">11. Vibration response when pressing the buttons of the hardware keyboard</string>
-    <string name="pref_p_12_name">12. (Paranoid) If the text is entered, then BACK/HOME key must be pressed 2 times</string>
-    <string name="pref_p_12_hint">This is necessary to protect yourself from accidentally clicking on BACK and HOME key and losing the entered text. The setting only works if some text is entered in the input field. If there is no text and the field is empty, then BACK and HOME key work as usual.\n\tThis is really necessary if you enter a lot of text in browser applications, where accidentally pressing BACK will throw you to the previous page and reset the input form</string>
-    <string name="pref_p_13_name">13. (Experimental) Show a frame around the selected element in Pointer mode in view mode</string>
+    <string name="pref_p_10_name">10. Layout icon on the right (without notification)</string>
+    <string name="pref_p_11_name">11. Vibration response when pressing</string>
+    <string name="pref_p_12_name">12. BACK/HOME key must be pressed 2 times, if the text is entered</string>
+    <string name="pref_p_12_hint">This is necessary to protect yourself from accidentally clicking on BACK and HOME key and losing the entered text. The setting only works if some text is entered in the input field. If there is no text and the field is empty, then BACK and HOME key work as usual.\n\tThis is really necessary if you enter a lot of text in BROWSER applications, where accidentally pressing BACK will throw you to the previous page and reset the input form</string>
+    <string name="pref_p_13_name">13. Show a frame around the selected element in Pointer mode in view mode</string>
     <string name="pref_p_13_hint">\tWhen the "native" backlight of the selected interface element is poorly visible.\n\tIn addition, without this, sometimes it is not at all clear where the focus is right now.</string>
     <string name="pref_p_13a_name">13A. Color of the frame choosing from settings item 13</string>
     <string name="pref_p_13a_hint">\tIn order for the color settings to be applied, it is necessary to switch off/onn the special service K12KB</string>
-    <string name="pref_p_14_name">14. Show on-screen NAV-pad while holding SYM</string>
+    <string name="pref_p_14_name">14. Show NAV-pad while holding SYM</string>
     <string name="pref_p_14_hint">\tYou can disable it when you use the NAV mode via the hard keyboard and remember everything.\n\tIn addition, if another function is hanging on the same button (for example, changing the language), so that the NAV-pad that comes out does not infuriate every time.</string>
     <string name="pref_first_install">First initialization after installation in strict sequence: A, B, C, D, E.\n
-        In the Settings item A, disable unnecessary layouts (because the keyboard comes out of the box for several devices). The rest of the Settings (default values) are made so that it is convenient to use as is.\n
-        \n
-        Do not forget to enable Visual Keyboard option in Android Hardware keyboard settings. This option is needed to show NAV, SYM and SWYPE on-screen keyboards.\n
-        It your device has keyboard-touch sensor, you need to enable it in your Android Hardware keyboard settings.</string>
-    <string name="pref_hint_ready">Do not forget to enable Visual Keyboard option in Android Hardware keyboard settings. This option is needed to show NAV, SYM and SWYPE on-screen keyboards.\n
-        It your device has keyboard-touch sensor, you need to enable it in your Android Hardware keyboard settings.</string>
+    <b>K12KB does not collect your data and does not have access to internet.\n</b>
+    In the Settings item A, disable unnecessary layouts (because the keyboard comes out of the box for several devices). The rest of the Settings (default values) are made so that it is convenient to use as is.\n
+    \n
+    Do not forget to enable Visual Keyboard option in Android Hardware keyboard settings. This option is needed to show NAV, SYM and SWIPE on-screen keyboards.\n
+    If your device has keyboard-touch sensor, you need to enable it in your Android Hardware keyboard settings.</string>
+    <string name="pref_hint_ready"><b>K12KB does not collect your data and does not have access to internet.\n</b>
+    Do not forget to enable Visual Keyboard option in Android Hardware keyboard settings. This option is needed to show NAV, SYM and SWIPE on-screen keyboards.\n
+    If your device has keyboard-touch sensor, you need to enable it in your Android Hardware keyboard settings.</string>
     <string name="pref_manual_name">Manual</string>
     <string name="pref_manual_link" translatable="false">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
     <string name="notification_kb_state_nav_mode">Navigation</string>
@@ -87,7 +93,10 @@
     <string name="notification_kb_state_gesture_pointer">Cursor movement mode</string>
     <string name="notification_kb_state_digits_pad">Digital panel (dialer)</string>
     <string name="k12kb_accessibility_service_label" translatable="false">K12KB</string>
-    <string name="k12kb_accessibility_service_description">It helps K12KB to understand in which field the cursor is located for calling search windows (for searching when entering and typing in BB Contacts, Dialer, Telegram, etc.).\nIn addition, it is _mandatory_ to enable it to work SpeedKey as CTRL on non Russian market Blackberry Key2 phones.\nIn addition, the scroll mode works through it in the input fields, highlighting in the pointer mode and clicking on the highlighted by space key.</string>
+    <string name="k12kb_accessibility_service_description">K12KB does not collect your data and does not have access to internet.\n
+        It helps K12KB to understand in which field the cursor is located for calling search windows (for searching when entering and typing in BB Contacts, Dialer, Telegram, etc.).\n
+        In addition, it is _mandatory_ to enable it to work SpeedKey as CTRL on non Russian market Blackberry Key2 phones.\n
+        In addition, highlighting in the pointer mode and clicking on the highlighted by space key.</string>
     <string name="pref_more_tv_search_plugins_title">SEARCH PLUGINS</string>
     <string name="pref_more_tv_js_patches_title" translatable="false">JS PATCHES</string>
 
@@ -152,6 +161,10 @@
     <string name="pref_load_settings">Load settings from file</string>
     <string name="main_granted_permissions">Configured permissions</string>
     <string name="main_interface_language">Interface language</string>
+    <string name="settingsBlockMain">MAIN</string>
+    <string name="settingsBlockGestures">GESTURES</string>
+    <string name="settingsBlockOnScreenPanels">ON-SCREEN PANEL</string>
+    <string name="settingsBlockExtra">EXTRA</string>
     <string-array name="interface_language_array" translatable="false">
         <item>System</item>
         <item>English</item>
