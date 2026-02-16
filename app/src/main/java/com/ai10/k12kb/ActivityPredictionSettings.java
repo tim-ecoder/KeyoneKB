@@ -23,6 +23,7 @@ import com.ai10.k12kb.prediction.WordPredictor;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.concurrent.Executors;
 
 public class ActivityPredictionSettings extends Activity {
 
@@ -184,59 +185,67 @@ public class ActivityPredictionSettings extends Activity {
         });
 
         tvTranslationStatus = (TextView) findViewById(R.id.tv_translation_status);
-        refreshTranslationStatus();
     }
 
     private void refreshTranslationStatus() {
-        StringBuilder sb = new StringBuilder();
-        // Check which dictionary files exist in assets
-        String[] pairs = {"ru_en", "en_ru"};
-        for (String pair : pairs) {
-            String assetName = "dict/" + pair + ".tsv";
-            try {
-                java.io.InputStream is = getAssets().open(assetName);
-                java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(is));
-                int wordCount = 0;
-                int phraseCount = 0;
-                String line;
-                while ((line = br.readLine()) != null) {
-                    int tab = line.indexOf('\t');
-                    if (tab > 0) {
-                        String key = line.substring(0, tab);
-                        if (key.indexOf(' ') >= 0) {
-                            phraseCount++;
-                        } else {
-                            wordCount++;
+        // Pre-fetch string resources on the UI thread (cannot access from background)
+        final String strWords = getString(R.string.pred_translation_words);
+        final String strPhrases = getString(R.string.pred_translation_phrases);
+        final String strNotFound = getString(R.string.pred_translation_not_found);
+        final String strExternal = getString(R.string.pred_translation_external);
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            StringBuilder sb = new StringBuilder();
+            // Check which dictionary files exist in assets
+            String[] pairs = {"ru_en", "en_ru"};
+            for (String pair : pairs) {
+                String assetName = "dict/" + pair + ".tsv";
+                try {
+                    java.io.InputStream is = getAssets().open(assetName);
+                    java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(is));
+                    int wordCount = 0;
+                    int phraseCount = 0;
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        int tab = line.indexOf('\t');
+                        if (tab > 0) {
+                            String key = line.substring(0, tab);
+                            if (key.indexOf(' ') >= 0) {
+                                phraseCount++;
+                            } else {
+                                wordCount++;
+                            }
+                        }
+                    }
+                    br.close();
+                    sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
+                      .append(wordCount).append(" ").append(strWords);
+                    if (phraseCount > 0) {
+                        sb.append(" + ").append(phraseCount).append(" ").append(strPhrases);
+                    }
+                    sb.append("\n");
+                } catch (Exception e) {
+                    sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
+                      .append(strNotFound).append("\n");
+                }
+            }
+            // Check for external dict overrides
+            File extDir = new File("/sdcard/k12kb/dict/");
+            if (extDir.exists() && extDir.isDirectory()) {
+                File[] files = extDir.listFiles();
+                if (files != null && files.length > 0) {
+                    sb.append("\n").append(strExternal).append(":\n");
+                    for (File f : files) {
+                        if (f.getName().endsWith(".tsv")) {
+                            sb.append("  ").append(f.getName()).append(" (")
+                              .append(f.length() / 1024).append(" KB)\n");
                         }
                     }
                 }
-                br.close();
-                sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
-                  .append(wordCount).append(" ").append(getString(R.string.pred_translation_words));
-                if (phraseCount > 0) {
-                    sb.append(" + ").append(phraseCount).append(" ").append(getString(R.string.pred_translation_phrases));
-                }
-                sb.append("\n");
-            } catch (Exception e) {
-                sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
-                  .append(getString(R.string.pred_translation_not_found)).append("\n");
             }
-        }
-        // Check for external dict overrides
-        File extDir = new File("/sdcard/k12kb/dict/");
-        if (extDir.exists() && extDir.isDirectory()) {
-            File[] files = extDir.listFiles();
-            if (files != null && files.length > 0) {
-                sb.append("\n").append(getString(R.string.pred_translation_external)).append(":\n");
-                for (File f : files) {
-                    if (f.getName().endsWith(".tsv")) {
-                        sb.append("  ").append(f.getName()).append(" (")
-                          .append(f.length() / 1024).append(" KB)\n");
-                    }
-                }
-            }
-        }
-        tvTranslationStatus.setText(sb.toString().trim());
+            final String result = sb.toString().trim();
+            tvTranslationStatus.post(() -> tvTranslationStatus.setText(result));
+        });
     }
 
     private void setupStatus() {
