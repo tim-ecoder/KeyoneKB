@@ -13,6 +13,7 @@
     <string name="main_btn_accessibility_reload">Перезагрузить спец. сервис</string>
     <string name="main_btn_more_settings">Расширенные настройки</string>
     <string name="main_manual_text">ИНСТРУКЦИЯ</string>
+    <string name="main_manual_link">https://k12kb.gitbook.io/doc/ru/manual</string>
     <string name="pref_p_1_name">1. Чувствительность сенсора клавиатуры:</string>
     <string name="pref_p_1_value">Ниже | Выше</string>
     <string name="pref_p_2_name">2. Отображение Toast при смене языка</string>
@@ -69,6 +70,7 @@
         Не забывайте активировать опцию Виртуальная клавиатура в настройках Физической клавиатуры. Это нужно чтобы работали SYN, NAV и SWYPE наэкранные клавиатуры.\n
         Если на вашем устройстве есть сенсор на клавиатуре, его тоже нужно включить в настройках Физической клавиатуры Android.</string>
     <string name="pref_manual_name">Инструкция</string>
+    <string name="pref_manual_link">https://k12kb.gitbook.io/doc/ru/manual</string>
     <string name="notification_kb_state_nav_mode">Навигация</string>
     <string name="notification_kb_state_nav_fn_mode">Навигация + F1–F10</string>
     <string name="notification_kb_state_alt_mode">Символы 1–9</string>

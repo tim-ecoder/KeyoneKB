@@ -20,7 +20,7 @@
     <string name="main_btn_accessibility_reload">Reload accessibility service</string>
     <string name="main_btn_more_settings">Advanced Settings</string>
     <string name="main_manual_text">MANUAL</string>
-    <string name="main_manual_link" translatable="false">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
+    <string name="main_manual_link">https://k12kb.gitbook.io/doc/en/manual</string>
     <string name="keyboard_test_input_hint" translatable="false">For keyboard test in TEXT_INPUT_MODE click here</string>
     <string name="keyboard_test_view_test" translatable="false">For keyboard test in VIEW_MODE click here</string>
     <string name="keyboard_test_view_test_active" translatable="false">Keyboard test in VIEW_MODE activated</string>
@@ -80,7 +80,7 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     Do not forget to enable Visual Keyboard option in Android Hardware keyboard settings. This option is needed to show NAV, SYM and SWIPE on-screen keyboards.\n
     If your device has keyboard-touch sensor, you need to enable it in your Android Hardware keyboard settings.</string>
     <string name="pref_manual_name">Manual</string>
-    <string name="pref_manual_link" translatable="false">https://github.com/tim-ecoder/KeyoneKB/wiki</string>
+    <string name="pref_manual_link">https://k12kb.gitbook.io/doc/en/manual</string>
     <string name="notification_kb_state_nav_mode">Navigation</string>
     <string name="notification_kb_state_nav_fn_mode">Navigation + F1�F10</string>
     <string name="notification_kb_state_alt_mode">Symbols 1�9</string>
