@@ -6,12 +6,14 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.ai10.k12kb.R;
 
 import java.util.List;
 
@@ -22,17 +24,15 @@ import java.util.List;
 public class SuggestionBar extends LinearLayout {
 
     // Keyboard-matching colors (from colors.xml)
-    private static final int COLOR_BAR_BG        = 0xFF202124; // keyboard_background_color
-    private static final int COLOR_SLOT_BG       = 0xFF3C4043; // keyboard_key_bg
-    private static final int COLOR_SLOT_PRESSED  = 0xFF5F6368; // keyboard_pressed
-    private static final int COLOR_TEXT           = 0xFFE8EAED; // keyboard_text_color
-    private static final int COLOR_DIVIDER        = 0xFF101012;
-    private static final int COLOR_TRANSLATION    = 0xFF8AB4F8; // light blue for translations
+    private static int COLOR_SLOT_BG;
+    private static int COLOR_SLOT_PRESSED;
+    private static int COLOR_TEXT;
+    private static int COLOR_TRANSLATION;
 
-    private static final int SLOT_CORNER_RADIUS_DP = 6;
+    private static final int SLOT_CORNER_RADIUS_DP = 5;
     private static final int SLOT_INSET_DP         = 3;
     private static final int SLOT_INSET_TB_DP      = 2;
-    private static final int DIVIDER_HEIGHT_DP     = 3;
+    private static final int DIVIDER_HEIGHT_DP     = 2;
 
     private TextView[] slots;
     private int[] slotToSuggestion; // maps slot position to suggestion index
@@ -48,6 +48,12 @@ public class SuggestionBar extends LinearLayout {
 
     public SuggestionBar(Context context, int heightDp, int slotCount) {
         super(context);
+
+        COLOR_SLOT_BG = ContextCompat.getColor(context, R.color.keyboard_key_bg);
+        COLOR_SLOT_PRESSED = ContextCompat.getColor(context, R.color.keyboard_pressed);
+        COLOR_TEXT = ContextCompat.getColor(context, R.color.keyboard_text_color);
+        COLOR_TRANSLATION = ContextCompat.getColor(context, R.color.candidate_translation);
+
         this.numSlots = Math.max(1, slotCount);
         this.slots = new TextView[numSlots];
         this.slotToSuggestion = new int[numSlots];
@@ -63,8 +69,8 @@ public class SuggestionBar extends LinearLayout {
         setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, totalHeight));
 
         // Background: divider color fills all, bar layer inset top+bottom for divider stripes
-        ColorDrawable dividerLayer = new ColorDrawable(COLOR_DIVIDER);
-        ColorDrawable barLayer = new ColorDrawable(COLOR_BAR_BG);
+        ColorDrawable dividerLayer = new ColorDrawable(ContextCompat.getColor(context, R.color.keyboard_background_color));
+        ColorDrawable barLayer = new ColorDrawable(ContextCompat.getColor(context, R.color.keyboard_background_color));
         LayerDrawable bg = new LayerDrawable(new android.graphics.drawable.Drawable[]{dividerLayer, barLayer});
         bg.setLayerInset(0, 0, 0, 0, 0);                       // divider fills all
         bg.setLayerInset(1, 0, dividerPx, 0, dividerPx);       // bar layer leaves top+bottom for divider
@@ -199,7 +205,7 @@ public class SuggestionBar extends LinearLayout {
                 slots[slot].setTypeface(null, Typeface.BOLD);
                 slots[slot].setEllipsize(null);
                 // Priority word gets bigger weight so its pillow is never the smallest
-                lp.weight = Math.max(textWidth, 30f) + numSlots * 30f;
+                lp.weight = Math.max(textWidth, 30f) + numSlots * 15f;
                 lp.width = 0;
                 slots[slot].setLayoutParams(lp);
             } else {

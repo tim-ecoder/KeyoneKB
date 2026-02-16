@@ -41,6 +41,8 @@
     <color name="candidate_recommended">#000000</color>
     <color name="candidate_other">#ff808080</color>
     <color name="candidate_background">#bbffffff</color>
+    <color name="candidate_translation">#FF8AB4F8</color>
+
 
     <!--Color your keyboard - Gboard Dark style-->
     <color name="keyboard_background_color">#202124</color>

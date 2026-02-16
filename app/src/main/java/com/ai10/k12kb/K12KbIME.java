@@ -425,6 +425,13 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         Log.d(TAG2, "onFinishInputView");
         super.onFinishInputView(finishingInput);
         IsVisualKeyboardOpen = false;
+/*
+        if (suggestionBar != null) {
+            suggestionBar.clear();
+            setCandidatesViewShown(false);
+        }
+
+ */
     }
 
 
@@ -519,8 +526,9 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             //    currentSoftKeyboard = new Keyboard(this, R.xml.space_empty);
 
             if (suggestionBar != null) {
-                suggestionBar.clear();
-                setCandidatesViewShown(false);
+                //This makes VKBD Hiding Slower
+                //suggestionBar.clear();
+                //setCandidatesViewShown(false);
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -1264,7 +1272,6 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         if (name == null) return "en";
         String lower = name.toLowerCase(java.util.Locale.ROOT);
         if (lower.contains("русск") || lower.contains("russian")) return "ru";
-        if (lower.contains("украин") || lower.contains("ukrain")) return "uk";
         if (lower.contains("deutsch") || lower.contains("german")) return "de";
         if (lower.contains("français") || lower.contains("french")) return "fr";
         if (lower.contains("español") || lower.contains("spanish")) return "es";
