@@ -123,6 +123,7 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string-array name="pref_prediction_engine_array">
         <item>SymSpell (fuzzy matching)</item>
         <item>N-gram (next-word prediction)</item>
+        <item>Native SymSpell (fast + keyboard-aware)</item>
     </string-array>
     <string name="main_btn_prediction_settings">Word prediction</string>
     <string name="pred_section_settings">SETTINGS</string>

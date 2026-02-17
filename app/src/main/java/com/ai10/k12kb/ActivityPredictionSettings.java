@@ -268,7 +268,10 @@ public class ActivityPredictionSettings extends Activity {
 
         // Engine mode
         int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
-        String engineName = (engineMode == WordPredictor.ENGINE_NGRAM) ? "N-gram" : "SymSpell";
+        String engineName;
+        if (engineMode == WordPredictor.ENGINE_NGRAM) engineName = "N-gram";
+        else if (engineMode == WordPredictor.ENGINE_NATIVE_SYMSPELL) engineName = "Native SymSpell";
+        else engineName = "SymSpell";
         sb.append(getString(R.string.pred_status_engine)).append(": ").append(engineName).append("\n");
 
         // Per-locale stats
@@ -337,19 +340,26 @@ public class ActivityPredictionSettings extends Activity {
 
     private void refreshCacheStatus() {
         File cacheDir = new File(getFilesDir(), "dict_cache");
+        File nativeCacheDir = new File(getFilesDir(), "native_dict_cache");
         StringBuilder sb = new StringBuilder();
 
         String[] locales = {"en", "ru"};
         for (String locale : locales) {
             File f = new File(cacheDir, locale + ".bin");
+            File nf = new File(nativeCacheDir, locale + ".ssnd");
             if (f.exists()) {
                 long sizeKb = f.length() / 1024;
                 sb.append(locale.toUpperCase()).append(": ")
-                  .append(sizeKb).append(" KB\n");
+                  .append(sizeKb).append(" KB");
             } else {
                 sb.append(locale.toUpperCase()).append(": ")
-                  .append(getString(R.string.pred_cache_missing)).append("\n");
+                  .append(getString(R.string.pred_cache_missing));
             }
+            if (nf.exists()) {
+                long nativeSizeKb = nf.length() / 1024;
+                sb.append(" | native: ").append(nativeSizeKb).append(" KB");
+            }
+            sb.append("\n");
         }
 
         tvCacheStatus.setText(sb.toString().trim());

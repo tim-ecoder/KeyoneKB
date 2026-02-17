@@ -118,6 +118,7 @@
     <string-array name="pref_prediction_engine_array">
         <item>SymSpell (нечёткий поиск)</item>
         <item>N-gram (предсказание следующего слова)</item>
+        <item>Native SymSpell (быстрый + клавиатурный)</item>
     </string-array>
     <string name="main_btn_prediction_settings">Предективный ввод</string>
     <string name="pred_section_settings">НАСТРОЙКИ</string>

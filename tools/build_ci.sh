@@ -487,6 +487,24 @@ $AAPT package -f \
 # Add DEX file
 (cd "$BUILD" && zip -q -u app-unsigned.apk classes.dex)
 
+# Add native libraries (prebuilt in jniLibs)
+JNILIBS="$APP/src/main/jniLibs"
+if [ -d "$JNILIBS" ]; then
+    echo "  Adding native libraries..."
+    for ABI_DIR in "$JNILIBS"/*/; do
+        ABI=$(basename "$ABI_DIR")
+        for SO in "$ABI_DIR"*.so; do
+            if [ -f "$SO" ]; then
+                SONAME=$(basename "$SO")
+                mkdir -p "$BUILD/lib/$ABI"
+                cp "$SO" "$BUILD/lib/$ABI/$SONAME"
+                echo "    lib/$ABI/$SONAME ($(stat -c%s "$SO") bytes)"
+            fi
+        done
+    done
+    (cd "$BUILD" && zip -q -r -u app-unsigned.apk lib/)
+fi
+
 echo ""
 echo "=== Step 9: Sign ==="
 if [ ! -f "$PROJECT/debug.keystore" ]; then
