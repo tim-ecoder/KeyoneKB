@@ -95,7 +95,7 @@ public class K12KbSettings {
         CheckSettingOrSetDefault(APP_PREFERENCES_16_PREDICTION_COUNT, 4);
         CheckSettingOrSetDefault(APP_PREFERENCES_17_PREDICTION_ENABLED, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_18_LIGHT_THEME, false);
-        CheckSettingOrSetDefault(APP_PREFERENCES_19_PREDICTION_ENGINE, 0);
+        CheckSettingOrSetDefault(APP_PREFERENCES_19_PREDICTION_ENGINE, 2);
         CheckSettingOrSetDefault(APP_PREFERENCES_20_INTERFACE_LANG, 0);
         CheckSettingOrSetDefault(APP_PREFERENCES_21_WORD_LEARNING, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_22_TRANSLATION_COUNT, 4);

@@ -29,22 +29,25 @@ import java.util.Locale;
 public class NativeSymSpellEngine implements PredictionEngine {
 
     private static final String TAG = "NativeSymSpellEngine";
-    private static final int MAX_DICT_WORDS = 35000;
+    private static final int MAX_NATIVE_WORDS = 150000;
+    private static final int MAX_JAVA_INDEX_WORDS = 35000;
     private static final int MAX_PREFIX_CACHE = 4;
     private static final String CACHE_DIR = "native_dict_cache";
 
-    private NativeSymSpell nativeSymSpell;
+    private volatile NativeSymSpell nativeSymSpell;
+    private final Object loadLock = new Object();
     private final HashMap<String, NativeSymSpellEngine> dictCache = new HashMap<>();
     private final HashMap<String, List<WordDictionary.DictEntry>> prefixCache = new HashMap<>();
     private final HashMap<String, List<WordDictionary.DictEntry>> normalizedIndex = new HashMap<>();
     private LearnedDictionary learnedDict;
-    private boolean ready = false;
-    private String loadedLocale = "";
+    private volatile boolean ready = false;
+    private volatile String loadedLocale = "";
     private String keyboardLayout = "qwerty";
 
     @Override
     public List<WordPredictor.Suggestion> suggest(String input, String previousWord, int limit) {
-        if (!ready || nativeSymSpell == null) return Collections.emptyList();
+        NativeSymSpell ss = nativeSymSpell; // local snapshot for thread safety
+        if (!ready || ss == null) return Collections.emptyList();
         if (input == null || input.isEmpty()) return Collections.emptyList();
 
         String normalized = WordDictionary.normalize(input);
@@ -76,7 +79,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
         if (normalized.length() > 1) {
             int symLimit = normalized.length() <= 3 ? limit * 2 : limit * 4;
             NativeSymSpell.SuggestItem[] nativeResults =
-                    nativeSymSpell.lookupWeighted(normalized, symLimit, keyboardLayout);
+                    ss.lookupWeighted(normalized, symLimit, keyboardLayout);
 
             for (NativeSymSpell.SuggestItem item : nativeResults) {
                 if (normalized.length() <= 2 && item.distance > 1) continue;
@@ -112,20 +115,24 @@ public class NativeSymSpellEngine implements PredictionEngine {
 
     @Override
     public void loadDictionary(Context context, String locale) {
-        if (ready && locale.equals(loadedLocale)) {
+        synchronized (loadLock) {
+            if (ready && locale.equals(loadedLocale)) {
+                loadUserWords(context);
+                loadLearnedWords();
+                return;
+            }
+            load(context, locale);
             loadUserWords(context);
             loadLearnedWords();
-            return;
         }
-        load(context, locale);
-        loadUserWords(context);
-        loadLearnedWords();
     }
 
     @Override
     public void preloadDictionary(Context context, String locale) {
-        if (ready && locale.equals(loadedLocale)) return;
-        load(context, locale);
+        synchronized (loadLock) {
+            if (ready && locale.equals(loadedLocale)) return;
+            load(context, locale);
+        }
     }
 
     @Override
@@ -149,7 +156,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
         // Try native binary cache first (mmap — very fast)
         String cachePath = new File(context.getFilesDir(), CACHE_DIR + "/" + locale + ".ssnd").getAbsolutePath();
         NativeSymSpell cached = NativeSymSpell.loadFromCache(cachePath);
-        if (cached != null && cached.size() > 0) {
+        if (cached != null && cached.size() > MAX_JAVA_INDEX_WORDS) {
             nativeSymSpell = cached;
             // Still need to rebuild Java-side indexes from the text dict
             loadTextDictForIndex(context, locale);
@@ -235,18 +242,19 @@ public class NativeSymSpellEngine implements PredictionEngine {
             }
             reader.close();
 
-            // Sort by frequency descending, keep top MAX_DICT_WORDS
+            // Sort by frequency descending
             Collections.sort(allEntries, new Comparator<String[]>() {
                 public int compare(String[] a, String[] b) {
                     try { return Integer.parseInt(b[1]) - Integer.parseInt(a[1]); }
                     catch (NumberFormatException e) { return 0; }
                 }
             });
-            if (allEntries.size() > MAX_DICT_WORDS) {
-                allEntries = new ArrayList<>(allEntries.subList(0, MAX_DICT_WORDS));
+            if (allEntries.size() > MAX_NATIVE_WORDS) {
+                allEntries = new ArrayList<>(allEntries.subList(0, MAX_NATIVE_WORDS));
             }
 
-            // Add to both native SymSpell and Java indexes
+            // Add to native SymSpell (all words) and Java indexes (top words only)
+            int idx = 0;
             for (String[] entry : allEntries) {
                 if (Thread.currentThread().isInterrupted()) break;
                 int freq;
@@ -255,11 +263,14 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 String word = entry[0];
                 String normalized = WordDictionary.normalize(word);
 
-                // Native side
+                // Native side — all words
                 nativeSymSpell.addWord(normalized, freq);
 
-                // Java side — normalized index + prefix cache
-                addToJavaIndex(word, normalized, freq);
+                // Java side — only top MAX_JAVA_INDEX_WORDS for prefix/normalized lookups
+                if (idx < MAX_JAVA_INDEX_WORDS) {
+                    addToJavaIndex(word, normalized, freq);
+                }
+                idx++;
             }
 
             return allEntries.size();
@@ -295,8 +306,8 @@ public class NativeSymSpellEngine implements PredictionEngine {
                     catch (NumberFormatException e) { return 0; }
                 }
             });
-            if (allEntries.size() > MAX_DICT_WORDS) {
-                allEntries = new ArrayList<>(allEntries.subList(0, MAX_DICT_WORDS));
+            if (allEntries.size() > MAX_JAVA_INDEX_WORDS) {
+                allEntries = new ArrayList<>(allEntries.subList(0, MAX_JAVA_INDEX_WORDS));
             }
 
             for (String[] entry : allEntries) {

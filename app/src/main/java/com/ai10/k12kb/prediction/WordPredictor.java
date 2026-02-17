@@ -48,7 +48,7 @@ public class WordPredictor {
     private static LearnedDictionary sharedLearnedDict;
 
     private PredictionEngine engine;
-    private int engineMode = ENGINE_SYMSPELL;
+    private int engineMode = ENGINE_NATIVE_SYMSPELL;
     private SuggestionListener listener;
     private String currentWord = "";
     private String previousWord = "";
