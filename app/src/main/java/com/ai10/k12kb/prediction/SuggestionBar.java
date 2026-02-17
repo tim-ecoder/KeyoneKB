@@ -195,24 +195,19 @@ public class SuggestionBar extends LinearLayout {
             int slot = suggToSlot[s];
             slots[slot].setText(word);
             slots[slot].setTextColor(COLOR_TEXT);
-            // Weight proportional to text width; priority bonus for earlier suggestions
+            // Weight proportional to text width — balanced across all slots
             float textWidth = slots[slot].getPaint().measureText(word);
-            float weight = Math.max(textWidth, 30f) + (numSlots - 1 - s) * 15f;
             LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
-            lp.weight = weight;
+            lp.weight = Math.max(textWidth, 30f);
             lp.width = 0;
-            slots[slot].setLayoutParams(lp);
             if (s == 0) {
                 slots[slot].setTypeface(null, Typeface.BOLD);
                 slots[slot].setEllipsize(null);
-                // Priority word: wrap content with no weight so it takes only needed space
-                lp.weight = 0;
-                lp.width = LayoutParams.WRAP_CONTENT;
-                slots[slot].setLayoutParams(lp);
             } else {
                 // Non-priority words truncate from start to show unique endings
                 slots[slot].setEllipsize(TextUtils.TruncateAt.START);
             }
+            slots[slot].setLayoutParams(lp);
         }
     }
 
@@ -288,16 +283,10 @@ public class SuggestionBar extends LinearLayout {
             }
             LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
             float textWidth = slots[slot].getPaint().measureText(word);
+            lp.weight = Math.max(textWidth, 30f);
+            lp.width = 0;
             if (i == 0) {
-                // First translation: wrap content with no weight so it takes only needed space
                 slots[slot].setEllipsize(null);
-                lp.weight = 0;
-                lp.width = LayoutParams.WRAP_CONTENT;
-            } else {
-
-                float weight = Math.max(textWidth, 30f) + (limit - i);// * 10f;
-                lp.weight = weight;
-                lp.width = 0;
             }
             slots[slot].setLayoutParams(lp);
         }
