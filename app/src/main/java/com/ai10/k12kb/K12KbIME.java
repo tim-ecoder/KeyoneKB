@@ -1277,8 +1277,19 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             predictionBarVisibleThisSession = true;
             setCandidatesViewShown(true);
             Toast.makeText(getApplicationContext(), "\uD83D\uDD2E Predictions ON", Toast.LENGTH_SHORT).show();
-            // Post so the candidates view is laid out before we populate predictions
-            suggestionBar.post(() -> updatePredictorWordAtCursor());
+            // Read word at cursor and force prediction update
+            InputConnection ic = getCurrentInputConnection();
+            if (ic != null) {
+                CharSequence before = ic.getTextBeforeCursor(96, 0);
+                if (before != null && before.length() > 0) {
+                    int end = before.length();
+                    int start = end;
+                    while (start > 0 && WordDictionary.isWordChar(before.charAt(start - 1))) start--;
+                    String word = (start < end) ? before.subSequence(start, end).toString() : "";
+                    wordPredictor.setCurrentWord(word);
+                }
+            }
+            suggestionBar.update(wordPredictor.getLatestSuggestions(), wordPredictor.getCurrentWord());
         } else {
             predictionBarVisibleThisSession = false;
             setCandidatesViewShown(false);
