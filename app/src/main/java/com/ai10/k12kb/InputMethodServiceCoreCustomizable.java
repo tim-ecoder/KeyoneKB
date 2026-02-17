@@ -596,7 +596,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionSendCharSinglePressSymMode", InitializeMethod3(new IActionMethod<KeyPressData>() { public boolean invoke(KeyPressData p) { return ActionSendCharSinglePressSymMode(p); } }, KeyPressData.class));
         Methods.put("ActionSendCharToInput", InitializeMethod3(new IActionMethod<Character>() { public boolean invoke(Character p) { return ActionSendCharToInput(p); } }, Character.class));
         Methods.put("ActionSendCtrlPlusKey", InitializeMethod3(new IActionMethod<KeyPressData>() { public boolean invoke(KeyPressData p) { return ActionSendCtrlPlusKey(p); } }, KeyPressData.class));
-        Methods.put("ActionToggleTranslationMode", objActionKeyPress("ActionToggleTranslationMode"));
+
         Methods.put("ActionSetNeedUpdateVisualState", objAction("ActionSetNeedUpdateVisualState"));
         Methods.put("ActionTryAcceptCall", objAction("ActionTryAcceptCall"));
         Methods.put("ActionTryCapitalizeFirstLetter", objAction("ActionTryCapitalizeFirstLetter"));
@@ -684,6 +684,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionMoveCursorPrevWord", InitializeMethod3(new IActionMethod<KeyEvent>() { public boolean invoke(KeyEvent p) { return ActionMoveCursorPrevWord(p); } }, KeyEvent.class));
         Methods.put("ActionMoveCursorFwdWord", InitializeMethod3(new IActionMethod<KeyEvent>() { public boolean invoke(KeyEvent p) { return ActionMoveCursorFwdWord(p); } }, KeyEvent.class));
         Methods.put("ActionSendNavKey", InitializeMethod3(new IActionMethod<NavActionData>() { public boolean invoke(NavActionData p) { return ActionSendNavKey(p); } }, NavActionData.class));
+
+        Methods.put("ActionToggleTranslationMode", objActionKeyPress("ActionToggleTranslationMode"));
+        Methods.put("ActionTogglePredictionBar", objActionKeyPress("ActionTogglePredictionBar"));
+
 
 
 

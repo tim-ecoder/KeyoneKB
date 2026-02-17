@@ -417,11 +417,16 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         super.onStartInputView(info, restarting);
         mVoiceRecognitionTrigger.onStartInputView();
         IsVisualKeyboardOpen = true;
-        if (wordPredictor != null) {
-            boolean showBar = !predictionBarHiddenByDefault || predictionBarVisibleThisSession;
-            setCandidatesViewShown(showBar);
+        /*
+        if (wordPredictor != null && !predictionBarHiddenByDefault) {
+            setCandidatesViewShown(true);
             updatePredictorWordAtCursor();
+        } else {
+            setCandidatesViewShown(false);
         }
+         */
+
+
     }
 
     @Override
@@ -429,13 +434,6 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         Log.d(TAG2, "onFinishInputView");
         super.onFinishInputView(finishingInput);
         IsVisualKeyboardOpen = false;
-/*
-        if (suggestionBar != null) {
-            suggestionBar.clear();
-            setCandidatesViewShown(false);
-        }
-
- */
     }
 
 
@@ -484,17 +482,13 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 && wordPredictor != null
                 && getCurrentInputConnection() != null
                 && IsInputMode()) {
-            // Show IME window for prediction bar even without swype-pad
-            keyboardView.setVisibility(View.GONE);
-            boolean showBar = !predictionBarHiddenByDefault || predictionBarVisibleThisSession;
-            if (showBar) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    this.requestShowSelf(InputMethodManager.SHOW_IMPLICIT);
-                } else {
-                    this.showWindow(false);
-                }
-                setCandidatesViewShown(true);
-            }
+        }
+
+        if (wordPredictor != null && !predictionBarHiddenByDefault) {
+            setCandidatesViewShown(true);
+            updatePredictorWordAtCursor();
+        } else {
+            setCandidatesViewShown(false);
         }
 
         OnStartInput.Process(null, null);
@@ -1180,7 +1174,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     }
 
     private void updateSuggestionBarWithTranslation(java.util.List<WordPredictor.Suggestion> suggestions) {
-        boolean barHidden = predictionBarHiddenByDefault && !predictionBarVisibleThisSession;
+        if(predictionBarHiddenByDefault && !predictionBarVisibleThisSession)
+            return;
         if (translationManager != null && translationManager.isEnabled()) {
             String word = wordPredictor.getCurrentWord();
             String prevWord = wordPredictor.getPreviousWord();
@@ -1196,7 +1191,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                     translations = translations.subList(0, translationSlotCount);
                 }
                 suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseResultCount);
-                if (!barHidden) setCandidatesViewShown(true);
+                setCandidatesViewShown(true);
                 return;
             }
         }
@@ -1205,7 +1200,12 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             suggestions = suggestions.subList(0, predictionSlotCount);
         }
         suggestionBar.update(suggestions, wordPredictor.getCurrentWord());
-        if (!barHidden) setCandidatesViewShown(true);
+        if (suggestions != null && !suggestions.isEmpty()) {
+            setCandidatesViewShown(true);
+        } else {
+            //Do not close suggestion bar, either it jumps
+            //setCandidatesViewShown(false);
+        }
     }
 
     private void acceptTranslation(String translatedWord, boolean isPhraseResult) {
@@ -1233,8 +1233,6 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     }
 
     public boolean ActionToggleTranslationMode(KeyPressData keyPressData) {
-        // Only trigger on key T (KEYCODE_T = 48)
-        if (keyPressData.KeyCode != 48) return false;
         if (translationManager == null || suggestionBar == null) return false;
         boolean enabled = translationManager.toggle();
         // Update languages based on current layout
@@ -1271,16 +1269,18 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     }
 
     public boolean ActionTogglePredictionBar(KeyPressData keyPressData) {
-        // Only trigger on key W (KEYCODE_W = 51)
-        if (keyPressData.KeyCode != 51) return false;
         if (suggestionBar == null || wordPredictor == null) return false;
-        predictionBarVisibleThisSession = !predictionBarVisibleThisSession;
-        if (predictionBarVisibleThisSession) {
+
+        if (!predictionBarHiddenByDefault) return false;
+
+        if(!predictionBarVisibleThisSession) {
+            predictionBarVisibleThisSession = true;
             setCandidatesViewShown(true);
-            // Refresh suggestions immediately
-            updatePredictorWordAtCursor();
             Toast.makeText(getApplicationContext(), "\uD83D\uDD2E Predictions ON", Toast.LENGTH_SHORT).show();
+            // Post so the candidates view is laid out before we populate predictions
+            suggestionBar.post(() -> updatePredictorWordAtCursor());
         } else {
+            predictionBarVisibleThisSession = false;
             setCandidatesViewShown(false);
             Toast.makeText(getApplicationContext(), "\uD83D\uDD2E Predictions OFF", Toast.LENGTH_SHORT).show();
         }
@@ -1381,7 +1381,9 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 if (keyboardView.getVisibility() == View.VISIBLE) {
                     keyboardView.setVisibility(View.GONE);
                 }
-                setCandidatesViewShown(true);
+                if (!predictionBarHiddenByDefault || predictionBarVisibleThisSession) {
+                    setCandidatesViewShown(true);
+                }
             } else {
                 HideKeyboard();
             }

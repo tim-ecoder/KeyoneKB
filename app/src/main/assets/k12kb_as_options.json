@@ -24,6 +24,9 @@
     }, {
       "meta-key-code": "META_FUNCTION_ON",
       "key-key-code": "KEYCODE_T"
+    }, {
+      "meta-key-code": "META_FUNCTION_ON",
+      "key-key-code": "KEYCODE_W"
     }
   ],
   "digits-pad-plugin-enabled" : true,
