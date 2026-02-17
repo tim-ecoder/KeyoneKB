@@ -258,12 +258,11 @@ public class SuggestionBar extends LinearLayout {
         for (int i = 0; i < count; i++) {
             String word = translations.get(i);
             slots[i].setText(word);
-            // Bigram results: blue bold; single-word results: lighter color
+            // All translations blue; bigram results bold, single-word results normal
+            slots[i].setTextColor(COLOR_TRANSLATION);
             if (i < numPhraseResults) {
-                slots[i].setTextColor(COLOR_TRANSLATION);
                 slots[i].setTypeface(null, Typeface.BOLD);
             } else {
-                slots[i].setTextColor(COLOR_TEXT);
                 slots[i].setTypeface(null, Typeface.NORMAL);
             }
             float textWidth = slots[i].getPaint().measureText(word);
