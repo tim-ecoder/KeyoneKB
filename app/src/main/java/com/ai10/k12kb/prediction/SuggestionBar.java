@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.ai10.k12kb.R;
 
+import java.math.RoundingMode;
 import java.util.List;
 
 /**
@@ -205,7 +206,7 @@ public class SuggestionBar extends LinearLayout {
                 slots[slot].setTypeface(null, Typeface.BOLD);
                 slots[slot].setEllipsize(null);
                 // Priority word: wrap content so the full word is always visible
-                lp.weight = 0;
+                lp.weight = Math.max(textWidth, 30f) + (numSlots - 1 - s) * 15f;;
                 lp.width = LayoutParams.WRAP_CONTENT;
                 slots[slot].setLayoutParams(lp);
             } else {
@@ -234,6 +235,20 @@ public class SuggestionBar extends LinearLayout {
         int limit = Math.min(numSlots, maxSlots);
         int count = (translations != null) ? Math.min(translations.size(), limit) : 0;
 
+        // Build center-based mapping: priority in center, next right, then left
+        int[] transToSlot = new int[limit];
+        int center = limit / 2;
+        transToSlot[0] = center;
+        int right = center + 1;
+        int left = center - 1;
+        for (int s = 1; s < limit; s++) {
+            if (right < limit) {
+                transToSlot[s] = right++;
+            } else if (left >= 0) {
+                transToSlot[s] = left--;
+            }
+        }
+
         // Setup all slots
         for (int i = 0; i < numSlots; i++) {
             slots[i].setText("");
@@ -254,30 +269,37 @@ public class SuggestionBar extends LinearLayout {
             slots[i].setLayoutParams(lp);
         }
 
+        // Build reverse mapping for click handler
+        for (int s = 0; s < count; s++) {
+            slotToSuggestion[transToSlot[s]] = s;
+        }
+
         // Place translations left-to-right
         for (int i = 0; i < count; i++) {
+            int slot = transToSlot[i];
             String word = translations.get(i);
-            slots[i].setText(word);
+            slots[slot].setText(word);
             // All translations blue; bigram results bold, single-word results normal
-            slots[i].setTextColor(COLOR_TRANSLATION);
+            slots[slot].setTextColor(COLOR_TRANSLATION);
             if (i < numPhraseResults) {
-                slots[i].setTypeface(null, Typeface.BOLD);
+                slots[slot].setTypeface(null, Typeface.BOLD);
             } else {
-                slots[i].setTypeface(null, Typeface.NORMAL);
+                slots[slot].setTypeface(null, Typeface.NORMAL);
             }
-            LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
+            LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
+            float textWidth = slots[slot].getPaint().measureText(word);
             if (i == 0) {
                 // First translation: wrap content so the full word is always visible
-                slots[i].setEllipsize(null);
-                lp.weight = 0;
+                slots[slot].setEllipsize(null);
+                lp.weight = Math.max(textWidth, 30f) + (limit - i);// * 10f;
                 lp.width = LayoutParams.WRAP_CONTENT;
             } else {
-                float textWidth = slots[i].getPaint().measureText(word);
-                float weight = Math.max(textWidth, 30f) + (limit - i) * 10f;
+
+                float weight = Math.max(textWidth, 30f) + (limit - i);// * 10f;
                 lp.weight = weight;
                 lp.width = 0;
             }
-            slots[i].setLayoutParams(lp);
+            slots[slot].setLayoutParams(lp);
         }
     }
 
