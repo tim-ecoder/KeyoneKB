@@ -204,9 +204,9 @@ public class SuggestionBar extends LinearLayout {
             if (s == 0) {
                 slots[slot].setTypeface(null, Typeface.BOLD);
                 slots[slot].setEllipsize(null);
-                // Priority word gets bigger weight so its pillow is never the smallest
-                lp.weight = Math.max(textWidth, 30f) + numSlots * 15f;
-                lp.width = 0;
+                // Priority word: wrap content so the full word is always visible
+                lp.weight = 0;
+                lp.width = LayoutParams.WRAP_CONTENT;
                 slots[slot].setLayoutParams(lp);
             } else {
                 // Non-priority words truncate from start to show unique endings
@@ -265,11 +265,18 @@ public class SuggestionBar extends LinearLayout {
             } else {
                 slots[i].setTypeface(null, Typeface.NORMAL);
             }
-            float textWidth = slots[i].getPaint().measureText(word);
-            float weight = Math.max(textWidth, 30f) + (limit - i) * 10f;
             LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
-            lp.weight = weight;
-            lp.width = 0;
+            if (i == 0) {
+                // First translation: wrap content so the full word is always visible
+                slots[i].setEllipsize(null);
+                lp.weight = 0;
+                lp.width = LayoutParams.WRAP_CONTENT;
+            } else {
+                float textWidth = slots[i].getPaint().measureText(word);
+                float weight = Math.max(textWidth, 30f) + (limit - i) * 10f;
+                lp.weight = weight;
+                lp.width = 0;
+            }
             slots[i].setLayoutParams(lp);
         }
     }

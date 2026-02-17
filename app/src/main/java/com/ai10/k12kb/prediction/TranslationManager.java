@@ -33,7 +33,7 @@ public class TranslationManager {
         if (enabled && !dictionary.isLoaded()) {
             loadDictionary();
         }
-        Log.i(TAG, "Translation mode " + (enabled ? "ON" : "OFF") +
+        Log.w(TAG, "Translation mode " + (enabled ? "ON" : "OFF") +
                 " (" + sourceLang + " -> " + targetLang + ")");
         return enabled;
     }
@@ -59,7 +59,10 @@ public class TranslationManager {
         }
         this.sourceLang = currentLayoutLang;
         this.targetLang = nextLayoutLang;
-        Log.i(TAG, "Languages updated: " + sourceLang + " -> " + targetLang);
+        // Invalidate old dictionary — direction changed
+        loading = false;
+        dictionary.invalidate();
+        Log.w(TAG, "Languages updated: " + sourceLang + " -> " + targetLang);
         if (enabled) {
             loadDictionary();
         }
@@ -104,6 +107,12 @@ public class TranslationManager {
     public String getTargetLang() { return targetLang; }
     public int getDictionarySize() { return dictionary.size(); }
 
+    private Runnable onDictionaryLoaded;
+
+    public void setOnDictionaryLoadedListener(Runnable listener) {
+        this.onDictionaryLoaded = listener;
+    }
+
     private void loadDictionary() {
         if (loading) return;
         loading = true;
@@ -113,6 +122,9 @@ public class TranslationManager {
             public void run() {
                 try {
                     dictionary.load(context, from, to);
+                    if (onDictionaryLoaded != null) {
+                        onDictionaryLoaded.run();
+                    }
                 } catch (Exception e) {
                     Log.e(TAG, "Failed to load dictionary: " + e);
                 } finally {

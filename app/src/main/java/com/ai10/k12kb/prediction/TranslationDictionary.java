@@ -159,6 +159,13 @@ public class TranslationDictionary {
         return loaded;
     }
 
+    /**
+     * Mark dictionary as needing reload (e.g. when language direction changes).
+     */
+    public void invalidate() {
+        loaded = false;
+    }
+
     public int size() {
         return dictionary.size();
     }

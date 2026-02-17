@@ -34,7 +34,8 @@ public class WordDictionary {
     private static final String TAG = "WordDictionary";
     private static final int MAX_PREFIX_CACHE = 4;
     private static final int CACHE_MAGIC = 0x4B313244;   // "K12D"
-    private static final int CACHE_VERSION = 2;  // v2: uncompressed (no GZIP)
+    private static final int CACHE_VERSION = 3;  // v3: capped to MAX_DICT_WORDS
+    private static final int MAX_DICT_WORDS = 35000;
 
     /** Loading stats per locale — survives across instances (static). */
     public static class LoadStats {
@@ -139,8 +140,7 @@ public class WordDictionary {
             return;
         }
 
-        // Fall back to loading from assets
-        symSpell.setBulkLoading(true);
+        // Fall back to loading from assets — read all, keep top MAX_DICT_WORDS by frequency
         String txtFilename = "dictionaries/" + locale + "_base.txt";
         String jsonFilename = "dictionaries/" + locale + "_base.json";
         try {
@@ -155,21 +155,17 @@ public class WordDictionary {
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 16384);
 
+            // Collect all word-frequency pairs
+            ArrayList<String[]> allEntries = new ArrayList<>();
             if (useTxt) {
                 String line;
-                int lineCount = 0;
                 while ((line = reader.readLine()) != null) {
                     if (Thread.currentThread().isInterrupted()) break;
                     int tab = line.indexOf('\t');
                     if (tab <= 0) continue;
                     String word = line.substring(0, tab);
-                    int freq;
-                    try { freq = Integer.parseInt(line.substring(tab + 1)); }
-                    catch (NumberFormatException e) { continue; }
-                    addEntry(word, freq);
-                    if (++lineCount % 500 == 0) {
-                        try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
-                    }
+                    String freqStr = line.substring(tab + 1);
+                    allEntries.add(new String[]{word, freqStr});
                 }
             } else {
                 StringBuilder sb = new StringBuilder();
@@ -182,10 +178,7 @@ public class WordDictionary {
                 for (int i = 0; i < arr.length(); i++) {
                     if (Thread.currentThread().isInterrupted()) break;
                     JSONObject obj = arr.getJSONObject(i);
-                    addEntry(obj.getString("w"), obj.getInt("f"));
-                    if (i % 500 == 499) {
-                        try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
-                    }
+                    allEntries.add(new String[]{obj.getString("w"), String.valueOf(obj.getInt("f"))});
                 }
             }
             reader.close();
@@ -194,13 +187,50 @@ public class WordDictionary {
                 Log.d(TAG, "Dictionary loading interrupted for " + locale);
                 return;
             }
+
+            // Sort by frequency descending, keep top MAX_DICT_WORDS
+            int totalParsed = allEntries.size();
+            Collections.sort(allEntries, new Comparator<String[]>() {
+                public int compare(String[] a, String[] b) {
+                    try { return Integer.parseInt(b[1]) - Integer.parseInt(a[1]); }
+                    catch (NumberFormatException e) { return 0; }
+                }
+            });
+            if (allEntries.size() > MAX_DICT_WORDS) {
+                allEntries = new ArrayList<>(allEntries.subList(0, MAX_DICT_WORDS));
+            }
+
+            // Add entries to dictionary
+            symSpell.setBulkLoading(true);
+            for (int i = 0; i < allEntries.size(); i++) {
+                if (Thread.currentThread().isInterrupted()) break;
+                String[] entry = allEntries.get(i);
+                int freq;
+                try { freq = Integer.parseInt(entry[1]); }
+                catch (NumberFormatException e) { continue; }
+                addEntry(entry[0], freq);
+                if (i % 500 == 499) {
+                    try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+                }
+            }
+            allEntries = null; // free temp list
+
+            if (Thread.currentThread().isInterrupted()) {
+                Log.d(TAG, "Dictionary loading interrupted for " + locale);
+                return;
+            }
+            long parseElapsed = System.currentTimeMillis() - startTime;
+            Log.w(TAG, "Parsed " + locale + " from assets: " + totalParsed + " total, kept " + symSpell.size() + " words in " + parseElapsed + "ms. Building SymSpell index...");
             symSpell.setBulkLoading(false);
+            long buildStart = System.currentTimeMillis();
             symSpell.buildIndex();
+            long buildElapsed = System.currentTimeMillis() - buildStart;
+            Log.w(TAG, "SymSpell buildIndex for " + locale + ": " + buildElapsed + "ms, deletes=" + symSpell.deletesSize());
             ready = true;
             loadedLocale = locale;
             long elapsed = System.currentTimeMillis() - startTime;
             loadStatsMap.put(locale, new LoadStats(locale, "assets", symSpell.size(), elapsed));
-            Log.d(TAG, "Loaded " + locale + " from assets: " + symSpell.size() + " words in " + elapsed + "ms");
+            Log.w(TAG, "Loaded " + locale + " from assets: " + symSpell.size() + " words TOTAL " + elapsed + "ms");
 
             // Save binary cache for next startup
             saveToCache(context, locale);
@@ -232,6 +262,8 @@ public class WordDictionary {
             // Read word+freq pairs → rebuild normalizedIndex + prefixCache + symSpell.dictionary
             symSpell.setBulkLoading(true);
             int wordCount = in.readInt();
+            Log.w(TAG, "Cache " + locale + ": reading " + wordCount + " words...");
+            long wordsStart = System.currentTimeMillis();
             for (int i = 0; i < wordCount; i++) {
                 if (Thread.currentThread().isInterrupted()) { in.close(); return false; }
                 String word = in.readUTF();
@@ -241,6 +273,8 @@ public class WordDictionary {
                     try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); in.close(); return false; }
                 }
             }
+            long wordsElapsed = System.currentTimeMillis() - wordsStart;
+            Log.w(TAG, "Cache " + locale + ": words loaded in " + wordsElapsed + "ms. Reading deletes...");
 
             // Read SymSpell deletes directly (skip expensive buildIndex)
             symSpell.readDeletesCache(in);

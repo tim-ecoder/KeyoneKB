@@ -103,6 +103,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     private int translationSlotCount = 4;
     private boolean predictionBarHiddenByDefault = false;
     private boolean predictionBarVisibleThisSession = false;
+    private boolean predictionBarOpenedByTranslation = false;
 
     private boolean isNotStarted = true;
 
@@ -248,6 +249,26 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 });
                 // Initialize translation manager
                 translationManager = new TranslationManager(getApplicationContext());
+                translationManager.setOnDictionaryLoadedListener(() -> {
+                    if (suggestionBar == null || wordPredictor == null || translationManager == null) return;
+                    if (!translationManager.isEnabled()) return;
+                    suggestionBar.post(() -> {
+                        if (wordPredictor == null || translationManager == null) return;
+                        String word = wordPredictor.getCurrentWord();
+                        String prevWord = wordPredictor.getPreviousWord();
+                        if (word != null && !word.isEmpty()) {
+                            java.util.List<String> translations = translationManager.translate(word, prevWord);
+                            if (!translations.isEmpty()) {
+                                boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
+                                int phraseCount = translationManager.getLastPhraseResultCount();
+                                if (translations.size() > translationSlotCount)
+                                    translations = translations.subList(0, translationSlotCount);
+                                suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseCount);
+                                setCandidatesViewShown(true);
+                            }
+                        }
+                    });
+                });
                 predictionBarHiddenByDefault = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN);
             }
 
@@ -527,6 +548,11 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             //if (currentSoftKeyboard.getHeight() != GetSwipeKeyboardHeight())
                 //currentSoftKeyboard = new Keyboard(this, R.xml.space_empty, GetSwipeKeyboardHeight());
             //    currentSoftKeyboard = new Keyboard(this, R.xml.space_empty);
+
+            if (translationManager != null && translationManager.isEnabled()) {
+                translationManager.setEnabled(false);
+            }
+            predictionBarOpenedByTranslation = false;
 
             if (suggestionBar != null) {
                 //This makes VKBD Hiding Slower
@@ -1234,36 +1260,46 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     public boolean ActionToggleTranslationMode(KeyPressData keyPressData) {
         if (translationManager == null || suggestionBar == null) return false;
-        boolean enabled = translationManager.toggle();
-        // Update languages based on current layout
+        // Update languages BEFORE toggle so dictionary loads correct direction
         updateTranslationLanguages();
+        boolean enabled = translationManager.toggle();
         String msg = enabled ?
                 "\uD83C\uDF10 Translation " + translationManager.getSourceLang().toUpperCase() + " \u2192 " + translationManager.getTargetLang().toUpperCase() :
                 "\uD83C\uDF10 Translation OFF";
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-        // Show prediction bar if hidden (translation needs visible bar)
-        if (enabled && predictionBarHiddenByDefault && !predictionBarVisibleThisSession) {
-            predictionBarVisibleThisSession = true;
-            setCandidatesViewShown(true);
-        }
-        // If enabled and we have a current word, translate immediately
-        if (enabled && wordPredictor != null) {
-            String word = wordPredictor.getCurrentWord();
-            String prevWord = wordPredictor.getPreviousWord();
-            if (word != null && !word.isEmpty()) {
-                java.util.List<String> translations = translationManager.translate(word, prevWord);
-                if (!translations.isEmpty()) {
-                    boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
-                    int phraseCount = translationManager.getLastPhraseResultCount();
-                    if (translations.size() > translationSlotCount) {
-                        translations = translations.subList(0, translationSlotCount);
+        if (enabled) {
+            // Show prediction bar if hidden (translation needs visible bar)
+            if (predictionBarHiddenByDefault && !predictionBarVisibleThisSession) {
+                predictionBarVisibleThisSession = true;
+                predictionBarOpenedByTranslation = true;
+                setCandidatesViewShown(true);
+            }
+            // Translate current word immediately
+            if (wordPredictor != null) {
+                updatePredictorWordAtCursor();
+                String word = wordPredictor.getCurrentWord();
+                String prevWord = wordPredictor.getPreviousWord();
+                if (word != null && !word.isEmpty()) {
+                    java.util.List<String> translations = translationManager.translate(word, prevWord);
+                    if (!translations.isEmpty()) {
+                        boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
+                        int phraseCount = translationManager.getLastPhraseResultCount();
+                        if (translations.size() > translationSlotCount) {
+                            translations = translations.subList(0, translationSlotCount);
+                        }
+                        suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseCount);
+                        setCandidatesViewShown(true);
                     }
-                    suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseCount);
-                    setCandidatesViewShown(true);
                 }
             }
         } else {
+            // Translation disabled — close bar if it was opened by Ctrl+T
             suggestionBar.clear();
+            if (predictionBarOpenedByTranslation) {
+                predictionBarOpenedByTranslation = false;
+                predictionBarVisibleThisSession = false;
+                setCandidatesViewShown(false);
+            }
         }
         return true;
     }

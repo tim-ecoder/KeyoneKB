@@ -266,9 +266,14 @@ public class SymSpell {
      * Read the precomputed deletes index from a binary stream.
      * Replaces any existing deletes data.
      */
+    public int deletesSize() {
+        return deletes.size();
+    }
+
     public void readDeletesCache(DataInputStream in) throws IOException {
         int size = in.readInt();
         deletes.clear();
+        long start = System.currentTimeMillis();
         for (int i = 0; i < size; i++) {
             if (Thread.currentThread().isInterrupted()) return;
             String key = in.readUTF();
@@ -282,5 +287,7 @@ public class SymSpell {
                 try { Thread.sleep(5); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
             }
         }
+        long elapsed = System.currentTimeMillis() - start;
+        android.util.Log.w("SymSpell", "readDeletesCache: " + size + " entries in " + elapsed + "ms");
     }
 }
