@@ -16,6 +16,7 @@ public class K12KbSettings {
     public final String APP_PREFERENCES_20_INTERFACE_LANG = "interface_lang";
     public final String APP_PREFERENCES_21_WORD_LEARNING = "word_learning";
     public final String APP_PREFERENCES_22_TRANSLATION_COUNT = "translation_count";
+    public final String APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN = "prediction_bar_hidden";
     public final String APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR = "pointer_mode_rect_color";
     public final String APP_PREFERENCES_13_POINTER_MODE_RECT = "pointer_mode_rect";
     public final String APP_PREFERENCES_12_ENSURE_ENTERED_TEXT = "ensure_entered_text";
@@ -98,6 +99,7 @@ public class K12KbSettings {
         CheckSettingOrSetDefault(APP_PREFERENCES_20_INTERFACE_LANG, 0);
         CheckSettingOrSetDefault(APP_PREFERENCES_21_WORD_LEARNING, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_22_TRANSLATION_COUNT, 4);
+        CheckSettingOrSetDefault(APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN, false);
     }
 
     public boolean GetBooleanValue(String name) {

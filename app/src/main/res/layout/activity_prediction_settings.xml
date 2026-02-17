@@ -29,6 +29,12 @@
             android:text="@string/pref_prediction_enabled"
             tools:checked="true" />
 
+        <Switch
+            android:id="@+id/switch_prediction_bar_hidden"
+            style="@style/SwitchPill"
+            android:text="@string/pref_prediction_bar_hidden"
+            tools:checked="false" />
+
         <LinearLayout style="@style/ItemPillSeek">
             <TextView
                 style="@style/ItemPillSeekTitle"

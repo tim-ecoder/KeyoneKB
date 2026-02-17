@@ -74,6 +74,16 @@ public class ActivityPredictionSettings extends Activity {
             }
         });
 
+        // Hide prediction bar by default (show on Ctrl+W / Ctrl+T)
+        Switch switchBarHidden = (Switch) findViewById(R.id.switch_prediction_bar_hidden);
+        boolean barHidden = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN);
+        switchBarHidden.setChecked(barHidden);
+        switchBarHidden.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN, isChecked);
+            }
+        });
+
         // Bar height
         SeekBar seekHeight = (SeekBar) findViewById(R.id.seekBarPredictionHeight);
         int height = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
