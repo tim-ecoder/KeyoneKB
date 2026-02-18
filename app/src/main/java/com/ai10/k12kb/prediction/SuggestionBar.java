@@ -198,12 +198,15 @@ public class SuggestionBar extends LinearLayout {
             // Weight proportional to text width — balanced across all slots
             float textWidth = slots[slot].getPaint().measureText(word);
             LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
-            lp.weight = Math.max(textWidth, 30f);
-            lp.width = 0;
             if (s == 0) {
                 slots[slot].setTypeface(null, Typeface.BOLD);
                 slots[slot].setEllipsize(null);
+                // WRAP_CONTENT guarantees full word; small weight takes minimal extra space
+                lp.weight = 1;
+                lp.width = LayoutParams.WRAP_CONTENT;
             } else {
+                lp.weight = Math.max(textWidth, 30f);
+                lp.width = 0;
                 // Non-priority words truncate from start to show unique endings
                 slots[slot].setEllipsize(TextUtils.TruncateAt.START);
             }
@@ -283,10 +286,13 @@ public class SuggestionBar extends LinearLayout {
             }
             LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
             float textWidth = slots[slot].getPaint().measureText(word);
-            lp.weight = Math.max(textWidth, 30f);
-            lp.width = 0;
             if (i == 0) {
                 slots[slot].setEllipsize(null);
+                lp.weight = 1;
+                lp.width = LayoutParams.WRAP_CONTENT;
+            } else {
+                lp.weight = Math.max(textWidth, 30f);
+                lp.width = 0;
             }
             slots[slot].setLayoutParams(lp);
         }
