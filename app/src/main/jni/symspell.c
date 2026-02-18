@@ -85,8 +85,9 @@ static uint32_t fnv1a(const char *s) {
 
 /* Dictionary entry: word -> frequency */
 typedef struct {
-    const char *key;   /* NULL = empty slot */
+    const char *key;      /* NULL = empty slot (normalized form) */
     int         freq;
+    const char *original; /* original (display) form, may == key */
 } dict_entry_t;
 
 /* Deletes entry: delete_pattern -> bucket of word indices */
@@ -110,6 +111,7 @@ struct symspell {
 
     /* Ordered word list (for index-based references in deletes) */
     const char  **dict_words;
+    const char  **dict_original_words;  /* parallel array: original forms */
     uint32_t      dict_words_count;
     uint32_t      dict_words_cap;
 
@@ -155,15 +157,20 @@ static dict_entry_t *dict_find(const symspell_t *ss, const char *key) {
     return NULL;
 }
 
-static void dict_words_push(symspell_t *ss, const char *word) {
+static void dict_words_push(symspell_t *ss, const char *word, const char *original) {
     if (ss->dict_words_count >= ss->dict_words_cap) {
         uint32_t new_cap = ss->dict_words_cap ? ss->dict_words_cap * 2 : 1024;
         const char **nw = (const char **)realloc(ss->dict_words, new_cap * sizeof(char *));
         if (!nw) return;
         ss->dict_words = nw;
+        const char **now = (const char **)realloc(ss->dict_original_words, new_cap * sizeof(char *));
+        if (!now) return;
+        ss->dict_original_words = now;
         ss->dict_words_cap = new_cap;
     }
-    ss->dict_words[ss->dict_words_count++] = word;
+    ss->dict_words[ss->dict_words_count] = word;
+    ss->dict_original_words[ss->dict_words_count] = original;
+    ss->dict_words_count++;
 }
 
 /* ---- Deletes helpers --------------------------------------------------- */
@@ -338,11 +345,12 @@ void ss_destroy(symspell_t *ss) {
     }
     free(ss->dict);
     free(ss->dict_words);
+    free(ss->dict_original_words);
     arena_free(&ss->arena);
     free(ss);
 }
 
-void ss_add_word(symspell_t *ss, const char *word, int frequency) {
+void ss_add_word(symspell_t *ss, const char *word, const char *original, int frequency) {
     if (!ss || !word || !*word) return;
     dict_ensure_cap(ss);
 
@@ -355,17 +363,53 @@ void ss_add_word(symspell_t *ss, const char *word, int frequency) {
     const char *stored = arena_strdup(&ss->arena, word);
     if (!stored) return;
 
+    const char *stored_orig;
+    if (!original || !*original || strcmp(word, original) == 0) {
+        stored_orig = stored;  /* reuse same arena pointer */
+    } else {
+        stored_orig = arena_strdup(&ss->arena, original);
+        if (!stored_orig) return;
+    }
+
     uint32_t h = fnv1a(stored) & (ss->dict_cap - 1);
     while (ss->dict[h].key) h = (h + 1) & (ss->dict_cap - 1);
     ss->dict[h].key = stored;
     ss->dict[h].freq = frequency;
+    ss->dict[h].original = stored_orig;
     ss->dict_count++;
 
-    dict_words_push(ss, stored);
+    dict_words_push(ss, stored, stored_orig);
+}
+
+/* Comparison function for sorting word pairs by normalized form */
+typedef struct { const char *norm; const char *orig; } word_pair_t;
+
+static int wp_cmp(const void *a, const void *b) {
+    const word_pair_t *wa = (const word_pair_t *)a;
+    const word_pair_t *wb = (const word_pair_t *)b;
+    return strcmp(wa->norm, wb->norm);
 }
 
 void ss_build_index(symspell_t *ss) {
     if (!ss) return;
+
+    /* Sort dict_words[] and dict_original_words[] by normalized form for prefix lookup */
+    if (ss->dict_words_count > 1) {
+        word_pair_t *pairs = (word_pair_t *)malloc(ss->dict_words_count * sizeof(word_pair_t));
+        if (pairs) {
+            for (uint32_t i = 0; i < ss->dict_words_count; i++) {
+                pairs[i].norm = ss->dict_words[i];
+                pairs[i].orig = ss->dict_original_words[i];
+            }
+            qsort(pairs, ss->dict_words_count, sizeof(word_pair_t), wp_cmp);
+            for (uint32_t i = 0; i < ss->dict_words_count; i++) {
+                ss->dict_words[i] = pairs[i].norm;
+                ss->dict_original_words[i] = pairs[i].orig;
+            }
+            free(pairs);
+        }
+    }
+
     /* Clear existing deletes */
     if (ss->deletes) {
         for (uint32_t i = 0; i < ss->deletes_cap; i++) {
@@ -506,6 +550,7 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
     if (direct && result_count < out_capacity) {
         if (seen_add(seen_suggestions, input)) {
             out[result_count].term = direct->key;
+            out[result_count].original = direct->original;
             out[result_count].distance = 0;
             out[result_count].frequency = direct->freq;
             out[result_count].weighted_distance = -1;
@@ -536,6 +581,7 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
                         int freq = de ? de->freq : 0;
                         if (result_count < out_capacity) {
                             out[result_count].term = suggestion;
+                            out[result_count].original = ss->dict_original_words[wid];
                             out[result_count].distance = ed;
                             out[result_count].frequency = freq;
                             out[result_count].weighted_distance = -1;
@@ -615,23 +661,102 @@ int ss_lookup_weighted(symspell_t *ss, const char *input, int max_suggestions,
     return count < max_suggestions ? count : max_suggestions;
 }
 
+/* ---- Prefix lookup (binary search on sorted dict_words[]) -------------- */
+
+int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
+                     ss_suggest_item_t *out, int out_capacity) {
+    if (!ss || !prefix || !*prefix || !out || out_capacity <= 0) return 0;
+
+    int prefix_len = (int)strlen(prefix);
+    int limit = max_results < out_capacity ? max_results : out_capacity;
+
+    /* Binary search for first entry >= prefix */
+    uint32_t lo = 0, hi = ss->dict_words_count;
+    while (lo < hi) {
+        uint32_t mid = lo + (hi - lo) / 2;
+        if (strncmp(ss->dict_words[mid], prefix, prefix_len) < 0)
+            lo = mid + 1;
+        else
+            hi = mid;
+    }
+
+    /* Collect top-N matches by frequency using a selection buffer */
+    int count = 0;
+    int min_freq = 0;
+    int min_idx = 0;
+
+    for (uint32_t i = lo; i < ss->dict_words_count; i++) {
+        if (strncmp(ss->dict_words[i], prefix, prefix_len) != 0) break;
+        dict_entry_t *de = dict_find(ss, ss->dict_words[i]);
+        int freq = de ? de->freq : 0;
+
+        if (count < limit) {
+            out[count].term = ss->dict_words[i];
+            out[count].original = ss->dict_original_words[i];
+            out[count].distance = 0;
+            out[count].frequency = freq;
+            out[count].weighted_distance = -1;
+            count++;
+            if (count == limit) {
+                /* Find min in buffer */
+                min_idx = 0;
+                min_freq = out[0].frequency;
+                for (int k = 1; k < count; k++) {
+                    if (out[k].frequency < min_freq) {
+                        min_freq = out[k].frequency;
+                        min_idx = k;
+                    }
+                }
+            }
+        } else if (freq > min_freq) {
+            out[min_idx].term = ss->dict_words[i];
+            out[min_idx].original = ss->dict_original_words[i];
+            out[min_idx].frequency = freq;
+            /* Re-find min */
+            min_idx = 0;
+            min_freq = out[0].frequency;
+            for (int k = 1; k < count; k++) {
+                if (out[k].frequency < min_freq) {
+                    min_freq = out[k].frequency;
+                    min_idx = k;
+                }
+            }
+        }
+    }
+
+    /* Sort by frequency descending (insertion sort — count is small) */
+    for (int i = 1; i < count; i++) {
+        ss_suggest_item_t tmp = out[i];
+        int j = i - 1;
+        while (j >= 0 && out[j].frequency < tmp.frequency) {
+            out[j + 1] = out[j];
+            j--;
+        }
+        out[j + 1] = tmp;
+    }
+
+    return count;
+}
+
 /* ---- Binary save/load (mmap-friendly format) --------------------------- */
 
 #define SS_MAGIC 0x53534E44  /* "SSND" */
-#define SS_VERSION 1
+#define SS_VERSION 2
 
 /*
- * File format:
+ * File format v2:
  *   [Header]
  *     u32 magic
- *     u32 version
+ *     u32 version (= 2)
  *     i32 max_edit_distance
  *     i32 prefix_length
  *     u32 word_count
  *     u32 deletes_count
- *   [Word Table]  (word_count entries)
+ *   [Word Table]  (word_count entries, in sorted order)
  *     u16 word_len
- *     char[word_len] word (NOT null-terminated in file)
+ *     char[word_len] word (normalized, NOT null-terminated in file)
+ *     u16 original_len  (0 if original == normalized)
+ *     char[original_len] original (NOT null-terminated, absent if original_len==0)
  *     i32 frequency
  *   [Deletes Table] (deletes_count entries)
  *     u16 key_len
@@ -662,14 +787,24 @@ int ss_save(symspell_t *ss, const char *path) {
     fwrite(&word_count, 4, 1, f);
     fwrite(&del_count, 4, 1, f);
 
-    /* Write words + frequencies */
+    /* Write words + originals + frequencies */
     for (uint32_t i = 0; i < word_count; i++) {
         const char *w = ss->dict_words[i];
+        const char *orig = ss->dict_original_words[i];
         uint16_t wlen = (uint16_t)strlen(w);
         dict_entry_t *de = dict_find(ss, w);
         int32_t freq = de ? de->freq : 0;
         fwrite(&wlen, 2, 1, f);
         fwrite(w, 1, wlen, f);
+        /* Write original_len=0 when original == normalized (pointer or value) */
+        uint16_t olen = 0;
+        if (orig != w && strcmp(orig, w) != 0) {
+            olen = (uint16_t)strlen(orig);
+        }
+        fwrite(&olen, 2, 1, f);
+        if (olen > 0) {
+            fwrite(orig, 1, olen, f);
+        }
         fwrite(&freq, 4, 1, f);
     }
 
@@ -732,18 +867,33 @@ symspell_t *ss_load_mmap(const char *path) {
     ss->mmap_size = file_size;
     ss->mmap_fd = fd;
 
-    /* Read words */
+    /* Read words (v2: includes original forms) */
     for (uint32_t i = 0; i < word_count && p < end; i++) {
         if (p + 2 > end) break;
         uint16_t wlen;
         memcpy(&wlen, p, 2); p += 2;
-        if (p + wlen + 4 > end) break;
+        if (p + wlen + 2 > end) break;
 
         char *word = arena_alloc(&ss->arena, wlen + 1);
         memcpy(word, p, wlen);
         word[wlen] = '\0';
         p += wlen;
 
+        /* Read original form */
+        uint16_t olen;
+        memcpy(&olen, p, 2); p += 2;
+        char *orig;
+        if (olen == 0) {
+            orig = word;  /* original == normalized */
+        } else {
+            if (p + olen > end) break;
+            orig = arena_alloc(&ss->arena, olen + 1);
+            memcpy(orig, p, olen);
+            orig[olen] = '\0';
+            p += olen;
+        }
+
+        if (p + 4 > end) break;
         int32_t freq;
         memcpy(&freq, p, 4); p += 4;
 
@@ -753,8 +903,9 @@ symspell_t *ss_load_mmap(const char *path) {
         while (ss->dict[h].key) h = (h + 1) & (ss->dict_cap - 1);
         ss->dict[h].key = word;
         ss->dict[h].freq = freq;
+        ss->dict[h].original = orig;
         ss->dict_count++;
-        dict_words_push(ss, word);
+        dict_words_push(ss, word, orig);
     }
 
     /* Pre-allocate deletes table */

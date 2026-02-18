@@ -114,14 +114,19 @@ public class ActivityPredictionSettings extends Activity {
                 this, R.array.pref_prediction_engine_array, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerEngine.setAdapter(adapter);
+        // Map engine constant (1=N-gram, 2=NativeSymSpell) to spinner position (0, 1)
         final int engineFromPref = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
-        spinnerEngine.setSelection(engineFromPref);
+        int spinnerPos = (engineFromPref == WordPredictor.ENGINE_NGRAM) ? 0 : 1;
+        spinnerEngine.setSelection(spinnerPos);
         spinnerEngine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE, position);
+                // Map spinner position back to engine constant: 0→1, 1→2
+                int engineConst = (position == 0) ? WordPredictor.ENGINE_NGRAM : WordPredictor.ENGINE_NATIVE_SYMSPELL;
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE, engineConst);
             }
             public void onNothingSelected(AdapterView<?> parent) {
-                spinnerEngine.setSelection(engineFromPref);
+                int pos = (engineFromPref == WordPredictor.ENGINE_NGRAM) ? 0 : 1;
+                spinnerEngine.setSelection(pos);
             }
         });
     }
@@ -270,8 +275,7 @@ public class ActivityPredictionSettings extends Activity {
         int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
         String engineName;
         if (engineMode == WordPredictor.ENGINE_NGRAM) engineName = "N-gram";
-        else if (engineMode == WordPredictor.ENGINE_NATIVE_SYMSPELL) engineName = "Native SymSpell";
-        else engineName = "SymSpell";
+        else engineName = "Native SymSpell";
         sb.append(getString(R.string.pred_status_engine)).append(": ").append(engineName).append("\n");
 
         // Per-locale stats
@@ -339,25 +343,19 @@ public class ActivityPredictionSettings extends Activity {
     }
 
     private void refreshCacheStatus() {
-        File cacheDir = new File(getFilesDir(), "dict_cache");
         File nativeCacheDir = new File(getFilesDir(), "native_dict_cache");
         StringBuilder sb = new StringBuilder();
 
         String[] locales = {"en", "ru"};
         for (String locale : locales) {
-            File f = new File(cacheDir, locale + ".bin");
             File nf = new File(nativeCacheDir, locale + ".ssnd");
-            if (f.exists()) {
-                long sizeKb = f.length() / 1024;
+            if (nf.exists()) {
+                long sizeKb = nf.length() / 1024;
                 sb.append(locale.toUpperCase()).append(": ")
                   .append(sizeKb).append(" KB");
             } else {
                 sb.append(locale.toUpperCase()).append(": ")
                   .append(getString(R.string.pred_cache_missing));
-            }
-            if (nf.exists()) {
-                long nativeSizeKb = nf.length() / 1024;
-                sb.append(" | native: ").append(nativeSizeKb).append(" KB");
             }
             sb.append("\n");
         }

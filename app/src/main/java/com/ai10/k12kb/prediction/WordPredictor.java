@@ -18,7 +18,6 @@ public class WordPredictor {
 
     private static final String TAG = "WordPredictor";
 
-    public static final int ENGINE_SYMSPELL = 0;
     public static final int ENGINE_NGRAM = 1;
     public static final int ENGINE_NATIVE_SYMSPELL = 2;
 
@@ -172,9 +171,7 @@ public class WordPredictor {
     }
 
     public void setEngineMode(int mode) {
-        if (mode < ENGINE_SYMSPELL || mode > ENGINE_NATIVE_SYMSPELL) mode = ENGINE_SYMSPELL;
-        // Fall back to Java SymSpell if native library not available
-        if (mode == ENGINE_NATIVE_SYMSPELL && !NativeSymSpell.isAvailable()) mode = ENGINE_SYMSPELL;
+        if (mode < ENGINE_NGRAM || mode > ENGINE_NATIVE_SYMSPELL) mode = ENGINE_NATIVE_SYMSPELL;
         boolean modeChanged = (this.engineMode != mode);
         this.engineMode = mode;
         if (modeChanged) {
@@ -315,15 +312,10 @@ public class WordPredictor {
                 ngramEng.setLearnedDictionary(sharedLearnedDict);
                 newEngine = ngramEng;
                 break;
-            case ENGINE_NATIVE_SYMSPELL:
+            default:
                 NativeSymSpellEngine nativeEng = new NativeSymSpellEngine();
                 nativeEng.setLearnedDictionary(sharedLearnedDict);
                 newEngine = nativeEng;
-                break;
-            default:
-                SymSpellEngine symEng = new SymSpellEngine();
-                symEng.setLearnedDictionary(sharedLearnedDict);
-                newEngine = symEng;
                 break;
         }
         engine = newEngine;

@@ -10,7 +10,7 @@ import android.util.Log;
  *
  * Usage:
  *   NativeSymSpell ns = new NativeSymSpell(2, 7);
- *   ns.addWord("hello", 100);
+ *   ns.addWord("hello", "Hello", 100);
  *   ns.buildIndex();
  *   NativeSymSpell.SuggestItem[] results = ns.lookup("helo", 5);
  *   ns.destroy();
@@ -38,12 +38,14 @@ public class NativeSymSpell {
 
     public static class SuggestItem {
         public final String term;
+        public final String original;
         public final int distance;
         public final int frequency;
         public final float weightedDistance;
 
-        public SuggestItem(String term, int distance, int frequency, float weightedDistance) {
+        public SuggestItem(String term, String original, int distance, int frequency, float weightedDistance) {
             this.term = term;
+            this.original = original;
             this.distance = distance;
             this.frequency = frequency;
             this.weightedDistance = weightedDistance;
@@ -82,9 +84,9 @@ public class NativeSymSpell {
         return nativePtr != 0;
     }
 
-    public void addWord(String word, int frequency) {
+    public void addWord(String normalized, String original, int frequency) {
         if (nativePtr == 0) return;
-        nativeAddWord(nativePtr, word, frequency);
+        nativeAddWord(nativePtr, normalized, original, frequency);
     }
 
     public void buildIndex() {
@@ -147,28 +149,48 @@ public class NativeSymSpell {
         super.finalize();
     }
 
-    /* Parse raw String[] triplets from JNI into SuggestItem[] */
-    private SuggestItem[] parseResults(String[] raw, boolean weighted) {
-        if (raw == null || raw.length < 3) return new SuggestItem[0];
-        int count = raw.length / 3;
+    /**
+     * Prefix completion lookup — returns matches sorted by frequency desc.
+     */
+    public SuggestItem[] prefixLookup(String prefix, int maxResults) {
+        if (nativePtr == 0 || prefix == null || prefix.isEmpty()) return new SuggestItem[0];
+        String[] raw = nativePrefixLookup(nativePtr, prefix, maxResults);
+        if (raw == null || raw.length < 2) return new SuggestItem[0];
+        int count = raw.length / 2;
         SuggestItem[] items = new SuggestItem[count];
         for (int i = 0; i < count; i++) {
-            String term = raw[i * 3];
+            String original = raw[i * 2];
+            int frequency = 0;
+            try { frequency = Integer.parseInt(raw[i * 2 + 1]); }
+            catch (NumberFormatException e) { /* ignore */ }
+            items[i] = new SuggestItem(original, original, 0, frequency, -1f);
+        }
+        return items;
+    }
+
+    /* Parse raw String[] quads from JNI into SuggestItem[] */
+    private SuggestItem[] parseResults(String[] raw, boolean weighted) {
+        if (raw == null || raw.length < 4) return new SuggestItem[0];
+        int count = raw.length / 4;
+        SuggestItem[] items = new SuggestItem[count];
+        for (int i = 0; i < count; i++) {
+            String term = raw[i * 4];
+            String original = raw[i * 4 + 1];
             int distance = 0;
             float wd = -1f;
             int frequency = 0;
             try {
                 if (weighted) {
-                    wd = Float.parseFloat(raw[i * 3 + 1]);
+                    wd = Float.parseFloat(raw[i * 4 + 2]);
                     distance = Math.round(wd);
                 } else {
-                    distance = Integer.parseInt(raw[i * 3 + 1]);
+                    distance = Integer.parseInt(raw[i * 4 + 2]);
                 }
-                frequency = Integer.parseInt(raw[i * 3 + 2]);
+                frequency = Integer.parseInt(raw[i * 4 + 3]);
             } catch (NumberFormatException e) {
                 // ignore
             }
-            items[i] = new SuggestItem(term, distance, frequency, wd);
+            items[i] = new SuggestItem(term, original, distance, frequency, wd);
         }
         return items;
     }
@@ -178,11 +200,12 @@ public class NativeSymSpell {
 
     /* Native methods */
     private native long nativeCreate(int maxEditDistance, int prefixLength);
-    private native void nativeAddWord(long ptr, String word, int frequency);
+    private native void nativeAddWord(long ptr, String word, String original, int frequency);
     private native void nativeBuildIndex(long ptr);
     private native String[] nativeLookup(long ptr, String input, int maxSuggestions);
     private native String[] nativeLookupWeighted(long ptr, String input,
                                                   int maxSuggestions, String layout);
+    private native String[] nativePrefixLookup(long ptr, String prefix, int maxResults);
     private native boolean nativeSave(long ptr, String path);
     private native void nativeDestroy(long ptr);
     private native int nativeSize(long ptr);

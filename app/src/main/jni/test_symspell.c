@@ -27,11 +27,11 @@ static void test_basic(void) {
     symspell_t *ss = ss_create(2, 7);
     ASSERT_TRUE("create not null", ss != NULL);
 
-    ss_add_word(ss, "hello", 100);
-    ss_add_word(ss, "world", 90);
-    ss_add_word(ss, "help", 80);
-    ss_add_word(ss, "hero", 70);
-    ss_add_word(ss, "hell", 60);
+    ss_add_word(ss, "hello", "hello", 100);
+    ss_add_word(ss, "world", "world", 90);
+    ss_add_word(ss, "help", "help", 80);
+    ss_add_word(ss, "hero", "hero", 70);
+    ss_add_word(ss, "hell", "hell", 60);
     ss_build_index(ss);
 
     ASSERT_EQ("size", 5, ss_size(ss));
@@ -77,12 +77,120 @@ static void test_basic(void) {
     printf("--- test_basic done ---\n\n");
 }
 
+static void test_prefix(void) {
+    printf("--- test_prefix ---\n");
+    symspell_t *ss = ss_create(2, 7);
+
+    /* Add words with different original forms */
+    ss_add_word(ss, "hello", "Hello", 100);
+    ss_add_word(ss, "help", "Help", 80);
+    ss_add_word(ss, "hero", "Hero", 70);
+    ss_add_word(ss, "world", "World", 90);
+    ss_add_word(ss, "hell", "hell", 60);
+    ss_add_word(ss, "heap", "heap", 50);
+    ss_build_index(ss);
+
+    ss_suggest_item_t results[10];
+
+    /* Prefix "hel" should match hello, help, hell */
+    int n = ss_prefix_lookup(ss, "hel", 10, results, 10);
+    ASSERT_TRUE("prefix hel >= 3", n >= 3);
+    /* Should be sorted by frequency: hello(100), help(80), hell(60) */
+    if (n >= 3) {
+        ASSERT_EQ("prefix hel[0] freq", 100, results[0].frequency);
+        ASSERT_EQ("prefix hel[1] freq", 80, results[1].frequency);
+        ASSERT_EQ("prefix hel[2] freq", 60, results[2].frequency);
+    }
+    /* Results should have original forms */
+    if (n >= 1) {
+        ASSERT_TRUE("prefix hel[0] original is Hello",
+                     strcmp(results[0].original, "Hello") == 0);
+    }
+
+    /* Prefix "he" should match all he* words */
+    n = ss_prefix_lookup(ss, "he", 10, results, 10);
+    ASSERT_TRUE("prefix he >= 4", n >= 4);
+    /* First should be highest freq: hello(100) */
+    ASSERT_EQ("prefix he[0] freq", 100, results[0].frequency);
+
+    /* Prefix "w" should match world */
+    n = ss_prefix_lookup(ss, "w", 10, results, 10);
+    ASSERT_EQ("prefix w count", 1, n);
+    if (n >= 1) {
+        ASSERT_TRUE("prefix w[0] original is World",
+                     strcmp(results[0].original, "World") == 0);
+    }
+
+    /* Prefix "xyz" should match nothing */
+    n = ss_prefix_lookup(ss, "xyz", 10, results, 10);
+    ASSERT_EQ("prefix xyz count", 0, n);
+
+    /* Test max_results limiting */
+    n = ss_prefix_lookup(ss, "he", 2, results, 10);
+    ASSERT_EQ("prefix he limited to 2", 2, n);
+    ASSERT_EQ("prefix he limited [0] freq", 100, results[0].frequency);
+
+    ss_destroy(ss);
+    printf("--- test_prefix done ---\n\n");
+}
+
+static void test_save_load_v2(void) {
+    printf("--- test_save_load_v2 ---\n");
+    symspell_t *ss = ss_create(2, 7);
+    ss_add_word(ss, "hello", "Hello", 100);
+    ss_add_word(ss, "world", "World", 90);
+    ss_add_word(ss, "test", "test", 80);  /* original == normalized */
+    ss_build_index(ss);
+
+    const char *tmpfile = "/tmp/symspell_test_v2.ssnd";
+    int rc = ss_save(ss, tmpfile);
+    ASSERT_EQ("save v2 ok", 0, rc);
+    ss_destroy(ss);
+
+    /* Load via mmap */
+    ss = ss_load_mmap(tmpfile);
+    ASSERT_TRUE("load v2 not null", ss != NULL);
+    if (ss) {
+        ASSERT_EQ("loaded v2 size", 3, ss_size(ss));
+        ASSERT_EQ("loaded v2 freq", 100, ss_get_frequency(ss, "hello"));
+
+        /* Verify original forms survive roundtrip via lookup */
+        ss_suggest_item_t results[10];
+        int n = ss_lookup(ss, "hello", 5, results, 10);
+        ASSERT_TRUE("v2 lookup hello >= 1", n >= 1);
+        if (n > 0) {
+            ASSERT_TRUE("v2 lookup hello original=Hello",
+                         strcmp(results[0].original, "Hello") == 0);
+        }
+
+        /* Verify prefix lookup with originals */
+        n = ss_prefix_lookup(ss, "hel", 10, results, 10);
+        ASSERT_TRUE("v2 prefix hel >= 1", n >= 1);
+        if (n > 0) {
+            ASSERT_TRUE("v2 prefix hel[0] original=Hello",
+                         strcmp(results[0].original, "Hello") == 0);
+        }
+
+        /* Verify original==normalized case */
+        n = ss_lookup(ss, "test", 5, results, 10);
+        ASSERT_TRUE("v2 lookup test >= 1", n >= 1);
+        if (n > 0) {
+            ASSERT_TRUE("v2 lookup test original=test",
+                         strcmp(results[0].original, "test") == 0);
+        }
+
+        ss_destroy(ss);
+    }
+    remove(tmpfile);
+    printf("--- test_save_load_v2 done ---\n\n");
+}
+
 static void test_save_load(void) {
     printf("--- test_save_load ---\n");
     symspell_t *ss = ss_create(2, 7);
-    ss_add_word(ss, "hello", 100);
-    ss_add_word(ss, "world", 90);
-    ss_add_word(ss, "test", 80);
+    ss_add_word(ss, "hello", "hello", 100);
+    ss_add_word(ss, "world", "world", 90);
+    ss_add_word(ss, "test", "test", 80);
     ss_build_index(ss);
 
     const char *tmpfile = "/tmp/symspell_test.ssnd";
@@ -130,7 +238,7 @@ static void test_with_dict(const char *dict_path) {
         *tab = '\0';
         int freq = atoi(tab + 1);
         if (freq <= 0) continue;
-        ss_add_word(ss, line, freq);
+        ss_add_word(ss, line, line, freq);
         word_count++;
     }
     fclose(f);
@@ -200,6 +308,8 @@ static void test_with_dict(const char *dict_path) {
 
 int main(int argc, char **argv) {
     test_basic();
+    test_prefix();
+    test_save_load_v2();
     test_save_load();
 
     if (argc > 1) {

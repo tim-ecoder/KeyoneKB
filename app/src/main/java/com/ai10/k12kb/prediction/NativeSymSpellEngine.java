@@ -10,7 +10,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -18,27 +17,18 @@ import java.util.Locale;
 /**
  * Native SymSpell prediction engine.
  *
- * Delegates fuzzy matching to the C library (libnativesymspell.so) for
- * faster lookups and lower memory/GC overhead. Falls back to Java
- * SymSpellEngine if the native library is not available.
- *
- * Like SymSpellEngine, maintains a prefix cache and normalized index
- * in Java for prefix completions (which are simple HashMap lookups
- * and don't benefit much from native code).
+ * Delegates fuzzy matching AND prefix lookups to the C library
+ * (libnativesymspell.so). All word indexes live in native memory —
+ * no Java-side HashMaps needed. On cache hit, loading is just mmap + ready.
  */
 public class NativeSymSpellEngine implements PredictionEngine {
 
     private static final String TAG = "NativeSymSpellEngine";
     private static final int MAX_NATIVE_WORDS = 700000;
-    private static final int MAX_JAVA_INDEX_WORDS = 35000;
-    private static final int MAX_PREFIX_CACHE = 4;
     private static final String CACHE_DIR = "native_dict_cache";
 
     private volatile NativeSymSpell nativeSymSpell;
     private final Object loadLock = new Object();
-    private final HashMap<String, NativeSymSpellEngine> dictCache = new HashMap<>();
-    private final HashMap<String, List<WordDictionary.DictEntry>> prefixCache = new HashMap<>();
-    private final HashMap<String, List<WordDictionary.DictEntry>> normalizedIndex = new HashMap<>();
     private LearnedDictionary learnedDict;
     private volatile boolean ready = false;
     private volatile String loadedLocale = "";
@@ -56,22 +46,23 @@ public class NativeSymSpellEngine implements PredictionEngine {
         HashSet<String> seen = new HashSet<>();
         List<WordPredictor.Suggestion> top = new ArrayList<>();
 
-        // 1. Prefix completions (from Java-side prefix cache)
-        List<WordDictionary.DictEntry> completions = lookupByPrefix(normalized, 100);
-        for (WordDictionary.DictEntry entry : completions) {
-            String normEntry = WordDictionary.normalize(entry.word);
+        // 1. Prefix completions (from native prefix lookup)
+        NativeSymSpell.SuggestItem[] completions = ss.prefixLookup(normalized, 100);
+        for (NativeSymSpell.SuggestItem item : completions) {
+            String word = item.original;
+            String normEntry = WordDictionary.normalize(word);
             if (!normEntry.startsWith(normalized)) continue;
-            if (entry.word.length() <= input.length()) continue;
-            if (entry.word.equalsIgnoreCase(input)) continue;
+            if (word.length() <= input.length()) continue;
+            if (word.equalsIgnoreCase(input)) continue;
 
-            int effFreq = WordDictionary.effectiveFrequency(entry.frequency);
+            int effFreq = WordDictionary.effectiveFrequency(item.frequency);
             int minFreq = normalized.length() <= 2 ? 300 : (normalized.length() == 3 ? 250 : 150);
             if (effFreq < minFreq) continue;
 
-            double score = computeScore(normalized, normEntry, entry, 0, true, input.length());
-            String key = entry.word.toLowerCase(Locale.ROOT);
+            double score = computeScore(normalized, normEntry, word, item.frequency, 0, true, input.length());
+            String key = word.toLowerCase(Locale.ROOT);
             if (seen.add(key)) {
-                insertSorted(top, new WordPredictor.Suggestion(entry.word, 0, score), limit);
+                insertSorted(top, new WordPredictor.Suggestion(word, 0, score), limit);
             }
         }
 
@@ -83,19 +74,17 @@ public class NativeSymSpellEngine implements PredictionEngine {
 
             for (NativeSymSpell.SuggestItem item : nativeResults) {
                 if (normalized.length() <= 2 && item.distance > 1) continue;
-                List<WordDictionary.DictEntry> entries = getByNormalized(item.term, 3);
-                for (WordDictionary.DictEntry entry : entries) {
-                    if (entry.word.equals(input)) continue;
-                    double score = computeScore(normalized, item.term, entry,
-                            item.distance, false, input.length());
-                    // Bonus for low weighted distance (adjacent key typos)
-                    if (item.weightedDistance >= 0 && item.weightedDistance < item.distance) {
-                        score += (item.distance - item.weightedDistance) * 0.5;
-                    }
-                    String key = entry.word.toLowerCase(Locale.ROOT);
-                    if (seen.add(key)) {
-                        insertSorted(top, new WordPredictor.Suggestion(entry.word, item.distance, score), limit);
-                    }
+                String word = item.original;
+                if (word.equals(input)) continue;
+                double score = computeScore(normalized, item.term, word, item.frequency,
+                        item.distance, false, input.length());
+                // Bonus for low weighted distance (adjacent key typos)
+                if (item.weightedDistance >= 0 && item.weightedDistance < item.distance) {
+                    score += (item.distance - item.weightedDistance) * 0.5;
+                }
+                String key = word.toLowerCase(Locale.ROOT);
+                if (seen.add(key)) {
+                    insertSorted(top, new WordPredictor.Suggestion(word, item.distance, score), limit);
                 }
             }
         }
@@ -117,13 +106,23 @@ public class NativeSymSpellEngine implements PredictionEngine {
     public void loadDictionary(Context context, String locale) {
         synchronized (loadLock) {
             if (ready && locale.equals(loadedLocale)) {
+                int before = nativeSymSpell.size();
                 loadUserWords(context);
                 loadLearnedWords();
+                if (nativeSymSpell.size() > before) {
+                    nativeSymSpell.buildIndex();
+                    Log.d(TAG, "Rebuilt index after adding " + (nativeSymSpell.size() - before) + " new user/learned words");
+                }
                 return;
             }
             load(context, locale);
+            int before = nativeSymSpell.size();
             loadUserWords(context);
             loadLearnedWords();
+            if (nativeSymSpell.size() > before) {
+                nativeSymSpell.buildIndex();
+                Log.d(TAG, "Rebuilt index after adding " + (nativeSymSpell.size() - before) + " new user/learned words");
+            }
         }
     }
 
@@ -148,18 +147,14 @@ public class NativeSymSpellEngine implements PredictionEngine {
     private void load(Context context, String locale) {
         long startTime = System.currentTimeMillis();
         ready = false;
-        prefixCache.clear();
-        normalizedIndex.clear();
 
         WordDictionary.recordLoadingStart(locale);
 
-        // Try native binary cache first (mmap — very fast)
+        // Try native binary cache first (mmap — very fast, no text re-parse needed)
         String cachePath = new File(context.getFilesDir(), CACHE_DIR + "/" + locale + ".ssnd").getAbsolutePath();
         NativeSymSpell cached = NativeSymSpell.loadFromCache(cachePath);
-        if (cached != null && cached.size() > MAX_JAVA_INDEX_WORDS) {
+        if (cached != null && cached.size() > 0) {
             nativeSymSpell = cached;
-            // Still need to rebuild Java-side indexes from the text dict
-            loadTextDictForIndex(context, locale);
             ready = true;
             loadedLocale = locale;
             long elapsed = System.currentTimeMillis() - startTime;
@@ -167,6 +162,13 @@ public class NativeSymSpellEngine implements PredictionEngine {
             Log.w(TAG, "Loaded " + locale + " from native cache: " + nativeSymSpell.size()
                     + " words in " + elapsed + "ms");
             return;
+        }
+
+        // v1 cache exists but couldn't be loaded (version mismatch) — delete it
+        File cacheFile = new File(cachePath);
+        if (cacheFile.exists()) {
+            cacheFile.delete();
+            Log.w(TAG, "Deleted stale v1 cache: " + cachePath);
         }
 
         // Build from text dictionary
@@ -199,7 +201,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
         Log.w(TAG, "Loaded " + locale + " from assets (native): " + wordCount
                 + " words in " + elapsed + "ms");
 
-        // Save native binary cache
+        // Save native binary cache (v2 with original forms)
         saveNativeCache(context, locale);
     }
 
@@ -253,8 +255,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 allEntries = new ArrayList<>(allEntries.subList(0, MAX_NATIVE_WORDS));
             }
 
-            // Add to native SymSpell (all words) and Java indexes (top words only)
-            int idx = 0;
+            // Add to native SymSpell with both normalized and original forms
             for (String[] entry : allEntries) {
                 if (Thread.currentThread().isInterrupted()) break;
                 int freq;
@@ -263,85 +264,13 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 String word = entry[0];
                 String normalized = WordDictionary.normalize(word);
 
-                // Native side — all words
-                nativeSymSpell.addWord(normalized, freq);
-
-                // Java side — only top MAX_JAVA_INDEX_WORDS for prefix/normalized lookups
-                if (idx < MAX_JAVA_INDEX_WORDS) {
-                    addToJavaIndex(word, normalized, freq);
-                }
-                idx++;
+                nativeSymSpell.addWord(normalized, word, freq);
             }
 
             return allEntries.size();
         } catch (Exception e) {
             Log.e(TAG, "Failed to load dictionary: " + e);
             return 0;
-        }
-    }
-
-    /**
-     * Load text dict only for Java-side indexes (prefix cache, normalizedIndex).
-     * Used when native cache was loaded via mmap.
-     */
-    private void loadTextDictForIndex(Context context, String locale) {
-        String txtFilename = "dictionaries/" + locale + "_base.txt";
-        try {
-            InputStream is = context.getAssets().open(txtFilename);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 16384);
-
-            ArrayList<String[]> allEntries = new ArrayList<>();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (Thread.currentThread().isInterrupted()) break;
-                int tab = line.indexOf('\t');
-                if (tab <= 0) continue;
-                allEntries.add(new String[]{line.substring(0, tab), line.substring(tab + 1)});
-            }
-            reader.close();
-
-            Collections.sort(allEntries, new Comparator<String[]>() {
-                public int compare(String[] a, String[] b) {
-                    try { return Integer.parseInt(b[1]) - Integer.parseInt(a[1]); }
-                    catch (NumberFormatException e) { return 0; }
-                }
-            });
-            if (allEntries.size() > MAX_JAVA_INDEX_WORDS) {
-                allEntries = new ArrayList<>(allEntries.subList(0, MAX_JAVA_INDEX_WORDS));
-            }
-
-            for (String[] entry : allEntries) {
-                if (Thread.currentThread().isInterrupted()) break;
-                int freq;
-                try { freq = Integer.parseInt(entry[1]); }
-                catch (NumberFormatException e) { continue; }
-                addToJavaIndex(entry[0], WordDictionary.normalize(entry[0]), freq);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to load text dict for index: " + e);
-        }
-    }
-
-    private void addToJavaIndex(String word, String normalized, int frequency) {
-        // Normalized index
-        List<WordDictionary.DictEntry> list = normalizedIndex.get(normalized);
-        if (list == null) {
-            list = new ArrayList<>();
-            normalizedIndex.put(normalized, list);
-        }
-        list.add(new WordDictionary.DictEntry(word, frequency));
-
-        // Prefix cache
-        for (int len = 1; len <= Math.min(normalized.length(), MAX_PREFIX_CACHE); len++) {
-            String prefix = normalized.substring(0, len);
-            List<WordDictionary.DictEntry> plist = prefixCache.get(prefix);
-            if (plist == null) {
-                plist = new ArrayList<>();
-                prefixCache.put(prefix, plist);
-            }
-            if (plist.size() < 200 || frequency > 50) {
-                plist.add(new WordDictionary.DictEntry(word, frequency));
-            }
         }
     }
 
@@ -352,17 +281,14 @@ public class NativeSymSpellEngine implements PredictionEngine {
         for (UserDictionaryBridge.UserWord uw : userWords) {
             int freq = Math.max(uw.frequency, 200);
             String normalized = WordDictionary.normalize(uw.word);
-            nativeSymSpell.addWord(normalized, freq);
-            addToJavaIndex(uw.word, normalized, freq);
+            nativeSymSpell.addWord(normalized, uw.word, freq);
             if (uw.shortcut != null && !uw.shortcut.isEmpty()) {
                 String normShort = WordDictionary.normalize(uw.shortcut);
-                nativeSymSpell.addWord(normShort, freq);
-                addToJavaIndex(uw.shortcut, normShort, freq);
+                nativeSymSpell.addWord(normShort, uw.shortcut, freq);
             }
             added++;
         }
         if (added > 0) {
-            nativeSymSpell.buildIndex();
             Log.d(TAG, "Added " + added + " user dictionary words (native)");
         }
     }
@@ -375,12 +301,10 @@ public class NativeSymSpellEngine implements PredictionEngine {
         for (LearnedDictionary.LearnedWord lw : learnedWords) {
             int freq = Math.min(240, LearnedDictionary.getBaseFrequency() + (lw.count - 1) * 5);
             String normalized = WordDictionary.normalize(lw.word);
-            nativeSymSpell.addWord(normalized, freq);
-            addToJavaIndex(lw.word, normalized, freq);
+            nativeSymSpell.addWord(normalized, lw.word, freq);
             added++;
         }
         if (added > 0) {
-            nativeSymSpell.buildIndex();
             Log.d(TAG, "Added " + added + " learned words (native)");
         }
     }
@@ -399,48 +323,10 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
     }
 
-    private List<WordDictionary.DictEntry> lookupByPrefix(String prefix, int maxSize) {
-        if (prefix == null || prefix.isEmpty()) return Collections.emptyList();
-        String normalized = WordDictionary.normalize(prefix);
-
-        if (normalized.length() <= MAX_PREFIX_CACHE) {
-            List<WordDictionary.DictEntry> cached = prefixCache.get(normalized);
-            if (cached == null) return Collections.emptyList();
-            List<WordDictionary.DictEntry> result = new ArrayList<>();
-            for (WordDictionary.DictEntry e : cached) {
-                if (WordDictionary.normalize(e.word).startsWith(normalized)) {
-                    result.add(e);
-                }
-            }
-            sortByFrequency(result);
-            if (result.size() > maxSize) return result.subList(0, maxSize);
-            return result;
-        }
-
-        List<WordDictionary.DictEntry> result = new ArrayList<>();
-        for (java.util.Map.Entry<String, List<WordDictionary.DictEntry>> entry : normalizedIndex.entrySet()) {
-            if (entry.getKey().startsWith(normalized)) {
-                result.addAll(entry.getValue());
-            }
-        }
-        sortByFrequency(result);
-        if (result.size() > maxSize) return result.subList(0, maxSize);
-        return result;
-    }
-
-    private List<WordDictionary.DictEntry> getByNormalized(String normalizedWord, int limit) {
-        List<WordDictionary.DictEntry> entries = normalizedIndex.get(normalizedWord);
-        if (entries == null) return Collections.emptyList();
-        List<WordDictionary.DictEntry> copy = new ArrayList<>(entries);
-        sortByFrequency(copy);
-        if (copy.size() > limit) return copy.subList(0, limit);
-        return copy;
-    }
-
     private double computeScore(String normalizedInput, String normalizedCandidate,
-                                WordDictionary.DictEntry entry, int distance,
+                                String word, int frequency, int distance,
                                 boolean isPrefix, int inputLen) {
-        int effFreq = WordDictionary.effectiveFrequency(entry.frequency);
+        int effFreq = WordDictionary.effectiveFrequency(frequency);
         double distanceScore = 1.0 / (1 + distance);
         double frequencyScore = effFreq / 1600.0;
         double prefixBonus = 0;
@@ -452,7 +338,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
             else prefixBonus = 3.0;
         }
 
-        int lenDiff = Math.abs(entry.word.length() - inputLen);
+        int lenDiff = Math.abs(word.length() - inputLen);
         double lengthBonus;
         if (lenDiff == 0) lengthBonus = 0.35;
         else if (lenDiff == 1) lengthBonus = 0.2;
@@ -474,13 +360,5 @@ public class NativeSymSpellEngine implements PredictionEngine {
         while (list.size() > limit) {
             list.remove(list.size() - 1);
         }
-    }
-
-    private void sortByFrequency(List<WordDictionary.DictEntry> list) {
-        Collections.sort(list, new Comparator<WordDictionary.DictEntry>() {
-            public int compare(WordDictionary.DictEntry a, WordDictionary.DictEntry b) {
-                return Integer.compare(b.frequency, a.frequency);
-            }
-        });
     }
 }

@@ -52,7 +52,13 @@
       "Bash(\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" logcat -d -t 500)",
       "Bash(ADB=\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\")",
       "Bash(\"$ADB\" logcat -d)",
-      "Bash(\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" logcat -d)"
+      "Bash(\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" logcat -d)",
+      "Bash(nm:*)",
+      "Bash(/c/Program\\\\ Files/Python313/python:*)",
+      "Bash(./gradlew compileDebugJavaWithJavac:*)",
+      "Bash(java:*)",
+      "Bash(JAVA_OPTS=\"--add-opens java.base/java.io=ALL-UNNAMED\" ./gradlew:*)",
+      "Bash(bash build_native.sh)"
     ]
   }
 }

@@ -57,16 +57,18 @@ Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeLoadMmapStatic(
 }
 
 /*
- * native void nativeAddWord(long ptr, String word, int frequency);
+ * native void nativeAddWord(long ptr, String word, String original, int frequency);
  */
 JNIEXPORT void JNICALL
 Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeAddWord(
-        JNIEnv *env, jobject thiz, jlong ptr, jstring jword, jint frequency) {
+        JNIEnv *env, jobject thiz, jlong ptr, jstring jword, jstring joriginal, jint frequency) {
     symspell_t *ss = (symspell_t *)(intptr_t)ptr;
     if (!ss) return;
     const char *word = jstr_get(env, jword);
     if (!word) return;
-    ss_add_word(ss, word, frequency);
+    const char *original = jstr_get(env, joriginal);
+    ss_add_word(ss, word, original, frequency);
+    jstr_release(env, joriginal, original);
     jstr_release(env, jword, word);
 }
 
@@ -85,7 +87,7 @@ Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeBuildIndex(
 
 /*
  * native String[] nativeLookup(long ptr, String input, int maxSuggestions);
- * Returns array of triplets: [term, distance_str, frequency_str, term, ...]
+ * Returns array of quads: [term, original, distance_str, frequency_str, ...]
  */
 JNIEXPORT jobjectArray JNICALL
 Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeLookup(
@@ -105,25 +107,29 @@ Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeLookup(
 
     if (count <= 0) return NULL;
 
-    /* Create String array: 3 entries per result (term, distance, frequency) */
+    /* Create String array: 4 entries per result (term, original, distance, frequency) */
     jclass strClass = (*env)->FindClass(env, "java/lang/String");
-    jobjectArray arr = (*env)->NewObjectArray(env, count * 3, strClass, NULL);
+    jobjectArray arr = (*env)->NewObjectArray(env, count * 4, strClass, NULL);
     if (!arr) return NULL;
 
     char numbuf[16];
     for (int i = 0; i < count; i++) {
         jstring jterm = (*env)->NewStringUTF(env, results[i].term);
-        (*env)->SetObjectArrayElement(env, arr, i * 3, jterm);
+        (*env)->SetObjectArrayElement(env, arr, i * 4, jterm);
+
+        jstring jorig = (*env)->NewStringUTF(env, results[i].original ? results[i].original : results[i].term);
+        (*env)->SetObjectArrayElement(env, arr, i * 4 + 1, jorig);
 
         snprintf(numbuf, sizeof(numbuf), "%d", results[i].distance);
         jstring jdist = (*env)->NewStringUTF(env, numbuf);
-        (*env)->SetObjectArrayElement(env, arr, i * 3 + 1, jdist);
+        (*env)->SetObjectArrayElement(env, arr, i * 4 + 2, jdist);
 
         snprintf(numbuf, sizeof(numbuf), "%d", results[i].frequency);
         jstring jfreq = (*env)->NewStringUTF(env, numbuf);
-        (*env)->SetObjectArrayElement(env, arr, i * 3 + 2, jfreq);
+        (*env)->SetObjectArrayElement(env, arr, i * 4 + 3, jfreq);
 
         (*env)->DeleteLocalRef(env, jterm);
+        (*env)->DeleteLocalRef(env, jorig);
         (*env)->DeleteLocalRef(env, jdist);
         (*env)->DeleteLocalRef(env, jfreq);
     }
@@ -134,7 +140,7 @@ Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeLookup(
 /*
  * native String[] nativeLookupWeighted(long ptr, String input,
  *                                       int maxSuggestions, String layout);
- * Returns: [term, weighted_distance_str, frequency_str, ...]
+ * Returns: [term, original, weighted_distance_str, frequency_str, ...]
  */
 JNIEXPORT jobjectArray JNICALL
 Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeLookupWeighted(
@@ -159,13 +165,16 @@ Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeLookupWeighted(
     if (count <= 0) return NULL;
 
     jclass strClass = (*env)->FindClass(env, "java/lang/String");
-    jobjectArray arr = (*env)->NewObjectArray(env, count * 3, strClass, NULL);
+    jobjectArray arr = (*env)->NewObjectArray(env, count * 4, strClass, NULL);
     if (!arr) return NULL;
 
     char numbuf[32];
     for (int i = 0; i < count; i++) {
         jstring jterm = (*env)->NewStringUTF(env, results[i].term);
-        (*env)->SetObjectArrayElement(env, arr, i * 3, jterm);
+        (*env)->SetObjectArrayElement(env, arr, i * 4, jterm);
+
+        jstring jorig = (*env)->NewStringUTF(env, results[i].original ? results[i].original : results[i].term);
+        (*env)->SetObjectArrayElement(env, arr, i * 4 + 1, jorig);
 
         /* Use weighted_distance if available, else integer distance */
         if (results[i].weighted_distance >= 0) {
@@ -174,14 +183,57 @@ Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeLookupWeighted(
             snprintf(numbuf, sizeof(numbuf), "%d", results[i].distance);
         }
         jstring jdist = (*env)->NewStringUTF(env, numbuf);
-        (*env)->SetObjectArrayElement(env, arr, i * 3 + 1, jdist);
+        (*env)->SetObjectArrayElement(env, arr, i * 4 + 2, jdist);
 
         snprintf(numbuf, sizeof(numbuf), "%d", results[i].frequency);
         jstring jfreq = (*env)->NewStringUTF(env, numbuf);
-        (*env)->SetObjectArrayElement(env, arr, i * 3 + 2, jfreq);
+        (*env)->SetObjectArrayElement(env, arr, i * 4 + 3, jfreq);
 
         (*env)->DeleteLocalRef(env, jterm);
+        (*env)->DeleteLocalRef(env, jorig);
         (*env)->DeleteLocalRef(env, jdist);
+        (*env)->DeleteLocalRef(env, jfreq);
+    }
+
+    return arr;
+}
+
+/*
+ * native String[] nativePrefixLookup(long ptr, String prefix, int maxResults);
+ * Returns: [original, frequency_str, original, frequency_str, ...]
+ */
+JNIEXPORT jobjectArray JNICALL
+Java_com_ai10_k12kb_prediction_NativeSymSpell_nativePrefixLookup(
+        JNIEnv *env, jobject thiz, jlong ptr, jstring jprefix, jint maxResults) {
+    symspell_t *ss = (symspell_t *)(intptr_t)ptr;
+    if (!ss || !jprefix) return NULL;
+
+    const char *prefix = jstr_get(env, jprefix);
+    if (!prefix) return NULL;
+
+    ss_suggest_item_t results[128];
+    int cap = 128;
+    if (maxResults < cap) cap = maxResults;
+
+    int count = ss_prefix_lookup(ss, prefix, cap, results, 128);
+    jstr_release(env, jprefix, prefix);
+
+    if (count <= 0) return NULL;
+
+    jclass strClass = (*env)->FindClass(env, "java/lang/String");
+    jobjectArray arr = (*env)->NewObjectArray(env, count * 2, strClass, NULL);
+    if (!arr) return NULL;
+
+    char numbuf[16];
+    for (int i = 0; i < count; i++) {
+        jstring jorig = (*env)->NewStringUTF(env, results[i].original ? results[i].original : results[i].term);
+        (*env)->SetObjectArrayElement(env, arr, i * 2, jorig);
+
+        snprintf(numbuf, sizeof(numbuf), "%d", results[i].frequency);
+        jstring jfreq = (*env)->NewStringUTF(env, numbuf);
+        (*env)->SetObjectArrayElement(env, arr, i * 2 + 1, jfreq);
+
+        (*env)->DeleteLocalRef(env, jorig);
         (*env)->DeleteLocalRef(env, jfreq);
     }
 

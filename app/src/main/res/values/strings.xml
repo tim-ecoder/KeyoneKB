@@ -121,7 +121,6 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="pref_prediction_engine_title">Prediction engine</string>
     <string name="prediction_loading_toast">Dictionary loading, please wait…</string>
     <string-array name="pref_prediction_engine_array">
-        <item>SymSpell (fuzzy matching)</item>
         <item>N-gram (next-word prediction)</item>
         <item>Native SymSpell (fast + keyboard-aware)</item>
     </string-array>

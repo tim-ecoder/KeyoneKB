@@ -14,7 +14,8 @@ extern "C" {
 #define SYMSPELL_DEFAULT_PREFIX_LEN 7
 
 typedef struct {
-    const char *term;    /* points into arena or mmap region */
+    const char *term;      /* points into arena or mmap region (normalized) */
+    const char *original;  /* original (display) form, may equal term */
     int         distance;
     int         frequency;
     float       weighted_distance; /* keyboard-weighted distance, -1 if unused */
@@ -27,7 +28,7 @@ symspell_t *ss_create(int max_edit_distance, int prefix_length);
 void        ss_destroy(symspell_t *ss);
 
 /* Dictionary building */
-void ss_add_word(symspell_t *ss, const char *word, int frequency);
+void ss_add_word(symspell_t *ss, const char *word, const char *original, int frequency);
 void ss_build_index(symspell_t *ss);
 
 /* Lookup — returns number of results written to out[] */
@@ -38,6 +39,10 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
 int ss_lookup_weighted(symspell_t *ss, const char *input, int max_suggestions,
                        ss_suggest_item_t *out, int out_capacity,
                        const char *layout);
+
+/* Prefix completion — returns matches sorted by frequency desc */
+int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
+                     ss_suggest_item_t *out, int out_capacity);
 
 /* Binary serialization */
 int  ss_save(symspell_t *ss, const char *path);

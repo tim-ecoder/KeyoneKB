@@ -116,7 +116,6 @@
     <string name="pref_prediction_engine_title">Движок предиктивного ввода</string>
     <string name="prediction_loading_toast">Словарь загружается, подождите…</string>
     <string-array name="pref_prediction_engine_array">
-        <item>SymSpell (нечёткий поиск)</item>
         <item>N-gram (предсказание следующего слова)</item>
         <item>Native SymSpell (быстрый + клавиатурный)</item>
     </string-array>
