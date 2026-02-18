@@ -480,25 +480,36 @@ JNI_INCLUDE="$JAVA_HOME/include"
 JNI_INCLUDE_LINUX="$JAVA_HOME/include/linux"
 ANDROID_LOG_INCLUDE="/usr/include/android"
 
-# Stub liblog (android __android_log_print resolves at runtime on device)
-if [ ! -f "$BUILD/liblog_stub.c" ]; then
-    cat > "$BUILD/liblog_stub.c" << 'STUBEOF'
-int __android_log_print(int prio, const char *tag, const char *fmt, ...) { return 0; }
-STUBEOF
-    $CC_ARM64 -shared -o "$BUILD/liblog.so" "$BUILD/liblog_stub.c"
+# Create Android-compatible stub libraries (bionic libc.so, not glibc libc.so.6)
+STUBS="$BUILD/android_stubs"
+if [ ! -d "$STUBS" ]; then
+    mkdir -p "$STUBS"
+    echo "void __stub(void){}" | $CC_ARM64 -shared -Wl,-soname,libc.so -nostdlib -o "$STUBS/libc.so" -x c -
+    echo "void __stub(void){}" | $CC_ARM64 -shared -Wl,-soname,libdl.so -nostdlib -o "$STUBS/libdl.so" -x c -
+    echo "void __stub(void){}" | $CC_ARM64 -shared -Wl,-soname,libm.so -nostdlib -o "$STUBS/libm.so" -x c -
+    echo "int __android_log_print(int p,const char*t,const char*f,...){return 0;}" | \
+        $CC_ARM64 -shared -Wl,-soname,liblog.so -nostdlib -o "$STUBS/liblog.so" -x c -
 fi
 
-$CC_ARM64 -shared -O2 -std=c99 -fPIC \
-    -I"$JNI_DIR" \
-    -I"$JNI_INCLUDE" \
-    -I"$JNI_INCLUDE_LINUX" \
-    -I"$ANDROID_LOG_INCLUDE" \
-    "$JNI_DIR"/symspell.c \
-    "$JNI_DIR"/keyboard_distance.c \
-    "$JNI_DIR"/cdb.c \
-    "$JNI_DIR"/jni_bridge.c \
-    "$JNI_DIR"/translation_jni.c \
-    -L"$BUILD" -llog \
+# Compile object files
+for src in symspell.c keyboard_distance.c cdb.c jni_bridge.c translation_jni.c; do
+    $CC_ARM64 -c -O2 -std=c99 -fPIC \
+        -I"$JNI_DIR" \
+        -I"$JNI_INCLUDE" \
+        -I"$JNI_INCLUDE_LINUX" \
+        -I"$ANDROID_LOG_INCLUDE" \
+        "$JNI_DIR/$src" -o "$BUILD/${src%.c}.o" 2>&1
+done
+
+# Link with Android-compatible stubs (produces .so depending on libc.so, not libc.so.6)
+# -Wl,--export-dynamic ensures JNI symbols are in the dynamic table
+$CC_ARM64 -shared -nodefaultlibs -Wl,--export-dynamic \
+    "$BUILD"/symspell.o \
+    "$BUILD"/keyboard_distance.o \
+    "$BUILD"/cdb.o \
+    "$BUILD"/jni_bridge.o \
+    "$BUILD"/translation_jni.o \
+    -L"$STUBS" -lc -llog -lgcc \
     -o "$JNILIBS_OUT/libnativesymspell.so" 2>&1
 echo "  Built libnativesymspell.so ($(stat -c%s "$JNILIBS_OUT/libnativesymspell.so") bytes)"
 
