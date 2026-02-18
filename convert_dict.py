@@ -14,7 +14,7 @@ import os
 
 MIN_FREQ = 45
 MAX_FREQ = 255
-MAX_WORDS = 350000
+MAX_WORDS = 750000
 
 
 def is_valid_english(word):
