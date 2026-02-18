@@ -20,6 +20,8 @@ int cdb_open(cdb_t *cdb, const char *path) {
     cdb->map = NULL;
     cdb->size = 0;
     cdb->fd = -1;
+    cdb->mmap_base = NULL;
+    cdb->mmap_len = 0;
 
     int fd = open(path, O_RDONLY);
     if (fd < 0) return -1;
@@ -39,12 +41,41 @@ int cdb_open(cdb_t *cdb, const char *path) {
     cdb->map = (const uint8_t *)m;
     cdb->size = st.st_size;
     cdb->fd = fd;
+    cdb->mmap_base = m;
+    cdb->mmap_len = st.st_size;
+    return 0;
+}
+
+int cdb_open_fd(cdb_t *cdb, int fd, size_t offset, size_t length) {
+    cdb->map = NULL;
+    cdb->size = 0;
+    cdb->fd = -1;
+    cdb->mmap_base = NULL;
+    cdb->mmap_len = 0;
+
+    if (fd < 0 || length < 2048) return -1;
+
+    /* mmap offset must be page-aligned */
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    size_t aligned = (offset / page_size) * page_size;
+    size_t extra = offset - aligned;
+    size_t map_len = length + extra;
+
+    void *m = mmap(NULL, map_len, PROT_READ, MAP_PRIVATE, fd, aligned);
+    if (m == MAP_FAILED) return -1;
+
+    cdb->mmap_base = m;
+    cdb->mmap_len = map_len;
+    cdb->map = (const uint8_t *)m + extra;
+    cdb->size = length;
+    cdb->fd = -1; /* don't own the fd */
     return 0;
 }
 
 void cdb_close(cdb_t *cdb) {
-    if (cdb->map) {
-        munmap((void *)cdb->map, cdb->size);
+    if (cdb->mmap_base) {
+        munmap(cdb->mmap_base, cdb->mmap_len);
+        cdb->mmap_base = NULL;
         cdb->map = NULL;
     }
     if (cdb->fd >= 0) {

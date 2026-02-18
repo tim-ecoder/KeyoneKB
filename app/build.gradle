@@ -26,6 +26,10 @@ android {
 
     compileSdkVersion 28
 
+    aaptOptions {
+        noCompress '.cdb'
+    }
+
     defaultConfig {
         applicationId "com.ai10.k12kb"
         minSdkVersion 26

@@ -525,6 +525,7 @@ $AAPT package -f \
     --target-sdk-version 27 \
     --version-code "$VERSION_CODE" \
     --version-name "$VERSION_NAME" \
+    -0 .cdb \
     -F "$BUILD/app-unsigned.apk" 2>&1
 
 # Add DEX file

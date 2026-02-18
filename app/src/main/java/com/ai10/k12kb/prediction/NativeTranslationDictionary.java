@@ -1,6 +1,7 @@
 package com.ai10.k12kb.prediction;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.util.Log;
 
 import java.io.File;
@@ -30,6 +31,7 @@ public class NativeTranslationDictionary {
 
     /* Native methods */
     private static native long nativeOpen(String path);
+    private static native long nativeOpenFd(int fd, long offset, long length);
     private static native void nativeClose(long ptr);
     private static native String[] nativeLookup(long ptr, String key);
     private static native String[] nativeTranslate(long ptr, String word, String previousWord);
@@ -45,7 +47,10 @@ public class NativeTranslationDictionary {
     }
 
     /**
-     * Load CDB dictionary. Copies from assets to filesDir on first use.
+     * Load CDB dictionary. Tries in order:
+     * 1. External file on sdcard (for user-provided dictionaries)
+     * 2. Direct mmap from APK asset (zero-copy, requires noCompress)
+     * 3. Copy asset to files dir, then mmap (fallback for compressed assets)
      */
     public synchronized void load(Context context, String fromLang, String toLang) {
         close();
@@ -60,7 +65,7 @@ public class NativeTranslationDictionary {
 
         String cdbName = fromLang + "_" + toLang + ".cdb";
 
-        // Try external file first
+        // 1. Try external file first
         File externalFile = new File("/sdcard/k12kb/dict/" + cdbName);
         if (externalFile.exists()) {
             nativePtr = nativeOpen(externalFile.getAbsolutePath());
@@ -71,7 +76,22 @@ public class NativeTranslationDictionary {
             }
         }
 
-        // Copy from assets to app files dir (CDB needs a real file path for mmap)
+        // 2. Try direct mmap from APK asset (zero-copy, instant)
+        try {
+            AssetFileDescriptor afd = context.getAssets().openFd("dict/" + cdbName);
+            nativePtr = nativeOpenFd(afd.getParcelFileDescriptor().getFd(),
+                    afd.getStartOffset(), afd.getLength());
+            afd.close();
+            if (nativePtr != 0) {
+                loaded = true;
+                Log.i(TAG, "Loaded CDB from APK (zero-copy): " + cdbName);
+                return;
+            }
+        } catch (Exception e) {
+            // openFd() throws if asset is compressed — fall through to copy
+        }
+
+        // 3. Fallback: copy from assets to app files dir, then mmap
         File cacheDir = new File(context.getFilesDir(), "dict_cache");
         if (!cacheDir.exists()) cacheDir.mkdirs();
         File cdbFile = new File(cacheDir, cdbName);
@@ -80,7 +100,7 @@ public class NativeTranslationDictionary {
             try {
                 InputStream is = context.getAssets().open("dict/" + cdbName);
                 FileOutputStream fos = new FileOutputStream(cdbFile);
-                byte[] buf = new byte[8192];
+                byte[] buf = new byte[262144]; // 256KB buffer
                 int n;
                 while ((n = is.read(buf)) > 0) fos.write(buf, 0, n);
                 fos.close();

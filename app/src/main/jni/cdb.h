@@ -10,13 +10,18 @@
 #include <stddef.h>
 
 typedef struct {
-    const uint8_t *map;     /* mmap'd file data */
-    size_t         size;    /* file size */
-    int            fd;      /* file descriptor (for munmap) */
+    const uint8_t *map;     /* pointer to CDB data start */
+    size_t         size;    /* CDB data size */
+    int            fd;      /* file descriptor (-1 if not owned) */
+    void          *mmap_base; /* actual mmap base (may differ from map if offset) */
+    size_t         mmap_len;  /* actual mmap length */
 } cdb_t;
 
 /* Open a CDB file (mmap). Returns 0 on success, -1 on error. */
 int cdb_open(cdb_t *cdb, const char *path);
+
+/* Open CDB from an existing fd at offset (for mmap from APK). Does not own fd. */
+int cdb_open_fd(cdb_t *cdb, int fd, size_t offset, size_t length);
 
 /* Close and unmap. */
 void cdb_close(cdb_t *cdb);

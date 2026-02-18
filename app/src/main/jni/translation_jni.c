@@ -117,6 +117,26 @@ Java_com_ai10_k12kb_prediction_NativeTranslationDictionary_nativeOpen(
 }
 
 /*
+ * static native long nativeOpenFd(int fd, long offset, long length);
+ * Open CDB directly from APK file descriptor (zero-copy mmap).
+ */
+JNIEXPORT jlong JNICALL
+Java_com_ai10_k12kb_prediction_NativeTranslationDictionary_nativeOpenFd(
+        JNIEnv *env, jclass clazz, jint fd, jlong offset, jlong length) {
+    cdb_t *cdb = (cdb_t *)calloc(1, sizeof(cdb_t));
+    if (!cdb) return 0;
+
+    if (cdb_open_fd(cdb, fd, (size_t)offset, (size_t)length) != 0) {
+        LOGW("Failed to open CDB from fd=%d offset=%lld len=%lld", fd, offset, length);
+        free(cdb);
+        return 0;
+    }
+
+    LOGI("Opened CDB from APK fd (zero-copy): %zu bytes", cdb->size);
+    return (jlong)(intptr_t)cdb;
+}
+
+/*
  * static native void nativeClose(long ptr);
  */
 JNIEXPORT void JNICALL
