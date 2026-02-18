@@ -143,17 +143,11 @@ Java_com_ai10_k12kb_prediction_NativeTranslationDictionary_nativeLookup(
     if (!key_raw) return NULL;
 
     size_t klen = strlen(key_raw);
-    /* Copy and lowercase for lookup */
-    char key[512];
-    if (klen >= sizeof(key)) klen = sizeof(key) - 1;
-    memcpy(key, key_raw, klen);
-    key[klen] = '\0';
-    ascii_lower(key, klen);
-    jstr_release(env, jkey, key_raw);
-
     const char *val;
     size_t vlen;
-    if (cdb_find(cdb, key, klen, &val, &vlen)) {
+    int found = cdb_find(cdb, key_raw, klen, &val, &vlen);
+    jstr_release(env, jkey, key_raw);
+    if (found) {
         return split_translations(env, val, vlen);
     }
     return NULL;
@@ -171,18 +165,12 @@ Java_com_ai10_k12kb_prediction_NativeTranslationDictionary_nativeTranslate(
     cdb_t *cdb = (cdb_t *)(intptr_t)ptr;
     if (!cdb || !jword) return NULL;
 
-    const char *word_raw = jstr_get(env, jword);
-    if (!word_raw) return NULL;
-    const char *prev_raw = jstr_get(env, jprev);
+    const char *word = jstr_get(env, jword);
+    if (!word) return NULL;
+    const char *prev = jstr_get(env, jprev);
+    /* Java side already lowercased both strings */
 
-    /* Lowercase current word */
-    size_t wlen = strlen(word_raw);
-    char word[512];
-    if (wlen >= sizeof(word)) wlen = sizeof(word) - 1;
-    memcpy(word, word_raw, wlen);
-    word[wlen] = '\0';
-    ascii_lower(word, wlen);
-    jstr_release(env, jword, word_raw);
+    size_t wlen = strlen(word);
 
     /* Collect results: up to 32 translations */
     const char *results[32];
@@ -191,12 +179,11 @@ Java_com_ai10_k12kb_prediction_NativeTranslationDictionary_nativeTranslate(
     int phrase_count = 0;
 
     /* 1. Phrase lookup */
-    if (prev_raw && prev_raw[0] != '\0') {
-        size_t plen = strlen(prev_raw);
+    if (prev && prev[0] != '\0') {
+        size_t plen = strlen(prev);
         char phrase[1024];
         if (plen + 1 + wlen < sizeof(phrase)) {
-            memcpy(phrase, prev_raw, plen);
-            ascii_lower(phrase, plen);
+            memcpy(phrase, prev, plen);
             phrase[plen] = ' ';
             memcpy(phrase + plen + 1, word, wlen);
             size_t total = plen + 1 + wlen;
@@ -225,7 +212,7 @@ Java_com_ai10_k12kb_prediction_NativeTranslationDictionary_nativeTranslate(
             }
         }
     }
-    if (prev_raw) jstr_release(env, jprev, prev_raw);
+    if (prev) jstr_release(env, jprev, prev);
 
     /* 2. Single-word lookup */
     const char *val;
@@ -255,6 +242,8 @@ Java_com_ai10_k12kb_prediction_NativeTranslationDictionary_nativeTranslate(
             }
         }
     }
+
+    jstr_release(env, jword, word);
 
     if (count == 0) return NULL;
 

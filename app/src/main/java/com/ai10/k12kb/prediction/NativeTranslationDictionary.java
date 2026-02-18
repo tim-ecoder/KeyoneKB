@@ -111,7 +111,8 @@ public class NativeTranslationDictionary {
         lastPhraseResultCount = 0;
         if (!loaded || nativePtr == 0 || word == null || word.isEmpty()) return result;
 
-        String[] raw = nativeTranslate(nativePtr, word, previousWord);
+        String[] raw = nativeTranslate(nativePtr,
+                word.toLowerCase(), previousWord != null ? previousWord.toLowerCase() : null);
         if (raw == null || raw.length < 2) return result;
 
         // First element is phrase result count
