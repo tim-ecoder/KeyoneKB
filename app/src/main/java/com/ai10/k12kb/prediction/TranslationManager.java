@@ -15,13 +15,13 @@ public class TranslationManager {
     private boolean enabled = false;
     private String sourceLang = "ru";
     private String targetLang = "en";
-    private TranslationDictionary dictionary;
+    private NativeTranslationDictionary dictionary;
     private Context context;
     private boolean loading = false;
 
     public TranslationManager(Context context) {
         this.context = context.getApplicationContext();
-        this.dictionary = new TranslationDictionary();
+        this.dictionary = new NativeTranslationDictionary();
     }
 
     /**

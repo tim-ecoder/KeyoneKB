@@ -471,6 +471,38 @@ done
 $DX --dex --min-sdk-version=26 --output="$BUILD/classes.dex" "$BUILD/classes" "$LIBS"/*.jar 2>&1
 
 echo ""
+echo "=== Step 7b: Compile native code ==="
+JNI_DIR="$APP/src/main/jni"
+JNILIBS_OUT="$APP/src/main/jniLibs/arm64-v8a"
+mkdir -p "$JNILIBS_OUT"
+CC_ARM64="${CC_ARM64:-aarch64-linux-gnu-gcc}"
+JNI_INCLUDE="$JAVA_HOME/include"
+JNI_INCLUDE_LINUX="$JAVA_HOME/include/linux"
+ANDROID_LOG_INCLUDE="/usr/include/android"
+
+# Stub liblog (android __android_log_print resolves at runtime on device)
+if [ ! -f "$BUILD/liblog_stub.c" ]; then
+    cat > "$BUILD/liblog_stub.c" << 'STUBEOF'
+int __android_log_print(int prio, const char *tag, const char *fmt, ...) { return 0; }
+STUBEOF
+    $CC_ARM64 -shared -o "$BUILD/liblog.so" "$BUILD/liblog_stub.c"
+fi
+
+$CC_ARM64 -shared -O2 -std=c99 -fPIC \
+    -I"$JNI_DIR" \
+    -I"$JNI_INCLUDE" \
+    -I"$JNI_INCLUDE_LINUX" \
+    -I"$ANDROID_LOG_INCLUDE" \
+    "$JNI_DIR"/symspell.c \
+    "$JNI_DIR"/keyboard_distance.c \
+    "$JNI_DIR"/cdb.c \
+    "$JNI_DIR"/jni_bridge.c \
+    "$JNI_DIR"/translation_jni.c \
+    -L"$BUILD" -llog \
+    -o "$JNILIBS_OUT/libnativesymspell.so" 2>&1
+echo "  Built libnativesymspell.so ($(stat -c%s "$JNILIBS_OUT/libnativesymspell.so") bytes)"
+
+echo ""
 echo "=== Step 8: Package APK ==="
 $AAPT package -f \
     -M "$MANIFEST_PATCHED" \
