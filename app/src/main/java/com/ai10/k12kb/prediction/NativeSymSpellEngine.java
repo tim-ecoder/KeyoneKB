@@ -29,7 +29,7 @@ import java.util.Locale;
 public class NativeSymSpellEngine implements PredictionEngine {
 
     private static final String TAG = "NativeSymSpellEngine";
-    private static final int MAX_NATIVE_WORDS = 200000;
+    private static final int MAX_NATIVE_WORDS = 350000;
     private static final int MAX_JAVA_INDEX_WORDS = 35000;
     private static final int MAX_PREFIX_CACHE = 4;
     private static final String CACHE_DIR = "native_dict_cache";
