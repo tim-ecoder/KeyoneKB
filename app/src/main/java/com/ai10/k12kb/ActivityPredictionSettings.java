@@ -189,6 +189,7 @@ public class ActivityPredictionSettings extends Activity {
                 if (newSize == transDictSizeFromPref) return;
                 k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE, newSize);
                 NativeTranslationDictionary.clearTrimmedCaches(getApplicationContext());
+                refreshTranslationStatus();
                 Toast.makeText(getApplicationContext(),
                         getString(R.string.pred_trans_dict_size_changed),
                         Toast.LENGTH_LONG).show();
@@ -207,6 +208,7 @@ public class ActivityPredictionSettings extends Activity {
         final String strPhrases = getString(R.string.pred_translation_phrases);
         final String strNotFound = getString(R.string.pred_translation_not_found);
         final String strExternal = getString(R.string.pred_translation_external);
+        final int maxEntries = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
 
         Executors.newSingleThreadExecutor().execute(() -> {
             StringBuilder sb = new StringBuilder();
@@ -232,10 +234,17 @@ public class ActivityPredictionSettings extends Activity {
                         }
                     }
                     br.close();
-                    sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
-                      .append(wordCount).append(" ").append(strWords);
-                    if (phraseCount > 0) {
-                        sb.append(" + ").append(phraseCount).append(" ").append(strPhrases);
+                    int totalEntries = wordCount + phraseCount;
+                    boolean trimmed = maxEntries > 0 && maxEntries < totalEntries;
+                    sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ");
+                    if (trimmed) {
+                        sb.append(maxEntries).append(" / ").append(totalEntries)
+                          .append(" (").append(strWords).append(" + ").append(strPhrases).append(")");
+                    } else {
+                        sb.append(wordCount).append(" ").append(strWords);
+                        if (phraseCount > 0) {
+                            sb.append(" + ").append(phraseCount).append(" ").append(strPhrases);
+                        }
                     }
                     sb.append("\n");
                 } catch (Exception e) {

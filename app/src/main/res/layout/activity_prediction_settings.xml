@@ -92,68 +92,6 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <!-- TRANSLATION DICTIONARY -->
-        <TextView
-            style="@style/SectionHeader"
-            android:text="@string/pred_section_translation" />
-
-        <LinearLayout
-            style="@style/ItemPill"
-            android:orientation="vertical"
-            android:gravity="start">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="?attr/textSecondaryColor"
-                android:textSize="13sp"
-                android:lineSpacingExtra="2dp"
-                android:text="@string/pred_translation_hint" />
-        </LinearLayout>
-
-        <LinearLayout style="@style/ItemPillSeek">
-            <TextView
-                style="@style/ItemPillSeekTitle"
-                android:text="@string/pref_translation_slots_count" />
-            <SeekBar
-                android:id="@+id/seekBarTranslationCount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:min="1"
-                android:max="6"
-                android:progress="4"
-                android:progressTint="@color/colorPrimary"
-                android:thumbTint="@color/colorPrimary" />
-        </LinearLayout>
-
-        <LinearLayout style="@style/ItemPillSpinner">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="?attr/textPrimaryColor"
-                android:textSize="15sp"
-                android:layout_marginBottom="4dp"
-                android:text="@string/pref_trans_dict_size_title" />
-            <Spinner
-                android:id="@+id/spinner_trans_dict_size"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
-        <LinearLayout
-            style="@style/ItemPill"
-            android:orientation="vertical"
-            android:gravity="start">
-            <TextView
-                android:id="@+id/tv_translation_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="?attr/textPrimaryColor"
-                android:textSize="13sp"
-                android:lineSpacingExtra="4dp"
-                android:typeface="monospace"
-                android:text="" />
-        </LinearLayout>
-
         <!-- STATUS -->
         <TextView
             style="@style/SectionHeader"
@@ -203,6 +141,69 @@
                 android:text="@string/pred_btn_clear_cache"
                 android:textColor="#FF5252"
                 android:textAllCaps="false" />
+        </LinearLayout>
+
+
+        <!-- TRANSLATION DICTIONARY -->
+        <TextView
+                style="@style/SectionHeader"
+                android:text="@string/pred_section_translation" />
+
+        <LinearLayout
+                style="@style/ItemPill"
+                android:orientation="vertical"
+                android:gravity="start">
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/textSecondaryColor"
+                    android:textSize="13sp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/pred_translation_hint" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPillSeek">
+            <TextView
+                    style="@style/ItemPillSeekTitle"
+                    android:text="@string/pref_translation_slots_count" />
+            <SeekBar
+                    android:id="@+id/seekBarTranslationCount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:min="1"
+                    android:max="6"
+                    android:progress="4"
+                    android:progressTint="@color/colorPrimary"
+                    android:thumbTint="@color/colorPrimary" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPillSpinner">
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/textPrimaryColor"
+                    android:textSize="15sp"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/pref_trans_dict_size_title" />
+            <Spinner
+                    android:id="@+id/spinner_trans_dict_size"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+                style="@style/ItemPill"
+                android:orientation="vertical"
+                android:gravity="start">
+            <TextView
+                    android:id="@+id/tv_translation_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/textPrimaryColor"
+                    android:textSize="13sp"
+                    android:lineSpacingExtra="4dp"
+                    android:typeface="monospace"
+                    android:text="" />
         </LinearLayout>
 
     </LinearLayout>
