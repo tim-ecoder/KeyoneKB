@@ -16,6 +16,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ai10.k12kb.prediction.NativeTranslationDictionary;
 import com.ai10.k12kb.prediction.WordDictionary;
 import com.ai10.k12kb.prediction.WordPredictor;
 
@@ -124,6 +125,35 @@ public class ActivityPredictionSettings extends Activity {
                 spinnerEngine.setSelection(pos);
             }
         });
+
+        // Dictionary size spinner
+        final int[] dictSizeValues = {35000, 150000, 300000, 0};
+        final Spinner spinnerDictSize = (Spinner) findViewById(R.id.spinner_dict_size);
+        ArrayAdapter<CharSequence> dictSizeAdapter = ArrayAdapter.createFromResource(
+                this, R.array.pref_dict_size_array, android.R.layout.simple_spinner_item);
+        dictSizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerDictSize.setAdapter(dictSizeAdapter);
+        final int dictSizeFromPref = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
+        int dictSizePos = 0;
+        for (int i = 0; i < dictSizeValues.length; i++) {
+            if (dictSizeValues[i] == dictSizeFromPref) { dictSizePos = i; break; }
+        }
+        spinnerDictSize.setSelection(dictSizePos);
+        spinnerDictSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int newSize = dictSizeValues[position];
+                if (newSize == dictSizeFromPref) return;
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE, newSize);
+                WordDictionary.clearCacheFiles(getApplicationContext());
+                refreshCacheStatus();
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.pred_dict_size_changed),
+                        Toast.LENGTH_LONG).show();
+            }
+            public void onNothingSelected(AdapterView<?> parent) {
+                spinnerDictSize.setSelection(0);
+            }
+        });
     }
 
     private void setupTranslation() {
@@ -138,6 +168,34 @@ public class ActivityPredictionSettings extends Activity {
             }
             public void onStartTrackingTouch(SeekBar seekBar) {}
             public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // Translation dictionary size spinner
+        final int[] transDictSizeValues = {35000, 100000, 200000, 0};
+        final Spinner spinnerTransDictSize = (Spinner) findViewById(R.id.spinner_trans_dict_size);
+        ArrayAdapter<CharSequence> transDictAdapter = ArrayAdapter.createFromResource(
+                this, R.array.pref_trans_dict_size_array, android.R.layout.simple_spinner_item);
+        transDictAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTransDictSize.setAdapter(transDictAdapter);
+        final int transDictSizeFromPref = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
+        int transDictSizePos = 0;
+        for (int i = 0; i < transDictSizeValues.length; i++) {
+            if (transDictSizeValues[i] == transDictSizeFromPref) { transDictSizePos = i; break; }
+        }
+        spinnerTransDictSize.setSelection(transDictSizePos);
+        spinnerTransDictSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int newSize = transDictSizeValues[position];
+                if (newSize == transDictSizeFromPref) return;
+                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE, newSize);
+                NativeTranslationDictionary.clearTrimmedCaches(getApplicationContext());
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.pred_trans_dict_size_changed),
+                        Toast.LENGTH_LONG).show();
+            }
+            public void onNothingSelected(AdapterView<?> parent) {
+                spinnerTransDictSize.setSelection(0);
+            }
         });
 
         tvTranslationStatus = (TextView) findViewById(R.id.tv_translation_status);

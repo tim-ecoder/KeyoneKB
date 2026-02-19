@@ -119,6 +119,22 @@
         <item>N-gram (предсказание следующего слова)</item>
         <item>Native SymSpell (быстрый + клавиатурный)</item>
     </string-array>
+    <string name="pref_dict_size_title">Размер словаря</string>
+    <string-array name="pref_dict_size_array">
+        <item>Минимальный (35 тыс. слов, ~8 МБ)</item>
+        <item>Обычный (150 тыс. слов, ~35 МБ)</item>
+        <item>Большой (300 тыс. слов, ~70 МБ)</item>
+        <item>Полный (все слова, ~150 МБ)</item>
+    </string-array>
+    <string name="pred_dict_size_changed">Кеш словарей очищен. Перезапустите клавиатуру.</string>
+    <string name="pref_trans_dict_size_title">Размер словаря перевода</string>
+    <string-array name="pref_trans_dict_size_array">
+        <item>Минимальный (35 тыс. слов, ~5 МБ)</item>
+        <item>Обычный (100 тыс. слов, ~14 МБ)</item>
+        <item>Большой (200 тыс. слов, ~26 МБ)</item>
+        <item>Полный (все слова, ~42 МБ)</item>
+    </string-array>
+    <string name="pred_trans_dict_size_changed">Кеш перевода очищен. Перезапустите клавиатуру.</string>
     <string name="main_btn_prediction_settings">Предективный ввод</string>
     <string name="pred_section_settings">НАСТРОЙКИ</string>
     <string name="pred_section_status">СТАТУС СЛОВАРЕЙ</string>

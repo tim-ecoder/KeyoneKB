@@ -41,4 +41,29 @@ static inline uint32_t cdb_hash(const char *buf, size_t len) {
     return h;
 }
 
+/* --- CDB Make (writer) --- */
+
+typedef struct {
+    uint32_t hash;
+    uint32_t pos;
+} cdb_hp_t;
+
+typedef struct {
+    int       fd;
+    uint32_t  pos;      /* current write position */
+    cdb_hp_t *hplist;   /* (hash, position) for all added records */
+    uint32_t  hpcount;
+    uint32_t  hpcap;
+} cdb_make_t;
+
+/* Start building a new CDB file. Returns 0 on success. */
+int cdb_make_start(cdb_make_t *cm, const char *path);
+
+/* Add a key-value record. */
+int cdb_make_add(cdb_make_t *cm, const char *key, size_t klen,
+                 const char *val, size_t vlen);
+
+/* Finalize: write hash tables and header, close file. */
+int cdb_make_finish(cdb_make_t *cm);
+
 #endif /* CDB_H */

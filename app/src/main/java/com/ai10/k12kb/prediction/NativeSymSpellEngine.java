@@ -24,8 +24,9 @@ import java.util.Locale;
 public class NativeSymSpellEngine implements PredictionEngine {
 
     private static final String TAG = "NativeSymSpellEngine";
-    private static final int MAX_NATIVE_WORDS = 700000;
+    private static final int DEFAULT_MAX_WORDS = 35000;
     private static final String CACHE_DIR = "native_dict_cache";
+    private int maxWords = DEFAULT_MAX_WORDS;
 
     private volatile NativeSymSpell nativeSymSpell;
     private final Object loadLock = new Object();
@@ -89,6 +90,10 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
 
         return top;
+    }
+
+    public void setMaxWords(int max) {
+        if (max > 0) this.maxWords = max;
     }
 
     public void setKeyboardLayout(String layout) {
@@ -281,8 +286,8 @@ public class NativeSymSpellEngine implements PredictionEngine {
                     catch (NumberFormatException e) { return 0; }
                 }
             });
-            if (allEntries.size() > MAX_NATIVE_WORDS) {
-                allEntries = new ArrayList<>(allEntries.subList(0, MAX_NATIVE_WORDS));
+            if (maxWords > 0 && allEntries.size() > maxWords) {
+                allEntries = new ArrayList<>(allEntries.subList(0, maxWords));
             }
 
             // Add to native SymSpell with both normalized and original forms

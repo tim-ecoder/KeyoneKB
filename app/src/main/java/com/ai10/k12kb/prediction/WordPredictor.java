@@ -51,6 +51,7 @@ public class WordPredictor {
     private int suggestLimit = 4;
     private List<Suggestion> latestSuggestions = Collections.emptyList();
     private boolean enabled = true;
+    private int dictSize = 35000;
     private Context appContext;
     private String currentLocale = "";
     public WordPredictor() {
@@ -64,6 +65,10 @@ public class WordPredictor {
     public void shutdown() {
         engine = null;
         listener = null;
+    }
+
+    public void setDictSize(int size) {
+        this.dictSize = size;
     }
 
     public void setSuggestLimit(int limit) {
@@ -234,7 +239,9 @@ public class WordPredictor {
                 newEngine = new NgramEngine();
                 break;
             default:
-                newEngine = new NativeSymSpellEngine();
+                NativeSymSpellEngine nativeEng = new NativeSymSpellEngine();
+                nativeEng.setMaxWords(dictSize);
+                newEngine = nativeEng;
                 break;
         }
         engine = newEngine;

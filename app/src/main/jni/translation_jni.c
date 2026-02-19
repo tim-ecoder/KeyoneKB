@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdio.h>
 #include <android/log.h>
 #include "cdb.h"
 
@@ -290,4 +291,280 @@ Java_com_ai10_k12kb_prediction_NativeTranslationDictionary_nativeTranslate(
     }
 
     return arr;
+}
+
+/* ---- Frequency map for usage-based trimming ---- */
+
+typedef struct {
+    const char *key;   /* pointer into loaded buffer (not owned) */
+    uint32_t klen;
+    int freq;
+} fmap_slot_t;
+
+typedef struct {
+    fmap_slot_t *slots;
+    uint32_t cap;      /* power of 2 */
+} fmap_t;
+
+static void fmap_init(fmap_t *m, uint32_t expected) {
+    m->cap = 1;
+    while (m->cap < expected * 2) m->cap <<= 1;
+    m->slots = (fmap_slot_t *)calloc(m->cap, sizeof(fmap_slot_t));
+}
+
+static void fmap_put(fmap_t *m, const char *key, uint32_t klen, int freq) {
+    uint32_t h = cdb_hash(key, klen);
+    uint32_t idx = h & (m->cap - 1);
+    while (m->slots[idx].key != NULL) {
+        if (m->slots[idx].klen == klen && memcmp(m->slots[idx].key, key, klen) == 0)
+            return; /* already present, keep first (higher freq in sorted dict) */
+        idx = (idx + 1) & (m->cap - 1);
+    }
+    m->slots[idx].key = key;
+    m->slots[idx].klen = klen;
+    m->slots[idx].freq = freq;
+}
+
+static int fmap_get(const fmap_t *m, const char *key, uint32_t klen) {
+    uint32_t h = cdb_hash(key, klen);
+    uint32_t idx = h & (m->cap - 1);
+    while (m->slots[idx].key != NULL) {
+        if (m->slots[idx].klen == klen && memcmp(m->slots[idx].key, key, klen) == 0)
+            return m->slots[idx].freq;
+        idx = (idx + 1) & (m->cap - 1);
+    }
+    return 0;
+}
+
+static void fmap_destroy(fmap_t *m) {
+    free(m->slots);
+    m->slots = NULL;
+    m->cap = 0;
+}
+
+/* Compute frequency for a TSV key (may be single word or phrase).
+   For phrases, returns minimum word frequency (0 if any word unknown). */
+static int key_frequency(const fmap_t *fm, const char *key, size_t klen) {
+    /* Check for spaces (phrase) */
+    int has_space = 0;
+    for (size_t i = 0; i < klen; i++) {
+        if (key[i] == ' ') { has_space = 1; break; }
+    }
+
+    if (!has_space) {
+        return fmap_get(fm, key, (uint32_t)klen);
+    }
+
+    /* Phrase: min frequency of component words */
+    int min_freq = 0x7FFFFFFF;
+    const char *start = key;
+    for (size_t i = 0; i <= klen; i++) {
+        if (i == klen || key[i] == ' ') {
+            size_t wlen = (key + i) - start;
+            if (wlen > 0) {
+                int wf = fmap_get(fm, start, (uint32_t)wlen);
+                if (wf < min_freq) min_freq = wf;
+            }
+            start = key + i + 1;
+        }
+    }
+    return (min_freq == 0x7FFFFFFF) ? 0 : min_freq;
+}
+
+/* TSV entry for sorting by frequency */
+typedef struct {
+    const char *key;
+    size_t klen;
+    const char *val;
+    size_t vlen;
+    int freq;
+} tsv_entry_t;
+
+static int tsv_cmp_freq_desc(const void *a, const void *b) {
+    int fa = ((const tsv_entry_t *)a)->freq;
+    int fb = ((const tsv_entry_t *)b)->freq;
+    if (fb != fa) return (fb > fa) ? 1 : -1;
+    return 0;
+}
+
+/* Load file into malloc'd buffer, returns size. Caller must free. */
+static char *load_file(const char *path, long *out_size) {
+    FILE *f = fopen(path, "r");
+    if (!f) return NULL;
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char *buf = (char *)malloc(sz + 1);
+    if (!buf) { fclose(f); return NULL; }
+    long rd = fread(buf, 1, sz, f);
+    buf[rd] = '\0';
+    fclose(f);
+    *out_size = rd;
+    return buf;
+}
+
+/*
+ * static native int nativeBuildCdbFromTsv(String tsvPath, String freqPath,
+ *                                          String cdbPath, int maxEntries);
+ * Reads TSV, sorts entries by word frequency (from freqPath), builds trimmed CDB.
+ * Returns number of entries written, or -1 on error.
+ */
+JNIEXPORT jint JNICALL
+Java_com_ai10_k12kb_prediction_NativeTranslationDictionary_nativeBuildCdbFromTsv(
+        JNIEnv *env, jclass clazz, jstring jtsvPath, jstring jfreqPath,
+        jstring jcdbPath, jint maxEntries) {
+    const char *tsvPath = jstr_get(env, jtsvPath);
+    const char *freqPath = jstr_get(env, jfreqPath);
+    const char *cdbPath = jstr_get(env, jcdbPath);
+    if (!tsvPath || !cdbPath) {
+        jstr_release(env, jtsvPath, tsvPath);
+        jstr_release(env, jfreqPath, freqPath);
+        jstr_release(env, jcdbPath, cdbPath);
+        return -1;
+    }
+
+    /* 1. Load frequency dictionary into hash map */
+    fmap_t fm;
+    memset(&fm, 0, sizeof(fm));
+    char *freq_buf = NULL;
+    long freq_size = 0;
+
+    if (freqPath) {
+        freq_buf = load_file(freqPath, &freq_size);
+        if (freq_buf) {
+            /* Count lines for capacity estimate */
+            uint32_t line_count = 0;
+            for (long i = 0; i < freq_size; i++) {
+                if (freq_buf[i] == '\n') line_count++;
+            }
+            fmap_init(&fm, line_count + 1);
+
+            /* Parse: word\tfreq\n — null-terminate word in-place */
+            char *p = freq_buf;
+            char *end = freq_buf + freq_size;
+            while (p < end) {
+                char *line_start = p;
+                /* Find end of line */
+                while (p < end && *p != '\n' && *p != '\r') p++;
+                char *line_end = p;
+                while (p < end && (*p == '\n' || *p == '\r')) p++;
+
+                /* Find tab */
+                char *tab = NULL;
+                for (char *t = line_start; t < line_end; t++) {
+                    if (*t == '\t') { tab = t; break; }
+                }
+                if (!tab || tab == line_start) continue;
+
+                uint32_t klen = (uint32_t)(tab - line_start);
+                int freq = atoi(tab + 1);
+                if (freq <= 0) continue;
+
+                fmap_put(&fm, line_start, klen, freq);
+            }
+            LOGI("Loaded freq map: %u capacity from %s", fm.cap, freqPath);
+        } else {
+            LOGW("No freq dict at %s, will use file order", freqPath);
+        }
+    }
+
+    /* 2. Load all TSV entries into array */
+    long tsv_size = 0;
+    char *tsv_buf = load_file(tsvPath, &tsv_size);
+    if (!tsv_buf) {
+        LOGE("Cannot load TSV: %s", tsvPath);
+        if (freq_buf) { fmap_destroy(&fm); free(freq_buf); }
+        jstr_release(env, jtsvPath, tsvPath);
+        jstr_release(env, jfreqPath, freqPath);
+        jstr_release(env, jcdbPath, cdbPath);
+        return -1;
+    }
+
+    /* Count lines for array alloc */
+    uint32_t tsv_lines = 0;
+    for (long i = 0; i < tsv_size; i++) {
+        if (tsv_buf[i] == '\n') tsv_lines++;
+    }
+
+    tsv_entry_t *entries = (tsv_entry_t *)malloc((tsv_lines + 1) * sizeof(tsv_entry_t));
+    if (!entries) {
+        free(tsv_buf);
+        if (freq_buf) { fmap_destroy(&fm); free(freq_buf); }
+        jstr_release(env, jtsvPath, tsvPath);
+        jstr_release(env, jfreqPath, freqPath);
+        jstr_release(env, jcdbPath, cdbPath);
+        return -1;
+    }
+
+    uint32_t entry_count = 0;
+    char *tp = tsv_buf;
+    char *tend = tsv_buf + tsv_size;
+    while (tp < tend) {
+        char *line_start = tp;
+        while (tp < tend && *tp != '\n' && *tp != '\r') tp++;
+        size_t line_len = tp - line_start;
+        while (tp < tend && (*tp == '\n' || *tp == '\r')) tp++;
+
+        /* Find tab */
+        char *tab = NULL;
+        for (size_t i = 0; i < line_len; i++) {
+            if (line_start[i] == '\t') { tab = line_start + i; break; }
+        }
+        if (!tab || tab == line_start) continue;
+
+        size_t klen = tab - line_start;
+        char *val = tab + 1;
+        size_t vlen = line_len - klen - 1;
+        if (vlen == 0) continue;
+
+        entries[entry_count].key = line_start;
+        entries[entry_count].klen = klen;
+        entries[entry_count].val = val;
+        entries[entry_count].vlen = vlen;
+        entries[entry_count].freq = (fm.slots != NULL)
+            ? key_frequency(&fm, line_start, klen) : 0;
+        entry_count++;
+    }
+
+    /* 3. Sort by frequency descending (most-used words first) */
+    if (fm.slots != NULL) {
+        qsort(entries, entry_count, sizeof(tsv_entry_t), tsv_cmp_freq_desc);
+    }
+
+    /* 4. Build CDB from top maxEntries */
+    cdb_make_t cm;
+    if (cdb_make_start(&cm, cdbPath) != 0) {
+        LOGE("Cannot create CDB: %s", cdbPath);
+        free(entries);
+        free(tsv_buf);
+        if (freq_buf) { fmap_destroy(&fm); free(freq_buf); }
+        jstr_release(env, jtsvPath, tsvPath);
+        jstr_release(env, jfreqPath, freqPath);
+        jstr_release(env, jcdbPath, cdbPath);
+        return -1;
+    }
+
+    uint32_t limit = (maxEntries > 0 && (uint32_t)maxEntries < entry_count)
+        ? (uint32_t)maxEntries : entry_count;
+    for (uint32_t i = 0; i < limit; i++) {
+        cdb_make_add(&cm, entries[i].key, entries[i].klen,
+                     entries[i].val, entries[i].vlen);
+    }
+
+    int result = (int)limit;
+    if (cdb_make_finish(&cm) != 0) {
+        LOGE("Failed to finalize CDB: %s", cdbPath);
+        result = -1;
+    } else {
+        LOGI("Built trimmed CDB: %s (%u/%u entries, freq-sorted)", cdbPath, limit, entry_count);
+    }
+
+    /* 5. Cleanup */
+    free(entries);
+    free(tsv_buf);
+    if (freq_buf) { fmap_destroy(&fm); free(freq_buf); }
+    jstr_release(env, jtsvPath, tsvPath);
+    jstr_release(env, jfreqPath, freqPath);
+    jstr_release(env, jcdbPath, cdbPath);
+    return result;
 }

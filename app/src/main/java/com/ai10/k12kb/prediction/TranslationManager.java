@@ -24,6 +24,10 @@ public class TranslationManager {
         this.dictionary = new NativeTranslationDictionary();
     }
 
+    public void setMaxEntries(int max) {
+        dictionary.setMaxEntries(max);
+    }
+
     /**
      * Toggle translation mode on/off.
      * Returns the new state.

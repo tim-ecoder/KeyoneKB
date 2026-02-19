@@ -1,5 +1,5 @@
 /*
- * Minimal CDB reader — mmap-based, read-only.
+ * CDB reader + writer — mmap-based read, sequential write.
  * Implements D.J. Bernstein's CDB format.
  */
 
@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
 /* Read a little-endian uint32 from buffer. */
 static inline uint32_t get_u32(const uint8_t *p) {
@@ -121,5 +122,123 @@ int cdb_find(const cdb_t *cdb, const char *key, size_t klen,
             return 1;
         }
     }
+    return 0;
+}
+
+/* --- CDB Make (writer) --- */
+
+static inline void put_u32(uint8_t *p, uint32_t v) {
+    p[0] = v & 0xff;
+    p[1] = (v >> 8) & 0xff;
+    p[2] = (v >> 16) & 0xff;
+    p[3] = (v >> 24) & 0xff;
+}
+
+int cdb_make_start(cdb_make_t *cm, const char *path) {
+    memset(cm, 0, sizeof(*cm));
+    cm->fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (cm->fd < 0) return -1;
+
+    /* Write placeholder header (2048 bytes of zeros) */
+    uint8_t zeros[2048];
+    memset(zeros, 0, sizeof(zeros));
+    if (write(cm->fd, zeros, sizeof(zeros)) != sizeof(zeros)) {
+        close(cm->fd);
+        cm->fd = -1;
+        return -1;
+    }
+    cm->pos = 2048;
+
+    cm->hpcap = 4096;
+    cm->hplist = (cdb_hp_t *)malloc(cm->hpcap * sizeof(cdb_hp_t));
+    if (!cm->hplist) {
+        close(cm->fd);
+        cm->fd = -1;
+        return -1;
+    }
+    cm->hpcount = 0;
+    return 0;
+}
+
+int cdb_make_add(cdb_make_t *cm, const char *key, size_t klen,
+                 const char *val, size_t vlen) {
+    if (cm->fd < 0) return -1;
+
+    /* Grow hp list if needed */
+    if (cm->hpcount >= cm->hpcap) {
+        uint32_t newcap = cm->hpcap * 2;
+        cdb_hp_t *newlist = (cdb_hp_t *)realloc(cm->hplist, newcap * sizeof(cdb_hp_t));
+        if (!newlist) return -1;
+        cm->hplist = newlist;
+        cm->hpcap = newcap;
+    }
+
+    /* Record position and hash */
+    uint32_t h = cdb_hash(key, klen);
+    cm->hplist[cm->hpcount].hash = h;
+    cm->hplist[cm->hpcount].pos = cm->pos;
+    cm->hpcount++;
+
+    /* Write record: keylen(4) + vallen(4) + key + val */
+    uint8_t hdr[8];
+    put_u32(hdr, (uint32_t)klen);
+    put_u32(hdr + 4, (uint32_t)vlen);
+    write(cm->fd, hdr, 8);
+    write(cm->fd, key, klen);
+    write(cm->fd, val, vlen);
+    cm->pos += 8 + klen + vlen;
+
+    return 0;
+}
+
+int cdb_make_finish(cdb_make_t *cm) {
+    if (cm->fd < 0) return -1;
+
+    /* Count entries per hash table (256 tables) */
+    uint32_t counts[256];
+    memset(counts, 0, sizeof(counts));
+    for (uint32_t i = 0; i < cm->hpcount; i++) {
+        counts[cm->hplist[i].hash & 0xFF]++;
+    }
+
+    /* Build and write each hash table */
+    uint8_t final_header[2048];
+
+    for (int t = 0; t < 256; t++) {
+        uint32_t nslots = counts[t] * 2;
+
+        put_u32(final_header + t * 8, cm->pos);
+        put_u32(final_header + t * 8 + 4, nslots);
+
+        if (nslots == 0) continue;
+
+        /* Allocate and zero-fill slot table */
+        uint8_t *slots = (uint8_t *)calloc(nslots, 8);
+        if (!slots) { close(cm->fd); cm->fd = -1; free(cm->hplist); return -1; }
+
+        /* Insert entries using open addressing */
+        for (uint32_t i = 0; i < cm->hpcount; i++) {
+            if ((cm->hplist[i].hash & 0xFF) != (uint32_t)t) continue;
+            uint32_t slot = (cm->hplist[i].hash >> 8) % nslots;
+            while (get_u32(slots + slot * 8 + 4) != 0) {
+                slot = (slot + 1) % nslots;
+            }
+            put_u32(slots + slot * 8, cm->hplist[i].hash);
+            put_u32(slots + slot * 8 + 4, cm->hplist[i].pos);
+        }
+
+        write(cm->fd, slots, nslots * 8);
+        cm->pos += nslots * 8;
+        free(slots);
+    }
+
+    /* Rewrite header at file start */
+    lseek(cm->fd, 0, SEEK_SET);
+    write(cm->fd, final_header, 2048);
+
+    close(cm->fd);
+    cm->fd = -1;
+    free(cm->hplist);
+    cm->hplist = NULL;
     return 0;
 }

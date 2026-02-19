@@ -78,6 +78,20 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
+        <LinearLayout style="@style/ItemPillSpinner">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textPrimaryColor"
+                android:textSize="15sp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/pref_dict_size_title" />
+            <Spinner
+                android:id="@+id/spinner_dict_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <!-- TRANSLATION DICTIONARY -->
         <TextView
             style="@style/SectionHeader"
@@ -109,6 +123,20 @@
                 android:progress="4"
                 android:progressTint="@color/colorPrimary"
                 android:thumbTint="@color/colorPrimary" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPillSpinner">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textPrimaryColor"
+                android:textSize="15sp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/pref_trans_dict_size_title" />
+            <Spinner
+                android:id="@+id/spinner_trans_dict_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout

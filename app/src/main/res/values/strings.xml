@@ -124,6 +124,22 @@ For more utilities for working with Capital letters, see the Manual in chapter B
         <item>N-gram (next-word prediction)</item>
         <item>Native SymSpell (fast + keyboard-aware)</item>
     </string-array>
+    <string name="pref_dict_size_title">Dictionary size</string>
+    <string-array name="pref_dict_size_array">
+        <item>Tiny (35k words, ~8 MB RAM)</item>
+        <item>Normal (150k words, ~35 MB RAM)</item>
+        <item>Big (300k words, ~70 MB RAM)</item>
+        <item>Full (all words, ~150 MB RAM)</item>
+    </string-array>
+    <string name="pred_dict_size_changed">Dictionary cache cleared. Restart keyboard to apply.</string>
+    <string name="pref_trans_dict_size_title">Translation dictionary size</string>
+    <string-array name="pref_trans_dict_size_array">
+        <item>Tiny (35k words, ~5 MB)</item>
+        <item>Normal (100k words, ~14 MB)</item>
+        <item>Big (200k words, ~26 MB)</item>
+        <item>Full (all words, ~42 MB)</item>
+    </string-array>
+    <string name="pred_trans_dict_size_changed">Translation cache cleared. Restart keyboard to apply.</string>
     <string name="main_btn_prediction_settings">Word prediction</string>
     <string name="pred_section_settings">SETTINGS</string>
     <string name="pred_section_status">DICTIONARY STATUS</string>

@@ -417,9 +417,9 @@ void ss_build_index(symspell_t *ss) {
         }
         free(ss->deletes);
     }
-    /* Pre-allocate deletes table: ~6x word count is typical */
+    /* Pre-allocate deletes table: ~3x word count at 75% load */
     ss->deletes_cap = 1;
-    while (ss->deletes_cap < ss->dict_count * 8) ss->deletes_cap <<= 1;
+    while (ss->deletes_cap < ss->dict_count * 4) ss->deletes_cap <<= 1;
     ss->deletes = (delete_entry_t *)calloc(ss->deletes_cap, sizeof(delete_entry_t));
     ss->deletes_count = 0;
     if (!ss->deletes) return;

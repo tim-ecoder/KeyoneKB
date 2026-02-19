@@ -204,6 +204,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 // so if they were loaded before, they're reused instantly (no new threads)
                 wordPredictor = new WordPredictor();
                 int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
+                int dictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
+                wordPredictor.setDictSize(dictSize);
                 wordPredictor.setEngineMode(engineMode);
                 wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
                     public void run() {
@@ -245,6 +247,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 });
                 // Initialize translation manager
                 translationManager = new TranslationManager(getApplicationContext());
+                int transDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
+                translationManager.setMaxEntries(transDictSize);
                 translationManager.setOnDictionaryLoadedListener(() -> {
                     if (suggestionBar == null || wordPredictor == null || translationManager == null) return;
                     if (!translationManager.isEnabled()) return;
@@ -1289,12 +1293,15 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 }
             }
         } else {
-            // Translation disabled — close bar if it was opened by Ctrl+T
+            // Translation disabled — restore predictions
             suggestionBar.clear();
             if (predictionBarOpenedByTranslation) {
                 predictionBarOpenedByTranslation = false;
                 predictionBarVisibleThisSession = false;
                 setCandidatesViewShown(false);
+            } else if (wordPredictor != null) {
+                // Re-trigger predictions for current word
+                updatePredictorWordAtCursor();
             }
         }
         return true;
