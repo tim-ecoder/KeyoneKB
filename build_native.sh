@@ -16,6 +16,8 @@ echo "Compiling libnativesymspell.so ..."
     "$SRC_DIR/symspell.c" \
     "$SRC_DIR/keyboard_distance.c" \
     "$SRC_DIR/jni_bridge.c" \
+    "$SRC_DIR/cdb.c" \
+    "$SRC_DIR/translation_jni.c" \
     -lm -llog -landroid
 
 "$STRIP" "$OUT_DIR/libnativesymspell.so"

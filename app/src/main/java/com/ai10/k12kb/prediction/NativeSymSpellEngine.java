@@ -181,8 +181,12 @@ public class NativeSymSpellEngine implements PredictionEngine {
         String cachePath = new File(context.getFilesDir(), CACHE_DIR + "/" + locale + ".ssnd").getAbsolutePath();
         NativeSymSpell cached = NativeSymSpell.loadFromCache(cachePath);
         if (cached != null && cached.size() > 0) {
+            NativeSymSpell old = nativeSymSpell;
             nativeSymSpell = cached;
             loadedLocale = locale;
+            if (old != null && old != cached) {
+                old.destroy();
+            }
             ready = true;
             long elapsed = System.currentTimeMillis() - startTime;
             WordDictionary.recordLoadStats(locale, "native-cache", nativeSymSpell.size(), elapsed);
@@ -208,7 +212,11 @@ public class NativeSymSpellEngine implements PredictionEngine {
             return false;
         }
 
+        NativeSymSpell old = nativeSymSpell;
         nativeSymSpell = new NativeSymSpell(2, 7);
+        if (old != null) {
+            old.destroy();
+        }
         if (!nativeSymSpell.isValid()) {
             Log.e(TAG, "Failed to create native SymSpell instance");
             return false;
