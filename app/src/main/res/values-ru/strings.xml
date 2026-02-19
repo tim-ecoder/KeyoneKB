@@ -137,14 +137,6 @@
     <string name="pred_clear_cache_confirm">Удалить кеш словарей? Они будут перестроены при следующей загрузке.</string>
     <string name="pred_cache_cleared">Кеш словарей очищен</string>
     <string name="pred_cache_missing">нет кеша</string>
-    <string name="pref_word_learning">Обучение на вводимых текстах</string>
-    <string name="pref_word_learning_hint">Клавиатура запоминает набираемые слова и использует их в подсказках</string>
-    <string name="pred_section_learned">ОБУЧЕННЫЕ СЛОВА</string>
-    <string name="pred_learned_words_count">Слов выучено: %d</string>
-    <string name="pred_learned_file_path">Файл: %s</string>
-    <string name="pred_btn_clear_learned">Очистить обученные слова</string>
-    <string name="pred_clear_learned_confirm">Удалить все обученные слова?</string>
-    <string name="pred_learned_cleared">Обученные слова очищены</string>
     <string name="pred_section_translation">СЛОВАРЬ ПЕРЕВОДА</string>
     <string name="pred_translation_hint">Ctrl+T для переключения режима перевода.\nПереводит текущее слово в строке подсказок.\nИспользует контекст предыдущего слова для фразового перевода.\nИсточник: текущая раскладка, цель: следующая раскладка.</string>
     <string name="pref_translation_slots_count">Количество вариантов перевода</string>

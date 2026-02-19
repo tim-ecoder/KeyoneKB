@@ -203,10 +203,6 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 // Fresh predictor — but engine+dictionaries are static inside WordPredictor
                 // so if they were loaded before, they're reused instantly (no new threads)
                 wordPredictor = new WordPredictor();
-                // Initialize learned dictionary (loads from file)
-                wordPredictor.initLearnedDictionary(getApplicationContext());
-                boolean learningEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_21_WORD_LEARNING);
-                wordPredictor.setLearningEnabled(learningEnabled);
                 int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
                 wordPredictor.setEngineMode(engineMode);
                 wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {

@@ -16,8 +16,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ai10.k12kb.prediction.LearnedDictionary;
-import com.ai10.k12kb.prediction.TranslationDictionary;
 import com.ai10.k12kb.prediction.WordDictionary;
 import com.ai10.k12kb.prediction.WordPredictor;
 
@@ -35,7 +33,6 @@ public class ActivityPredictionSettings extends Activity {
     private K12KbSettings k12KbSettings;
     private TextView tvDictStatus;
     private TextView tvCacheStatus;
-    private TextView tvLearnedStatus;
     private TextView tvTranslationStatus;
 
     @Override
@@ -48,7 +45,6 @@ public class ActivityPredictionSettings extends Activity {
         setContentView(R.layout.activity_prediction_settings);
 
         setupPredictionSettings();
-        setupLearning();
         setupTranslation();
         setupStatus();
         setupCache();
@@ -59,7 +55,6 @@ public class ActivityPredictionSettings extends Activity {
         super.onResume();
         refreshStatus();
         refreshCacheStatus();
-        refreshLearnedStatus();
         refreshTranslationStatus();
     }
 
@@ -129,60 +124,6 @@ public class ActivityPredictionSettings extends Activity {
                 spinnerEngine.setSelection(pos);
             }
         });
-    }
-
-    private void setupLearning() {
-        // Word learning toggle
-        Switch switchLearning = (Switch) findViewById(R.id.switch_word_learning);
-        boolean learningEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_21_WORD_LEARNING);
-        switchLearning.setChecked(learningEnabled);
-        switchLearning.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_21_WORD_LEARNING, isChecked);
-            }
-        });
-
-        // Learned words status
-        tvLearnedStatus = (TextView) findViewById(R.id.tv_learned_status);
-        refreshLearnedStatus();
-
-        // Clear learned words button
-        Button btnClearLearned = (Button) findViewById(R.id.btn_clear_learned);
-        btnClearLearned.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                new AlertDialog.Builder(ActivityPredictionSettings.this)
-                    .setTitle(getString(R.string.pred_btn_clear_learned))
-                    .setMessage(getString(R.string.pred_clear_learned_confirm))
-                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            LearnedDictionary learned = WordPredictor.getLearnedDictionary();
-                            if (learned != null) {
-                                learned.clear(getApplicationContext());
-                            }
-                            refreshLearnedStatus();
-                            Toast.makeText(getApplicationContext(),
-                                    getString(R.string.pred_learned_cleared),
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .setNegativeButton(android.R.string.no, null)
-                    .show();
-            }
-        });
-    }
-
-    private void refreshLearnedStatus() {
-        StringBuilder sb = new StringBuilder();
-        LearnedDictionary learned = WordPredictor.getLearnedDictionary();
-        int count = (learned != null) ? learned.size() : 0;
-        sb.append(String.format(getString(R.string.pred_learned_words_count), count));
-
-        File file = LearnedDictionary.getFile(getApplicationContext());
-        if (file != null) {
-            sb.append("\n").append(String.format(getString(R.string.pred_learned_file_path), file.getAbsolutePath()));
-        }
-
-        tvLearnedStatus.setText(sb.toString());
     }
 
     private void setupTranslation() {

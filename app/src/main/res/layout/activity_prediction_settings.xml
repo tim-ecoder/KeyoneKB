@@ -78,43 +78,6 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <Switch
-            android:id="@+id/switch_word_learning"
-            style="@style/SwitchPill"
-            android:text="@string/pref_word_learning"
-            tools:checked="true" />
-
-        <!-- LEARNED WORDS -->
-        <TextView
-            style="@style/SectionHeader"
-            android:text="@string/pred_section_learned" />
-
-        <LinearLayout
-            style="@style/ItemPill"
-            android:orientation="vertical"
-            android:gravity="start">
-            <TextView
-                android:id="@+id/tv_learned_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="?attr/textPrimaryColor"
-                android:textSize="13sp"
-                android:lineSpacingExtra="4dp"
-                android:typeface="monospace"
-                android:text="" />
-        </LinearLayout>
-
-        <LinearLayout style="@style/ItemPill">
-            <Button
-                android:id="@+id/btn_clear_learned"
-                style="@style/ItemPillText"
-                android:background="@android:color/transparent"
-                android:gravity="start|center_vertical"
-                android:text="@string/pred_btn_clear_learned"
-                android:textColor="#FF5252"
-                android:textAllCaps="false" />
-        </LinearLayout>
-
         <!-- TRANSLATION DICTIONARY -->
         <TextView
             style="@style/SectionHeader"

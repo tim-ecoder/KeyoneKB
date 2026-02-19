@@ -29,7 +29,6 @@ public class NativeSymSpellEngine implements PredictionEngine {
 
     private volatile NativeSymSpell nativeSymSpell;
     private final Object loadLock = new Object();
-    private LearnedDictionary learnedDict;
     private volatile boolean ready = false;
     private volatile String loadedLocale = "";
     private String keyboardLayout = "qwerty";
@@ -92,10 +91,6 @@ public class NativeSymSpellEngine implements PredictionEngine {
         return top;
     }
 
-    public void setLearnedDictionary(LearnedDictionary learned) {
-        this.learnedDict = learned;
-    }
-
     public void setKeyboardLayout(String layout) {
         if (layout != null && !layout.isEmpty()) {
             this.keyboardLayout = layout;
@@ -110,19 +105,15 @@ public class NativeSymSpellEngine implements PredictionEngine {
             }
             boolean fromCache = load(context, locale);
             if (!fromCache && nativeSymSpell != null && nativeSymSpell.isValid()) {
-                // Fresh build — add user/learned words, rebuild index, then save cache
-                // (safe: ready was false during build, so suggest() won't read this data)
+                // Fresh build — add user words, rebuild index, then save cache
                 int before = nativeSymSpell.size();
                 loadUserWords(context);
-                loadLearnedWords();
                 if (nativeSymSpell.size() > before) {
                     nativeSymSpell.buildIndex();
-                    Log.d(TAG, "Rebuilt index after adding " + (nativeSymSpell.size() - before) + " new user/learned words");
+                    Log.d(TAG, "Rebuilt index after adding " + (nativeSymSpell.size() - before) + " new user words");
                 }
                 saveNativeCache(context, locale);
             }
-            // Cache hit: no modifications needed — cache includes user/learned words
-            // from previous fresh build. No buildIndex race with suggest().
         }
     }
 
@@ -329,22 +320,6 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
         if (added > 0) {
             Log.d(TAG, "Added " + added + " user dictionary words (native)");
-        }
-    }
-
-    private void loadLearnedWords() {
-        if (learnedDict == null) return;
-        List<LearnedDictionary.LearnedWord> learnedWords = learnedDict.getSuggestionWords();
-        if (learnedWords.isEmpty()) return;
-        int added = 0;
-        for (LearnedDictionary.LearnedWord lw : learnedWords) {
-            int freq = Math.min(240, LearnedDictionary.getBaseFrequency() + (lw.count - 1) * 5);
-            String normalized = WordDictionary.normalize(lw.word);
-            nativeSymSpell.addWord(normalized, lw.word, freq);
-            added++;
-        }
-        if (added > 0) {
-            Log.d(TAG, "Added " + added + " learned words (native)");
         }
     }
 

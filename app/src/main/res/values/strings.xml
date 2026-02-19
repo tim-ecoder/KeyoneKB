@@ -142,14 +142,6 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="pred_clear_cache_confirm">Delete cached dictionaries? They will be rebuilt on next load.</string>
     <string name="pred_cache_cleared">Dictionary cache cleared</string>
     <string name="pred_cache_missing">no cache</string>
-    <string name="pref_word_learning">Learn words from typing</string>
-    <string name="pref_word_learning_hint">Keyboard learns words you type and uses them in suggestions</string>
-    <string name="pred_section_learned">LEARNED WORDS</string>
-    <string name="pred_learned_words_count">Words learned: %d</string>
-    <string name="pred_learned_file_path">File: %s</string>
-    <string name="pred_btn_clear_learned">Clear learned words</string>
-    <string name="pred_clear_learned_confirm">Delete all learned words?</string>
-    <string name="pred_learned_cleared">Learned words cleared</string>
     <string name="pred_section_translation">TRANSLATION DICTIONARY</string>
     <string name="pred_translation_hint">Ctrl+T to toggle translation mode.\nTranslates current word in suggestion bar.\nUses previous word context for phrase translation.\nSource: current layout, target: next layout.</string>
     <string name="pref_translation_slots_count">Translation pillows count</string>

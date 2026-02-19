@@ -30,11 +30,6 @@ public class NgramEngine implements PredictionEngine {
     private final BigramDictionary bigramDict = new BigramDictionary();
     private boolean ready = false;
     private String loadedLocale = "";
-    private LearnedDictionary learnedDict;
-
-    public void setLearnedDictionary(LearnedDictionary learned) {
-        this.learnedDict = learned;
-    }
 
     @Override
     public List<WordPredictor.Suggestion> suggest(String input, String previousWord, int limit) {
@@ -182,9 +177,6 @@ public class NgramEngine implements PredictionEngine {
         // Load user dictionary words into trie
         loadUserWords(context);
 
-        // Load learned words into trie
-        loadLearnedWords();
-
         ready = true;
         loadedLocale = locale;
         long elapsed = System.currentTimeMillis() - startTime;
@@ -204,23 +196,6 @@ public class NgramEngine implements PredictionEngine {
         }
         if (added > 0) {
             Log.d(TAG, "Added " + added + " user dictionary words to trie");
-        }
-    }
-
-    private void loadLearnedWords() {
-        if (learnedDict == null) return;
-        java.util.List<LearnedDictionary.LearnedWord> learnedWords = learnedDict.getSuggestionWords();
-        int added = 0;
-        for (LearnedDictionary.LearnedWord lw : learnedWords) {
-            String normalized = WordDictionary.normalize(lw.word);
-            if (!normalized.isEmpty()) {
-                int freq = Math.min(240, LearnedDictionary.getBaseFrequency() + (lw.count - 1) * 5);
-                trie.insert(normalized, freq);
-                added++;
-            }
-        }
-        if (added > 0) {
-            Log.d(TAG, "Added " + added + " learned words to trie");
         }
     }
 
