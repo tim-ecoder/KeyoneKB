@@ -18,7 +18,6 @@ public class WordPredictor {
 
     private static final String TAG = "WordPredictor";
 
-    public static final int ENGINE_NGRAM = 1;
     public static final int ENGINE_NATIVE_SYMSPELL = 2;
 
     public static class Suggestion {
@@ -53,6 +52,8 @@ public class WordPredictor {
     private List<Suggestion> latestSuggestions = Collections.emptyList();
     private boolean enabled = true;
     private int dictSize = 35000;
+    private boolean nextWordEnabled = true;
+    private boolean keyboardAwareEnabled = true;
     private Context appContext;
     private String currentLocale = "";
     public WordPredictor() {
@@ -70,6 +71,20 @@ public class WordPredictor {
 
     public void setDictSize(int size) {
         this.dictSize = size;
+    }
+
+    public void setNextWordEnabled(boolean enabled) {
+        this.nextWordEnabled = enabled;
+        if (engine instanceof NativeSymSpellEngine) {
+            ((NativeSymSpellEngine) engine).setNextWordEnabled(enabled);
+        }
+    }
+
+    public void setKeyboardAwareEnabled(boolean enabled) {
+        this.keyboardAwareEnabled = enabled;
+        if (engine instanceof NativeSymSpellEngine) {
+            ((NativeSymSpellEngine) engine).setKeyboardAwareEnabled(enabled);
+        }
     }
 
     public void setSuggestLimit(int limit) {
@@ -100,12 +115,10 @@ public class WordPredictor {
     }
 
     public void setEngineMode(int mode) {
-        if (mode < ENGINE_NGRAM || mode > ENGINE_NATIVE_SYMSPELL) mode = ENGINE_NATIVE_SYMSPELL;
+        mode = ENGINE_NATIVE_SYMSPELL;
         boolean modeChanged = (this.engineMode != mode);
         this.engineMode = mode;
         if (modeChanged) {
-            // Engine type changed — old loading threads are for wrong engine type,
-            // allow new loads for the new engine
             synchronized (loadingLocales) { loadingLocales.clear(); }
         }
         if (engine == null && sharedEngine != null && sharedEngineMode == mode) {
@@ -242,17 +255,11 @@ public class WordPredictor {
     }
 
     private void createAndLoadEngine(final Context context, final String locale, final Runnable onComplete) {
-        final PredictionEngine newEngine;
-        switch (engineMode) {
-            case ENGINE_NGRAM:
-                newEngine = new NgramEngine();
-                break;
-            default:
-                NativeSymSpellEngine nativeEng = new NativeSymSpellEngine();
-                nativeEng.setMaxWords(dictSize);
-                newEngine = nativeEng;
-                break;
-        }
+        NativeSymSpellEngine nativeEng = new NativeSymSpellEngine();
+        nativeEng.setMaxWords(dictSize);
+        nativeEng.setNextWordEnabled(nextWordEnabled);
+        nativeEng.setKeyboardAwareEnabled(keyboardAwareEnabled);
+        final PredictionEngine newEngine = nativeEng;
         engine = newEngine;
         sharedEngine = newEngine;
         sharedEngineMode = engineMode;

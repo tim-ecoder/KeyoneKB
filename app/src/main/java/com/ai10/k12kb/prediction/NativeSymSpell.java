@@ -52,6 +52,16 @@ public class NativeSymSpell {
         }
     }
 
+    public static class BigramItem {
+        public final String word;
+        public final int frequency;
+
+        public BigramItem(String word, int frequency) {
+            this.word = word;
+            this.frequency = frequency;
+        }
+    }
+
     private long nativePtr;
 
     /**
@@ -136,6 +146,41 @@ public class NativeSymSpell {
         return nativeContains(nativePtr, word);
     }
 
+    public void addBigram(String word1, String word2, String original2, int frequency) {
+        if (nativePtr == 0) return;
+        nativeAddBigram(nativePtr, word1, word2, original2, frequency);
+    }
+
+    public void buildBigramIndex() {
+        if (nativePtr == 0) return;
+        nativeBuildBigramIndex(nativePtr);
+    }
+
+    public BigramItem[] bigramLookup(String word1, int maxResults) {
+        if (nativePtr == 0 || word1 == null || word1.isEmpty()) return new BigramItem[0];
+        String[] raw = nativeBigramLookup(nativePtr, word1, maxResults);
+        if (raw == null || raw.length < 2) return new BigramItem[0];
+        int count = raw.length / 2;
+        BigramItem[] items = new BigramItem[count];
+        for (int i = 0; i < count; i++) {
+            int freq = 0;
+            try { freq = Integer.parseInt(raw[i * 2 + 1]); }
+            catch (NumberFormatException e) { /* ignore */ }
+            items[i] = new BigramItem(raw[i * 2], freq);
+        }
+        return items;
+    }
+
+    public int getBigramFrequency(String word1, String word2) {
+        if (nativePtr == 0) return 0;
+        return nativeBigramFrequency(nativePtr, word1, word2);
+    }
+
+    public int bigramCount() {
+        if (nativePtr == 0) return 0;
+        return nativeBigramCount(nativePtr);
+    }
+
     public void destroy() {
         if (nativePtr != 0) {
             nativeDestroy(nativePtr);
@@ -211,4 +256,12 @@ public class NativeSymSpell {
     private native int nativeSize(long ptr);
     private native int nativeGetFrequency(long ptr, String word);
     private native boolean nativeContains(long ptr, String word);
+
+    /* Bigram native methods */
+    private native void nativeAddBigram(long ptr, String word1, String word2,
+                                         String original2, int frequency);
+    private native void nativeBuildBigramIndex(long ptr);
+    private native String[] nativeBigramLookup(long ptr, String word1, int maxResults);
+    private native int nativeBigramFrequency(long ptr, String word1, String word2);
+    private native int nativeBigramCount(long ptr);
 }

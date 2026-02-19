@@ -19,6 +19,8 @@ public class K12KbSettings {
     public final String APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN = "prediction_bar_hidden";
     public final String APP_PREFERENCES_24_DICT_SIZE = "dict_size";
     public final String APP_PREFERENCES_25_TRANS_DICT_SIZE = "trans_dict_size";
+    public final String APP_PREFERENCES_26_NEXT_WORD_PREDICTION = "next_word_prediction";
+    public final String APP_PREFERENCES_27_KEYBOARD_AWARE = "keyboard_aware";
     public final String APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR = "pointer_mode_rect_color";
     public final String APP_PREFERENCES_13_POINTER_MODE_RECT = "pointer_mode_rect";
     public final String APP_PREFERENCES_12_ENSURE_ENTERED_TEXT = "ensure_entered_text";
@@ -104,6 +106,8 @@ public class K12KbSettings {
         CheckSettingOrSetDefault(APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN, false);
         CheckSettingOrSetDefault(APP_PREFERENCES_24_DICT_SIZE, 35000);
         CheckSettingOrSetDefault(APP_PREFERENCES_25_TRANS_DICT_SIZE, 35000);
+        CheckSettingOrSetDefault(APP_PREFERENCES_26_NEXT_WORD_PREDICTION, true);
+        CheckSettingOrSetDefault(APP_PREFERENCES_27_KEYBOARD_AWARE, true);
     }
 
     public boolean GetBooleanValue(String name) {

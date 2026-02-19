@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 import com.ai10.k12kb.prediction.NativeTranslationDictionary;
 import com.ai10.k12kb.prediction.WordDictionary;
-import com.ai10.k12kb.prediction.WordPredictor;
 
 import java.io.File;
 import java.util.HashMap;
@@ -80,6 +79,26 @@ public class ActivityPredictionSettings extends Activity {
             }
         });
 
+        // Next-word prediction toggle
+        Switch switchNextWord = (Switch) findViewById(R.id.switch_next_word_prediction);
+        boolean nextWordEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_26_NEXT_WORD_PREDICTION);
+        switchNextWord.setChecked(nextWordEnabled);
+        switchNextWord.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_26_NEXT_WORD_PREDICTION, isChecked);
+            }
+        });
+
+        // Keyboard-aware corrections toggle
+        Switch switchKeyboardAware = (Switch) findViewById(R.id.switch_keyboard_aware);
+        boolean kbAwareEnabled = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_27_KEYBOARD_AWARE);
+        switchKeyboardAware.setChecked(kbAwareEnabled);
+        switchKeyboardAware.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_27_KEYBOARD_AWARE, isChecked);
+            }
+        });
+
         // Bar height
         SeekBar seekHeight = (SeekBar) findViewById(R.id.seekBarPredictionHeight);
         int height = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
@@ -102,34 +121,6 @@ public class ActivityPredictionSettings extends Activity {
             }
             public void onStartTrackingTouch(SeekBar seekBar) {}
             public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        // Engine spinner
-        final Spinner spinnerEngine = (Spinner) findViewById(R.id.spinner_prediction_engine);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this, R.array.pref_prediction_engine_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerEngine.setAdapter(adapter);
-        // Map engine constant (1=N-gram, 2=NativeSymSpell) to spinner position (0, 1)
-        final int engineFromPref = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
-        int spinnerPos = (engineFromPref == WordPredictor.ENGINE_NGRAM) ? 0 : 1;
-        spinnerEngine.setSelection(spinnerPos);
-        spinnerEngine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // Map spinner position back to engine constant: 0→1, 1→2
-                int engineConst = (position == 0) ? WordPredictor.ENGINE_NGRAM : WordPredictor.ENGINE_NATIVE_SYMSPELL;
-                int currentEngine = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
-                if (engineConst == currentEngine) return;
-                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE, engineConst);
-                WordDictionary.clearLoadStats();
-                WordDictionary.clearCacheFiles(getApplicationContext());
-                refreshStatus();
-                refreshCacheStatus();
-            }
-            public void onNothingSelected(AdapterView<?> parent) {
-                int pos = (engineFromPref == WordPredictor.ENGINE_NGRAM) ? 0 : 1;
-                spinnerEngine.setSelection(pos);
-            }
         });
 
         // Dictionary size spinner
@@ -290,12 +281,7 @@ public class ActivityPredictionSettings extends Activity {
     private void refreshStatus() {
         StringBuilder sb = new StringBuilder();
 
-        // Engine mode
-        int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
-        String engineName;
-        if (engineMode == WordPredictor.ENGINE_NGRAM) engineName = "N-gram";
-        else engineName = "Native SymSpell";
-        sb.append(getString(R.string.pred_status_engine)).append(": ").append(engineName).append("\n");
+        sb.append(getString(R.string.pred_status_engine)).append(": Native SymSpell\n");
 
         // Per-locale stats
         HashMap<String, WordDictionary.LoadStats> allStats = WordDictionary.getAllLoadStats();

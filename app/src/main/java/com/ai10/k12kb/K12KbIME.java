@@ -206,6 +206,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
                 int dictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
                 wordPredictor.setDictSize(dictSize);
+                wordPredictor.setNextWordEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_26_NEXT_WORD_PREDICTION));
+                wordPredictor.setKeyboardAwareEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_27_KEYBOARD_AWARE));
                 wordPredictor.setEngineMode(engineMode);
                 wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
                     public void run() {
@@ -549,6 +551,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 if (wordPredictor != null) {
                     int newDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
                     wordPredictor.setDictSize(newDictSize);
+                    wordPredictor.setNextWordEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_26_NEXT_WORD_PREDICTION));
+                    wordPredictor.setKeyboardAwareEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_27_KEYBOARD_AWARE));
                     reloadDictionaryForCurrentLanguage();
                 }
                 if (translationManager != null) {

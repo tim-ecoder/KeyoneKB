@@ -118,12 +118,9 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="pref_prediction_bar_hidden">Hide bar by default (Ctrl+W to show)</string>
     <string name="pref_prediction_bar_height">Prediction bar height (dp)</string>
     <string name="pref_prediction_slots_count">Prediction slots count</string>
-    <string name="pref_prediction_engine_title">Prediction engine</string>
+    <string name="pref_next_word_prediction">Next-word prediction (bigrams)</string>
+    <string name="pref_keyboard_aware">Keyboard-aware corrections</string>
     <string name="prediction_loading_toast">Dictionary loading, please wait…</string>
-    <string-array name="pref_prediction_engine_array">
-        <item>N-gram (next-word prediction)</item>
-        <item>Native SymSpell (fast + keyboard-aware)</item>
-    </string-array>
     <string name="pref_dict_size_title">Dictionary size</string>
     <string-array name="pref_dict_size_array">
         <item>Tiny (35k words, ~8 MB RAM)</item>

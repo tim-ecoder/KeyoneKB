@@ -313,3 +313,111 @@ Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeContains(
     jstr_release(env, jword, word);
     return found ? JNI_TRUE : JNI_FALSE;
 }
+
+/* ---- Bigram JNI methods ------------------------------------------------ */
+
+/*
+ * native void nativeAddBigram(long ptr, String word1, String word2,
+ *                              String original2, int frequency);
+ */
+JNIEXPORT void JNICALL
+Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeAddBigram(
+        JNIEnv *env, jobject thiz, jlong ptr,
+        jstring jword1, jstring jword2, jstring joriginal2, jint frequency) {
+    symspell_t *ss = (symspell_t *)(intptr_t)ptr;
+    if (!ss) return;
+    const char *word1 = jstr_get(env, jword1);
+    const char *word2 = jstr_get(env, jword2);
+    const char *original2 = jstr_get(env, joriginal2);
+    if (word1 && word2) {
+        ss_add_bigram(ss, word1, word2, original2, frequency);
+    }
+    jstr_release(env, joriginal2, original2);
+    jstr_release(env, jword2, word2);
+    jstr_release(env, jword1, word1);
+}
+
+/*
+ * native void nativeBuildBigramIndex(long ptr);
+ */
+JNIEXPORT void JNICALL
+Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeBuildBigramIndex(
+        JNIEnv *env, jobject thiz, jlong ptr) {
+    symspell_t *ss = (symspell_t *)(intptr_t)ptr;
+    if (!ss) return;
+    LOGI("Building bigram index for %d bigrams...", ss_bigram_count(ss));
+    ss_build_bigram_index(ss);
+    LOGI("Bigram index built.");
+}
+
+/*
+ * native String[] nativeBigramLookup(long ptr, String word1, int maxResults);
+ * Returns: [original2, freq_str, original2, freq_str, ...]
+ */
+JNIEXPORT jobjectArray JNICALL
+Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeBigramLookup(
+        JNIEnv *env, jobject thiz, jlong ptr, jstring jword1, jint maxResults) {
+    symspell_t *ss = (symspell_t *)(intptr_t)ptr;
+    if (!ss || !jword1) return NULL;
+
+    const char *word1 = jstr_get(env, jword1);
+    if (!word1) return NULL;
+
+    ss_bigram_item_t results[64];
+    int cap = 64;
+    if (maxResults < cap) cap = maxResults;
+
+    int count = ss_bigram_lookup(ss, word1, cap, results, 64);
+    jstr_release(env, jword1, word1);
+
+    if (count <= 0) return NULL;
+
+    jclass strClass = (*env)->FindClass(env, "java/lang/String");
+    jobjectArray arr = (*env)->NewObjectArray(env, count * 2, strClass, NULL);
+    if (!arr) return NULL;
+
+    char numbuf[16];
+    for (int i = 0; i < count; i++) {
+        jstring jorig = (*env)->NewStringUTF(env,
+            results[i].original ? results[i].original : results[i].word);
+        (*env)->SetObjectArrayElement(env, arr, i * 2, jorig);
+
+        snprintf(numbuf, sizeof(numbuf), "%d", results[i].frequency);
+        jstring jfreq = (*env)->NewStringUTF(env, numbuf);
+        (*env)->SetObjectArrayElement(env, arr, i * 2 + 1, jfreq);
+
+        (*env)->DeleteLocalRef(env, jorig);
+        (*env)->DeleteLocalRef(env, jfreq);
+    }
+
+    return arr;
+}
+
+/*
+ * native int nativeBigramFrequency(long ptr, String word1, String word2);
+ */
+JNIEXPORT jint JNICALL
+Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeBigramFrequency(
+        JNIEnv *env, jobject thiz, jlong ptr, jstring jword1, jstring jword2) {
+    symspell_t *ss = (symspell_t *)(intptr_t)ptr;
+    if (!ss || !jword1 || !jword2) return 0;
+    const char *word1 = jstr_get(env, jword1);
+    const char *word2 = jstr_get(env, jword2);
+    int freq = 0;
+    if (word1 && word2) {
+        freq = ss_bigram_frequency(ss, word1, word2);
+    }
+    jstr_release(env, jword2, word2);
+    jstr_release(env, jword1, word1);
+    return freq;
+}
+
+/*
+ * native int nativeBigramCount(long ptr);
+ */
+JNIEXPORT jint JNICALL
+Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeBigramCount(
+        JNIEnv *env, jobject thiz, jlong ptr) {
+    symspell_t *ss = (symspell_t *)(intptr_t)ptr;
+    return ss ? ss_bigram_count(ss) : 0;
+}

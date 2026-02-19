@@ -11,8 +11,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Native SymSpell prediction engine.
@@ -33,12 +37,23 @@ public class NativeSymSpellEngine implements PredictionEngine {
     private volatile boolean ready = false;
     private volatile String loadedLocale = "";
     private String keyboardLayout = "qwerty";
+    private boolean nextWordEnabled = true;
+    private boolean keyboardAwareEnabled = true;
 
     @Override
     public List<WordPredictor.Suggestion> suggest(String input, String previousWord, int limit) {
         NativeSymSpell ss = nativeSymSpell; // local snapshot for thread safety
         if (!ready || ss == null) return Collections.emptyList();
-        if (input == null || input.isEmpty()) return Collections.emptyList();
+
+        String normalizedPrev = (previousWord != null && !previousWord.isEmpty())
+                ? WordDictionary.normalize(previousWord) : null;
+
+        // Next-word prediction: empty input with a previous word
+        if (input == null || input.isEmpty()) {
+            if (!nextWordEnabled) return Collections.emptyList();
+            if (normalizedPrev == null || normalizedPrev.isEmpty()) return Collections.emptyList();
+            return bigramNextWord(ss, normalizedPrev, limit);
+        }
 
         String normalized = WordDictionary.normalize(input);
         if (normalized.isEmpty()) return Collections.emptyList();
@@ -60,6 +75,13 @@ public class NativeSymSpellEngine implements PredictionEngine {
             if (effFreq < minFreq) continue;
 
             double score = computeScore(normalized, normEntry, word, item.frequency, 0, true, input.length());
+            // Bigram boost for completions
+            if (nextWordEnabled && normalizedPrev != null) {
+                int bgFreq = ss.getBigramFrequency(normalizedPrev, normEntry);
+                if (bgFreq > 0) {
+                    score += bgFreq / 100.0;
+                }
+            }
             String key = word.toLowerCase(Locale.ROOT);
             if (seen.add(key)) {
                 insertSorted(top, new WordPredictor.Suggestion(word, 0, score), limit);
@@ -69,8 +91,9 @@ public class NativeSymSpellEngine implements PredictionEngine {
         // 2. Native SymSpell fuzzy matches (skip for single char)
         if (normalized.length() > 1) {
             int symLimit = normalized.length() <= 3 ? limit * 2 : limit * 4;
-            NativeSymSpell.SuggestItem[] nativeResults =
-                    ss.lookupWeighted(normalized, symLimit, keyboardLayout);
+            NativeSymSpell.SuggestItem[] nativeResults = keyboardAwareEnabled
+                    ? ss.lookupWeighted(normalized, symLimit, keyboardLayout)
+                    : ss.lookup(normalized, symLimit);
 
             for (NativeSymSpell.SuggestItem item : nativeResults) {
                 if (normalized.length() <= 2 && item.distance > 1) continue;
@@ -79,8 +102,15 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 double score = computeScore(normalized, item.term, word, item.frequency,
                         item.distance, false, input.length());
                 // Bonus for low weighted distance (adjacent key typos)
-                if (item.weightedDistance >= 0 && item.weightedDistance < item.distance) {
+                if (keyboardAwareEnabled && item.weightedDistance >= 0 && item.weightedDistance < item.distance) {
                     score += (item.distance - item.weightedDistance) * 0.5;
+                }
+                // Bigram boost for fuzzy matches
+                if (nextWordEnabled && normalizedPrev != null) {
+                    int bgFreq = ss.getBigramFrequency(normalizedPrev, item.term);
+                    if (bgFreq > 0) {
+                        score += bgFreq / 100.0;
+                    }
                 }
                 String key = word.toLowerCase(Locale.ROOT);
                 if (seen.add(key)) {
@@ -92,6 +122,18 @@ public class NativeSymSpellEngine implements PredictionEngine {
         return top;
     }
 
+    private List<WordPredictor.Suggestion> bigramNextWord(NativeSymSpell ss, String normalizedPrev, int limit) {
+        NativeSymSpell.BigramItem[] items = ss.bigramLookup(normalizedPrev, limit);
+        if (items.length == 0) return Collections.emptyList();
+
+        List<WordPredictor.Suggestion> results = new ArrayList<>();
+        for (NativeSymSpell.BigramItem item : items) {
+            double score = item.frequency / 50.0;
+            results.add(new WordPredictor.Suggestion(item.word, 0, score));
+        }
+        return results;
+    }
+
     public void setMaxWords(int max) {
         if (max > 0) this.maxWords = max;
     }
@@ -100,6 +142,14 @@ public class NativeSymSpellEngine implements PredictionEngine {
         if (layout != null && !layout.isEmpty()) {
             this.keyboardLayout = layout;
         }
+    }
+
+    public void setNextWordEnabled(boolean enabled) {
+        this.nextWordEnabled = enabled;
+    }
+
+    public void setKeyboardAwareEnabled(boolean enabled) {
+        this.keyboardAwareEnabled = enabled;
     }
 
     @Override
@@ -184,10 +234,21 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 old.destroy();
             }
             ready = true;
+
+            // v2→v3 upgrade: if cache has 0 bigrams, load from JSON and re-save
+            if (nativeSymSpell.bigramCount() == 0) {
+                loadBigrams(context, locale);
+                if (nativeSymSpell.bigramCount() > 0) {
+                    nativeSymSpell.buildBigramIndex();
+                    saveNativeCache(context, locale);
+                    Log.w(TAG, "Upgraded cache to v3 with " + nativeSymSpell.bigramCount() + " bigrams");
+                }
+            }
+
             long elapsed = System.currentTimeMillis() - startTime;
             WordDictionary.recordLoadStats(locale, "native-cache", nativeSymSpell.size(), elapsed);
             Log.w(TAG, "Loaded " + locale + " from native cache: " + nativeSymSpell.size()
-                    + " words in " + elapsed + "ms");
+                    + " words, " + nativeSymSpell.bigramCount() + " bigrams in " + elapsed + "ms");
             return true;
         }
 
@@ -226,8 +287,10 @@ public class NativeSymSpellEngine implements PredictionEngine {
 
         long buildStart = System.currentTimeMillis();
         nativeSymSpell.buildIndex();
+        nativeSymSpell.buildBigramIndex();
         long buildElapsed = System.currentTimeMillis() - buildStart;
-        Log.w(TAG, "Native buildIndex for " + locale + ": " + buildElapsed + "ms");
+        Log.w(TAG, "Native buildIndex for " + locale + ": " + buildElapsed + "ms"
+                + " (" + nativeSymSpell.bigramCount() + " bigrams)");
 
         ready = true;
         loadedLocale = locale;
@@ -238,6 +301,40 @@ public class NativeSymSpellEngine implements PredictionEngine {
 
         // Cache is saved by caller (loadDictionary) after adding user/learned words
         return false;
+    }
+
+    private void loadBigrams(Context context, String locale) {
+        String bigramFile = "dictionaries/" + locale + "_bigrams.json";
+        try {
+            InputStream is = context.getAssets().open(bigramFile);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8192);
+            StringBuilder sb = new StringBuilder();
+            char[] buf = new char[4096];
+            int read;
+            while ((read = reader.read(buf)) != -1) sb.append(buf, 0, read);
+            reader.close();
+
+            JSONObject root = new JSONObject(sb.toString());
+            int count = 0;
+            Iterator<String> keys = root.keys();
+            while (keys.hasNext()) {
+                String word1 = keys.next();
+                JSONArray pairs = root.getJSONArray(word1);
+                for (int i = 0; i < pairs.length(); i++) {
+                    JSONArray pair = pairs.getJSONArray(i);
+                    String word2 = pair.getString(0);
+                    int freq = pair.getInt(1);
+                    String normalized2 = WordDictionary.normalize(word2);
+                    nativeSymSpell.addBigram(word1, normalized2, word2, freq);
+                    count++;
+                }
+            }
+            Log.d(TAG, "Loaded " + count + " bigrams for " + locale);
+        } catch (java.io.FileNotFoundException e) {
+            Log.d(TAG, "No bigram file for " + locale);
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to load bigrams for " + locale + ": " + e);
+        }
     }
 
     private int loadFromAssets(Context context, String locale) {
@@ -301,6 +398,9 @@ public class NativeSymSpellEngine implements PredictionEngine {
 
                 nativeSymSpell.addWord(normalized, word, freq);
             }
+
+            // Load bigrams
+            loadBigrams(context, locale);
 
             return allEntries.size();
         } catch (Exception e) {

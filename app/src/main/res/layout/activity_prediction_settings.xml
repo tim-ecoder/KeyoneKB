@@ -35,6 +35,18 @@
             android:text="@string/pref_prediction_bar_hidden"
             tools:checked="false" />
 
+        <Switch
+            android:id="@+id/switch_next_word_prediction"
+            style="@style/SwitchPill"
+            android:text="@string/pref_next_word_prediction"
+            tools:checked="true" />
+
+        <Switch
+            android:id="@+id/switch_keyboard_aware"
+            style="@style/SwitchPill"
+            android:text="@string/pref_keyboard_aware"
+            tools:checked="true" />
+
         <LinearLayout style="@style/ItemPillSeek">
             <TextView
                 style="@style/ItemPillSeekTitle"
@@ -62,20 +74,6 @@
                 android:progress="4"
                 android:progressTint="@color/colorPrimary"
                 android:thumbTint="@color/colorPrimary" />
-        </LinearLayout>
-
-        <LinearLayout style="@style/ItemPillSpinner">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="?attr/textPrimaryColor"
-                android:textSize="15sp"
-                android:layout_marginBottom="4dp"
-                android:text="@string/pref_prediction_engine_title" />
-            <Spinner
-                android:id="@+id/spinner_prediction_engine"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout style="@style/ItemPillSpinner">

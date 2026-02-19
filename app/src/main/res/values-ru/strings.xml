@@ -113,12 +113,9 @@
     <string name="pref_prediction_bar_hidden">Скрыть панель (Ctrl+W для показа)</string>
     <string name="pref_prediction_bar_height">Высота панели подсказок (dp)</string>
     <string name="pref_prediction_slots_count">Количество вариантов подсказок</string>
-    <string name="pref_prediction_engine_title">Движок предиктивного ввода</string>
+    <string name="pref_next_word_prediction">Предсказание следующего слова (биграммы)</string>
+    <string name="pref_keyboard_aware">Учёт раскладки клавиатуры при коррекции</string>
     <string name="prediction_loading_toast">Словарь загружается, подождите…</string>
-    <string-array name="pref_prediction_engine_array">
-        <item>N-gram (предсказание следующего слова)</item>
-        <item>Native SymSpell (быстрый + клавиатурный)</item>
-    </string-array>
     <string name="pref_dict_size_title">Размер словаря</string>
     <string-array name="pref_dict_size_array">
         <item>Минимальный (35 тыс. слов, ~8 МБ)</item>

@@ -59,7 +59,8 @@
       "Bash(java:*)",
       "Bash(JAVA_OPTS=\"--add-opens java.base/java.io=ALL-UNNAMED\" ./gradlew:*)",
       "Bash(bash build_native.sh)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(gcc:*)"
     ]
   }
 }

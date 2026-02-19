@@ -98,6 +98,21 @@ typedef struct {
     uint32_t    capacity;
 } delete_entry_t;
 
+/* ---- Bigram types ------------------------------------------------------ */
+
+typedef struct {
+    const char *word1;
+    const char *word2;
+    const char *original2;
+    int32_t     frequency;
+} ss_bigram_t;
+
+typedef struct {
+    const char *word1;
+    const char *word2;
+    int32_t     frequency;
+} bigram_hash_entry_t;
+
 /* ---- SymSpell structure ------------------------------------------------ */
 
 struct symspell {
@@ -119,6 +134,16 @@ struct symspell {
     delete_entry_t *deletes;
     uint32_t        deletes_cap;
     uint32_t        deletes_count;
+
+    /* Bigram flat array (sorted by word1, freq desc after build) */
+    ss_bigram_t *bigrams;
+    uint32_t     bigram_count;
+    uint32_t     bigram_cap;
+
+    /* Bigram hash table for O(1) pair lookup */
+    bigram_hash_entry_t *bigram_hash;
+    uint32_t             bigram_hash_cap;
+    uint32_t             bigram_hash_count;
 
     /* String storage */
     arena_t arena;
@@ -346,6 +371,8 @@ void ss_destroy(symspell_t *ss) {
     free(ss->dict);
     free(ss->dict_words);
     free(ss->dict_original_words);
+    free(ss->bigrams);
+    free(ss->bigram_hash);
     arena_free(&ss->arena);
     free(ss);
 }
@@ -455,6 +482,133 @@ int ss_contains(const symspell_t *ss, const char *word) {
 int ss_get_frequency(const symspell_t *ss, const char *word) {
     dict_entry_t *e = dict_find(ss, word);
     return e ? e->freq : 0;
+}
+
+/* ---- Bigram API -------------------------------------------------------- */
+
+void ss_add_bigram(symspell_t *ss, const char *word1, const char *word2,
+                   const char *original2, int frequency) {
+    if (!ss || !word1 || !*word1 || !word2 || !*word2) return;
+
+    if (ss->bigram_count >= ss->bigram_cap) {
+        uint32_t new_cap = ss->bigram_cap ? ss->bigram_cap * 2 : 1024;
+        ss_bigram_t *nb = (ss_bigram_t *)realloc(ss->bigrams, new_cap * sizeof(ss_bigram_t));
+        if (!nb) return;
+        ss->bigrams = nb;
+        ss->bigram_cap = new_cap;
+    }
+
+    /* Try to reuse dict key pointer for word1 */
+    dict_entry_t *de = dict_find(ss, word1);
+    const char *w1 = de ? de->key : arena_strdup(&ss->arena, word1);
+    const char *w2 = arena_strdup(&ss->arena, word2);
+    const char *o2;
+    if (!original2 || !*original2 || strcmp(word2, original2) == 0) {
+        o2 = w2;
+    } else {
+        o2 = arena_strdup(&ss->arena, original2);
+    }
+
+    ss_bigram_t *b = &ss->bigrams[ss->bigram_count++];
+    b->word1 = w1;
+    b->word2 = w2;
+    b->original2 = o2;
+    b->frequency = frequency;
+}
+
+/* Sort comparator: by word1 ASC, then frequency DESC */
+static int bigram_cmp(const void *a, const void *b) {
+    const ss_bigram_t *ba = (const ss_bigram_t *)a;
+    const ss_bigram_t *bb = (const ss_bigram_t *)b;
+    int c = strcmp(ba->word1, bb->word1);
+    if (c != 0) return c;
+    return bb->frequency - ba->frequency; /* desc */
+}
+
+static uint32_t bigram_pair_hash(const char *w1, const char *w2) {
+    uint32_t h = 2166136261u;
+    for (const char *s = w1; *s; s++) {
+        h ^= (uint8_t)*s;
+        h *= 16777619u;
+    }
+    h ^= 0xff; /* separator */
+    h *= 16777619u;
+    for (const char *s = w2; *s; s++) {
+        h ^= (uint8_t)*s;
+        h *= 16777619u;
+    }
+    return h;
+}
+
+void ss_build_bigram_index(symspell_t *ss) {
+    if (!ss || ss->bigram_count == 0) return;
+
+    /* Sort flat array */
+    qsort(ss->bigrams, ss->bigram_count, sizeof(ss_bigram_t), bigram_cmp);
+
+    /* Build hash table at ~50% load */
+    uint32_t hash_cap = 1;
+    while (hash_cap < ss->bigram_count * 2) hash_cap <<= 1;
+
+    free(ss->bigram_hash);
+    ss->bigram_hash = (bigram_hash_entry_t *)calloc(hash_cap, sizeof(bigram_hash_entry_t));
+    if (!ss->bigram_hash) { ss->bigram_hash_cap = 0; return; }
+    ss->bigram_hash_cap = hash_cap;
+    ss->bigram_hash_count = 0;
+
+    for (uint32_t i = 0; i < ss->bigram_count; i++) {
+        uint32_t h = bigram_pair_hash(ss->bigrams[i].word1, ss->bigrams[i].word2) & (hash_cap - 1);
+        while (ss->bigram_hash[h].word1) h = (h + 1) & (hash_cap - 1);
+        ss->bigram_hash[h].word1 = ss->bigrams[i].word1;
+        ss->bigram_hash[h].word2 = ss->bigrams[i].word2;
+        ss->bigram_hash[h].frequency = ss->bigrams[i].frequency;
+        ss->bigram_hash_count++;
+    }
+}
+
+int ss_bigram_lookup(symspell_t *ss, const char *word1, int max_results,
+                     ss_bigram_item_t *out, int out_capacity) {
+    if (!ss || !word1 || !*word1 || !out || out_capacity <= 0 || ss->bigram_count == 0)
+        return 0;
+
+    int limit = max_results < out_capacity ? max_results : out_capacity;
+
+    /* Binary search for first entry with word1 */
+    uint32_t lo = 0, hi = ss->bigram_count;
+    while (lo < hi) {
+        uint32_t mid = lo + (hi - lo) / 2;
+        int c = strcmp(ss->bigrams[mid].word1, word1);
+        if (c < 0) lo = mid + 1;
+        else hi = mid;
+    }
+
+    /* Scan forward collecting results (already sorted by freq desc) */
+    int count = 0;
+    for (uint32_t i = lo; i < ss->bigram_count && count < limit; i++) {
+        if (strcmp(ss->bigrams[i].word1, word1) != 0) break;
+        out[count].word = ss->bigrams[i].word2;
+        out[count].original = ss->bigrams[i].original2;
+        out[count].frequency = ss->bigrams[i].frequency;
+        count++;
+    }
+    return count;
+}
+
+int ss_bigram_frequency(const symspell_t *ss, const char *word1, const char *word2) {
+    if (!ss || !word1 || !word2 || ss->bigram_hash_cap == 0) return 0;
+    uint32_t h = bigram_pair_hash(word1, word2) & (ss->bigram_hash_cap - 1);
+    while (ss->bigram_hash[h].word1) {
+        if (strcmp(ss->bigram_hash[h].word1, word1) == 0 &&
+            strcmp(ss->bigram_hash[h].word2, word2) == 0) {
+            return ss->bigram_hash[h].frequency;
+        }
+        h = (h + 1) & (ss->bigram_hash_cap - 1);
+    }
+    return 0;
+}
+
+int ss_bigram_count(const symspell_t *ss) {
+    return ss ? (int)ss->bigram_count : 0;
 }
 
 /* ---- Lookup ------------------------------------------------------------ */
@@ -741,13 +895,13 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
 /* ---- Binary save/load (mmap-friendly format) --------------------------- */
 
 #define SS_MAGIC 0x53534E44  /* "SSND" */
-#define SS_VERSION 2
+#define SS_VERSION 3
 
 /*
- * File format v2:
+ * File format v3 (backward-compatible with v2 load):
  *   [Header]
  *     u32 magic
- *     u32 version (= 2)
+ *     u32 version (= 3, accepts 2 on load)
  *     i32 max_edit_distance
  *     i32 prefix_length
  *     u32 word_count
@@ -763,6 +917,13 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
  *     char[key_len] key
  *     u32 bucket_size
  *     u32[bucket_size] word_indices
+ *   [Bigram Table] (v3 only)
+ *     u32 bigram_count
+ *     Per entry:
+ *       u16 w1_len, char[w1_len] w1
+ *       u16 w2_len, char[w2_len] w2
+ *       u16 o2_len, char[o2_len] o2 (absent if o2_len==0, meaning o2==w2)
+ *       i32 frequency
  */
 
 int ss_save(symspell_t *ss, const char *path) {
@@ -820,6 +981,28 @@ int ss_save(symspell_t *ss, const char *path) {
         fwrite(de->word_ids, 4, bsz, f);
     }
 
+    /* Write bigrams (v3) */
+    uint32_t bg_count = ss->bigram_count;
+    fwrite(&bg_count, 4, 1, f);
+    for (uint32_t i = 0; i < bg_count; i++) {
+        ss_bigram_t *bg = &ss->bigrams[i];
+        uint16_t w1len = (uint16_t)strlen(bg->word1);
+        uint16_t w2len = (uint16_t)strlen(bg->word2);
+        uint16_t o2len = 0;
+        if (bg->original2 != bg->word2 && strcmp(bg->original2, bg->word2) != 0) {
+            o2len = (uint16_t)strlen(bg->original2);
+        }
+        fwrite(&w1len, 2, 1, f);
+        fwrite(bg->word1, 1, w1len, f);
+        fwrite(&w2len, 2, 1, f);
+        fwrite(bg->word2, 1, w2len, f);
+        fwrite(&o2len, 2, 1, f);
+        if (o2len > 0) {
+            fwrite(bg->original2, 1, o2len, f);
+        }
+        fwrite(&bg->frequency, 4, 1, f);
+    }
+
     fclose(f);
     return 0;
 }
@@ -851,7 +1034,7 @@ symspell_t *ss_load_mmap(const char *path) {
     memcpy(&word_count, p, 4); p += 4;
     memcpy(&del_count, p, 4); p += 4;
 
-    if (magic != SS_MAGIC || version != SS_VERSION) {
+    if (magic != SS_MAGIC || (version != 2 && version != 3)) {
         munmap(base, file_size);
         close(fd);
         return NULL;
@@ -942,6 +1125,68 @@ symspell_t *ss_load_mmap(const char *path) {
         ss->deletes[dh].count = bsz;
         ss->deletes[dh].capacity = bsz;
         ss->deletes_count++;
+    }
+
+    /* Read bigrams (v3 only) */
+    if (version >= 3 && p + 4 <= end) {
+        uint32_t bg_count;
+        memcpy(&bg_count, p, 4); p += 4;
+
+        if (bg_count > 0) {
+            ss->bigrams = (ss_bigram_t *)malloc(bg_count * sizeof(ss_bigram_t));
+            if (!ss->bigrams) { ss_destroy(ss); return NULL; }
+            ss->bigram_cap = bg_count;
+            ss->bigram_count = 0;
+
+            for (uint32_t i = 0; i < bg_count && p < end; i++) {
+                if (p + 2 > end) break;
+                uint16_t w1len;
+                memcpy(&w1len, p, 2); p += 2;
+                if (p + w1len + 2 > end) break;
+
+                char *w1 = arena_alloc(&ss->arena, w1len + 1);
+                memcpy(w1, p, w1len);
+                w1[w1len] = '\0';
+                p += w1len;
+
+                uint16_t w2len;
+                memcpy(&w2len, p, 2); p += 2;
+                if (p + w2len + 2 > end) break;
+
+                char *w2 = arena_alloc(&ss->arena, w2len + 1);
+                memcpy(w2, p, w2len);
+                w2[w2len] = '\0';
+                p += w2len;
+
+                uint16_t o2len;
+                memcpy(&o2len, p, 2); p += 2;
+                char *o2;
+                if (o2len == 0) {
+                    o2 = w2;
+                } else {
+                    if (p + o2len > end) break;
+                    o2 = arena_alloc(&ss->arena, o2len + 1);
+                    memcpy(o2, p, o2len);
+                    o2[o2len] = '\0';
+                    p += o2len;
+                }
+
+                if (p + 4 > end) break;
+                int32_t freq;
+                memcpy(&freq, p, 4); p += 4;
+
+                /* Try to reuse dict key pointer for word1 */
+                dict_entry_t *de = dict_find(ss, w1);
+                ss->bigrams[ss->bigram_count].word1 = de ? de->key : w1;
+                ss->bigrams[ss->bigram_count].word2 = w2;
+                ss->bigrams[ss->bigram_count].original2 = o2;
+                ss->bigrams[ss->bigram_count].frequency = freq;
+                ss->bigram_count++;
+            }
+
+            /* Build bigram index (already sorted from save) */
+            ss_build_bigram_index(ss);
+        }
     }
 
     return ss;

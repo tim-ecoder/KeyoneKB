@@ -21,6 +21,12 @@ typedef struct {
     float       weighted_distance; /* keyboard-weighted distance, -1 if unused */
 } ss_suggest_item_t;
 
+typedef struct {
+    const char *word;      /* word2 normalized form */
+    const char *original;  /* word2 original (display) form */
+    int         frequency;
+} ss_bigram_item_t;
+
 typedef struct symspell symspell_t;
 
 /* Create/destroy */
@@ -52,6 +58,15 @@ symspell_t *ss_load_mmap(const char *path);
 int  ss_size(const symspell_t *ss);
 int  ss_contains(const symspell_t *ss, const char *word);
 int  ss_get_frequency(const symspell_t *ss, const char *word);
+
+/* Bigram support */
+void ss_add_bigram(symspell_t *ss, const char *word1, const char *word2,
+                   const char *original2, int frequency);
+void ss_build_bigram_index(symspell_t *ss);
+int  ss_bigram_lookup(symspell_t *ss, const char *word1, int max_results,
+                      ss_bigram_item_t *out, int out_capacity);
+int  ss_bigram_frequency(const symspell_t *ss, const char *word1, const char *word2);
+int  ss_bigram_count(const symspell_t *ss);
 
 #ifdef __cplusplus
 }

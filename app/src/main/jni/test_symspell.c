@@ -218,6 +218,116 @@ static void test_save_load(void) {
     printf("--- test_save_load done ---\n\n");
 }
 
+static void test_bigrams(void) {
+    printf("--- test_bigrams ---\n");
+    symspell_t *ss = ss_create(2, 7);
+    ASSERT_TRUE("create not null", ss != NULL);
+
+    /* Add some words first */
+    ss_add_word(ss, "the", "the", 1000);
+    ss_add_word(ss, "same", "same", 500);
+    ss_add_word(ss, "first", "first", 400);
+    ss_add_word(ss, "best", "Best", 350);
+    ss_add_word(ss, "of", "of", 900);
+    ss_add_word(ss, "a", "a", 800);
+    ss_build_index(ss);
+
+    /* Add bigrams */
+    ss_add_bigram(ss, "the", "same", "same", 220);
+    ss_add_bigram(ss, "the", "first", "first", 215);
+    ss_add_bigram(ss, "the", "best", "Best", 210);
+    ss_add_bigram(ss, "of", "the", "the", 255);
+    ss_add_bigram(ss, "of", "a", "a", 230);
+    ss_build_bigram_index(ss);
+
+    ASSERT_EQ("bigram count", 5, ss_bigram_count(ss));
+
+    /* Bigram lookup: "the" -> same(220), first(215), best(210) */
+    ss_bigram_item_t bg_results[10];
+    int n = ss_bigram_lookup(ss, "the", 10, bg_results, 10);
+    ASSERT_EQ("bigram lookup 'the' count", 3, n);
+    if (n >= 3) {
+        ASSERT_TRUE("bigram the[0] = same", strcmp(bg_results[0].word, "same") == 0);
+        ASSERT_EQ("bigram the[0] freq", 220, bg_results[0].frequency);
+        ASSERT_TRUE("bigram the[1] = first", strcmp(bg_results[1].word, "first") == 0);
+        ASSERT_TRUE("bigram the[2] = best", strcmp(bg_results[2].word, "best") == 0);
+        ASSERT_TRUE("bigram the[2] orig = Best", strcmp(bg_results[2].original, "Best") == 0);
+    }
+
+    /* Bigram lookup: "of" -> the(255), a(230) */
+    n = ss_bigram_lookup(ss, "of", 10, bg_results, 10);
+    ASSERT_EQ("bigram lookup 'of' count", 2, n);
+    if (n >= 2) {
+        ASSERT_TRUE("bigram of[0] = the", strcmp(bg_results[0].word, "the") == 0);
+        ASSERT_EQ("bigram of[0] freq", 255, bg_results[0].frequency);
+    }
+
+    /* Bigram lookup with limit */
+    n = ss_bigram_lookup(ss, "the", 2, bg_results, 10);
+    ASSERT_EQ("bigram lookup limited", 2, n);
+
+    /* Bigram lookup: unknown word -> 0 results */
+    n = ss_bigram_lookup(ss, "xyz", 10, bg_results, 10);
+    ASSERT_EQ("bigram lookup unknown", 0, n);
+
+    /* Bigram frequency (hash lookup) */
+    ASSERT_EQ("bigram freq the+same", 220, ss_bigram_frequency(ss, "the", "same"));
+    ASSERT_EQ("bigram freq of+the", 255, ss_bigram_frequency(ss, "of", "the"));
+    ASSERT_EQ("bigram freq the+xyz", 0, ss_bigram_frequency(ss, "the", "xyz"));
+    ASSERT_EQ("bigram freq xyz+the", 0, ss_bigram_frequency(ss, "xyz", "the"));
+
+    /* Save as v3, reload, verify */
+    const char *tmpfile = "/tmp/symspell_test_v3.ssnd";
+    int rc = ss_save(ss, tmpfile);
+    ASSERT_EQ("save v3 ok", 0, rc);
+    ss_destroy(ss);
+
+    ss = ss_load_mmap(tmpfile);
+    ASSERT_TRUE("load v3 not null", ss != NULL);
+    if (ss) {
+        ASSERT_EQ("loaded v3 word count", 6, ss_size(ss));
+        ASSERT_EQ("loaded v3 bigram count", 5, ss_bigram_count(ss));
+
+        /* Verify bigram lookup after reload */
+        n = ss_bigram_lookup(ss, "the", 10, bg_results, 10);
+        ASSERT_EQ("v3 reload bigram lookup 'the'", 3, n);
+        if (n >= 1) {
+            ASSERT_TRUE("v3 reload the[0] = same", strcmp(bg_results[0].word, "same") == 0);
+        }
+
+        /* Verify bigram frequency after reload */
+        ASSERT_EQ("v3 reload freq the+best", 210, ss_bigram_frequency(ss, "the", "best"));
+        ASSERT_EQ("v3 reload freq of+a", 230, ss_bigram_frequency(ss, "of", "a"));
+
+        /* Verify word lookup still works */
+        ASSERT_EQ("v3 reload word freq", 1000, ss_get_frequency(ss, "the"));
+
+        ss_destroy(ss);
+    }
+    remove(tmpfile);
+
+    /* Test v2 backward compat: a v2 file should load with 0 bigrams */
+    /* Create a v2-equivalent by saving with 0 bigrams */
+    ss = ss_create(2, 7);
+    ss_add_word(ss, "hello", "hello", 100);
+    ss_build_index(ss);
+    /* No bigrams added — bigram_count is 0, save writes 0 */
+    rc = ss_save(ss, tmpfile);
+    ASSERT_EQ("save no-bigram ok", 0, rc);
+    ss_destroy(ss);
+
+    ss = ss_load_mmap(tmpfile);
+    ASSERT_TRUE("load no-bigram not null", ss != NULL);
+    if (ss) {
+        ASSERT_EQ("no-bigram bigram count", 0, ss_bigram_count(ss));
+        ASSERT_EQ("no-bigram word count", 1, ss_size(ss));
+        ss_destroy(ss);
+    }
+    remove(tmpfile);
+
+    printf("--- test_bigrams done ---\n\n");
+}
+
 static void test_with_dict(const char *dict_path) {
     printf("--- test_with_dict: %s ---\n", dict_path);
     FILE *f = fopen(dict_path, "r");
@@ -311,6 +421,7 @@ int main(int argc, char **argv) {
     test_prefix();
     test_save_load_v2();
     test_save_load();
+    test_bigrams();
 
     if (argc > 1) {
         test_with_dict(argv[1]);
