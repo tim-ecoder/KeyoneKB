@@ -133,18 +133,21 @@ public class ActivityPredictionSettings extends Activity {
                 this, R.array.pref_dict_size_array, android.R.layout.simple_spinner_item);
         dictSizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDictSize.setAdapter(dictSizeAdapter);
-        final int dictSizeFromPref = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
+        int dictSizeInit = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
         int dictSizePos = 0;
         for (int i = 0; i < dictSizeValues.length; i++) {
-            if (dictSizeValues[i] == dictSizeFromPref) { dictSizePos = i; break; }
+            if (dictSizeValues[i] == dictSizeInit) { dictSizePos = i; break; }
         }
         spinnerDictSize.setSelection(dictSizePos);
         spinnerDictSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 int newSize = dictSizeValues[position];
-                if (newSize == dictSizeFromPref) return;
+                int currentSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
+                if (newSize == currentSize) return;
                 k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE, newSize);
+                WordDictionary.clearLoadStats();
                 WordDictionary.clearCacheFiles(getApplicationContext());
+                refreshStatus();
                 refreshCacheStatus();
                 Toast.makeText(getApplicationContext(),
                         getString(R.string.pred_dict_size_changed),
@@ -177,19 +180,21 @@ public class ActivityPredictionSettings extends Activity {
                 this, R.array.pref_trans_dict_size_array, android.R.layout.simple_spinner_item);
         transDictAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTransDictSize.setAdapter(transDictAdapter);
-        final int transDictSizeFromPref = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
+        int transDictSizeInit = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
         int transDictSizePos = 0;
         for (int i = 0; i < transDictSizeValues.length; i++) {
-            if (transDictSizeValues[i] == transDictSizeFromPref) { transDictSizePos = i; break; }
+            if (transDictSizeValues[i] == transDictSizeInit) { transDictSizePos = i; break; }
         }
         spinnerTransDictSize.setSelection(transDictSizePos);
         spinnerTransDictSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 int newSize = transDictSizeValues[position];
-                if (newSize == transDictSizeFromPref) return;
+                int currentSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
+                if (newSize == currentSize) return;
                 k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE, newSize);
                 NativeTranslationDictionary.clearTrimmedCaches(getApplicationContext());
                 refreshTranslationStatus();
+                refreshCacheStatus();
                 Toast.makeText(getApplicationContext(),
                         getString(R.string.pred_trans_dict_size_changed),
                         Toast.LENGTH_LONG).show();

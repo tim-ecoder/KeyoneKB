@@ -254,6 +254,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                     if (!translationManager.isEnabled()) return;
                     suggestionBar.post(() -> {
                         if (wordPredictor == null || translationManager == null) return;
+                        if (!translationManager.isEnabled()) return;
                         String word = wordPredictor.getCurrentWord();
                         String prevWord = wordPredictor.getPreviousWord();
                         if (word != null && !word.isEmpty()) {
@@ -542,7 +543,19 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 UpdateGestureModeVisualization();
             needUpdateGestureNotificationInsideSingleEvent = false;
             //TODO: Проверить как это работает
-            if (_lastPackageName.equals("com.ai10.k12kb")) LoadSettingsAndKeyboards(deviceFullMODEL);
+            if (_lastPackageName.equals("com.ai10.k12kb")) {
+                LoadSettingsAndKeyboards(deviceFullMODEL);
+                // Re-read prediction settings that may have changed
+                if (wordPredictor != null) {
+                    int newDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
+                    wordPredictor.setDictSize(newDictSize);
+                    reloadDictionaryForCurrentLanguage();
+                }
+                if (translationManager != null) {
+                    int newTransDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
+                    translationManager.setMaxEntries(newTransDictSize);
+                }
+            }
 
             //keyboardView.setShowFlag(preference_show_flag);
             //if (currentSoftKeyboard.getHeight() != GetSwipeKeyboardHeight())
@@ -1294,14 +1307,22 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             }
         } else {
             // Translation disabled — restore predictions
-            suggestionBar.clear();
             if (predictionBarOpenedByTranslation) {
                 predictionBarOpenedByTranslation = false;
                 predictionBarVisibleThisSession = false;
                 setCandidatesViewShown(false);
+                suggestionBar.clear();
             } else if (wordPredictor != null) {
-                // Re-trigger predictions for current word
-                updatePredictorWordAtCursor();
+                // Force engine to recompute suggestions for current word
+                // (don't use updatePredictorWordAtCursor — IC can return null)
+                wordPredictor.setCurrentWord(wordPredictor.getCurrentWord());
+                java.util.List<WordPredictor.Suggestion> latest = wordPredictor.getLatestSuggestions();
+                if (latest != null && latest.size() > predictionSlotCount) {
+                    latest = latest.subList(0, predictionSlotCount);
+                }
+                suggestionBar.update(latest, wordPredictor.getCurrentWord());
+            } else {
+                suggestionBar.clear();
             }
         }
         return true;

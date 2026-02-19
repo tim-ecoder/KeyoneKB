@@ -40,6 +40,7 @@ public class WordPredictor {
     // Static — survives across WordPredictor instances (IME restarts)
     private static PredictionEngine sharedEngine;
     private static int sharedEngineMode = -1;
+    private static int sharedEngineDictSize = -1;
     // Static thread tracking — loading threads keep running across IME restarts
     private static final List<Thread> loadingThreads = new ArrayList<>();
     private static final HashSet<String> loadingLocales = new HashSet<>();
@@ -148,10 +149,18 @@ public class WordPredictor {
             engine = sharedEngine;
         }
 
-        // Check if engine already loaded for this locale
+        // Check if engine already loaded for this locale with matching dict size
         if (engine != null && engine.isReady() && locale.equals(engine.getLoadedLocale())) {
-            if (onComplete != null) onComplete.run();
-            return;
+            if (dictSize == sharedEngineDictSize) {
+                if (onComplete != null) onComplete.run();
+                return;
+            }
+            // Dict size changed — invalidate static engine, force fresh load
+            Log.d(TAG, "Dict size changed (" + sharedEngineDictSize + " -> " + dictSize + "), reloading");
+            engine = null;
+            sharedEngine = null;
+            sharedEngineMode = -1;
+            sharedEngineDictSize = -1;
         }
 
         // Skip if this locale is already being loaded by a background thread
@@ -247,6 +256,7 @@ public class WordPredictor {
         engine = newEngine;
         sharedEngine = newEngine;
         sharedEngineMode = engineMode;
+        sharedEngineDictSize = dictSize;
 
         // Use spawnLoadThread which tracks loadingLocales
         spawnLoadThread(context, locale, newEngine, onComplete);

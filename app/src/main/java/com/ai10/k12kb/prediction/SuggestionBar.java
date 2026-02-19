@@ -189,26 +189,35 @@ public class SuggestionBar extends LinearLayout {
             slots[i].setLayoutParams(lp);
         }
 
-        // Place suggestions into their mapped slots
+        // First pass: set text, typeface, ellipsize on all slots
+        float[] textWidths = new float[numSlots];
         for (int s = 0; s < count && s < numSlots; s++) {
             String word = suggestions.get(s).word;
             int slot = suggToSlot[s];
             slots[slot].setText(word);
             slots[slot].setTextColor(COLOR_TEXT);
-            // Weight proportional to text width — balanced across all slots
-            float textWidth = slots[slot].getPaint().measureText(word);
-            LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
             if (s == 0) {
                 slots[slot].setTypeface(null, Typeface.BOLD);
                 slots[slot].setEllipsize(null);
-                // WRAP_CONTENT guarantees full word; small weight takes minimal extra space
-                lp.weight = 1;
+            } else {
+                slots[slot].setTypeface(null, Typeface.NORMAL);
+                slots[slot].setEllipsize(TextUtils.TruncateAt.START);
+            }
+            textWidths[s] = slots[slot].getPaint().measureText(word);
+        }
+
+        // Second pass: set weights
+        // Priority uses WRAP_CONTENT (text always fits) + fixed weight for
+        // modest breathing room. Non-priority gets text-proportional weight.
+        for (int s = 0; s < count && s < numSlots; s++) {
+            int slot = suggToSlot[s];
+            LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
+            if (s == 0) {
+                lp.weight = 50f;
                 lp.width = LayoutParams.WRAP_CONTENT;
             } else {
-                lp.weight = Math.max(textWidth, 30f);
+                lp.weight = Math.max(textWidths[s], 30f);
                 lp.width = 0;
-                // Non-priority words truncate from start to show unique endings
-                slots[slot].setEllipsize(TextUtils.TruncateAt.START);
             }
             slots[slot].setLayoutParams(lp);
         }
@@ -272,26 +281,35 @@ public class SuggestionBar extends LinearLayout {
             slotToSuggestion[transToSlot[s]] = s;
         }
 
-        // Place translations left-to-right
+        // First pass: set text, typeface, ellipsize
+        float[] transWidths = new float[limit];
         for (int i = 0; i < count; i++) {
             int slot = transToSlot[i];
             String word = translations.get(i);
             slots[slot].setText(word);
-            // All translations blue; bigram results bold, single-word results normal
             slots[slot].setTextColor(COLOR_TRANSLATION);
             if (i < numPhraseResults) {
                 slots[slot].setTypeface(null, Typeface.BOLD);
             } else {
                 slots[slot].setTypeface(null, Typeface.NORMAL);
             }
-            LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
-            float textWidth = slots[slot].getPaint().measureText(word);
             if (i == 0) {
                 slots[slot].setEllipsize(null);
-                lp.weight = 1;
+            } else {
+                slots[slot].setEllipsize(TextUtils.TruncateAt.END);
+            }
+            transWidths[i] = slots[slot].getPaint().measureText(word);
+        }
+
+        // Second pass: set weights
+        for (int i = 0; i < count; i++) {
+            int slot = transToSlot[i];
+            LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
+            if (i == 0) {
+                lp.weight = 50f;
                 lp.width = LayoutParams.WRAP_CONTENT;
             } else {
-                lp.weight = Math.max(textWidth, 30f);
+                lp.weight = Math.max(transWidths[i], 30f);
                 lp.width = 0;
             }
             slots[slot].setLayoutParams(lp);

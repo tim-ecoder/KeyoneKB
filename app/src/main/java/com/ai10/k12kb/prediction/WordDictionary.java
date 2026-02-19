@@ -49,6 +49,10 @@ public class WordDictionary {
         loadStatsMap.put(locale, new LoadStats(locale, source, wordCount, timeMs));
     }
 
+    public static void clearLoadStats() {
+        loadStatsMap.clear();
+    }
+
     public static void clearCacheFiles(Context context) {
         String[] dirs = {"dict_cache", "native_dict_cache"};
         for (String dirName : dirs) {
