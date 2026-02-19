@@ -118,7 +118,13 @@ public class ActivityPredictionSettings extends Activity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // Map spinner position back to engine constant: 0→1, 1→2
                 int engineConst = (position == 0) ? WordPredictor.ENGINE_NGRAM : WordPredictor.ENGINE_NATIVE_SYMSPELL;
+                int currentEngine = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
+                if (engineConst == currentEngine) return;
                 k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE, engineConst);
+                WordDictionary.clearLoadStats();
+                WordDictionary.clearCacheFiles(getApplicationContext());
+                refreshStatus();
+                refreshCacheStatus();
             }
             public void onNothingSelected(AdapterView<?> parent) {
                 int pos = (engineFromPref == WordPredictor.ENGINE_NGRAM) ? 0 : 1;
