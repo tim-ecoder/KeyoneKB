@@ -30,6 +30,8 @@ import android.widget.Toast;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.ai10.k12kb.input.CallStateCallback;
 import com.ai10.k12kb.prediction.SuggestionBar;
+import com.ai10.k12kb.prediction.TranslationManager;
+import com.ai10.k12kb.prediction.WordDictionary;
 import com.ai10.k12kb.prediction.WordPredictor;
 
 import java.io.PrintWriter;
@@ -96,7 +98,12 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     private String deviceFullMODEL;
 
     private SuggestionBar suggestionBar;
+    private TranslationManager translationManager;
     private int predictionSlotCount = 4;
+    private int translationSlotCount = 4;
+    private boolean predictionBarHiddenByDefault = false;
+    private boolean predictionBarVisibleThisSession = false;
+    private boolean predictionBarOpenedByTranslation = false;
 
     private boolean isNotStarted = true;
 
@@ -197,6 +204,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 // so if they were loaded before, they're reused instantly (no new threads)
                 wordPredictor = new WordPredictor();
                 int engineMode = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_19_PREDICTION_ENGINE);
+                int dictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
+                wordPredictor.setDictSize(dictSize);
+                wordPredictor.setNextWordEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_26_NEXT_WORD_PREDICTION));
+                wordPredictor.setKeyboardAwareEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_27_KEYBOARD_AWARE));
                 wordPredictor.setEngineMode(engineMode);
                 wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
                     public void run() {
@@ -208,19 +219,20 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 if (predictionHeight < 10) predictionHeight = 36;
                 predictionSlotCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT);
                 if (predictionSlotCount < 1) predictionSlotCount = 4;
-                suggestionBar = new SuggestionBar(this, predictionHeight, predictionSlotCount);
+                translationSlotCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_22_TRANSLATION_COUNT);
+                if (translationSlotCount < 1) translationSlotCount = 4;
+                int barSlots = Math.max(predictionSlotCount, translationSlotCount);
+                suggestionBar = new SuggestionBar(this, predictionHeight, barSlots);
                 wordPredictor.setSuggestLimit(predictionSlotCount);
                 wordPredictor.setListener(new WordPredictor.SuggestionListener() {
                     public void onSuggestionsUpdated(final java.util.List<WordPredictor.Suggestion> suggestions) {
                         if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-                            suggestionBar.update(suggestions, wordPredictor.getCurrentWord());
-                            setCandidatesViewShown(true);
+                            updateSuggestionBarWithTranslation(suggestions);
                         } else {
                             final String pfx = wordPredictor.getCurrentWord();
                             suggestionBar.post(new Runnable() {
                                 public void run() {
-                                    suggestionBar.update(suggestions, pfx);
-                                    setCandidatesViewShown(true);
+                                    updateSuggestionBarWithTranslation(suggestions);
                                 }
                             });
                         }
@@ -228,9 +240,39 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 });
                 suggestionBar.setOnSuggestionClickListener(new SuggestionBar.OnSuggestionClickListener() {
                     public void onSuggestionClicked(int index, String word) {
-                        acceptSuggestion(index);
+                        if (suggestionBar.isShowingTranslations()) {
+                            acceptTranslation(word, suggestionBar.isPhraseResult(index));
+                        } else {
+                            acceptSuggestion(index);
+                        }
                     }
                 });
+                // Initialize translation manager
+                translationManager = new TranslationManager(getApplicationContext());
+                int transDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
+                translationManager.setMaxEntries(transDictSize);
+                translationManager.setOnDictionaryLoadedListener(() -> {
+                    if (suggestionBar == null || wordPredictor == null || translationManager == null) return;
+                    if (!translationManager.isEnabled()) return;
+                    suggestionBar.post(() -> {
+                        if (wordPredictor == null || translationManager == null) return;
+                        if (!translationManager.isEnabled()) return;
+                        String word = wordPredictor.getCurrentWord();
+                        String prevWord = wordPredictor.getPreviousWord();
+                        if (word != null && !word.isEmpty()) {
+                            java.util.List<String> translations = translationManager.translate(word, prevWord);
+                            if (!translations.isEmpty()) {
+                                boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
+                                int phraseCount = translationManager.getLastPhraseResultCount();
+                                if (translations.size() > translationSlotCount)
+                                    translations = translations.subList(0, translationSlotCount);
+                                suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseCount);
+                                setCandidatesViewShown(true);
+                            }
+                        }
+                    });
+                });
+                predictionBarHiddenByDefault = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN);
             }
 
             STEP = "keyboardNavigation";
@@ -399,10 +441,16 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         super.onStartInputView(info, restarting);
         mVoiceRecognitionTrigger.onStartInputView();
         IsVisualKeyboardOpen = true;
-        if (wordPredictor != null) {
+        /*
+        if (wordPredictor != null && !predictionBarHiddenByDefault) {
             setCandidatesViewShown(true);
             updatePredictorWordAtCursor();
+        } else {
+            setCandidatesViewShown(false);
         }
+         */
+
+
     }
 
     @Override
@@ -426,12 +474,15 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         super.onStartInput(editorInfo, restarting);
         if(restarting)
             return;
+        // Reset session-level prediction bar visibility on new input
+        predictionBarVisibleThisSession = false;
         isPackageChangedInsideSingleEvent = false;
         // Обрабатываем переход между приложениями
         if (!editorInfo.packageName.equals(_lastPackageName)) {
 
             //TODO: Перенести в keyboard_mechanics с использованием PackageHistory
-            SetGestureDefaultPointerMode(_lastPackageName, _modeGestureAtViewMode);
+            // Не надо сохранять это каждый раз
+            //SetGestureDefaultPointerMode(_lastPackageName, _modeGestureAtViewMode);
 
             //PackageHistory.add(_lastPackageName);
             _lastPackageName = editorInfo.packageName;
@@ -455,14 +506,13 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 && wordPredictor != null
                 && getCurrentInputConnection() != null
                 && IsInputMode()) {
-            // Show IME window for prediction bar even without swype-pad
-            keyboardView.setVisibility(View.GONE);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                this.requestShowSelf(InputMethodManager.SHOW_IMPLICIT);
-            } else {
-                this.showWindow(false);
-            }
+        }
+
+        if (wordPredictor != null && !predictionBarHiddenByDefault) {
             setCandidatesViewShown(true);
+            updatePredictorWordAtCursor();
+        } else {
+            setCandidatesViewShown(false);
         }
 
         OnStartInput.Process(null, null);
@@ -495,16 +545,36 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 UpdateGestureModeVisualization();
             needUpdateGestureNotificationInsideSingleEvent = false;
             //TODO: Проверить как это работает
-            if (_lastPackageName.equals("com.ai10.k12kb")) LoadSettingsAndKeyboards(deviceFullMODEL);
+            if (_lastPackageName.equals("com.ai10.k12kb")) {
+                LoadSettingsAndKeyboards(deviceFullMODEL);
+                // Re-read prediction settings that may have changed
+                if (wordPredictor != null) {
+                    int newDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE);
+                    wordPredictor.setDictSize(newDictSize);
+                    wordPredictor.setNextWordEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_26_NEXT_WORD_PREDICTION));
+                    wordPredictor.setKeyboardAwareEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_27_KEYBOARD_AWARE));
+                    reloadDictionaryForCurrentLanguage();
+                }
+                if (translationManager != null) {
+                    int newTransDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
+                    translationManager.setMaxEntries(newTransDictSize);
+                }
+            }
 
             //keyboardView.setShowFlag(preference_show_flag);
             //if (currentSoftKeyboard.getHeight() != GetSwipeKeyboardHeight())
                 //currentSoftKeyboard = new Keyboard(this, R.xml.space_empty, GetSwipeKeyboardHeight());
             //    currentSoftKeyboard = new Keyboard(this, R.xml.space_empty);
 
+            if (translationManager != null && translationManager.isEnabled()) {
+                translationManager.setEnabled(false);
+            }
+            predictionBarOpenedByTranslation = false;
+
             if (suggestionBar != null) {
-                suggestionBar.clear();
-                setCandidatesViewShown(false);
+                //This makes VKBD Hiding Slower
+                //suggestionBar.clear();
+                //setCandidatesViewShown(false);
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -794,7 +864,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             int start = end;
             while (start > 0) {
                 char c = before.charAt(start - 1);
-                if (Character.isLetterOrDigit(c) || c == '\'') {
+                if (WordDictionary.isWordChar(c)) {
                     start--;
                 } else {
                     break;
@@ -805,14 +875,13 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             // Extract previous word (word before the current word)
             int prevEnd = start;
             // Skip whitespace/punctuation between words
-            while (prevEnd > 0 && !Character.isLetterOrDigit(before.charAt(prevEnd - 1))
-                    && before.charAt(prevEnd - 1) != '\'') {
+            while (prevEnd > 0 && !WordDictionary.isWordChar(before.charAt(prevEnd - 1))) {
                 prevEnd--;
             }
             int prevStart = prevEnd;
             while (prevStart > 0) {
                 char c = before.charAt(prevStart - 1);
-                if (Character.isLetterOrDigit(c) || c == '\'') {
+                if (WordDictionary.isWordChar(c)) {
                     prevStart--;
                 } else {
                     break;
@@ -1094,6 +1163,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             mainToast.show();
         }
         reloadDictionaryForCurrentLanguage();
+        updateTranslationLanguages();
     }
 
     @Override
@@ -1107,6 +1177,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             mainToast.show();
         }
         reloadDictionaryForCurrentLanguage();
+        updateTranslationLanguages();
     }
 
     private void reloadDictionaryForCurrentLanguage() {
@@ -1143,6 +1214,175 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         }
         ic.commitText(replacement + " ", 1);
         suggestionBar.clear();
+    }
+
+    private void updateSuggestionBarWithTranslation(java.util.List<WordPredictor.Suggestion> suggestions) {
+        if(predictionBarHiddenByDefault && !predictionBarVisibleThisSession)
+            return;
+        if (translationManager != null && translationManager.isEnabled()) {
+            String word = wordPredictor.getCurrentWord();
+            String prevWord = wordPredictor.getPreviousWord();
+            java.util.List<String> translations = null;
+            if (word != null && !word.isEmpty()) {
+                translations = translationManager.translate(word, prevWord);
+            }
+            if (translations != null && !translations.isEmpty()) {
+                boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
+                int phraseResultCount = translationManager.getLastPhraseResultCount();
+                // Limit to translationSlotCount
+                if (translations.size() > translationSlotCount) {
+                    translations = translations.subList(0, translationSlotCount);
+                }
+                suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseResultCount);
+                setCandidatesViewShown(true);
+                return;
+            }
+        }
+        // Fall back to normal predictions (limited to predictionSlotCount)
+        if (suggestions != null && suggestions.size() > predictionSlotCount) {
+            suggestions = suggestions.subList(0, predictionSlotCount);
+        }
+        suggestionBar.update(suggestions, wordPredictor.getCurrentWord());
+        if (suggestions != null && !suggestions.isEmpty()) {
+            setCandidatesViewShown(true);
+        } else {
+            //Do not close suggestion bar, either it jumps
+            //setCandidatesViewShown(false);
+        }
+    }
+
+    private void acceptTranslation(String translatedWord, boolean isPhraseResult) {
+        if (translatedWord == null || translatedWord.isEmpty()) return;
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+        // Replace the current word (and previous word if bigram phrase match) with the translation
+        if (wordPredictor != null) {
+            String currentWord = wordPredictor.getCurrentWord();
+            String previousWord = wordPredictor.getPreviousWord();
+            if (isPhraseResult && previousWord != null && !previousWord.isEmpty()) {
+                // Bigram match: delete current word + space + previous word
+                int deleteLen = (currentWord != null ? currentWord.length() : 0)
+                        + 1 // space between words
+                        + previousWord.length();
+                ic.deleteSurroundingText(deleteLen, 0);
+            } else if (currentWord != null && !currentWord.isEmpty()) {
+                // Single word: delete only current word
+                ic.deleteSurroundingText(currentWord.length(), 0);
+            }
+            wordPredictor.reset();
+        }
+        ic.commitText(translatedWord + " ", 1);
+        suggestionBar.clear();
+    }
+
+    public boolean ActionToggleTranslationMode(KeyPressData keyPressData) {
+        if (translationManager == null || suggestionBar == null) return false;
+        // Update languages BEFORE toggle so dictionary loads correct direction
+        updateTranslationLanguages();
+        boolean enabled = translationManager.toggle();
+        String msg = enabled ?
+                "\uD83C\uDF10 Translation " + translationManager.getSourceLang().toUpperCase() + " \u2192 " + translationManager.getTargetLang().toUpperCase() :
+                "\uD83C\uDF10 Translation OFF";
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+        if (enabled) {
+            // Show prediction bar if hidden (translation needs visible bar)
+            if (predictionBarHiddenByDefault && !predictionBarVisibleThisSession) {
+                predictionBarVisibleThisSession = true;
+                predictionBarOpenedByTranslation = true;
+                setCandidatesViewShown(true);
+            }
+            // Translate current word immediately
+            if (wordPredictor != null) {
+                updatePredictorWordAtCursor();
+                String word = wordPredictor.getCurrentWord();
+                String prevWord = wordPredictor.getPreviousWord();
+                if (word != null && !word.isEmpty()) {
+                    java.util.List<String> translations = translationManager.translate(word, prevWord);
+                    if (!translations.isEmpty()) {
+                        boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
+                        int phraseCount = translationManager.getLastPhraseResultCount();
+                        if (translations.size() > translationSlotCount) {
+                            translations = translations.subList(0, translationSlotCount);
+                        }
+                        suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseCount);
+                        setCandidatesViewShown(true);
+                    }
+                }
+            }
+        } else {
+            // Translation disabled — restore predictions
+            if (predictionBarOpenedByTranslation) {
+                predictionBarOpenedByTranslation = false;
+                predictionBarVisibleThisSession = false;
+                setCandidatesViewShown(false);
+                suggestionBar.clear();
+            } else if (wordPredictor != null) {
+                // Force engine to recompute suggestions for current word
+                // (don't use updatePredictorWordAtCursor — IC can return null)
+                wordPredictor.setCurrentWord(wordPredictor.getCurrentWord());
+                java.util.List<WordPredictor.Suggestion> latest = wordPredictor.getLatestSuggestions();
+                if (latest != null && latest.size() > predictionSlotCount) {
+                    latest = latest.subList(0, predictionSlotCount);
+                }
+                suggestionBar.update(latest, wordPredictor.getCurrentWord());
+            } else {
+                suggestionBar.clear();
+            }
+        }
+        return true;
+    }
+
+    public boolean ActionTogglePredictionBar(KeyPressData keyPressData) {
+        if (suggestionBar == null || wordPredictor == null) return false;
+
+        if (!predictionBarHiddenByDefault) return false;
+
+        if(!predictionBarVisibleThisSession) {
+            predictionBarVisibleThisSession = true;
+            setCandidatesViewShown(true);
+            Toast.makeText(getApplicationContext(), "\uD83D\uDD2E Predictions ON", Toast.LENGTH_SHORT).show();
+            // Read word at cursor and force prediction update
+            InputConnection ic = getCurrentInputConnection();
+            if (ic != null) {
+                CharSequence before = ic.getTextBeforeCursor(96, 0);
+                if (before != null && before.length() > 0) {
+                    int end = before.length();
+                    int start = end;
+                    while (start > 0 && WordDictionary.isWordChar(before.charAt(start - 1))) start--;
+                    String word = (start < end) ? before.subSequence(start, end).toString() : "";
+                    wordPredictor.setCurrentWord(word);
+                }
+            }
+            suggestionBar.update(wordPredictor.getLatestSuggestions(), wordPredictor.getCurrentWord());
+        } else {
+            predictionBarVisibleThisSession = false;
+            setCandidatesViewShown(false);
+            Toast.makeText(getApplicationContext(), "\uD83D\uDD2E Predictions OFF", Toast.LENGTH_SHORT).show();
+        }
+        return true;
+    }
+
+    private void updateTranslationLanguages() {
+        if (translationManager == null || keyboardLayoutManager == null) return;
+        try {
+            String currentLang = layoutToLangCode(keyboardLayoutManager.GetCurrentKeyboardLayout());
+            String nextLang = layoutToLangCode(keyboardLayoutManager.GetNextKeyboardLayout());
+            translationManager.updateLanguages(currentLang, nextLang);
+        } catch (Throwable ex) {
+            Log.w(TAG2, "updateTranslationLanguages error: " + ex);
+        }
+    }
+
+    private String layoutToLangCode(KeyboardLayout kl) {
+        if (kl == null) return "en";
+        String name = kl.KeyboardName;
+        if (name == null) return "en";
+        String lower = name.toLowerCase(java.util.Locale.ROOT);
+        if (lower.contains("русск") || lower.contains("russian")) return "ru";
+        if (lower.contains("deutsch") || lower.contains("german")) return "de";
+        if (lower.contains("français") || lower.contains("french")) return "fr";
+        if (lower.contains("español") || lower.contains("spanish")) return "es";
+        return "en";
     }
 
     protected void UpdateKeyboardVisibilityOnPrefChange() {
@@ -1216,7 +1456,9 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 if (keyboardView.getVisibility() == View.VISIBLE) {
                     keyboardView.setVisibility(View.GONE);
                 }
-                setCandidatesViewShown(true);
+                if (!predictionBarHiddenByDefault || predictionBarVisibleThisSession) {
+                    setCandidatesViewShown(true);
+                }
             } else {
                 HideKeyboard();
             }

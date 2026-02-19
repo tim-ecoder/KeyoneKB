@@ -47,30 +47,7 @@
         <!-- INPUT -->
         <TextView
             style="@style/SectionHeader"
-            android:text="INPUT" />
-
-        <!-- Sensitivity seekbar pill -->
-        <LinearLayout style="@style/ItemPillSeek">
-            <TextView
-                style="@style/ItemPillSeekTitle"
-                android:text="@string/pref_p_1_name" />
-            <SeekBar
-                android:id="@+id/seekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="10"
-                android:progress="10"
-                android:progressTint="@color/colorPrimary"
-                android:thumbTint="@color/colorPrimary" />
-            <TextView
-                android:id="@+id/textViewSeekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_p_1_value"
-                android:textAlignment="center"
-                android:textColor="?attr/textSecondaryColor"
-                android:textSize="12sp" />
-        </LinearLayout>
+            android:text="@string/settingsBlockMain" />
 
         <!-- Toast language switch pill -->
         <Switch
@@ -85,13 +62,6 @@
             android:text="@string/pref_p_3_name"
             tools:checked="true" />
 
-        <!-- Flag display switch pill -->
-        <Switch
-            android:id="@+id/switch_flag"
-            style="@style/SwitchPill"
-            android:text="@string/pref_p_4_name"
-            tools:checked="false" />
-
         <!-- Long press ALT switch pill -->
         <Switch
             android:id="@+id/switch_long_press_alt"
@@ -99,17 +69,17 @@
             android:text="@string/pref_p_5_name"
             tools:checked="true" />
 
-        <!-- PHONE & SYSTEM -->
-        <TextView
-            style="@style/SectionHeader"
-            android:text="PHONE &amp; SYSTEM" />
-
         <!-- Phone Call Management switch pill -->
         <Switch
-            android:id="@+id/switch_manage_call"
-            style="@style/SwitchPill"
-            android:text="@string/pref_p_6_name"
-            tools:checked="true" />
+                android:id="@+id/switch_manage_call"
+                style="@style/SwitchPill"
+                android:text="@string/pref_p_6_name"
+                tools:checked="true" />
+
+        <!-- EXTRA -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/settingsBlockExtra" />
 
         <!-- Notification icon switch pill -->
         <Switch
@@ -135,7 +105,7 @@
         <!-- ON-SCREEN PANEL -->
         <TextView
             style="@style/SectionHeader"
-            android:text="ON-SCREEN PANEL" />
+            android:text="@string/settingsBlockOnScreenPanels" />
 
         <!-- Panel button size seekbar pill -->
         <LinearLayout style="@style/ItemPillSeek">
@@ -167,6 +137,13 @@
             android:text="@string/pref_p_8_name"
             tools:checked="true" />
 
+        <!-- Flag display switch pill -->
+        <Switch
+                android:id="@+id/switch_flag"
+                style="@style/SwitchPill"
+                android:text="@string/pref_p_4_name"
+                tools:checked="false" />
+
         <!-- Nav pad on hold switch pill -->
         <Switch
             android:id="@+id/switch_p14_nav_pad_on_hold"
@@ -177,7 +154,30 @@
         <!-- GESTURES -->
         <TextView
             style="@style/SectionHeader"
-            android:text="GESTURES" />
+            android:text="@string/settingsBlockGestures" />
+
+        <!-- Sensitivity seekbar pill -->
+        <LinearLayout style="@style/ItemPillSeek">
+            <TextView
+                    style="@style/ItemPillSeekTitle"
+                    android:text="@string/pref_p_1_name" />
+            <SeekBar
+                    android:id="@+id/seekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="10"
+                    android:progress="10"
+                    android:progressTint="@color/colorPrimary"
+                    android:thumbTint="@color/colorPrimary" />
+            <TextView
+                    android:id="@+id/textViewSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pref_p_1_value"
+                    android:textAlignment="center"
+                    android:textColor="?attr/textSecondaryColor"
+                    android:textSize="12sp" />
+        </LinearLayout>
 
         <!-- Gesture mode spinner pill -->
         <LinearLayout style="@style/ItemPillSpinner">
@@ -191,8 +191,9 @@
                 android:text="@string/pref_p9_gesture_modes_title" />
             <Spinner
                 android:id="@+id/static_spinner_p9"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end" />
         </LinearLayout>
 
         <!-- Pointer mode rectangle switch pill -->
@@ -201,6 +202,22 @@
             style="@style/SwitchPill"
             android:text="@string/pref_p_13_name"
             tools:checked="true" />
+
+        <!-- Pointer rectangle color picker pill -->
+        <LinearLayout style="@style/ItemPill">
+            <TextView
+                    android:id="@+id/button_pointer_mode_rect_color_picker"
+                    style="@style/ItemPillText"
+                    android:gravity="start|center_vertical"
+                    android:text="@string/pref_p_13a_name"
+                    android:textColor="?attr/textPrimaryColor" />
+            <View
+                    android:id="@+id/color_swatch_p13a"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/bg_badge_circle" />
+        </LinearLayout>
 
         <!-- APPEARANCE -->
         <TextView
@@ -213,18 +230,6 @@
             android:text="@string/pref_light_theme"
             tools:checked="false" />
 
-        <!-- Pointer rectangle color picker pill -->
-        <LinearLayout style="@style/ItemPill">
-            <Button
-                android:id="@+id/button_pointer_mode_rect_color_picker"
-                style="@style/ItemPillText"
-                android:background="@android:color/transparent"
-                android:gravity="start|center_vertical"
-                android:text="@string/pref_p_13a_name"
-                android:textColor="?attr/textPrimaryColor"
-                android:textAllCaps="false" />
-            <TextView style="@style/Chevron" android:text="\u203A" />
-        </LinearLayout>
 
         <!-- BACKUP -->
         <TextView

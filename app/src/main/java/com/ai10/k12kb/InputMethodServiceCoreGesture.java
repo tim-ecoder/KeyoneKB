@@ -11,6 +11,8 @@ import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 
+import java.util.Objects;
+
 public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCoreKeyPress {
     private int MAGIC_KEYBOARD_GESTURE_MOTION_CONST;
     private int MAGIC_KEYBOARD_GESTURE_ONE_FINGER_XY_CONST ;
@@ -652,8 +654,11 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         if(_lastPackageName == null || _lastPackageName.equals(""))
             return GESTURE_MODE_AT_VIEW_MODE_DEFAULT;
         String prefName = GESTURE_AT_VIEW_MODE_PREFIX +_lastPackageName;
-        k12KbSettings.CheckSettingOrSetDefault(prefName, GESTURE_MODE_AT_VIEW_MODE_DEFAULT.name());
-        return GestureAtViewMode.valueOf(k12KbSettings.GetStringValue(prefName));
+
+        String pointerModeFromSettings = k12KbSettings.GetStringValue(prefName);
+        if(Objects.equals(pointerModeFromSettings, ""))
+            return GESTURE_MODE_AT_VIEW_MODE_DEFAULT;
+        return GestureAtViewMode.valueOf(pointerModeFromSettings);
     }
 
     protected void SetGestureDefaultPointerMode(String packageName, GestureAtViewMode value) {
@@ -700,13 +705,18 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
             _modeGestureAtViewMode = GestureAtViewMode.Disabled;
             return true;
         }
-        if(_modeGestureAtViewMode != GestureAtViewMode.Disabled)
+        if(_modeGestureAtViewMode != GestureAtViewMode.Disabled) {
             _modeGestureAtViewMode = GestureAtViewMode.Disabled;
-        else {
-            ResetGestureModeAtViewModeToDefaultAfterEnable();
-            _modeGestureAtViewMode = GetGestureStoredOrDefaultPointerMode();
+            SetGestureDefaultPointerMode(_lastPackageName, _modeGestureAtViewMode);
         }
-
+        else {
+            //FOR PREF OPTION Off->Swype, Off->Pointer
+            if(GESTURE_MODE_AT_VIEW_MODE_DEFAULT == GestureAtViewMode.Disabled)
+                _modeGestureAtViewMode = GetGestureModeAtViewModeToDefaultAfterEnable();
+            else
+                _modeGestureAtViewMode = GESTURE_MODE_AT_VIEW_MODE_DEFAULT;
+        }
+        Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ _modeGestureAtViewMode);
         return true;
     }
 
@@ -727,15 +737,16 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
         else if(_modeGestureAtViewMode == GestureAtViewMode.Scroll)
             _modeGestureAtViewMode = GestureAtViewMode.Pointer;
         Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ _modeGestureAtViewMode);
+        SetGestureDefaultPointerMode(_lastPackageName, _modeGestureAtViewMode);
         ResetGestureMovementCoordsToInitial();
         return true;
     }
 
-    private void ResetGestureModeAtViewModeToDefaultAfterEnable() {
+    private GestureAtViewMode GetGestureModeAtViewModeToDefaultAfterEnable() {
         if(_modeGestureAtViewModePointerAfterEnable)
-            SetGestureDefaultPointerMode(_lastPackageName, GestureAtViewMode.Pointer);
+            return GestureAtViewMode.Pointer;
         else
-            SetGestureDefaultPointerMode(_lastPackageName, GestureAtViewMode.Scroll);
+            return GestureAtViewMode.Scroll;
     }
 
     public boolean ActionResetGesturePointerMode() {

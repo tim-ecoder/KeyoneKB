@@ -324,21 +324,22 @@ with open(filepath, 'w') as f:
     f.write(content)
 PYEOF
 
-# Patch Notification.Builder(context, channelId) -> API 26, wrap in reflection
+# Patch Notification.Builder(context, channelId) -> use reflection for 2-arg constructor (API 26+)
+# The 2-arg constructor is API 26+ and not in API 23 android.jar,
+# so we use reflection to call it, preserving the channel ID for proper notification display.
 python3 - "$SRC_PATCHED/com/ai10/k12kb/NotificationProcessor.java" << 'PYEOF'
 import sys
 filepath = sys.argv[1]
 with open(filepath, 'r') as f:
     content = f.read()
-# Replace Notification.Builder(context, channelId) with one-arg constructor
-# The 2-arg constructor is API 26+; the 1-arg is API 11+
+# Replace 2-arg Notification.Builder with reflection that passes channelId
 content = content.replace(
-    'new Notification.Builder(context, layoutModeChannelId1)',
-    'new Notification.Builder(context)'
+    'builder2Layout = new Notification.Builder(context, layoutModeChannelId1);',
+    'try { builder2Layout = (Notification.Builder) Notification.Builder.class.getConstructor(Context.class, String.class).newInstance(context, layoutModeChannelId1); } catch (Exception _nb) { builder2Layout = new Notification.Builder(context); }'
 )
 content = content.replace(
-    'new Notification.Builder(context, gestureModeChannelId1)',
-    'new Notification.Builder(context)'
+    'builder2Gesture = new Notification.Builder(context, gestureModeChannelId1);',
+    'try { builder2Gesture = (Notification.Builder) Notification.Builder.class.getConstructor(Context.class, String.class).newInstance(context, gestureModeChannelId1); } catch (Exception _nb) { builder2Gesture = new Notification.Builder(context); }'
 )
 with open(filepath, 'w') as f:
     f.write(content)
@@ -470,6 +471,49 @@ done
 $DX --dex --min-sdk-version=26 --output="$BUILD/classes.dex" "$BUILD/classes" "$LIBS"/*.jar 2>&1
 
 echo ""
+echo "=== Step 7b: Compile native code ==="
+JNI_DIR="$APP/src/main/jni"
+JNILIBS_OUT="$APP/src/main/jniLibs/arm64-v8a"
+mkdir -p "$JNILIBS_OUT"
+CC_ARM64="${CC_ARM64:-aarch64-linux-gnu-gcc}"
+JNI_INCLUDE="$JAVA_HOME/include"
+JNI_INCLUDE_LINUX="$JAVA_HOME/include/linux"
+ANDROID_LOG_INCLUDE="/usr/include/android"
+
+# Create Android-compatible stub libraries (bionic libc.so, not glibc libc.so.6)
+STUBS="$BUILD/android_stubs"
+if [ ! -d "$STUBS" ]; then
+    mkdir -p "$STUBS"
+    echo "void __stub(void){}" | $CC_ARM64 -shared -Wl,-soname,libc.so -nostdlib -o "$STUBS/libc.so" -x c -
+    echo "void __stub(void){}" | $CC_ARM64 -shared -Wl,-soname,libdl.so -nostdlib -o "$STUBS/libdl.so" -x c -
+    echo "void __stub(void){}" | $CC_ARM64 -shared -Wl,-soname,libm.so -nostdlib -o "$STUBS/libm.so" -x c -
+    echo "int __android_log_print(int p,const char*t,const char*f,...){return 0;}" | \
+        $CC_ARM64 -shared -Wl,-soname,liblog.so -nostdlib -o "$STUBS/liblog.so" -x c -
+fi
+
+# Compile object files
+for src in symspell.c keyboard_distance.c cdb.c jni_bridge.c translation_jni.c; do
+    $CC_ARM64 -c -O2 -std=c99 -fPIC \
+        -I"$JNI_DIR" \
+        -I"$JNI_INCLUDE" \
+        -I"$JNI_INCLUDE_LINUX" \
+        -I"$ANDROID_LOG_INCLUDE" \
+        "$JNI_DIR/$src" -o "$BUILD/${src%.c}.o" 2>&1
+done
+
+# Link with Android-compatible stubs (produces .so depending on libc.so, not libc.so.6)
+# -Wl,--export-dynamic ensures JNI symbols are in the dynamic table
+$CC_ARM64 -shared -nodefaultlibs -Wl,--export-dynamic \
+    "$BUILD"/symspell.o \
+    "$BUILD"/keyboard_distance.o \
+    "$BUILD"/cdb.o \
+    "$BUILD"/jni_bridge.o \
+    "$BUILD"/translation_jni.o \
+    -L"$STUBS" -lc -llog -lgcc \
+    -o "$JNILIBS_OUT/libnativesymspell.so" 2>&1
+echo "  Built libnativesymspell.so ($(stat -c%s "$JNILIBS_OUT/libnativesymspell.so") bytes)"
+
+echo ""
 echo "=== Step 8: Package APK ==="
 $AAPT package -f \
     -M "$MANIFEST_PATCHED" \
@@ -481,10 +525,29 @@ $AAPT package -f \
     --target-sdk-version 27 \
     --version-code "$VERSION_CODE" \
     --version-name "$VERSION_NAME" \
+    -0 .cdb \
     -F "$BUILD/app-unsigned.apk" 2>&1
 
 # Add DEX file
 (cd "$BUILD" && zip -q -u app-unsigned.apk classes.dex)
+
+# Add native libraries (prebuilt in jniLibs)
+JNILIBS="$APP/src/main/jniLibs"
+if [ -d "$JNILIBS" ]; then
+    echo "  Adding native libraries..."
+    for ABI_DIR in "$JNILIBS"/*/; do
+        ABI=$(basename "$ABI_DIR")
+        for SO in "$ABI_DIR"*.so; do
+            if [ -f "$SO" ]; then
+                SONAME=$(basename "$SO")
+                mkdir -p "$BUILD/lib/$ABI"
+                cp "$SO" "$BUILD/lib/$ABI/$SONAME"
+                echo "    lib/$ABI/$SONAME ($(stat -c%s "$SO") bytes)"
+            fi
+        done
+    done
+    (cd "$BUILD" && zip -q -r -u app-unsigned.apk lib/)
+fi
 
 echo ""
 echo "=== Step 9: Sign ==="

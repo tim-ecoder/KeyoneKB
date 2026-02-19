@@ -13,10 +13,10 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile rootProject.file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            storeFile file('d:\\Programming\\keystores\\keystore2.jks')
+            storePassword 'qwerty'
+            keyAlias 'key0'
+            keyPassword 'qwerty'
         }
     }
 
@@ -26,6 +26,10 @@ android {
 
     compileSdkVersion 28
 
+    aaptOptions {
+        noCompress '.cdb'
+    }
+
     defaultConfig {
         applicationId "com.ai10.k12kb"
         minSdkVersion 26
@@ -34,8 +38,8 @@ android {
         //TODO: ---- Меняем versionCode, versionName каждый публичный выкат даже для тестеров ----
         // В номере билда build X.Y X<10 Y<10
         // иначе versionCode станет пятизначным, возврат потом к 4 знакам потребует сносить приложение т.к. ОС не дает откатывать
-        versionCode 2746
-        versionName "v2.8b07s"
+        versionCode 3007
+        versionName "v3.0b13a"
         //TODO: ----------------------------
 
         /**
@@ -101,7 +105,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
     //implementation 'com.pes.materialcolorpicker:library:1.2.5'
     implementation 'com.faendir.rhino:rhino-android:1.6.0'
-    implementation "com.github.yukuku:ambilwarna:2.0.1"
+    //implementation "com.github.yukuku:ambilwarna:2.0.1" // source included in project
     //implementation "com.github.skydoves:colorpickerview:2.3.0"
 
 }

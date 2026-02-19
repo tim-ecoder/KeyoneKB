@@ -54,8 +54,8 @@ public class ActivityMain extends Activity {
         FileJsonUtils.Initialize(this);
         super.onCreate(savedInstanceState);
         k12KbSettings = K12KbSettings.Get(getSharedPreferences(K12KbSettings.APP_PREFERENCES, Context.MODE_PRIVATE));
-        if (k12KbSettings.isLightTheme()) {
-            setTheme(R.style.AppTheme_Light);
+        if (k12KbSettings.isDarkTheme()) {
+            setTheme(R.style.AppTheme_Dark);
         }
 
         _this_act = this;
@@ -73,7 +73,7 @@ public class ActivityMain extends Activity {
         btn_keyboard_reload = (Button) findViewById(R.id.btn_keyboard_reload);
         Button btn_accessibility_reload = (Button) findViewById(R.id.btn_accessibility_reload);
 
-        String text = String.format("\nDevice: %s\nApp: %s\nVersion: %s\nBuild type: %s", getDeviceFullMODEL(), APPLICATION_ID, VERSION_NAME, BUILD_TYPE);
+        String text = String.format("App: %s\nVersion: %s\nBuild type: %s\nDevice: %s", APPLICATION_ID, VERSION_NAME, BUILD_TYPE, getDeviceFullMODEL());
         tv_version.setText(text);
 
         btn_settings.setOnClickListener(new View.OnClickListener() {
@@ -242,19 +242,19 @@ public class ActivityMain extends Activity {
         final LinearLayout rootLayout = (LinearLayout) scrollView.getChildAt(0);
 
         int grantedCount_ = 0;
+        int visiblePermCount = 0;
         for (int id : pillIds) {
             LinearLayout pill = (LinearLayout) findViewById(id);
             if (pill == null) continue;
-            // Check if the button inside is disabled (= granted/configured)
             Button btn = findButtonInPill(pill);
             if (btn != null && !btn.isEnabled()) {
-                // Store original index for restoring later
                 pill.setTag(R.id.pill_original_index, Integer.valueOf(rootLayout.indexOfChild(pill)));
                 rootLayout.removeView(pill);
-                // Dim the pill slightly for the granted group
                 pill.setAlpha(0.6f);
                 grantedItems.addView(pill);
                 grantedCount_++;
+            } else {
+                visiblePermCount++;
             }
         }
 
@@ -262,7 +262,6 @@ public class ActivityMain extends Activity {
             grantedGroup.setVisibility(View.VISIBLE);
             grantedCount.setText("(" + grantedCount_ + ")");
 
-            // Apply collapsed/expanded state
             grantedItems.setVisibility(grantedGroupExpanded ? View.VISIBLE : View.GONE);
             grantedChevron.setText(grantedGroupExpanded ? "\u25B2" : "\u25BC");
 
@@ -276,6 +275,74 @@ public class ActivityMain extends Activity {
             });
         } else {
             grantedGroup.setVisibility(View.GONE);
+        }
+
+        // Hide "A." badge on Settings when all permissions are granted
+        PillBadgeHelper.setBadgeVisible(rootLayout, R.id.btn_settings, visiblePermCount > 0);
+
+        // Dynamic layout positioning based on whether permission buttons are visible
+        repositionDynamicElements(rootLayout, visiblePermCount > 0);
+    }
+
+    private void repositionDynamicElements(LinearLayout rootLayout, boolean hasVisiblePermissions) {
+        final TextView hintBox = (TextView) findViewById(R.id.tv_initial_hint);
+        View pillSuggestions = findViewById(R.id.pill_prediction_settings);
+        View pillAdvSettings = findViewById(R.id.pill_more_settings);
+        View sectionSetup = findViewById(R.id.section_setup);
+        View sectionActions = findViewById(R.id.section_actions);
+        View grantedGroup = findViewById(R.id.granted_group);
+        View langSwitcher = findViewById(R.id.pill_language_switcher);
+
+        // Remove dynamic elements from current positions
+        rootLayout.removeView(hintBox);
+        rootLayout.removeView(pillSuggestions);
+        rootLayout.removeView(pillAdvSettings);
+
+        if (hasVisiblePermissions) {
+            // Green hint right after SETUP section header, collapsed to 3 lines
+            int setupIdx = rootLayout.indexOfChild(sectionSetup);
+            rootLayout.addView(hintBox, setupIdx + 1);
+
+            hintBox.setText(R.string.pref_first_install);
+            hintBox.setSingleLine(false);
+            hintBox.setMaxLines(3);
+            hintBox.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            hintBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (hintBox.getMaxLines() == 3) {
+                        hintBox.setSingleLine(false);
+                        hintBox.setMaxLines(Integer.MAX_VALUE);
+                        hintBox.setEllipsize(null);
+                    } else {
+                        hintBox.setSingleLine(false);
+                        hintBox.setMaxLines(3);
+                        hintBox.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                    }
+                }
+            });
+
+            // Suggestions + Advanced Settings after last visible permission button
+            // (which is right before ACTIONS section header)
+            int actionsIdx = rootLayout.indexOfChild(sectionActions);
+            rootLayout.addView(pillSuggestions, actionsIdx);
+            rootLayout.addView(pillAdvSettings, actionsIdx + 1);
+        } else {
+            // Green hint at bottom: different text, fully expanded, right before language switcher
+            hintBox.setText(R.string.pref_hint_ready);
+            hintBox.setSingleLine(false);
+            hintBox.setMaxLines(Integer.MAX_VALUE);
+            hintBox.setEllipsize(null);
+            hintBox.setOnClickListener(null);
+            hintBox.setClickable(false);
+
+            int langIdx = rootLayout.indexOfChild(langSwitcher);
+            rootLayout.addView(hintBox, langIdx);
+
+            // Suggestions + Advanced Settings right after SETUP section + Settings button
+            int setupIdx = rootLayout.indexOfChild(sectionSetup);
+            rootLayout.addView(pillSuggestions, setupIdx + 2); // +1 for section, +1 for Settings btn
+            rootLayout.addView(pillAdvSettings, setupIdx + 3);
         }
     }
 

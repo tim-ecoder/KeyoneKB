@@ -509,6 +509,29 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         return new ActionMethod<T>(IActionMethod, class1);
     }
 
+    // Helper for KeyPressData methods resolved via reflection (for methods in subclasses)
+    private ActionMethod<KeyPressData> objActionKeyPress(final String methodName) {
+        final java.lang.reflect.Method m;
+        try {
+            m = this.getClass().getMethod(methodName, KeyPressData.class);
+        } catch (Exception e) {
+            Log.e(TAG2, "objActionKeyPress lookup error: " + methodName + " " + e);
+            return new ActionMethod<KeyPressData>(new IActionMethod<KeyPressData>() {
+                public boolean invoke(KeyPressData p) { return false; }
+            }, KeyPressData.class);
+        }
+        return new ActionMethod<KeyPressData>(new IActionMethod<KeyPressData>() {
+            public boolean invoke(KeyPressData p) {
+                try {
+                    return (Boolean) m.invoke(InputMethodServiceCoreCustomizable.this, p);
+                } catch (Exception e) {
+                    Log.e(TAG2, "objActionKeyPress invoke error: " + methodName + " " + e);
+                    return false;
+                }
+            }
+        }, KeyPressData.class);
+    }
+
     // Helper to create IActionMethod<Object> without lambdas (avoids invokedynamic/BootstrapMethodError)
     private ActionMethod<Object> objAction(final String methodName) {
         final java.lang.reflect.Method m;
@@ -573,6 +596,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionSendCharSinglePressSymMode", InitializeMethod3(new IActionMethod<KeyPressData>() { public boolean invoke(KeyPressData p) { return ActionSendCharSinglePressSymMode(p); } }, KeyPressData.class));
         Methods.put("ActionSendCharToInput", InitializeMethod3(new IActionMethod<Character>() { public boolean invoke(Character p) { return ActionSendCharToInput(p); } }, Character.class));
         Methods.put("ActionSendCtrlPlusKey", InitializeMethod3(new IActionMethod<KeyPressData>() { public boolean invoke(KeyPressData p) { return ActionSendCtrlPlusKey(p); } }, KeyPressData.class));
+
         Methods.put("ActionSetNeedUpdateVisualState", objAction("ActionSetNeedUpdateVisualState"));
         Methods.put("ActionTryAcceptCall", objAction("ActionTryAcceptCall"));
         Methods.put("ActionTryCapitalizeFirstLetter", objAction("ActionTryCapitalizeFirstLetter"));
@@ -660,6 +684,10 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionMoveCursorPrevWord", InitializeMethod3(new IActionMethod<KeyEvent>() { public boolean invoke(KeyEvent p) { return ActionMoveCursorPrevWord(p); } }, KeyEvent.class));
         Methods.put("ActionMoveCursorFwdWord", InitializeMethod3(new IActionMethod<KeyEvent>() { public boolean invoke(KeyEvent p) { return ActionMoveCursorFwdWord(p); } }, KeyEvent.class));
         Methods.put("ActionSendNavKey", InitializeMethod3(new IActionMethod<NavActionData>() { public boolean invoke(NavActionData p) { return ActionSendNavKey(p); } }, NavActionData.class));
+
+        Methods.put("ActionToggleTranslationMode", objActionKeyPress("ActionToggleTranslationMode"));
+        Methods.put("ActionTogglePredictionBar", objActionKeyPress("ActionTogglePredictionBar"));
+
 
 
 
@@ -2015,15 +2043,17 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         AfterSendChar.Process(null, null);
 
         if (wordPredictor != null && wordPredictor.isEnabled()) {
-            if (!wordPredictor.isEngineReady() && !dictLoadingToastShown) {
-                dictLoadingToastShown = true;
-                boolean fromCache = WordDictionary.hasCacheFile(getApplicationContext(), "en");
-                Toast.makeText(getApplicationContext(),
-                        getString(fromCache ? R.string.prediction_loading_cache_toast
-                                           : R.string.prediction_loading_fresh_toast),
-                        Toast.LENGTH_SHORT).show();
-            }
+            ShowDictLoadingToast();
             wordPredictor.onCharacterTyped((char) code2send);
+        }
+    }
+
+    private void ShowDictLoadingToast() {
+        if (!wordPredictor.isEngineReady() && !dictLoadingToastShown) {
+            dictLoadingToastShown = true;
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.prediction_loading_toast),
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -2195,6 +2225,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             inputConnection.deleteSurroundingText(1, 0);
         }
         if (wordPredictor != null && wordPredictor.isEnabled()) {
+            ShowDictLoadingToast();
             wordPredictor.onBackspace();
         }
     }

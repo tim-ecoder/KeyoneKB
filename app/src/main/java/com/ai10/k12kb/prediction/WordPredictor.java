@@ -18,8 +18,7 @@ public class WordPredictor {
 
     private static final String TAG = "WordPredictor";
 
-    public static final int ENGINE_SYMSPELL = 0;
-    public static final int ENGINE_NGRAM = 1;
+    public static final int ENGINE_NATIVE_SYMSPELL = 2;
 
     public static class Suggestion {
         public final String word;
@@ -40,21 +39,23 @@ public class WordPredictor {
     // Static — survives across WordPredictor instances (IME restarts)
     private static PredictionEngine sharedEngine;
     private static int sharedEngineMode = -1;
+    private static int sharedEngineDictSize = -1;
     // Static thread tracking — loading threads keep running across IME restarts
     private static final List<Thread> loadingThreads = new ArrayList<>();
     private static final HashSet<String> loadingLocales = new HashSet<>();
-
     private PredictionEngine engine;
-    private int engineMode = ENGINE_SYMSPELL;
+    private int engineMode = ENGINE_NATIVE_SYMSPELL;
     private SuggestionListener listener;
     private String currentWord = "";
     private String previousWord = "";
     private int suggestLimit = 4;
     private List<Suggestion> latestSuggestions = Collections.emptyList();
     private boolean enabled = true;
+    private int dictSize = 35000;
+    private boolean nextWordEnabled = true;
+    private boolean keyboardAwareEnabled = true;
     private Context appContext;
     private String currentLocale = "";
-
     public WordPredictor() {
     }
 
@@ -66,6 +67,24 @@ public class WordPredictor {
     public void shutdown() {
         engine = null;
         listener = null;
+    }
+
+    public void setDictSize(int size) {
+        this.dictSize = size;
+    }
+
+    public void setNextWordEnabled(boolean enabled) {
+        this.nextWordEnabled = enabled;
+        if (engine instanceof NativeSymSpellEngine) {
+            ((NativeSymSpellEngine) engine).setNextWordEnabled(enabled);
+        }
+    }
+
+    public void setKeyboardAwareEnabled(boolean enabled) {
+        this.keyboardAwareEnabled = enabled;
+        if (engine instanceof NativeSymSpellEngine) {
+            ((NativeSymSpellEngine) engine).setKeyboardAwareEnabled(enabled);
+        }
     }
 
     public void setSuggestLimit(int limit) {
@@ -96,12 +115,10 @@ public class WordPredictor {
     }
 
     public void setEngineMode(int mode) {
-        if (mode < ENGINE_SYMSPELL || mode > ENGINE_NGRAM) mode = ENGINE_SYMSPELL;
+        mode = ENGINE_NATIVE_SYMSPELL;
         boolean modeChanged = (this.engineMode != mode);
         this.engineMode = mode;
         if (modeChanged) {
-            // Engine type changed — old loading threads are for wrong engine type,
-            // allow new loads for the new engine
             synchronized (loadingLocales) { loadingLocales.clear(); }
         }
         if (engine == null && sharedEngine != null && sharedEngineMode == mode) {
@@ -145,10 +162,18 @@ public class WordPredictor {
             engine = sharedEngine;
         }
 
-        // Check if engine already loaded for this locale
+        // Check if engine already loaded for this locale with matching dict size
         if (engine != null && engine.isReady() && locale.equals(engine.getLoadedLocale())) {
-            if (onComplete != null) onComplete.run();
-            return;
+            if (dictSize == sharedEngineDictSize) {
+                if (onComplete != null) onComplete.run();
+                return;
+            }
+            // Dict size changed — invalidate static engine, force fresh load
+            Log.d(TAG, "Dict size changed (" + sharedEngineDictSize + " -> " + dictSize + "), reloading");
+            engine = null;
+            sharedEngine = null;
+            sharedEngineMode = -1;
+            sharedEngineDictSize = -1;
         }
 
         // Skip if this locale is already being loaded by a background thread
@@ -230,18 +255,15 @@ public class WordPredictor {
     }
 
     private void createAndLoadEngine(final Context context, final String locale, final Runnable onComplete) {
-        final PredictionEngine newEngine;
-        switch (engineMode) {
-            case ENGINE_NGRAM:
-                newEngine = new NgramEngine();
-                break;
-            default:
-                newEngine = new SymSpellEngine();
-                break;
-        }
+        NativeSymSpellEngine nativeEng = new NativeSymSpellEngine();
+        nativeEng.setMaxWords(dictSize);
+        nativeEng.setNextWordEnabled(nextWordEnabled);
+        nativeEng.setKeyboardAwareEnabled(keyboardAwareEnabled);
+        final PredictionEngine newEngine = nativeEng;
         engine = newEngine;
         sharedEngine = newEngine;
         sharedEngineMode = engineMode;
+        sharedEngineDictSize = dictSize;
 
         // Use spawnLoadThread which tracks loadingLocales
         spawnLoadThread(context, locale, newEngine, onComplete);
@@ -255,10 +277,7 @@ public class WordPredictor {
         // Normalize apostrophe variants
         if (c == '\u2018' || c == '\u2019' || c == '\u02BC') c = '\'';
 
-        boolean isWordChar = Character.isLetterOrDigit(c)
-                || (c == '\'' && currentWord.length() > 0
-                && Character.isLetterOrDigit(currentWord.charAt(currentWord.length() - 1)));
-        if (isWordChar) {
+        if (WordDictionary.isWordChar(c)) {
             if (currentWord.length() < 48) {
                 currentWord += c;
                 updateSuggestions();
@@ -299,8 +318,8 @@ public class WordPredictor {
     }
 
     /**
-     * Reset tracker. Saves currentWord as previousWord, then requests
-     * next-word prediction (engine.suggest with empty input).
+     * Reset tracker. Saves currentWord as previousWord,
+     * then requests next-word prediction (engine.suggest with empty input).
      */
     public void reset() {
         if (currentWord.length() > 0) {
@@ -317,7 +336,6 @@ public class WordPredictor {
         if (index < 0 || index >= latestSuggestions.size()) return null;
         Suggestion s = latestSuggestions.get(index);
         String result = applyCasing(s.word, currentWord);
-        // Set previousWord to the accepted word (normalized form for bigram lookup)
         previousWord = s.word;
         currentWord = "";
         updateSuggestions();

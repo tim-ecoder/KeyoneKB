@@ -25,6 +25,8 @@ public class NotificationProcessor {
     private NotificationChannel notificationChannelLayoutMode;
     private NotificationChannel notificationChannelGestureMode;
 
+    private PendingIntent pendingIntent;
+
     public void Initialize(Context context) {
         if(notificationManager != null)
             return;
@@ -35,7 +37,12 @@ public class NotificationProcessor {
         Intent intent = new Intent(context, ActivityMain.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setClassName("com.ai10.k12kb", "com.ai10.k12kb.ActivityMain");
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        // FLAG_IMMUTABLE required on API 31+; use bitwise OR for compat (0x04000000 = FLAG_IMMUTABLE)
+        int piFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= 31) {
+            piFlags |= 0x04000000;
+        }
+        pendingIntent = PendingIntent.getActivity(context, 0, intent, piFlags);
 
 
         InitializeKeyboardLayoutBuilder(context);
@@ -61,6 +68,7 @@ public class NotificationProcessor {
             builder2Layout.setOngoing(true);
             builder2Layout.setAutoCancel(true);
             builder2Layout.setVisibility(Notification.VISIBILITY_SECRET);
+            builder2Layout.setContentIntent(pendingIntent);
         }
         else
         {
@@ -71,6 +79,7 @@ public class NotificationProcessor {
             builderLayout.setAutoCancel(false);
             builderLayout.setVisibility(NotificationCompat.VISIBILITY_SECRET);
             builderLayout.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+            builderLayout.setContentIntent(pendingIntent);
 
         }
     }
@@ -94,6 +103,7 @@ public class NotificationProcessor {
             builder2Gesture.setOngoing(true);
             builder2Gesture.setAutoCancel(true);
             builder2Gesture.setVisibility(Notification.VISIBILITY_SECRET);
+            builder2Gesture.setContentIntent(pendingIntent);
         }
         else
         {
@@ -103,6 +113,7 @@ public class NotificationProcessor {
             builderGesture.setAutoCancel(false);
             builderGesture.setVisibility(NotificationCompat.VISIBILITY_SECRET);
             builderGesture.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+            builderGesture.setContentIntent(pendingIntent);
 
         }
     }

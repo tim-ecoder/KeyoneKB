@@ -11,6 +11,10 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import android.support.v4.content.ContextCompat;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,6 +22,8 @@ public class PillBadgeHelper {
 
     private static final Pattern BADGE_PATTERN = Pattern.compile("^([A-Za-z0-9]+)\\.\\s*(.*)$", Pattern.DOTALL);
     private static final String BADGE_TAG = "pill_badge";
+    private static final String HINT_ARROW_TAG = "pill_hint_arrow";
+    private static final String HINT_TEXT_TAG = "pill_hint_text";
 
     /**
      * Process all direct children of a container, applying badges
@@ -298,6 +304,20 @@ public class PillBadgeHelper {
         return pill.findViewWithTag(BADGE_TAG);
     }
 
+    /**
+     * Show or hide the badge on the pill that contains the given view.
+     */
+    public static void setBadgeVisible(ViewGroup container, int viewId, boolean visible) {
+        View target = container.findViewById(viewId);
+        if (target == null) return;
+        LinearLayout pill = findPillParent(target, container);
+        if (pill == null) return;
+        TextView badge = findBadge(pill);
+        if (badge != null) {
+            badge.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+    }
+
     private static boolean hasTextChild(LinearLayout ll) {
         for (int i = 0; i < ll.getChildCount(); i++) {
             View child = ll.getChildAt(i);
@@ -330,5 +350,212 @@ public class PillBadgeHelper {
         return (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, dp,
                 context.getResources().getDisplayMetrics());
+    }
+
+    /**
+     * Add expandable hint boxes to pills that have associated hint strings.
+     * Call after applyToContainer() so pills are already restructured.
+     *
+     * @param container the settings container
+     * @param hintMap   array of {viewId, hintStringResId} pairs
+     */
+    public static void applyHints(ViewGroup container, int[][] hintMap) {
+        for (int[] entry : hintMap) {
+            int viewId = entry[0];
+            int hintResId = entry[1];
+            View target = container.findViewById(viewId);
+            if (target == null) continue;
+
+            // Walk up to the pill parent (LinearLayout with background)
+            LinearLayout pill = findPillParent(target, container);
+            if (pill == null) continue;
+
+            String hintText = container.getContext().getString(hintResId);
+            if (hintText == null || hintText.trim().isEmpty()) continue;
+
+            applyHintToPill(pill, hintText);
+        }
+    }
+
+    private static LinearLayout findPillParent(View target, ViewGroup container) {
+        View current = target;
+        while (current != null && current != container) {
+            if (current instanceof LinearLayout
+                    && ((LinearLayout) current).getBackground() != null
+                    && current.getParent() == container) {
+                return (LinearLayout) current;
+            }
+            if (current.getParent() instanceof View) {
+                current = (View) current.getParent();
+            } else {
+                break;
+            }
+        }
+        // target itself might be inside a wrapper pill that is a direct child of container
+        if (target instanceof LinearLayout && ((LinearLayout) target).getBackground() != null) {
+            return (LinearLayout) target;
+        }
+        return null;
+    }
+
+    private static void applyHintToPill(final LinearLayout pill, String hintText) {
+        Context context = pill.getContext();
+
+        final LinearLayout headerRow;
+
+        if (pill.getOrientation() == LinearLayout.VERTICAL) {
+            // Pill is already vertical (spinner, seekbar).
+            // Find the existing horizontal title row to add the arrow into.
+            LinearLayout existingRow = null;
+            for (int i = 0; i < pill.getChildCount(); i++) {
+                View child = pill.getChildAt(i);
+                if (child instanceof LinearLayout
+                        && ((LinearLayout) child).getOrientation() == LinearLayout.HORIZONTAL) {
+                    existingRow = (LinearLayout) child;
+                    break;
+                }
+            }
+            if (existingRow != null) {
+                headerRow = existingRow;
+            } else {
+                // No horizontal row found — skip this pill
+                return;
+            }
+        } else {
+            // Pill is horizontal — collect children into a new header row
+            List<View> children = new ArrayList<>();
+            for (int i = 0; i < pill.getChildCount(); i++) {
+                children.add(pill.getChildAt(i));
+            }
+            pill.removeAllViews();
+
+            headerRow = new LinearLayout(context);
+            headerRow.setOrientation(LinearLayout.HORIZONTAL);
+            headerRow.setGravity(Gravity.CENTER_VERTICAL);
+            headerRow.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+
+            for (View child : children) {
+                headerRow.addView(child);
+            }
+
+            pill.setOrientation(LinearLayout.VERTICAL);
+            pill.addView(headerRow);
+        }
+
+        // Create the ▾ arrow indicator
+        final TextView arrow = new TextView(context);
+        arrow.setTag(HINT_ARROW_TAG);
+        arrow.setText("\u25BE"); // ▾
+        arrow.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        TypedValue tv = new TypedValue();
+        context.getTheme().resolveAttribute(R.attr.chevronTextColor, tv, true);
+        arrow.setTextColor(tv.data);
+        LinearLayout.LayoutParams arrowParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        arrowParams.setMarginStart(dpToPx(context, 4));
+        arrowParams.setMarginEnd(dpToPx(context, 4));
+        arrow.setLayoutParams(arrowParams);
+
+        // Ensure text children use weight so the arrow gets space
+        for (int i = 0; i < headerRow.getChildCount(); i++) {
+            View c = headerRow.getChildAt(i);
+            if (c instanceof TextView && !(c instanceof CompoundButton)
+                    && !BADGE_TAG.equals(c.getTag())) {
+                ViewGroup.LayoutParams lp = c.getLayoutParams();
+                if (lp instanceof LinearLayout.LayoutParams) {
+                    LinearLayout.LayoutParams llp = (LinearLayout.LayoutParams) lp;
+                    if (llp.width == ViewGroup.LayoutParams.MATCH_PARENT) {
+                        llp.width = 0;
+                        llp.weight = 1;
+                        c.setLayoutParams(llp);
+                    }
+                }
+            }
+        }
+
+        // Insert arrow before Switch if present, otherwise at end of header row
+        int arrowIndex = headerRow.getChildCount();
+        for (int i = 0; i < headerRow.getChildCount(); i++) {
+            if (headerRow.getChildAt(i) instanceof CompoundButton) {
+                arrowIndex = i;
+                break;
+            }
+        }
+        headerRow.addView(arrow, arrowIndex);
+
+        // Create the hint text box
+        final TextView hintView = new TextView(context);
+        hintView.setTag(HINT_TEXT_TAG);
+        hintView.setText(hintText.trim());
+        hintView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        hintView.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
+        hintView.setLineSpacing(0, 1.45f);
+        hintView.setBackgroundResource(R.drawable.bg_hint_box);
+        int pad = dpToPx(context, 12);
+        hintView.setPadding(pad, pad, pad, pad);
+        LinearLayout.LayoutParams hintParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        int hMargin = dpToPx(context, 2);
+        int topMargin = dpToPx(context, 8);
+        hintParams.setMargins(hMargin, topMargin, hMargin, 0);
+        hintView.setLayoutParams(hintParams);
+        hintView.setVisibility(View.GONE);
+
+        // Append hint at the bottom of the pill
+        pill.addView(hintView);
+
+        // Click handler: toggle hint + text ellipsis on header row
+        View.OnClickListener hintToggle = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean expanding = hintView.getVisibility() == View.GONE;
+                hintView.setVisibility(expanding ? View.VISIBLE : View.GONE);
+                arrow.setText(expanding ? "\u25B4" : "\u25BE"); // ▴ or ▾
+                // Also expand/collapse truncated text in the header row
+                for (int i = 0; i < headerRow.getChildCount(); i++) {
+                    View c = headerRow.getChildAt(i);
+                    if (c instanceof TextView && !(c instanceof CompoundButton)
+                            && !HINT_ARROW_TAG.equals(c.getTag())
+                            && !BADGE_TAG.equals(c.getTag())) {
+                        TextView t = (TextView) c;
+                        if (expanding) {
+                            t.setSingleLine(false);
+                            t.setMaxLines(Integer.MAX_VALUE);
+                            t.setEllipsize(null);
+                        } else {
+                            t.setSingleLine(true);
+                            t.setEllipsize(TextUtils.TruncateAt.END);
+                        }
+                    }
+                }
+            }
+        };
+
+        // Check if header has interactive controls (Switch, or views with existing click listeners)
+        boolean hasInteractiveControl = false;
+        for (int i = 0; i < headerRow.getChildCount(); i++) {
+            View c = headerRow.getChildAt(i);
+            if (c instanceof CompoundButton || (c.hasOnClickListeners() && !(c instanceof TextView))) {
+                hasInteractiveControl = true;
+                break;
+            }
+        }
+
+        if (hasInteractiveControl) {
+            // Set hintToggle on non-interactive children only
+            for (int i = 0; i < headerRow.getChildCount(); i++) {
+                View child = headerRow.getChildAt(i);
+                if (child instanceof CompoundButton) continue;
+                if (child.hasOnClickListeners() && !(child instanceof TextView)) continue;
+                child.setClickable(true);
+                child.setOnClickListener(hintToggle);
+            }
+        } else {
+            pill.setOnClickListener(hintToggle);
+        }
     }
 }

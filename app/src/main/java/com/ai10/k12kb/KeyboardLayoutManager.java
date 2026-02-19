@@ -158,6 +158,11 @@ public class KeyboardLayoutManager {
         return KeyboardLayoutList.get(0);
     }
 
+    public synchronized KeyboardLayout GetNextKeyboardLayout(){
+        int nextIndex = (CurrentLanguageListIndex + 1) % LangListCount;
+        return KeyboardLayoutList.get(nextIndex);
+    }
+
     public synchronized int KeyToCharCode(InputMethodServiceCoreKeyPress.KeyPressData keyPressData, boolean alt_press, boolean shift_press, boolean is_double_press)
     {
         int result;
