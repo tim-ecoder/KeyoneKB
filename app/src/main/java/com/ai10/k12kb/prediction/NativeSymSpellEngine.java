@@ -106,6 +106,12 @@ public class NativeSymSpellEngine implements PredictionEngine {
     public void loadDictionary(Context context, String locale) {
         synchronized (loadLock) {
             if (ready && locale.equals(loadedLocale)) {
+                return; // already loaded — cache has user/learned words baked in
+            }
+            boolean fromCache = load(context, locale);
+            if (!fromCache && nativeSymSpell != null && nativeSymSpell.isValid()) {
+                // Fresh build — add user/learned words, rebuild index, then save cache
+                // (safe: ready was false during build, so suggest() won't read this data)
                 int before = nativeSymSpell.size();
                 loadUserWords(context);
                 loadLearnedWords();
@@ -113,24 +119,44 @@ public class NativeSymSpellEngine implements PredictionEngine {
                     nativeSymSpell.buildIndex();
                     Log.d(TAG, "Rebuilt index after adding " + (nativeSymSpell.size() - before) + " new user/learned words");
                 }
-                return;
+                saveNativeCache(context, locale);
             }
-            load(context, locale);
-            int before = nativeSymSpell.size();
-            loadUserWords(context);
-            loadLearnedWords();
-            if (nativeSymSpell.size() > before) {
-                nativeSymSpell.buildIndex();
-                Log.d(TAG, "Rebuilt index after adding " + (nativeSymSpell.size() - before) + " new user/learned words");
-            }
+            // Cache hit: no modifications needed — cache includes user/learned words
+            // from previous fresh build. No buildIndex race with suggest().
         }
     }
 
     @Override
     public void preloadDictionary(Context context, String locale) {
         synchronized (loadLock) {
-            if (ready && locale.equals(loadedLocale)) return;
-            load(context, locale);
+            if (locale.equals(loadedLocale)) return;
+
+            // Only ensure cache file exists — don't replace the active dictionary
+            String cachePath = new File(context.getFilesDir(), CACHE_DIR + "/" + locale + ".ssnd").getAbsolutePath();
+            if (new File(cachePath).exists()) {
+                Log.d(TAG, "Cache exists for " + locale + ", skip preload");
+                return;
+            }
+
+            // No cache — build from text to create it, then restore current dictionary
+            NativeSymSpell prevSS = nativeSymSpell;
+            String prevLocale = loadedLocale;
+            boolean prevReady = ready;
+
+            boolean fromCache = load(context, locale);
+            if (!fromCache) {
+                saveNativeCache(context, locale);
+            }
+
+            NativeSymSpell preloaded = nativeSymSpell;
+            nativeSymSpell = prevSS;
+            loadedLocale = prevLocale;
+            ready = prevReady;
+
+            if (preloaded != null && preloaded != prevSS) {
+                preloaded.destroy();
+            }
+            Log.d(TAG, "Preloaded cache for " + locale + ", active dict remains " + loadedLocale);
         }
     }
 
@@ -144,25 +170,30 @@ public class NativeSymSpellEngine implements PredictionEngine {
         return loadedLocale;
     }
 
-    private void load(Context context, String locale) {
+    /**
+     * Load dictionary for locale. Returns true if loaded from cache, false if built from text.
+     */
+    private boolean load(Context context, String locale) {
         long startTime = System.currentTimeMillis();
-        ready = false;
-
-        WordDictionary.recordLoadingStart(locale);
 
         // Try native binary cache first (mmap — very fast, no text re-parse needed)
+        // Don't set ready=false — keep old dict functional during atomic swap
         String cachePath = new File(context.getFilesDir(), CACHE_DIR + "/" + locale + ".ssnd").getAbsolutePath();
         NativeSymSpell cached = NativeSymSpell.loadFromCache(cachePath);
         if (cached != null && cached.size() > 0) {
             nativeSymSpell = cached;
-            ready = true;
             loadedLocale = locale;
+            ready = true;
             long elapsed = System.currentTimeMillis() - startTime;
             WordDictionary.recordLoadStats(locale, "native-cache", nativeSymSpell.size(), elapsed);
             Log.w(TAG, "Loaded " + locale + " from native cache: " + nativeSymSpell.size()
                     + " words in " + elapsed + "ms");
-            return;
+            return true;
         }
+
+        // Cache miss — full rebuild from text needed, predictions unavailable during build
+        ready = false;
+        WordDictionary.recordLoadingStart(locale);
 
         // v1 cache exists but couldn't be loaded (version mismatch) — delete it
         File cacheFile = new File(cachePath);
@@ -174,19 +205,19 @@ public class NativeSymSpellEngine implements PredictionEngine {
         // Build from text dictionary
         if (!NativeSymSpell.isAvailable()) {
             Log.w(TAG, "Native library not available, cannot load");
-            return;
+            return false;
         }
 
         nativeSymSpell = new NativeSymSpell(2, 7);
         if (!nativeSymSpell.isValid()) {
             Log.e(TAG, "Failed to create native SymSpell instance");
-            return;
+            return false;
         }
 
         int wordCount = loadFromAssets(context, locale);
         if (wordCount <= 0) {
             Log.e(TAG, "No words loaded for locale " + locale);
-            return;
+            return false;
         }
 
         long buildStart = System.currentTimeMillis();
@@ -201,8 +232,8 @@ public class NativeSymSpellEngine implements PredictionEngine {
         Log.w(TAG, "Loaded " + locale + " from assets (native): " + wordCount
                 + " words in " + elapsed + "ms");
 
-        // Save native binary cache (v2 with original forms)
-        saveNativeCache(context, locale);
+        // Cache is saved by caller (loadDictionary) after adding user/learned words
+        return false;
     }
 
     private int loadFromAssets(Context context, String locale) {
