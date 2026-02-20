@@ -88,12 +88,11 @@ public class NativeSymSpellEngine implements PredictionEngine {
             }
         }
 
-        // 2. Native SymSpell fuzzy matches (skip for single char)
-        if (normalized.length() > 1) {
+        // 2. Native SymSpell fuzzy matches (skip for single char, skip entirely if disabled)
+        if (keyboardAwareEnabled && normalized.length() > 1) {
             int symLimit = normalized.length() <= 3 ? limit * 2 : limit * 4;
-            NativeSymSpell.SuggestItem[] nativeResults = keyboardAwareEnabled
-                    ? ss.lookupWeighted(normalized, symLimit, keyboardLayout)
-                    : ss.lookup(normalized, symLimit);
+            NativeSymSpell.SuggestItem[] nativeResults =
+                    ss.lookupWeighted(normalized, symLimit, keyboardLayout);
 
             for (NativeSymSpell.SuggestItem item : nativeResults) {
                 if (normalized.length() <= 2 && item.distance > 1) continue;
@@ -102,7 +101,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 double score = computeScore(normalized, item.term, word, item.frequency,
                         item.distance, false, input.length());
                 // Bonus for low weighted distance (adjacent key typos)
-                if (keyboardAwareEnabled && item.weightedDistance >= 0 && item.weightedDistance < item.distance) {
+                if (item.weightedDistance >= 0 && item.weightedDistance < item.distance) {
                     score += (item.distance - item.weightedDistance) * 0.5;
                 }
                 // Bigram boost for fuzzy matches
