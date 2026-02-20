@@ -45,6 +45,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected int pref_gesture_mode_at_view_mode = 0;
     protected boolean pref_pointer_mode_rect_and_autofocus = true;
     protected int pref_pointer_mode_rect_color = 0;
+    protected boolean pref_auto_capitalization = true;
     protected boolean pref_nav_pad_on_hold = true;
 
 
@@ -2122,6 +2123,9 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         //NOTE: Проверка не дает вводить Заглавную прям на первом входе в приложение. Видимо не успевает еще активироваться.
         //if(!isInputViewShown())
         //    return;
+
+        if(!pref_auto_capitalization)
+            return false;
 
         if(editorInfo == null)
             return false;

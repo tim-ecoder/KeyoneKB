@@ -76,6 +76,13 @@
                 android:text="@string/pref_p_6_name"
                 tools:checked="true" />
 
+        <!-- Auto-capitalization switch pill -->
+        <Switch
+                android:id="@+id/switch_auto_capitalization"
+                style="@style/SwitchPill"
+                android:text="@string/pref_auto_capitalization"
+                tools:checked="true" />
+
         <!-- EXTRA -->
         <TextView
             style="@style/SectionHeader"

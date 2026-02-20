@@ -1738,6 +1738,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         pref_pointer_mode_rect_and_autofocus = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_13_POINTER_MODE_RECT);
         pref_pointer_mode_rect_color = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR);
         pref_nav_pad_on_hold = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_14_NAV_PAD_ON_HOLD);
+        pref_auto_capitalization = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_28_AUTO_CAPITALIZATION);
 
         keyboard_mechanics_res = null;
 

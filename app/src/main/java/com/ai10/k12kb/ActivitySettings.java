@@ -388,6 +388,15 @@ public class ActivitySettings extends Activity {
             }
         });
 
+        Switch switchAutoCapitalization = (Switch) findViewById(R.id.switch_auto_capitalization);
+        SetSwitchStateOrDefault(switchAutoCapitalization, k12KbSettings.APP_PREFERENCES_28_AUTO_CAPITALIZATION);
+        switchAutoCapitalization.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                k12KbSettings.SetBooleanValue(k12KbSettings.APP_PREFERENCES_28_AUTO_CAPITALIZATION, isChecked);
+            }
+        });
+
         Switch switchLightTheme = (Switch) findViewById(R.id.switch_light_theme);
         SetSwitchStateOrDefault(switchLightTheme, k12KbSettings.APP_PREFERENCES_18_LIGHT_THEME);
         switchLightTheme.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
