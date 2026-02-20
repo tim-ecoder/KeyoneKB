@@ -15,8 +15,6 @@
     }, {
       "action-method-name": "ActionTryDisableCapslockShiftMode"
     }, {
-      "action-method-name": "ActionTryEnableGestureInputScrollMode"
-    }, {
       "action-method-name": "ActionDisableAndResetGestureMode",
       "need-update-gesture-visual-state": true
     }, {
