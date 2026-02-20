@@ -41,7 +41,7 @@ For more useful features for working with symbols, see the Manual.</string>
 For more utilities for working with Capital letters, see the Manual in chapter B</string>
     <string name="pref_p_6_name">6. Phone Call Management</string>
     <string name="pref_p_6_hint">Answer call: Key1|2 2хSpace; Pocket|Slim: 1xShift;\nDecline/End call: Key1|2 2хSYM Pocket|Slim: 1xAlt.</string>
-    <string name="pref_auto_capitalization">Auto-capitalization</string>
+    <string name="pref_auto_capitalization">28. Auto-capitalization</string>
     <string name="pref_p_7_name">7. Bottom swipe-panel height:</string>
     <string name="pref_p_7_value">Less | More</string>
     <string name="pref_p_8_name">8. Enable on-screen swipe-panel</string>
@@ -113,16 +113,16 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="js_patch_file_not_found">File not found: %s</string>
     <string name="js_patch_no_editor">No editor found for JS files</string>
     <string name="pref_section_appearance">APPEARANCE</string>
-    <string name="pref_light_theme">Dark theme</string>
+    <string name="pref_light_theme">18. Dark theme</string>
     <string name="pref_section_prediction">PREDICTION</string>
-    <string name="pref_prediction_enabled">Word prediction</string>
-    <string name="pref_prediction_bar_hidden">Hide bar by default (Ctrl+W to show)</string>
-    <string name="pref_prediction_bar_height">Prediction bar height (dp)</string>
-    <string name="pref_prediction_slots_count">Prediction slots count</string>
-    <string name="pref_next_word_prediction">Next-word prediction (bigrams)</string>
-    <string name="pref_keyboard_aware">Keyboard-aware corrections</string>
+    <string name="pref_prediction_enabled">17. Word prediction</string>
+    <string name="pref_prediction_bar_hidden">23. Hide bar by default (Ctrl+W to show)</string>
+    <string name="pref_prediction_bar_height">15. Prediction bar height (dp)</string>
+    <string name="pref_prediction_slots_count">16. Prediction slots count</string>
+    <string name="pref_next_word_prediction">26. Next-word prediction (bigrams)</string>
+    <string name="pref_keyboard_aware">27. Keyboard-aware corrections</string>
     <string name="prediction_loading_toast">Dictionary loading, please wait…</string>
-    <string name="pref_dict_size_title">Dictionary size</string>
+    <string name="pref_dict_size_title">24. Dictionary size</string>
     <string-array name="pref_dict_size_array">
         <item>Tiny (35k words, ~8 MB RAM)</item>
         <item>Normal (150k words, ~35 MB RAM)</item>
@@ -130,7 +130,7 @@ For more utilities for working with Capital letters, see the Manual in chapter B
         <item>Full (all words, ~150 MB RAM)</item>
     </string-array>
     <string name="pred_dict_size_changed">Dictionary cache cleared. Restart keyboard to apply.</string>
-    <string name="pref_trans_dict_size_title">Translation dictionary size</string>
+    <string name="pref_trans_dict_size_title">25. Translation dictionary size</string>
     <string-array name="pref_trans_dict_size_array">
         <item>Tiny (35k words, ~5 MB)</item>
         <item>Normal (100k words, ~14 MB)</item>
@@ -158,7 +158,7 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="pred_cache_missing">no cache</string>
     <string name="pred_section_translation">TRANSLATION DICTIONARY</string>
     <string name="pred_translation_hint">Ctrl+T to toggle translation mode.\nTranslates current word in suggestion bar.\nUses previous word context for phrase translation.\nSource: current layout, target: next layout.</string>
-    <string name="pref_translation_slots_count">Translation pillows count</string>
+    <string name="pref_translation_slots_count">22. Translation pillows count</string>
     <string name="pred_translation_words">words</string>
     <string name="pred_translation_phrases">phrases</string>
     <string name="pred_translation_not_found">not found</string>

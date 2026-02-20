@@ -1,4 +1,4 @@
-// @name [Test] Ctrl+Q custom action
+// @name 11. [Test] Ctrl+Q custom action
 // Добавление CTRL+Q на кастомное действие
 // Работает вместе с mechanics.js4
 json["retranslate-keyboard-meta-key-plus-key-list"].push(    {

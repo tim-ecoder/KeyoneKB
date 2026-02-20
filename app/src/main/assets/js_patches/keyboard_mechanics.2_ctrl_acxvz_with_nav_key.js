@@ -1,4 +1,4 @@
-// @name Ctrl+A/C/X/V/Z in NAV mode
+// @name 2. Ctrl+A/C/X/V/Z in NAV mode
 //Чтобы команды CTRL+ACXVZ работали в NAV режиме (и в постоянном и при удержании)
 
 let nav_kgp = json["nav-key-group-processors"];

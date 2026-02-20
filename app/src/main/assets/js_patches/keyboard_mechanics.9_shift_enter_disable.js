@@ -1,4 +1,4 @@
-// @name Disable Shift+Enter action
+// @name 9. Disable Shift+Enter action
 // Для случая когда надо удалить одно из действий
 
 let enter_osp = json["key-group-processors"]

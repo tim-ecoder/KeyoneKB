@@ -1,4 +1,4 @@
-// @name Del double/triple: delete word/line
+// @name 4. Del double/triple: delete word/line
 //Для случая когда надо добавить функции on-double-press и пр. для DEL
 
 let kc_del = json["key-group-processors"]

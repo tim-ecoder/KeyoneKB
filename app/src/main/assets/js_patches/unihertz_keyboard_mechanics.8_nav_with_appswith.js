@@ -1,4 +1,4 @@
-// @name APP_SWITCH button controls NAV mode
+// @name 8. APP_SWITCH button controls NAV mode
 // NAV режим управляется через кнопку APP_SWITCH (ее функция по переключению приложений отключается)
 
 let nav_kgp = json["key-group-processors"]

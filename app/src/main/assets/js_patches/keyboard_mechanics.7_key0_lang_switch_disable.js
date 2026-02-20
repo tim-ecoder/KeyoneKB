@@ -1,4 +1,4 @@
-// @name Disable language switch on key 0
+// @name 7. Disable language switch on key 0
 //Отключение смены раскладки на key0
 
 let kc_key0 = json["key-group-processors"]

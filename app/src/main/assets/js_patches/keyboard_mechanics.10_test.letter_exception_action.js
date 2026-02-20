@@ -1,4 +1,4 @@
-// @name [Test] Ctrl+Q moves cursor back one word
+// @name 10. [Test] Ctrl+Q moves cursor back one word
 //Проверка как работает навешивание действия на одну из группы букв. Тогда как вся группа букв в базовом механикс определена все вместе.
 
 json["key-group-processors"].unshift(    {
