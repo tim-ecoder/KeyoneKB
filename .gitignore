@@ -21,3 +21,8 @@ local.properties
 /app/debug/
 /release/
 /debug/
+/build_manual/
+KeyoneKB2-*.apk
+K12KB-*.apk
+build_number.txt
+/build_ci/

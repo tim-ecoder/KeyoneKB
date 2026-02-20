@@ -8,14 +8,41 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#3F51B5</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorPrimary">#4CAF50</color>
+    <color name="colorPrimaryDark">#388E3C</color>
+    <color name="colorAccent">#4CAF50</color>
+
+    <!-- Dark Pills UI palette -->
+    <color name="colorBackground">#121212</color>
+    <color name="colorItemPill">#1E1E1E</color>
+    <color name="textPrimary">#E8E8E8</color>
+    <color name="textSecondary">#888888</color>
+    <color name="sectionHeader">#666666</color>
+    <color name="chevronColor">#555555</color>
+    <color name="hintBoxBg">#1F4CAF50</color>
+    <color name="switchOff">#444444</color>
+    <color name="grantedHeaderBg">#252525</color>
+    <color name="grantedHeaderText">#999999</color>
+    <color name="grantedHeaderChevron">#666666</color>
+
+    <!-- Light Pills UI palette -->
+    <color name="colorBackgroundLight">#F2F2F7</color>
+    <color name="colorItemPillLight">#FFFFFF</color>
+    <color name="textPrimaryLight">#1C1C1E</color>
+    <color name="textSecondaryLight">#8E8E93</color>
+    <color name="sectionHeaderLight">#8E8E93</color>
+    <color name="chevronColorLight">#C7C7CC</color>
+    <color name="hintBoxBgLight">#1A4CAF50</color>
+    <color name="grantedHeaderBgLight">#E5E5EA</color>
+    <color name="grantedHeaderTextLight">#8E8E93</color>
+    <color name="grantedHeaderChevronLight">#AEAEB2</color>
 
     <color name="candidate_normal">#FF000000</color>
     <color name="candidate_recommended">#000000</color>
     <color name="candidate_other">#ff808080</color>
     <color name="candidate_background">#bbffffff</color>
+    <color name="candidate_translation">#FF8AB4F8</color>
+
 
     <!--Color your keyboard - Gboard Dark style-->
     <color name="keyboard_background_color">#202124</color>

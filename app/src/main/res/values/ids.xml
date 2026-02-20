@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="pill_set_text" type="id" />
+    <item name="pill_original_index" type="id" />
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- path value must match @string/app_files_dir -->
+<paths>
+    <external-path name="k12kb" path="K12Kb/" />
+</paths>

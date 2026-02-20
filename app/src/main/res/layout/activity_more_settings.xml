@@ -1,99 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:id="@+id/scrollView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/appBackgroundColor">
 
-    <RelativeLayout
-            android:id="@+id/activity_more_settings"
+    <LinearLayout
+        android:id="@+id/activity_more_settings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="24dp"
+        tools:context=".ActivitySettingsMore">
+
+        <!-- Pill Header -->
+        <LinearLayout style="@style/PillHeader">
+            <TextView
+                style="@style/PillHeaderTitle"
+                android:text="@string/pref_more_tv_settings_more_title" />
+        </LinearLayout>
+
+        <!-- DATA -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="DATA" />
+
+        <LinearLayout style="@style/ItemPill">
+            <Button
+                android:id="@+id/pref_more_bt_save"
+                style="@style/ItemPillText"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:text="SAVE KEYBOARD DATA"
+                android:textColor="?attr/textPrimaryColor"
+                android:textAllCaps="false" />
+            <TextView style="@style/Chevron" android:text="\u203A" />
+        </LinearLayout>
+
+        <!-- SEARCH PLUGINS -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/pref_more_tv_search_plugins_title" />
+
+        <LinearLayout style="@style/ItemPill">
+            <Button
+                android:id="@+id/pref_more_bt_save_search_plugins"
+                style="@style/ItemPillText"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:text="SAVE PLUGIN DATA"
+                android:textColor="?attr/textPrimaryColor"
+                android:textAllCaps="false" />
+            <TextView style="@style/Chevron" android:text="\u203A" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPill">
+            <Button
+                android:id="@+id/btn_sys_kb_accessibility_setting"
+                style="@style/ItemPillText"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:text="@string/main_btn_sys_kb_accessibility_setting_enabled"
+                android:textColor="?attr/textPrimaryColor"
+                android:textAllCaps="false" />
+            <TextView style="@style/Chevron" android:text="\u203A" />
+        </LinearLayout>
+
+        <!-- JS PATCHES -->
+        <TextView
+            style="@style/SectionHeader"
+            android:text="@string/pref_more_tv_js_patches_title" />
+
+        <!-- Container for dynamic JS patch switches -->
+        <LinearLayout
+            android:id="@+id/container_js_patches"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:context=".ActivitySettingsMore">
-        <TextView
-                android:id="@+id/settings_more_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_more_tv_settings_more_title"
-                android:textColor="@color/black"
-                android:textAlignment="center"
-                android:padding="8dp"
-                android:textSize="18sp" />
-        <View
-                android:id="@+id/divider2"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_below="@id/settings_more_title"
-                android:background="?android:attr/listDivider" />
+            android:orientation="vertical" />
 
-        <Button android:id="@+id/pref_more_bt_save"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/divider2"
-                android:text="SAVE KEYBOARD DATA"
-        />
-        <View
-                android:id="@+id/divider1"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_below="@id/pref_more_bt_save"
-                android:background="?android:attr/listDivider" />
-        <TextView
-                android:id="@+id/tv_search_plugins_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_more_tv_search_plugins_title"
-                android:textColor="@color/black"
-                android:textAlignment="center"
-                android:layout_below="@id/divider1"
-                android:padding="8dp"
-                android:textSize="16sp" />
-        <Button android:id="@+id/pref_more_bt_save_search_plugins"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tv_search_plugins_title"
-                android:text="SAVE PLUGIN DATA"
-        />
-        <Button
-                android:id="@+id/btn_sys_kb_accessibility_setting"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tv_search_plugins_title"
-                android:text="@string/main_btn_sys_kb_accessibility_setting_enabled" />
-        <View
-                android:id="@+id/divider3"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_below="@id/btn_sys_kb_accessibility_setting"
-                android:background="?android:attr/listDivider" />
-        <TextView
-                android:id="@+id/tv_js_patches_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_more_tv_js_patches_title"
-                android:textColor="@color/black"
-                android:textAlignment="center"
-                android:layout_below="@id/divider3"
-                android:padding="8dp"
-                android:textStyle="bold"
-                android:textSize="18sp" />
+        <!-- Placeholder for first JS patch (hidden, used by Java code) -->
         <Switch
-                android:id="@+id/default_js_patch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textSize="16sp"
-                android:layout_below="@id/tv_js_patches_title"
-                tools:checked="false"
-                android:visibility="gone"/>
-        <View
-                android:id="@+id/divider5"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:padding="5dp"
-                android:layout_below="@id/default_js_patch"
-                android:background="?android:attr/listDivider" />
+            android:id="@+id/default_js_patch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="15sp"
+            android:visibility="gone"
+            tools:checked="false" />
 
-    </RelativeLayout>
+    </LinearLayout>
 </ScrollView>

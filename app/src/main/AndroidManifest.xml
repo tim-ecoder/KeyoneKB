@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.sateda.keyonekb2">
+    package="com.ai10.k12kb">
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
@@ -24,6 +24,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".ActivitySettings"></activity>
         <activity android:name=".ActivitySettingsMore"></activity>
+        <activity android:name=".ActivityPredictionSettings"></activity>
         <activity android:name=".ActivityKeyboardTest"></activity>
         <activity
             android:name=".ActivityMain"
@@ -35,7 +36,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".KeyoneIME"
+            android:name=".K12KbIME"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:directBootAware="false"
@@ -45,17 +46,17 @@
             </intent-filter>
             <meta-data
                 android:name="android.view.im"
-                android:resource="@xml/keyonekb_input_method" />
+                android:resource="@xml/k12kb_input_method" />
         </service>
-        <service android:name=".KeyoneKb2AccessibilityService"
+        <service android:name=".K12KbAccessibilityService"
                  android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-                 android:label="@string/keyonekb_accessibility_service_label">
+                 android:label="@string/k12kb_accessibility_service_label">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data
                     android:name="android.accessibilityservice"
-                    android:resource="@xml/keyonekb_accessibility_service_config"
+                    android:resource="@xml/k12kb_accessibility_service_config"
                      />
         </service>
         <activity
@@ -68,7 +69,7 @@
             android:theme = "@style/AppTheme2.NoDisplay"
             -->
             <intent-filter>
-                <action android:name="com.sateda.keyonekb2.IntentQuickSettings"/>
+                <action android:name="com.ai10.k12kb.IntentQuickSettings"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -78,11 +79,21 @@
                 android:theme = "@android:style/Theme.Translucent.NoTitleBar"
         >
             <intent-filter>
-                <action android:name="com.sateda.keyonekb2.IntentNotifications"/>
+                <action android:name="com.ai10.k12kb.IntentNotifications"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="@string/file_provider_authority"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <service android:name="com.google.android.voiceime.ServiceHelper" />
         <activity

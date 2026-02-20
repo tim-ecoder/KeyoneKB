@@ -1,10 +1,41 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorBackgroundLight</item>
+        <item name="android:textColorPrimary">@color/textPrimaryLight</item>
+        <item name="android:textColorSecondary">@color/textSecondaryLight</item>
+        <item name="android:colorControlActivated">@color/colorAccent</item>
+        <item name="appBackgroundColor">@color/colorBackgroundLight</item>
+        <item name="itemPillColor">@color/colorItemPillLight</item>
+        <item name="textPrimaryColor">@color/textPrimaryLight</item>
+        <item name="textSecondaryColor">@color/textSecondaryLight</item>
+        <item name="sectionHeaderColor">@color/sectionHeaderLight</item>
+        <item name="chevronTextColor">@color/chevronColorLight</item>
+        <item name="hintBoxBgColor">@color/hintBoxBgLight</item>
+        <item name="grantedHeaderBgColor">@color/grantedHeaderBgLight</item>
+        <item name="grantedHeaderTextColor">@color/grantedHeaderTextLight</item>
+        <item name="grantedHeaderChevronColor">@color/grantedHeaderChevronLight</item>
+    </style>
+
+    <style name="AppTheme.Dark" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:textColorPrimary">@color/textPrimary</item>
+        <item name="android:textColorSecondary">@color/textSecondary</item>
+        <item name="android:colorControlActivated">@color/colorAccent</item>
+        <item name="appBackgroundColor">@color/colorBackground</item>
+        <item name="itemPillColor">@color/colorItemPill</item>
+        <item name="textPrimaryColor">@color/textPrimary</item>
+        <item name="textSecondaryColor">@color/textSecondary</item>
+        <item name="sectionHeaderColor">@color/sectionHeader</item>
+        <item name="chevronTextColor">@color/chevronColor</item>
+        <item name="hintBoxBgColor">@color/hintBoxBg</item>
+        <item name="grantedHeaderBgColor">@color/grantedHeaderBg</item>
+        <item name="grantedHeaderTextColor">@color/grantedHeaderText</item>
+        <item name="grantedHeaderChevronColor">@color/grantedHeaderChevron</item>
     </style>
 </resources>

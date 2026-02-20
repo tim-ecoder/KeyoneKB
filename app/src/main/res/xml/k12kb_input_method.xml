@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<input-method xmlns:android="http://schemas.android.com/apk/res/android"
+              android:settingsActivity="com.ai10.k12kb.ActivityMain"
+              android:isDefault="true"
+>
+
+    <subtype
+            android:label="International"
+            android:imeSubtypeLocale="Многоязычная"
+            android:imeSubtypeMode="Keyboard" />
+
+</input-method>
