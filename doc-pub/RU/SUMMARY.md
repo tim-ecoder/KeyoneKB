@@ -6,3 +6,4 @@
 * [Release 2.5](release-2.5.md)
 * [Release 2.6](release-2.6.md)
 * [Release 2.7](release-2.7.md)
+* [Release 3.0](release-3.0.md)
