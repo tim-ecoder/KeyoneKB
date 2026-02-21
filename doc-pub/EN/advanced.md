@@ -6,7 +6,7 @@
 
 > For example, forgetting to add a bracket in JSON (believe me, people have spent dozens of hours on such mistakes)
 
-### (v2.3+) Search plugins (basics)
+###Search plugins (basics)
 
 > These are mini-bots that, when you enter an application and immediately start typing on the hardware keyboard, press the search button (which is usually at the top) for you. Incredibly convenient. How did I live without this before.
 
@@ -40,7 +40,7 @@
 
 To pick up the new file, you need to restart the Accessibility Service (KeyoneKb2)
 
-### (v2.3+) Search plugins (more complex cases)
+###Search plugins (more complex cases)
 
 > I haven't found cases where you'd need to modify the keyboard's source code to add a new application to the search plugin. But if you've tried everything listed below, "welcome to DMs"
 
@@ -87,7 +87,7 @@ To pick up the new file, you need to restart the Accessibility Service (KeyoneKb
  "wait-before-send-char-ms" : 200
 ```
 
-### (v2.3+) Search plugins (known issues)
+###Search plugins (known issues)
 
 #### When adding a new application to plugins and entering the application for the first time, it is IMPORTANT that the application is NOT in activated search mode at that moment, otherwise the wrong search field identifiers may be saved and it won't work
 
@@ -98,7 +98,7 @@ To pick up the new file, you need to restart the Accessibility Service (KeyoneKb
 * However, for freshly added applications where everything was identified incorrectly — this is the solution;
 * The main thing is, once everything works correctly, don't forget to save to a file and place it where needed (described above)
 
-### (v2.3+) Keyboard layout customization
+###Keyboard layout customization
 
 #### Important! If you uninstall the application, all custom layouts will be deleted along with the folder. Make a backup.
 
@@ -191,7 +191,7 @@ russian\_hw.json
 } ]
 ```
 
-### (v2.3+) Core constants customization
+###Core constants customization
 
 **All file mechanics are analogous to layouts (see above)**
 
@@ -214,7 +214,7 @@ keyboard\_core.json
 
 TIME\_SHORT\_PRESS — time from button (tap) press to release (first time) TIME\_DOUBLE\_PRESS — time from FIRST button (tap) press to SECOND press TIME\_TRIPLE\_PRESS — time from SECOND button (tap) press to THIRD press
 
-### (v2.3+) Keyboard logic customization
+###Keyboard logic customization
 
 **All file mechanics are analogous to layouts (see above)**
 
@@ -461,7 +461,7 @@ Typically these are keyboard mode changes (NAV, language, etc.)
 
 **Settings for keyboard gesture mode handlers (TBD)**
 
-### (v2.3+) Accessibility service customization
+###Accessibility service customization
 
 **All file mechanics are analogous to layouts (see above)**
 

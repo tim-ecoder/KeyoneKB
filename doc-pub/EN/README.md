@@ -37,8 +37,8 @@ A keyboard made by fans of hardware keyboard input, for fans of hardware keyboar
 ### Important notes
 
 * For **KEY1** owners: Wherever Ctrl is mentioned, read RIGHT\_SHIFT;
-* (v2.4+) For **Unihertz Titan Pocket and Slim** owners: Wherever Ctrl is mentioned, read FN; Where KEY\_0 is mentioned — this button simply does not exist.
-* (v2.3+) For **KEY2 non-RST** owners: Where Ctrl is mentioned, read SPEED\_KEY. The SPEED\_KEY function for launching apps will continue to work (except for letters ACXVZ and KEY\_0);
+* For **Unihertz Titan Pocket and Slim** owners: Wherever Ctrl is mentioned, read FN; Where KEY\_0 is mentioned — this button simply does not exist.
+* For **KEY2 non-RST** owners: Where Ctrl is mentioned, read SPEED\_KEY. The SPEED\_KEY function for launching apps will continue to work (except for letters ACXVZ and KEY\_0);
 * _Shift everywhere refers to LEFT\_SHIFT_;
 
 > For the on-screen NAV-pad, SYM-pad, and SWIPE panel to work, the "show virtual keyboard" setting must be enabled
@@ -54,11 +54,11 @@ A keyboard made by fans of hardware keyboard input, for fans of hardware keyboar
 2. Shift+Backspace = Delete (deletes the character after the cursor);
 3. 2xSpace produces ". " (period space);
 4. In gesture modes for input fields, swipe panel, and NAV mode you can **select text by holding Shift**;
-5. (v2.2+) Shift+Enter moves the cursor to the beginning of the paragraph (if already at the beginning, moves to the start of the previous paragraph);
-6. (v2.2+) ALT+DEL deletes everything up to the previous line break (paragraph);
-7. (v2.4+) KEY\_0+DEL deletes a word;
-8. (v2.4+) ALT+SPACE inserts \t (tab character) in editing mode
-9. (v2.4+) Enter works as a custom button (SEARCH, GO, NEXT, etc.) for cases when the host application offers such options (similar to BB.Keyboard behavior). Now search in Wildberries works properly.
+5. Shift+Enter moves the cursor to the beginning of the paragraph (if already at the beginning, moves to the start of the previous paragraph);
+6. ALT+DEL deletes everything up to the previous line break (paragraph);
+7. KEY\_0+DEL deletes a word;
+8. ALT+SPACE inserts \t (tab character) in editing mode
+9. Enter works as a custom button (SEARCH, GO, NEXT, etc.) for cases when the host application offers such options (similar to BB.Keyboard behavior). Now search in Wildberries works properly.
 
 ### C. Capital letters
 
@@ -82,8 +82,8 @@ A keyboard made by fans of hardware keyboard input, for fans of hardware keyboar
 
 1. In enabled ALT mode, Shift+Key;
 2. Shift+Hold;
-3. (v.2.2+) In ALT mode (2xALT or held ALT), press and hold;
-4. (v.2.2+) In ALT mode, Quick press; press-and-hold; gives the first symbol from the additional symbols list (item 8) (dash on minus, ruble on dollar)
+3. In ALT mode (2xALT or held ALT), press and hold;
+4. In ALT mode, Quick press; press-and-hold; gives the first symbol from the additional symbols list (item 8) (dash on minus, ruble on dollar)
 5. Quick press; press-and-hold; (**for one-handed operation**)
 
 ### E. On-screen SYM keyboard
@@ -106,25 +106,25 @@ A keyboard made by fans of hardware keyboard input, for fans of hardware keyboar
 
 1. "Temporary" mode. Hold KEY\_0 (ZERO) + gesture on keyboard left-right (if vertical gesture mode is enabled (see below) then also up-down).
 
-> **(<=v2.2)** Due to BlackBerry OS implementation specifics. _Before holding Zero, first place your right finger on the keyboard (you can start making the gesture)_. This is still quite convenient once you get used to it, for example to go back a few characters, make a correction, then return to where you were typing;
+> Due to BlackBerry OS implementation specifics. _Before holding Zero, first place your right finger on the keyboard (you can start making the gesture)_. This is still quite convenient once you get used to it, for example to go back a few characters, make a correction, then return to where you were typing;
 
-> **(v2.3+)** Now to move the cursor while holding KEY\_0, you don't need to place your finger on the keyboard first — you can hold KEY\_0 first, then start making the gesture;
+> Now to move the cursor while holding KEY\_0, you don't need to place your finger on the keyboard first — you can hold KEY\_0 first, then start making the gesture;
 
-2. "Permanent" gesture mode. Enable: (2.4+) 2xKEY\_0 (<=2.3 2xCtrl). Disable: (2.4+) 1xKEY\_0 (<=2.3 1xCtrl). Keyboard gestures left-right will work until text input.
-3. Gesture mode +up-down (for large texts). Enable: (2.4+) 3xKEY\_0 (<=2.3 3xCtrl); Disable: (2.4+) 1xKEY\_0 (<=2.3 1xCtrl). Automatically disables after the first character input.
+2. "Permanent" gesture mode. Enable: 2xKEY\_0. Disable: 1xKEY\_0. Keyboard gestures left-right will work until text input.
+3. Gesture mode +up-down (for large texts). Enable: 3xKEY\_0; Disable: 1xKEY\_0. Automatically disables after the first character input.
 
-> Important: (2.4+) 3xKEY\_0 (<=2.3 3xCtrl) enables vertical gesture mode, after which this mode will also work with (2.4+) 2xKEY\_0 (<=2.3 2xCtrl). Until explicitly disabled with (2.4+) 1xKEY\_0 (<=2.3 1xCtrl);
+> Important: 3xKEY\_0 enables vertical gesture mode, after which this mode will also work with 2xKEY\_0. Until explicitly disabled with 1xKEY\_0;
 
 > For Unihertz **Titan Pocket/Slim**, 2xFn is used to activate text gesture mode (the mechanism is "built into" the OS)
 
-> (<=v2.3) **Hint** _To scroll Telegram with gestures, you need to move the cursor out of the input field with the up arrow (sym+u/e)._ **(v2.4)** Scroll mode in editing mode has been added (see below)
+> **Hint** _To scroll Telegram with gestures, you need to move the cursor out of the input field with the up arrow (sym+u/e)._ Scroll mode in editing mode has been added (see below)
 
-5. (v2.2+) Double tap on the keyboard (without releasing the second tap — you can immediately start making the gesture) activates horizontal gesture mode. Releasing deactivates text field gesture mode.
-6. (v2.2+) Triple tap on the keyboard (without releasing the third tap — you can immediately start making the gesture) activates horizontal and vertical gesture mode. Releasing deactivates text field gesture mode.
+5. Double tap on the keyboard (without releasing the second tap — you can immediately start making the gesture) activates horizontal gesture mode. Releasing deactivates text field gesture mode.
+6. Triple tap on the keyboard (without releasing the third tap — you can immediately start making the gesture) activates horizontal and vertical gesture mode. Releasing deactivates text field gesture mode.
 
 > Important: Triple tap enables vertical gesture mode, after which this mode will also work with double tap
 
-7. (v2.3+) In gesture mode (including vertical) for input fields, you can hold SHIFT to select text
+7. In gesture mode (including vertical) for input fields, you can hold SHIFT to select text
 
 #### Scroll mode in editing mode
 
@@ -135,7 +135,7 @@ While in a messenger dialog (e.g., Telegram), you can press 2xCTRL to enter scro
 1. If the corresponding setting is enabled (item 9), viewing gestures will work in all applications (except input fields). Enable/Disable: 3xCTRL
 2. Scroll mode smoothly scrolls pages using keyboard gestures
 
-> (v2.4+) Everything below
+> Everything below
 
 3. 2nd mode — Pointer mode allows moving selection across different interface elements, buttons, etc. (like the old non-touch BlackBerry)
 
@@ -159,7 +159,7 @@ While in a messenger dialog (e.g., Telegram), you can press 2xCTRL to enter scro
 
 ### I. Other
 
-#### (v2.3+) "Transparency" mode
+#### "Transparency" mode
 
 > In viewing mode (not in text input mode), the keyboard does not process letter presses (except some meta buttons) and sends them to applications as-is. This is important for some applications. For example, games where holding buttons should produce repeated inputs (as games need, for example, to run forward without pressing a button 500 times).
 
@@ -178,12 +178,12 @@ While in a messenger dialog (e.g., Telegram), you can press 2xCTRL to enter scro
 > A search plugin is when entering an application and starting to type on the hardware keyboard, the "Search" icon is pressed automatically
 
 2. In **Blackberry Contacts and Phone (Dialer)** applications, you can immediately start typing in Cyrillic after entering, without pressing the "magnifying glass", and search will work.
-3. (v2.2+) In **Telegram**, if you start typing in the main window, it will search through chats.
-4. (v2.3+) You can add search plugins quite easily ([dedicated section](https://github.com/tim-ecoder/KeyoneKB/wiki/%D0%A1%D0%BB%D0%BE%D0%B6%D0%BD%D1%8B%D0%B5-%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B8)), for example a plugin for ExDialer has already been added
-5. (v2.3+) Built-in plugins have been expanded with: Yandex (Maps, Navigator), Blackberry (Settings, HUB, Notes, Calendar)
-6. (v2.4+) Search plugins now activate on CTRL+ACXV and on DEL and SPACE. For example, you copy an address, open Yandex.Maps, and without pressing search, press ctrl+v: search will open automatically and the address from the clipboard will be entered.
+3. In **Telegram**, if you start typing in the main window, it will search through chats.
+4. You can add search plugins quite easily ([dedicated section](https://github.com/tim-ecoder/KeyoneKB/wiki/%D0%A1%D0%BB%D0%BE%D0%B6%D0%BD%D1%8B%D0%B5-%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B8)), for example a plugin for ExDialer has already been added
+5. Built-in plugins have been expanded with: Yandex (Maps, Navigator), Blackberry (Settings, HUB, Notes, Calendar)
+6. Search plugins now activate on CTRL+ACXV and on DEL and SPACE. For example, you copy an address, open Yandex.Maps, and without pressing search, press ctrl+v: search will open automatically and the address from the clipboard will be entered.
 
-#### (v2.4+) ENSURE\_ENTERED\_TEXT
+#### ENSURE\_ENTERED\_TEXT
 
 In text input mode, to exit the application (BACK, HOME), if some text has been entered, you need to press twice (BACK or HOME). If no text is entered or you're not in an input field, a single press is sufficient as usual. This is important because sometimes already entered text is lost due to an accidental finger slip upward (this is important in browser input fields where back resets the input form). Setting item 12 to disable this mode.
 
@@ -191,14 +191,14 @@ In text input mode, to exit the application (BACK, HOME), if some text has been 
 
 #### Setting\_6 must be enabled
 
-1. (v2.2+) Answering a call
+1. Answering a call
 
 * Useful for K1 (K2 has a similar built-in function)
 * When a call is incoming
 * If not in a text input field
 * Then 2xSpace will answer the call
 
-2. (v2.2+) Ending a call
+2. Ending a call
 
 * During a call or incoming call
 * If not in an input field
