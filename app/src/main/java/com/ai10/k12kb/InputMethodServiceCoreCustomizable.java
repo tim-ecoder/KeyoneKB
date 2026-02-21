@@ -23,8 +23,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.android.voiceime.VoiceRecognitionTrigger;
 import com.ai10.k12kb.input.CallStateCallback;
 
-import com.ai10.k12kb.prediction.WordDictionary;
-import com.ai10.k12kb.prediction.WordPredictor;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -34,7 +32,7 @@ import java.util.HashMap;
 
 import static com.ai10.k12kb.FileJsonUtils.LogErrorToGui;
 
-public abstract class InputMethodServiceCoreCustomizable extends InputMethodServiceCoreGesture {
+public abstract class InputMethodServiceCoreCustomizable extends InputMethodServiceCorePrediction {
     protected boolean pref_show_toast = false;
     protected boolean pref_show_default_onscreen_keyboard = true;
     protected boolean pref_alt_space = true;
@@ -73,8 +71,6 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     protected Processable OnFinishInput;
     protected Processable BeforeSendChar;
     protected Processable AfterSendChar;
-    protected WordPredictor wordPredictor;
-    private boolean dictLoadingToastShown = false;
     protected int[] ViewModeExcludeKeyCodes;
 
     public String keyboard_mechanics_res;
@@ -2049,16 +2045,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         }
     }
 
-    private void ShowDictLoadingToast() {
-        if (!wordPredictor.isEngineReady() && !dictLoadingToastShown) {
-            dictLoadingToastShown = true;
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.prediction_loading_toast),
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
 
-    protected KeyboardLayoutManager keyboardLayoutManager = new KeyboardLayoutManager();
 
     protected abstract void UpdateKeyboardModeVisualization(boolean updateSwipePanelData);
 
