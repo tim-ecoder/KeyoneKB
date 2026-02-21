@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
+import androidx.core.app.ActivityCompat;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
@@ -17,7 +17,7 @@ import android.view.Gravity;
 import android.view.ViewGroup;
 
 import android.net.Uri;
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 
 import java.io.File;
 import java.io.IOException;

@@ -5,7 +5,14 @@
       "Bash(git push:*)",
       "Bash(git mv:*)",
       "Bash(grep:*)",
-      "Bash(bash build_apk.sh)"
+      "Bash(bash build_apk.sh)",
+      "Bash(./gradlew :app:compileReleaseJavaWithJavac:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(java -version:*)",
+      "Bash(./gradlew :app:assembleRelease:*)",
+      "Bash(./gradlew:*)",
+      "Bash(where:*)",
+      "Bash(adb logcat:*)"
     ]
   }
 }

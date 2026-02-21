@@ -7,7 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.support.v7.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 
 public class NotificationProcessor {
 
@@ -17,9 +17,9 @@ public class NotificationProcessor {
     private String gestureModeChannelDescription;
     private final String layoutModeChannelId1 = "K12Kb_NotificationChannel_KeyboardLayout";
     private String layoutModeChannelDescription;
-    private android.support.v4.app.NotificationCompat.Builder builderLayout;
+    private androidx.core.app.NotificationCompat.Builder builderLayout;
     private Notification.Builder builder2Layout;
-    private android.support.v4.app.NotificationCompat.Builder builderGesture;
+    private androidx.core.app.NotificationCompat.Builder builderGesture;
     private Notification.Builder builder2Gesture;
     private NotificationManager notificationManager;
     private NotificationChannel notificationChannelLayoutMode;

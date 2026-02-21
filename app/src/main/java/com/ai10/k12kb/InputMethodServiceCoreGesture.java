@@ -1,7 +1,7 @@
 package com.ai10.k12kb;
 
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;

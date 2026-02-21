@@ -5,7 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.*;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
 import android.text.InputType;
