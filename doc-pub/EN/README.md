@@ -12,6 +12,7 @@ A keyboard made by fans of hardware keyboard input, for fans of hardware keyboar
 |--------|-------|
 | Blackberry Key1 | Full support |
 | Blackberry Key2 | Full support |
+| Unihertz Titan | Full support |
 | Unihertz Titan Pocket | Without keyboard gestures in text input mode |
 | Unihertz Titan Slim | Without keyboard gestures in text input mode |
 | Other | Can be adapted without recompilation for any device with a hardware keyboard |
@@ -42,6 +43,7 @@ The `Ctrl` key differs by device:
 |--------|----------------------|-------|
 | **Key1** | `RIGHT_SHIFT` | Wherever `Ctrl` is mentioned, use `RIGHT_SHIFT` |
 | **Key2 (non-RST)** | `SPEED_KEY` | The `SPEED_KEY` app-launching function still works (except for letters A, C, X, V, Z and `KEY_0`) |
+| **Unihertz Titan** | `CTRL` | Has a dedicated physical `Ctrl` key |
 | **Unihertz Titan Pocket/Slim** | `FN` | `KEY_0` does not exist on these devices |
 
 > `Shift` everywhere refers to `LEFT_SHIFT`.
@@ -60,8 +62,8 @@ The `Ctrl` key differs by device:
 3. `2xSpace` produces ". " (period followed by space).
 4. In gesture modes for input fields, swipe panel, and NAV mode you can **select text by holding `Shift`**.
 5. `Shift`+`Enter` moves the cursor to the beginning of the paragraph (if already at the beginning, moves to the start of the previous paragraph).
-6. `ALT`+`DEL` deletes everything up to the previous line break (paragraph).
-7. `KEY_0`+`DEL` deletes a word.
+6. `ALT`+`DEL` deletes everything up to the previous line break (paragraph). `ALT`+`Shift`+`DEL` deletes the paragraph **forward**.
+7. `KEY_0`+`DEL` deletes a word. `KEY_0`+`Shift`+`DEL` deletes a word **forward** (Key1|2 only).
 8. `ALT`+`Space` inserts a tab character (\t) in editing mode.
 9. `Enter` works as a custom button (SEARCH, GO, NEXT, etc.) for cases when the host application offers such options (similar to BB Keyboard behavior).
 
@@ -103,11 +105,13 @@ SYM symbols come from the SYM layout (also known as ALT2 or Alt-Shift).
 
 ### F. Navigation keyboard (NAV keyboard) and NAV mode
 
-1. Allows using Up/Down/Left/Right arrows, `HOME`, `END`, `PAGE_UP`, `PAGE_DOWN`, `ESC`, `TAB`, and `Shift`+`Tab`.
+1. Allows using Up/Down/Left/Right arrows, `HOME`, `END`, `PAGE_UP`, `PAGE_DOWN`, `ESC`, `TAB`, `Shift`+`Tab`, and `DEL`.
 2. Can be used both in input mode and in viewing mode for various screen navigation.
 3. "Temporary" mode (hold/release mode): Hold `SYM`+Key. Releasing `SYM` disables the mode.
 4. "Permanent" mode (in text input mode opens the NAV panel -- you can tap on it, or look at it and memorize the keyboard letters for use in hold mode). Enable: `2xSYM`. Disable: single `SYM` press.
 5. There are NAV keyboard variants for the right finger (`Q`/`Y`/`U`/`I`/`O` and `A`/`H`/`J`/`K`/`L`) for permanent mode, and for the left finger (`Q`/`W`/`E`/`R`/`T` and `A`/`S`/`D`/`F`/`G`) for convenient use while holding `SYM`.
+6. Word-by-word navigation: `SYM`+`Z`/`N` (previous word) and `SYM`+`X`/`M` (next word). Punctuation is skipped automatically. Word selection is supported while holding `Shift`.
+7. To switch the active selection handle: press `2xShift` (without releasing the second press), then the opposite handle will move with all navigation keys and word navigation.
 
 ### G. Keyboard gesture modes (keyboard sensor)
 
@@ -126,8 +130,8 @@ SYM symbols come from the SYM layout (also known as ALT2 or Alt-Shift).
 
 > **Hint:** To scroll in Telegram, use Scroll mode in editing mode (see below), or move the cursor out of the input field using the up arrow (`SYM`+`U`/`E`).
 
-4. Double tap on the keyboard (without releasing the second tap -- you can immediately start making the gesture) activates horizontal gesture mode. Releasing deactivates text field gesture mode.
-5. Triple tap on the keyboard (without releasing the third tap -- you can immediately start making the gesture) activates horizontal and vertical gesture mode. Releasing deactivates text field gesture mode.
+4. Double tap on the keyboard activates horizontal gesture mode. Works both with and without releasing the second tap. Releasing deactivates text field gesture mode.
+5. Triple tap on the keyboard activates horizontal and vertical gesture mode. Works both with and without releasing the third tap. Releasing deactivates text field gesture mode.
 
 > Important: Triple tap enables vertical gesture mode, after which this mode will also work with double tap.
 
@@ -135,7 +139,9 @@ SYM symbols come from the SYM layout (also known as ALT2 or Alt-Shift).
 
 #### Scroll mode in editing mode
 
-While in a messenger dialog (e.g., Telegram), you can press `2xCtrl` to enter scroll mode for browsing history using keyboard gestures. Typing any character disables this mode. Previously, you had to move the cursor out of the input field through NAV mode (`SYM`+`A`).
+While in a messenger dialog (e.g., Telegram), you can press `2xCtrl` to enter scroll mode for browsing history using keyboard gestures. Typing any character disables this mode.
+
+If viewing gestures are enabled for the application (Setting 9 or `3xCtrl`), scroll mode activates automatically when entering an input field, before you start pressing anything. To disable this, turn off the sensor for the application with `3xCtrl`.
 
 #### Gestures in viewing mode
 
@@ -160,8 +166,20 @@ While in a messenger dialog (e.g., Telegram), you can press `2xCtrl` to enter sc
 
 1. Text operations: `Ctrl`+`C` (Copy), `Ctrl`+`V` (Paste), `Ctrl`+`X` (Cut), `Ctrl`+`A` (Select all).
 2. `Ctrl`+`Z` (Undo), `Ctrl`+`Shift`+`Z` (Redo, i.e., revert if you accidentally pressed `Ctrl`+`Z`).
+3. `Ctrl`+`Alt` — paste clipboard contents character-by-character. Useful for bypassing anti-paste scripts on websites.
 
-### I. Other
+### I. Voice input
+
+Activate voice input with a simultaneous press of two adjacent buttons (order does not matter):
+
+| Device | Shortcut |
+|--------|----------|
+| **Key1/Key2** | `Ctrl`+`Sym` or `Sym`+`Ctrl` |
+| **Titan Pocket/Slim** | `Fn`+`Alt` or `Alt`+`Fn` |
+
+After exiting voice input, the cursor automatically returns to the text field.
+
+### J. Other
 
 #### "Transparency" mode
 
@@ -173,9 +191,11 @@ So that this mode does not interfere for users who are used to typing letters to
 
 * You can make "swipes" on this panel to move the cursor.
 * You can tap the arrows on the left and right to move the cursor one step at a time.
+* Long-press on the on-screen NAV-pad or swipe panel buttons repeats the action.
 
 1. The swipe panel is enabled from the settings menu (Setting 8). After switching, the keyboard needs to be restarted with `Alt`+`Enter`.
 2. `Shift`+`Ctrl` activates the bottom swipe panel with the flag.
+3. Setting 14 controls whether the NAV-pad is shown on a single `SYM` press (hold).
 
 #### Search plugins
 
@@ -186,12 +206,13 @@ A search plugin is a feature where, upon entering an application and starting to
 3. You can add search plugins quite easily ([dedicated section](advanced.md)). For example, a plugin for ExDialer has already been added.
 4. Built-in plugins have been expanded with: Yandex (Maps, Navigator), Blackberry (Settings, HUB, Notes, Calendar).
 5. Search plugins also activate on `Ctrl`+`A`/`C`/`X`/`V`, on `DEL`, and on `Space`. For example, you copy an address, open Yandex Maps, and without pressing search, press `Ctrl`+`V`: search will open automatically and the address from the clipboard will be entered.
+6. **Clicker plugins** work similarly to search plugins but click on text input fields instead of search. For example, when entering a messenger dialog and starting to type, the clicker plugin automatically focuses the message input field. Built-in clicker plugins include 4PDA, Avito, Kate, and others.
 
 #### ENSURE_ENTERED_TEXT
 
 In text input mode, to exit the application (`BACK`, `HOME`), if some text has been entered, you need to press twice (`BACK` or `HOME`). If no text is entered or you are not in an input field, a single press is sufficient as usual. This is important because sometimes already entered text is lost due to an accidental finger slip upward (this is important in browser input fields where back resets the input form). Use Setting 12 to disable this mode.
 
-### J. Working with calls
+### K. Working with calls
 
 > Setting 6 must be enabled for call features.
 

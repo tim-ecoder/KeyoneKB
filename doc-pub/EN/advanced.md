@@ -112,6 +112,18 @@ To pick up the new file, you need to restart the Accessibility Service (K12KB).
 
 ---
 
+### Clicker plugins
+
+Clicker plugins work exactly like search plugins, but instead of clicking on a search field, they click on a text input field. This is useful for messengers and other applications where you want to start typing immediately without tapping on the input field first.
+
+* Clicker plugins are configured in `plugin_data.json` alongside search plugins
+* The mechanism for adding and saving clicker plugins is identical to search plugins (see above)
+* Built-in clicker plugins include: 4PDA, Avito, Kate
+
+> In one application, you can have both a search plugin and a clicker plugin — the keyboard will click in different fields depending on the situation.
+
+---
+
 ### Keyboard layout customization
 
 > **Important!** If you uninstall the application, all custom layouts will be deleted along with the folder. Make a backup.
@@ -405,6 +417,8 @@ Or numeric code values:
       ],
 ```
 
+> Individual key customization: in memory, each key's settings from a group are duplicated per key. This means you can customize behavior for a specific key (via a mechanics section or JS patch) without affecting other keys in the same group. Useful for cases such as when a specific key is broken.
+
 > The keyboard works on a quick input principle (i.e., a single event fires immediately without waiting for double press or long press). As practice has shown: 1. This works noticeably faster and is more usable 2. Undoing a single press input has never been a problem
 
 ##### Event types
@@ -414,6 +428,7 @@ Or numeric code values:
 * `on-hold-on` -- for holding down (before releasing), used in hold+button mode
 * `on-hold-off` -- for releasing a hold, used in hold+button mode
 * `on-long-press` -- for a long press
+* `undo-short-press` -- cancels the single-press action when a hold or double-press is detected. Used for meta buttons (alt, shift, sym, key0, ctrl) which now trigger on key-down instead of key-up.
 
 > `on-hold-xxx` and `on-long-press` are mutually exclusive events, only one should be used.
 
@@ -487,6 +502,49 @@ Typically these are keyboard mode changes (NAV, language, etc.)
 ##### `gesture-processor`
 
 Settings for keyboard gesture mode handlers (TBD).
+
+---
+
+### JS patches
+
+JS patches provide a JavaScript engine for granular patching of JSON configuration files. This allows you to make small targeted changes to mechanics, core settings, or plugin data without replacing entire JSON files.
+
+#### How it works
+
+* Patch files are JavaScript scripts that modify the `json` object (the parsed JSON file)
+* Each patch file targets a specific JSON file by its filename prefix (e.g., `keyboard_mechanics.2_ctrl_acxvz_with_nav_key.js` patches `keyboard_mechanics.json`)
+* The naming convention is: `<target_json_name>.<number>_<description>.js`
+* Patches are applied in order after the JSON file is loaded
+
+#### Example
+
+A simple patch that changes the long press timing to 700ms (`keyboard_core.1_lp700.js`):
+
+```javascript
+// @name 1. Long press 700ms
+json["time-long-press"]=700;
+```
+
+#### Managing JS patches
+
+* JS patches can be enabled/disabled via the **Advanced Settings** menu — no file editing required
+* Custom JS patches can be placed in the `/storage/emulated/0/K12Kb` folder alongside other customization files
+* This is useful so you don't have to re-apply your custom changes every time the developer updates the mechanics file
+* You can also try out convenience changes made by other users
+
+> JS patches are the recommended way to make small customizations, as they survive mechanics file updates.
+
+---
+
+### NAV mechanism customization
+
+The NAV mechanism has been moved to JSON and is now fully customizable, just like other keyboard mechanics. NAV key mappings and behavior can be modified through the standard mechanics customization approach described above.
+
+---
+
+### JSON error display
+
+If a JSON file fails to load (e.g., due to a syntax error), the error is displayed in the "check operation" form in Extended Settings. This makes it easier to debug custom JSON edits.
 
 ---
 
