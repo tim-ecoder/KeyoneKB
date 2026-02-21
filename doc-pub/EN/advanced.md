@@ -15,10 +15,10 @@
 * The list of current search plugins built into the application can be viewed by going to the Extended Settings menu
 * If you don't find the application you'd like to "automate" in terms of clicking the "magnifying glass", it's quite easy to do:
   1. Enter "your" application;
-  2. Go to KeyoneKb Extended Settings;
+  2. Go to K12KB Extended Settings;
   3. Find your application among the three ADD PLUGIN buttons and click on it -- the button will change to ADDED;
 
-> The ADD PLUGIN buttons show the 3 most recent applications you visited before entering KeyoneKb extended settings. So it's best to go to KeyoneKb Extended Settings right after entering the application (via "alt+tab" or "recent apps").
+> The ADD PLUGIN buttons show the 3 most recent applications you visited before entering K12KB extended settings. So it's best to go to K12KB Extended Settings right after entering the application (via "alt+tab" or "recent apps").
 
 * A Toast will pop up. The accessibility service will turn off automatically. You need to press the Activate Accessibility button to enable the service.
 * Enter your application and type any letter (preferably in the Cyrillic layout), if search opened and the letter you typed appeared in it -- Hooray! Your application falls into the 80% of simple cases;
@@ -29,7 +29,7 @@
 
 It should work in the application immediately, but if you want to double-check:
 
-* Go to KeyoneKb2 extended settings, scroll down, find your application and after ResourceId: the search field code.
+* Go to K12KB extended settings, scroll down, find your application and after ResourceId: the search field code.
 
 > Or after ResourceId instead of the search field code you see two paragraphs of text, but the search plugin in the new application still works. Don't worry. This is a slightly more complex case, described below.
 
@@ -38,13 +38,13 @@ It should work in the application immediately, but if you want to double-check:
 > **IMPORTANT!** You must save the data, otherwise when the phone restarts you'll need to add plugins again.
 
 1. In either case, press SAVE PLUGIN DATA
-2. Go to the folder `/storage/emulated/0/Android/data/com.sateda.keyonekb2/files/default`
-3. Take the file `plugin_data.json` and place it in `/storage/emulated/0/Android/data/com.sateda.keyonekb2/files`
-4. From this folder, KeyoneKb2 will pick it up automatically instead of the analogous file embedded in the application resources
+2. Go to the folder `/storage/emulated/0/K12Kb/default`
+3. Take the file `plugin_data.json` and place it in `/storage/emulated/0/K12Kb`
+4. From this folder, K12KB will pick it up automatically instead of the analogous file embedded in the application resources
 
 > **Important!** If you uninstall the application, all configuration files will be deleted along with the folder. Make a backup.
 
-To pick up the new file, you need to restart the Accessibility Service (KeyoneKb2).
+To pick up the new file, you need to restart the Accessibility Service (K12KB).
 
 ---
 
@@ -118,9 +118,9 @@ To pick up the new file, you need to restart the Accessibility Service (KeyoneKb
 
 1. Go to the "EXTENDED SETTINGS" menu item
 2. Press "SAVE KEYBOARD DATA"
-3. Layout data will be saved to the folder `/storage/emulated/0/Android/data/com.sateda.keyonekb2/files/default`
+3. Layout data will be saved to the folder `/storage/emulated/0/K12Kb/default`
 
-> **(!)** If you press "SAVE KEYBOARD DATA" again, the files in the `/default` folder **will be overwritten**
+> **(!)** If you press "SAVE KEYBOARD DATA" again, the files in the `default` folder **will be overwritten**
 
 4. JSON files will appear in the folder:
    * Letter layouts in files like `russian_hw.json` or `pocket_english.json`
@@ -129,7 +129,7 @@ To pick up the new file, you need to restart the Accessibility Service (KeyoneKb
 > The file contents are self-explanatory.
 
 5. Modify the letter or symbol layout file
-6. Place it in the folder `/storage/emulated/0/Android/data/com.sateda.keyonekb2/files`
+6. Place it in the folder `/storage/emulated/0/K12Kb`
    * By default, all layouts are embedded in application resources
    * But if the keyboard finds a file with the same name in its folder on disk during startup, it preferentially uses that file
 
@@ -494,7 +494,7 @@ Settings for keyboard gesture mode handlers (TBD).
 
 **All file mechanics are analogous to layouts (see above)**
 
-`keyonekb2_as_options.json`:
+`k12kb_as_options.json`:
 
 ```
 {

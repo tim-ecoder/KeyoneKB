@@ -1,10 +1,10 @@
-# KeyoneKB2 User Guide
+# K12KB User Guide
 
-## About KeyoneKB2
+## About K12KB
 
 ### Description
 
-A keyboard made by fans of hardware keyboard input, for fans of hardware keyboard input. KeyoneKB2 aims to be **more convenient** than **Blackberry Keyboard**, more **configurable** and **customizable** than **ruKeyboard**. The goal is to make working with text so convenient that you never need to take your hands off the keyboard to touch the screen. To achieve this, various text navigation methods and keyboard gestures are widely used. Considerable attention was given to one-handed operation, which is difficult with the stock keyboard and alternatives like ruKeyboard due to language switching requiring two buttons. The keyboard's software architecture is highly extensible and configurable, and can be adapted for other layouts, devices, and languages. Additionally, the keyboard's behavior is fully customizable through JSON configuration files -- users can add/remove/change hotkeys and much more.
+A keyboard made by fans of hardware keyboard input, for fans of hardware keyboard input. K12KB aims to be **more convenient** than **Blackberry Keyboard**, more **configurable** and **customizable** than **ruKeyboard**. The goal is to make working with text so convenient that you never need to take your hands off the keyboard to touch the screen. To achieve this, various text navigation methods and keyboard gestures are widely used. Considerable attention was given to one-handed operation, which is difficult with the stock keyboard and alternatives like ruKeyboard due to language switching requiring two buttons. The keyboard's software architecture is highly extensible and configurable, and can be adapted for other layouts, devices, and languages. Additionally, the keyboard's behavior is fully customizable through JSON configuration files -- users can add/remove/change hotkeys and much more.
 
 ### Supported devices
 
@@ -183,7 +183,7 @@ A search plugin is a feature where, upon entering an application and starting to
 
 1. In **Blackberry Contacts and Phone (Dialer)** applications, you can immediately start typing in Cyrillic after entering, without pressing the "magnifying glass", and search will work.
 2. In **Telegram**, if you start typing in the main window, it will search through chats.
-3. You can add search plugins quite easily ([dedicated section](https://github.com/tim-ecoder/KeyoneKB/wiki/%D0%A1%D0%BB%D0%BE%D0%B6%D0%BD%D1%8B%D0%B5-%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B8)). For example, a plugin for ExDialer has already been added.
+3. You can add search plugins quite easily ([dedicated section](advanced.md)). For example, a plugin for ExDialer has already been added.
 4. Built-in plugins have been expanded with: Yandex (Maps, Navigator), Blackberry (Settings, HUB, Notes, Calendar).
 5. Search plugins also activate on `Ctrl`+`A`/`C`/`X`/`V`, on `DEL`, and on `Space`. For example, you copy an address, open Yandex Maps, and without pressing search, press `Ctrl`+`V`: search will open automatically and the address from the clipboard will be entered.
 
