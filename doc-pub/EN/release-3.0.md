@@ -101,39 +101,6 @@ Release 3.0 is dedicated to:
 * JS patches loaded only from SD card (no auto-deploy from assets)
 * **Added JSpatch: Disable chats reading/scrolling** default mode
 
-### Android Compatibility
-
-* Lowered minSdkVersion to 26 for Android Oreo compatibility
-* Fixed IME crash on Oreo: notification channels required from API 26
-* Fixed BootstrapMethodError: replaced all Java lambdas with anonymous inner classes
-* Fixed notification crash on Android 12+: PendingIntent FLAG\_IMMUTABLE
-* Fixed notification icon display on Android 8+
-* Fixed settings crash: compiled ambilwarna color picker from source
-* Fixed crash: replaced AppCompatActivity with Activity
-
-### Bug Fixes
-
-* **BF:** Fixed memory leak on switching keyboard layout
-* **BF:** Fixed predictions not working after switching layouts
-* **BF:** Fixed prediction dying after language switch
-* **BF:** Fixed crash on language switch (null-check layout)
-* **BF:** Fixed N-gram engine not loading when switching from SymSpell
-* **BF:** Fixed typing slowness by caching reflection Method lookups at init time
-* **BF:** Fixed priority word having smallest pillow in suggestion bar
-* **BF:** Fixed translation text always appearing blue in suggestion bar
-* **BF:** Fixed slow predictions and lingering bar on app minimize
-* **BF:** Fixed settings load: handle all number types and proper restart
-* **BF:** Fixed low-contrast text on dynamic switches in light theme
-* **BF:** Fixed pill expand vs switch toggle conflict
-* **BF:** Fixed badge placement in vertical pill layouts
-* **BF:** Fixed RU->EN translation: lowercase handling in Java
-* **BF:** Fixed native .so linking for Android (bionic instead of glibc)
-* **BF:** Fixed settings backup path to use centralized FileJsonUtils.PATH
-* **BF:** Fixed keyboard layouts not included in APK build
-* **BF:** Fixed phone permission check logic
-* **BF:** Fixed file permission check using directory existence fallback
-* **BF:** Fixed keyboard swype mode saving only when user explicitly changed it
-
 ### Keyboard Shortcuts
 
 | Shortcut       | Action                          |
