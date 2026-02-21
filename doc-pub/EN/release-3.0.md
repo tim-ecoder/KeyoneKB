@@ -2,9 +2,9 @@
 
 ## Release 3.0
 
-**Type:** Major release\
-**Version:** v3.0b08a\
-**Summary:** Major update featuring rebranding to K12KB, native prediction and translation engines, emoji keyboard, UI redesign with light/dark themes, and Android 8+ compatibility
+Type: Major release\
+Version: v3.0\
+Summary: Major update — rebranding to K12KB, native prediction and translation engines, emoji keyboard, on-screen keyboards redesign (sym, swipe, nav), UI redesign with light/dark themes
 
 ### Release Description
 
@@ -14,8 +14,8 @@ Release 3.0 is dedicated to:
 * Full-featured word prediction engine with native SymSpell (C99 + JNI)
 * Offline translation with context-aware phrase matching
 * Emoji keyboard support
-* Complete UI/settings redesign with light/dark themes
-* Android 8 (Oreo) through Android 12+ compatibility
+* On-screen keyboards redesign SYM, SWIPE, NAV
+* Complete UI and settings redesign with light/dark themes
 
 ### Rebranding
 
@@ -28,7 +28,6 @@ Release 3.0 is dedicated to:
 
 * Added word prediction with suggestion bar (based on Pastiera)
 * **Native SymSpell engine** written in C99 with JNI bindings for aarch64 — significantly faster than Java implementation
-* N-gram engine for next-word prediction after space and suggestion accept
 * Dictionaries expanded up to 750k words using wordfreq (OpenSubtitles 2018) source
 * **Dictionary size switchers** — choose between tiny, normal, big and full dictionaries
 * Binary cache format for fast dictionary loading across IME restarts
@@ -44,7 +43,6 @@ Release 3.0 is dedicated to:
 * Preference to disable keyboard-aware corrections
 * Word learning from typed text (learns as you type)
 * Android UserDictionary integration for prediction
-* Removed old N-gram engine, moved next-word prediction to native SymSpell
 
 ### Offline Translation
 
@@ -64,7 +62,6 @@ Release 3.0 is dedicated to:
 * Added emoji keyboard with 5 pages of smileys
 * Replaced Emoji 11.0+ with Emoji 5.0 compatible set for Android 8.x support
 * Visible EMO label on SYM pad for easy access
-* Fixed emoji key behavior on SYM pad
 
 ### Suggestion Bar
 
@@ -73,10 +70,8 @@ Release 3.0 is dedicated to:
 * Priority word displayed in full in center slot, never truncated
 * Non-priority words truncate from start (show word endings)
 * Empty slots hidden, remaining slots fill available space
-* Dark divider stripe above suggestion bar (top + bottom)
 * Prediction bar pushes app content up via onComputeInsets
 * Bar remains visible when swype-pad is disabled
-* Increased from 3 to 4 prediction slots (configurable up to 6)
 
 ### UI / Settings Redesign
 
@@ -85,7 +80,6 @@ Release 3.0 is dedicated to:
 * Numbers in settings highlighted by circles
 * Pill text truncated with ellipsis, click to expand full text
 * Settings save/load with structured JSON backup (includes json\_patches and swipe\_modes sections)
-* Storage permission check for settings operations
 * Interface language switcher on main screen
 * Collapsible granted permissions group with theme-aware styling
 * Main layout rearranged with dynamic element positioning
