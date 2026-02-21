@@ -204,10 +204,6 @@ In text input mode, to exit the application (BACK, HOME), if some text has been 
 * If not in an input field
 * **Double** pressing SYM will end the call
 
-### (v2.3+) Advanced settings and customizations
-
-In a separate article [Advanced Settings](https://github.com/tim-ecoder/KeyoneKB/wiki/%D0%A1%D0%BB%D0%BE%D0%B6%D0%BD%D1%8B%D0%B5-%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B8)
-
 ### ACKNOWLEDGMENTS
 
 * Founder: Artem Tverdokhleb aka l3n1n-ua (UA)
