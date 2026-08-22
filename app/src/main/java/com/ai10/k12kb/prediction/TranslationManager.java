@@ -12,12 +12,38 @@ import java.util.List;
 public class TranslationManager {
     private static final String TAG = "TranslationMgr";
 
+    /**
+     * A translation lookup plus the phrase-match state that belongs to it.
+     * Reading those as three separate calls could tear if another lookup lands
+     * in between, mislabelling which entries are bigram results.
+     */
+    public static final class Result {
+        public final List<String> translations;
+        public final boolean phraseMatch;
+        public final int phraseResultCount;
+
+        Result(List<String> translations, boolean phraseMatch, int phraseResultCount) {
+            this.translations = translations;
+            this.phraseMatch = phraseMatch;
+            this.phraseResultCount = phraseResultCount;
+        }
+
+        public boolean isEmpty() {
+            return translations.isEmpty();
+        }
+    }
+
+    private static final Result EMPTY_RESULT =
+            new Result(java.util.Collections.<String>emptyList(), false, 0);
+
     private boolean enabled = false;
     private String sourceLang = "ru";
     private String targetLang = "en";
     private NativeTranslationDictionary dictionary;
     private Context context;
     private boolean loading = false;
+    /** Bumped whenever the wanted language pair changes; invalidates an in-flight load. */
+    private int loadGeneration = 0;
 
     public TranslationManager(Context context) {
         this.context = context.getApplicationContext();
@@ -63,8 +89,10 @@ public class TranslationManager {
         }
         this.sourceLang = currentLayoutLang;
         this.targetLang = nextLayoutLang;
-        // Invalidate old dictionary — direction changed
-        loading = false;
+        // Invalidate old dictionary — direction changed. Bumping the generation
+        // makes any in-flight loader reload for the new pair instead of finishing
+        // last and leaving the old direction loaded.
+        loadGeneration++;
         dictionary.invalidate();
         Log.w(TAG, "Languages updated: " + sourceLang + " -> " + targetLang);
         if (enabled) {
@@ -77,10 +105,24 @@ public class TranslationManager {
      * Tries phrase lookup first ("previousWord currentWord"), then single word.
      */
     public synchronized List<String> translate(String word, String previousWord) {
+        return lookup(word, previousWord).translations;
+    }
+
+    /**
+     * Translate a word with context, returning the translations and their
+     * phrase-match state together as one consistent snapshot.
+     */
+    public synchronized Result lookup(String word, String previousWord) {
         if (!enabled || !dictionary.isLoaded()) {
-            return java.util.Collections.emptyList();
+            return EMPTY_RESULT;
         }
-        return dictionary.translate(word, previousWord);
+        List<String> translations = dictionary.translate(word, previousWord);
+        if (translations.isEmpty()) {
+            return EMPTY_RESULT;
+        }
+        return new Result(translations,
+                dictionary.wasLastPhraseMatch(),
+                dictionary.getLastPhraseResultCount());
     }
 
     /**
@@ -99,11 +141,11 @@ public class TranslationManager {
                 targetLang.equals(dictionary.getTargetLang());
     }
 
-    public boolean wasLastPhraseMatch() {
+    public synchronized boolean wasLastPhraseMatch() {
         return dictionary.wasLastPhraseMatch();
     }
 
-    public int getLastPhraseResultCount() {
+    public synchronized int getLastPhraseResultCount() {
         return dictionary.getLastPhraseResultCount();
     }
 
@@ -117,22 +159,43 @@ public class TranslationManager {
         this.onDictionaryLoaded = listener;
     }
 
+    /** Caller must hold this manager's monitor. */
     private void loadDictionary() {
         if (loading) return;
         loading = true;
-        final String from = sourceLang;
-        final String to = targetLang;
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    dictionary.load(context, from, to);
-                    if (onDictionaryLoaded != null) {
-                        onDictionaryLoaded.run();
+                    // Reload until the pair we loaded is still the pair that is wanted,
+                    // so a language switch mid-load can't leave the old direction active.
+                    while (true) {
+                        final int generation;
+                        final String from;
+                        final String to;
+                        synchronized (TranslationManager.this) {
+                            generation = loadGeneration;
+                            from = sourceLang;
+                            to = targetLang;
+                        }
+                        try {
+                            dictionary.load(context, from, to);
+                        } catch (Throwable e) {
+                            Log.e(TAG, "Failed to load dictionary " + from + "->" + to + ": " + e);
+                        }
+                        synchronized (TranslationManager.this) {
+                            if (generation == loadGeneration) break;
+                        }
                     }
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to load dictionary: " + e);
                 } finally {
-                    loading = false;
+                    synchronized (TranslationManager.this) { loading = false; }
+                }
+                Runnable cb = onDictionaryLoaded;
+                if (cb != null) {
+                    try {
+                        cb.run();
+                    } catch (Throwable e) {
+                        Log.w(TAG, "dictionary loaded callback failed: " + e);
+                    }
                 }
             }
         }, "TranslationDictLoader").start();

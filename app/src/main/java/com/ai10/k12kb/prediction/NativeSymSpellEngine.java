@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -32,19 +33,55 @@ public class NativeSymSpellEngine implements PredictionEngine {
     private static final String CACHE_DIR = "native_dict_cache";
     private int maxWords = DEFAULT_MAX_WORDS;
 
-    private volatile NativeSymSpell nativeSymSpell;
+    /**
+     * Immutable (dictionary, locale) pair. Publishing a whole snapshot with one
+     * volatile write keeps the two in sync — separate volatile fields could be
+     * read torn, so a lookup could run against another locale's dictionary.
+     */
+    private static final class Snapshot {
+        final NativeSymSpell ss;
+        final String locale;
+
+        Snapshot(NativeSymSpell ss, String locale) {
+            this.ss = ss;
+            this.locale = locale;
+        }
+    }
+
+    /** The dictionary lookups run against. Null means "nothing loaded yet". */
+    private volatile Snapshot active;
+    /** Serialises loads so two threads never build the same locale at once. */
     private final Object loadLock = new Object();
-    private volatile boolean ready = false;
-    private volatile String loadedLocale = "";
+    /**
+     * Guards native calls against the destroy() that follows a swap: taking the
+     * write lock waits for every in-flight suggest() to finish, so the freed
+     * instance can no longer be reached through a stale snapshot.
+     */
+    private final ReentrantReadWriteLock accessLock = new ReentrantReadWriteLock();
+    private volatile ReadyListener readyListener;
     private String keyboardLayout = "qwerty";
     private boolean nextWordEnabled = true;
     private boolean keyboardAwareEnabled = true;
 
     @Override
-    public List<WordPredictor.Suggestion> suggest(String input, String previousWord, int limit) {
-        NativeSymSpell ss = nativeSymSpell; // local snapshot for thread safety
-        if (!ready || ss == null) return Collections.emptyList();
+    public void setReadyListener(ReadyListener listener) {
+        this.readyListener = listener;
+    }
 
+    @Override
+    public List<WordPredictor.Suggestion> suggest(String input, String previousWord, int limit) {
+        accessLock.readLock().lock();
+        try {
+            Snapshot snap = active;
+            if (snap == null) return Collections.emptyList();
+            return suggestFrom(snap.ss, input, previousWord, limit);
+        } finally {
+            accessLock.readLock().unlock();
+        }
+    }
+
+    private List<WordPredictor.Suggestion> suggestFrom(NativeSymSpell ss, String input,
+                                                       String previousWord, int limit) {
         String normalizedPrev = (previousWord != null && !previousWord.isEmpty())
                 ? WordDictionary.normalize(previousWord) : null;
 
@@ -154,157 +191,177 @@ public class NativeSymSpellEngine implements PredictionEngine {
     @Override
     public void loadDictionary(Context context, String locale) {
         synchronized (loadLock) {
-            if (ready && locale.equals(loadedLocale)) {
-                return; // already loaded
+            Snapshot cur = active;
+            if (cur != null && locale.equals(cur.locale)) {
+                return; // already the active dictionary
             }
-            boolean fromCache = load(context, locale);
-            if (nativeSymSpell != null && nativeSymSpell.isValid()) {
-                // Always load user words (even after cache load — user may have added new words)
-                int before = nativeSymSpell.size();
-                loadUserWords(context);
-                if (nativeSymSpell.size() > before) {
-                    nativeSymSpell.buildIndex();
-                    Log.w(TAG, "Added " + (nativeSymSpell.size() - before) + " new user words, rebuilt index");
-                    saveNativeCache(context, locale);
-                } else if (!fromCache) {
-                    saveNativeCache(context, locale);
-                }
+            // Built into a fresh instance: the currently active dictionary keeps
+            // serving suggestions for the whole rebuild instead of going dead.
+            NativeSymSpell built = build(context, locale, true);
+            if (built == null) {
+                Log.e(TAG, "Load failed for " + locale + ", keeping previous dictionary");
+                return;
             }
+            publish(built, locale);
         }
     }
 
     @Override
     public void preloadDictionary(Context context, String locale) {
         synchronized (loadLock) {
-            if (locale.equals(loadedLocale)) return;
+            Snapshot cur = active;
+            if (cur != null && locale.equals(cur.locale)) return;
 
-            // Only ensure cache file exists — don't replace the active dictionary
-            String cachePath = new File(context.getFilesDir(), CACHE_DIR + "/" + locale + ".ssnd").getAbsolutePath();
-            if (new File(cachePath).exists()) {
+            // Only ensure the cache file exists — never touch the active dictionary
+            if (new File(cachePath(context, locale)).exists()) {
                 Log.d(TAG, "Cache exists for " + locale + ", skip preload");
                 return;
             }
 
-            // No cache — build from text to create it, then restore current dictionary
-            NativeSymSpell prevSS = nativeSymSpell;
-            String prevLocale = loadedLocale;
-            boolean prevReady = ready;
-
-            boolean fromCache = load(context, locale);
-            if (!fromCache) {
-                saveNativeCache(context, locale);
+            // Build into a throw-away instance purely to materialise the cache file.
+            NativeSymSpell built = build(context, locale, false);
+            if (built != null) {
+                built.destroy();
+                Log.d(TAG, "Preloaded cache for " + locale
+                        + ", active dict remains " + getLoadedLocale());
             }
-
-            NativeSymSpell preloaded = nativeSymSpell;
-            nativeSymSpell = prevSS;
-            loadedLocale = prevLocale;
-            ready = prevReady;
-
-            if (preloaded != null && preloaded != prevSS) {
-                preloaded.destroy();
-            }
-            Log.d(TAG, "Preloaded cache for " + locale + ", active dict remains " + loadedLocale);
         }
     }
 
     @Override
     public boolean isReady() {
-        return ready;
+        return active != null;
     }
 
     @Override
     public String getLoadedLocale() {
-        return loadedLocale;
+        Snapshot snap = active;
+        return (snap != null) ? snap.locale : "";
     }
 
     /**
-     * Load dictionary for locale. Returns true if loaded from cache, false if built from text.
+     * Swap in a freshly built dictionary and retire the old one.
+     * The write lock waits for every in-flight suggest() to return, so once it is
+     * held no thread can still be holding — or later obtain — the old snapshot.
      */
-    private boolean load(Context context, String locale) {
-        long startTime = System.currentTimeMillis();
-
-        // Try native binary cache first (mmap — very fast, no text re-parse needed)
-        // Don't set ready=false — keep old dict functional during atomic swap
-        String cachePath = new File(context.getFilesDir(), CACHE_DIR + "/" + locale + ".ssnd").getAbsolutePath();
-        NativeSymSpell cached = NativeSymSpell.loadFromCache(cachePath);
-        if (cached != null && cached.size() > 0) {
-            NativeSymSpell old = nativeSymSpell;
-            nativeSymSpell = cached;
-            loadedLocale = locale;
-            if (old != null && old != cached) {
-                old.destroy();
-            }
-            ready = true;
-
-            // v2→v3 upgrade: if cache has 0 bigrams, load from JSON and re-save
-            if (nativeSymSpell.bigramCount() == 0) {
-                loadBigrams(context, locale);
-                if (nativeSymSpell.bigramCount() > 0) {
-                    nativeSymSpell.buildBigramIndex();
-                    saveNativeCache(context, locale);
-                    Log.w(TAG, "Upgraded cache to v3 with " + nativeSymSpell.bigramCount() + " bigrams");
-                }
-            }
-
-            long elapsed = System.currentTimeMillis() - startTime;
-            WordDictionary.recordLoadStats(locale, "native-cache", nativeSymSpell.size(), elapsed);
-            Log.w(TAG, "Loaded " + locale + " from native cache: " + nativeSymSpell.size()
-                    + " words, " + nativeSymSpell.bigramCount() + " bigrams in " + elapsed + "ms");
-            return true;
+    private void publish(NativeSymSpell ns, String locale) {
+        NativeSymSpell old;
+        accessLock.writeLock().lock();
+        try {
+            Snapshot prev = active;
+            old = (prev != null) ? prev.ss : null;
+            active = new Snapshot(ns, locale);
+        } finally {
+            accessLock.writeLock().unlock();
         }
-
-        // Cache miss — full rebuild from text needed, predictions unavailable during build
-        ready = false;
-        WordDictionary.recordLoadingStart(locale);
-
-        // v1 cache exists but couldn't be loaded (version mismatch) — delete it
-        File cacheFile = new File(cachePath);
-        if (cacheFile.exists()) {
-            cacheFile.delete();
-            Log.w(TAG, "Deleted stale v1 cache: " + cachePath);
-        }
-
-        // Build from text dictionary
-        if (!NativeSymSpell.isAvailable()) {
-            Log.w(TAG, "Native library not available, cannot load");
-            return false;
-        }
-
-        NativeSymSpell old = nativeSymSpell;
-        nativeSymSpell = new NativeSymSpell(2, 7);
-        if (old != null) {
+        if (old != null && old != ns) {
             old.destroy();
         }
-        if (!nativeSymSpell.isValid()) {
-            Log.e(TAG, "Failed to create native SymSpell instance");
-            return false;
+        ReadyListener l = readyListener;
+        if (l != null) {
+            try {
+                l.onEngineReady(locale);
+            } catch (Throwable t) {
+                Log.w(TAG, "ready listener failed: " + t);
+            }
         }
-
-        int wordCount = loadFromAssets(context, locale);
-        if (wordCount <= 0) {
-            Log.e(TAG, "No words loaded for locale " + locale);
-            return false;
-        }
-
-        long buildStart = System.currentTimeMillis();
-        nativeSymSpell.buildIndex();
-        nativeSymSpell.buildBigramIndex();
-        long buildElapsed = System.currentTimeMillis() - buildStart;
-        Log.w(TAG, "Native buildIndex for " + locale + ": " + buildElapsed + "ms"
-                + " (" + nativeSymSpell.bigramCount() + " bigrams)");
-
-        ready = true;
-        loadedLocale = locale;
-        long elapsed = System.currentTimeMillis() - startTime;
-        WordDictionary.recordLoadStats(locale, "native-assets", wordCount, elapsed);
-        Log.w(TAG, "Loaded " + locale + " from assets (native): " + wordCount
-                + " words in " + elapsed + "ms");
-
-        // Cache is saved by caller (loadDictionary) after adding user/learned words
-        return false;
     }
 
-    private void loadBigrams(Context context, String locale) {
+    private String cachePath(Context context, String locale) {
+        return new File(context.getFilesDir(), CACHE_DIR + "/" + locale + ".ssnd").getAbsolutePath();
+    }
+
+    /**
+     * Build a dictionary for a locale into a fresh, unpublished instance.
+     * Never touches {@link #active}, so it is safe to run while lookups are in flight.
+     *
+     * @param withUserWords merge the user dictionary in (skip for cache-warming preloads)
+     * @return the built instance, or null on failure — caller keeps the old dictionary
+     */
+    private NativeSymSpell build(Context context, String locale, boolean withUserWords) {
+        long startTime = System.currentTimeMillis();
+        String cachePath = cachePath(context, locale);
+
+        // Try native binary cache first (mmap — very fast, no text re-parse needed)
+        NativeSymSpell ns = NativeSymSpell.loadFromCache(cachePath);
+        boolean fromCache = (ns != null && ns.size() > 0);
+        if (ns != null && !fromCache) {
+            ns.destroy();
+            ns = null;
+        }
+
+        if (fromCache) {
+            // v2→v3 upgrade: if cache has 0 bigrams, load from JSON and re-save
+            if (ns.bigramCount() == 0) {
+                loadBigrams(ns, context, locale);
+                if (ns.bigramCount() > 0) {
+                    ns.buildBigramIndex();
+                    saveNativeCache(ns, context, locale);
+                    Log.w(TAG, "Upgraded cache to v3 with " + ns.bigramCount() + " bigrams");
+                }
+            }
+            long elapsed = System.currentTimeMillis() - startTime;
+            WordDictionary.recordLoadStats(locale, "native-cache", ns.size(), elapsed);
+            Log.w(TAG, "Loaded " + locale + " from native cache: " + ns.size()
+                    + " words, " + ns.bigramCount() + " bigrams in " + elapsed + "ms");
+        } else {
+            WordDictionary.recordLoadingStart(locale);
+
+            // v1 cache exists but couldn't be loaded (version mismatch) — delete it
+            File cacheFile = new File(cachePath);
+            if (cacheFile.exists()) {
+                cacheFile.delete();
+                Log.w(TAG, "Deleted stale v1 cache: " + cachePath);
+            }
+
+            if (!NativeSymSpell.isAvailable()) {
+                Log.w(TAG, "Native library not available, cannot load");
+                return null;
+            }
+            ns = new NativeSymSpell(2, 7);
+            if (!ns.isValid()) {
+                Log.e(TAG, "Failed to create native SymSpell instance");
+                return null;
+            }
+
+            int wordCount = loadFromAssets(ns, context, locale);
+            if (wordCount <= 0) {
+                Log.e(TAG, "No words loaded for locale " + locale);
+                ns.destroy();
+                return null;
+            }
+
+            long buildStart = System.currentTimeMillis();
+            ns.buildIndex();
+            ns.buildBigramIndex();
+            Log.w(TAG, "Native buildIndex for " + locale + ": "
+                    + (System.currentTimeMillis() - buildStart) + "ms"
+                    + " (" + ns.bigramCount() + " bigrams)");
+
+            long elapsed = System.currentTimeMillis() - startTime;
+            WordDictionary.recordLoadStats(locale, "native-assets", wordCount, elapsed);
+            Log.w(TAG, "Loaded " + locale + " from assets (native): " + wordCount
+                    + " words in " + elapsed + "ms");
+        }
+
+        if (withUserWords) {
+            // Always merge user words (even after a cache load — user may have added new ones)
+            int before = ns.size();
+            loadUserWords(ns, context);
+            if (ns.size() > before) {
+                ns.buildIndex();
+                Log.w(TAG, "Added " + (ns.size() - before) + " new user words, rebuilt index");
+                saveNativeCache(ns, context, locale);
+                return ns;
+            }
+        }
+        if (!fromCache) {
+            saveNativeCache(ns, context, locale);
+        }
+        return ns;
+    }
+
+    private void loadBigrams(NativeSymSpell ns, Context context, String locale) {
         String bigramFile = "dictionaries/" + locale + "_bigrams.json";
         try {
             InputStream is = context.getAssets().open(bigramFile);
@@ -326,7 +383,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
                     String word2 = pair.getString(0);
                     int freq = pair.getInt(1);
                     String normalized2 = WordDictionary.normalize(word2);
-                    nativeSymSpell.addBigram(word1, normalized2, word2, freq);
+                    ns.addBigram(word1, normalized2, word2, freq);
                     count++;
                 }
             }
@@ -338,7 +395,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
     }
 
-    private int loadFromAssets(Context context, String locale) {
+    private int loadFromAssets(NativeSymSpell ns, Context context, String locale) {
         String txtFilename = "dictionaries/" + locale + "_base.txt";
         String jsonFilename = "dictionaries/" + locale + "_base.json";
         try {
@@ -397,11 +454,11 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 String word = entry[0];
                 String normalized = WordDictionary.normalize(word);
 
-                nativeSymSpell.addWord(normalized, word, freq);
+                ns.addWord(normalized, word, freq);
             }
 
             // Load bigrams
-            loadBigrams(context, locale);
+            loadBigrams(ns, context, locale);
 
             return allEntries.size();
         } catch (Exception e) {
@@ -410,17 +467,17 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
     }
 
-    private void loadUserWords(Context context) {
+    private void loadUserWords(NativeSymSpell ns, Context context) {
         List<UserDictionaryBridge.UserWord> userWords = UserDictionaryBridge.readAll(context);
         if (userWords.isEmpty()) return;
         int added = 0;
         for (UserDictionaryBridge.UserWord uw : userWords) {
             int freq = Math.max(uw.frequency, 200);
             String normalized = WordDictionary.normalize(uw.word);
-            nativeSymSpell.addWord(normalized, uw.word, freq);
+            ns.addWord(normalized, uw.word, freq);
             if (uw.shortcut != null && !uw.shortcut.isEmpty()) {
                 String normShort = WordDictionary.normalize(uw.shortcut);
-                nativeSymSpell.addWord(normShort, uw.shortcut, freq);
+                ns.addWord(normShort, uw.shortcut, freq);
             }
             added++;
         }
@@ -429,13 +486,13 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
     }
 
-    private void saveNativeCache(Context context, String locale) {
+    private void saveNativeCache(NativeSymSpell ns, Context context, String locale) {
         if (Thread.currentThread().isInterrupted()) return;
         try {
             File dir = new File(context.getFilesDir(), CACHE_DIR);
             dir.mkdirs();
             String path = new File(dir, locale + ".ssnd").getAbsolutePath();
-            if (nativeSymSpell.save(path)) {
+            if (ns.save(path)) {
                 Log.d(TAG, "Saved native cache: " + path);
             }
         } catch (Exception e) {

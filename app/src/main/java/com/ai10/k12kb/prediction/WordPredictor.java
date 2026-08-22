@@ -33,7 +33,16 @@ public class WordPredictor {
     }
 
     public interface SuggestionListener {
-        void onSuggestionsUpdated(List<Suggestion> suggestions);
+        /**
+         * @param prefix the word the suggestions were computed for — lets a listener
+         *               that hops threads drop results the user has already typed past.
+         */
+        void onSuggestionsUpdated(List<Suggestion> suggestions, String prefix);
+    }
+
+    /** Fired on the loading thread once a dictionary becomes usable. */
+    public interface DictionaryLoadedListener {
+        void onDictionaryLoaded(String locale);
     }
 
     // Static — survives across WordPredictor instances (IME restarts)
@@ -43,9 +52,12 @@ public class WordPredictor {
     // Static thread tracking — loading threads keep running across IME restarts
     private static final List<Thread> loadingThreads = new ArrayList<>();
     private static final HashSet<String> loadingLocales = new HashSet<>();
+    /** Callbacks queued behind an in-flight load, keyed by locale. Guarded by loadingLocales. */
+    private static final java.util.HashMap<String, List<Runnable>> pendingCallbacks = new java.util.HashMap<>();
     private PredictionEngine engine;
     private int engineMode = ENGINE_NATIVE_SYMSPELL;
     private SuggestionListener listener;
+    private DictionaryLoadedListener dictionaryLoadedListener;
     private String currentWord = "";
     private String previousWord = "";
     private int suggestLimit = 4;
@@ -67,6 +79,28 @@ public class WordPredictor {
     public void shutdown() {
         engine = null;
         listener = null;
+        // The engine is static and outlives this instance; clearing the listener
+        // here makes any late ready-callback a no-op for a dead IME instance.
+        dictionaryLoadedListener = null;
+    }
+
+    public void setDictionaryLoadedListener(DictionaryLoadedListener listener) {
+        this.dictionaryLoadedListener = listener;
+    }
+
+    /**
+     * Adopt an engine and subscribe to its ready callback, so suggestions that were
+     * dropped while the dictionary was loading get recomputed once it lands.
+     */
+    private void adoptEngine(PredictionEngine e) {
+        engine = e;
+        if (e == null) return;
+        e.setReadyListener(new PredictionEngine.ReadyListener() {
+            public void onEngineReady(String locale) {
+                DictionaryLoadedListener l = dictionaryLoadedListener;
+                if (l != null) l.onDictionaryLoaded(locale);
+            }
+        });
     }
 
     public void setDictSize(int size) {
@@ -122,7 +156,7 @@ public class WordPredictor {
             synchronized (loadingLocales) { loadingLocales.clear(); }
         }
         if (engine == null && sharedEngine != null && sharedEngineMode == mode) {
-            engine = sharedEngine;
+            adoptEngine(sharedEngine);
         }
         if (engine != null) return;
         if (appContext != null && !currentLocale.isEmpty()) {
@@ -159,7 +193,7 @@ public class WordPredictor {
 
         // Restore engine from static cache if available and mode matches
         if (engine == null && sharedEngine != null && sharedEngineMode == engineMode) {
-            engine = sharedEngine;
+            adoptEngine(sharedEngine);
         }
 
         // Check if engine already loaded for this locale with matching dict size
@@ -176,9 +210,18 @@ public class WordPredictor {
             sharedEngineDictSize = -1;
         }
 
-        // Skip if this locale is already being loaded by a background thread
+        // Already being loaded by a background thread — queue the callback behind it
+        // rather than dropping it, so whoever asked still gets told when it lands.
         synchronized (loadingLocales) {
             if (loadingLocales.contains(locale)) {
+                if (onComplete != null) {
+                    List<Runnable> queued = pendingCallbacks.get(locale);
+                    if (queued == null) {
+                        queued = new ArrayList<>();
+                        pendingCallbacks.put(locale, queued);
+                    }
+                    queued.add(onComplete);
+                }
                 return;
             }
         }
@@ -202,18 +245,42 @@ public class WordPredictor {
             public void run() {
                 try {
                     targetEngine.loadDictionary(context, locale);
-                    if (onComplete != null) {
-                        onComplete.run();
-                    }
+                } catch (Throwable ex) {
+                    Log.e(TAG, "loadDictionary(" + locale + ") failed: " + ex);
                 } finally {
+                    // Clear the in-flight marker before running callbacks, so a
+                    // callback that triggers another load isn't silently skipped.
                     synchronized (loadingLocales) { loadingLocales.remove(locale); }
                     synchronized (loadingThreads) { loadingThreads.remove(Thread.currentThread()); }
                 }
+                runCallback(onComplete);
+                runPendingCallbacks(locale);
             }
         });
         t.setPriority(Thread.MIN_PRIORITY);
         synchronized (loadingThreads) { loadingThreads.add(t); }
         t.start();
+    }
+
+    private static void runCallback(Runnable r) {
+        if (r == null) return;
+        try {
+            r.run();
+        } catch (Throwable ex) {
+            Log.w(TAG, "load callback failed: " + ex);
+        }
+    }
+
+    /** Run everything that was queued behind an in-flight load of this locale. */
+    private static void runPendingCallbacks(String locale) {
+        List<Runnable> queued;
+        synchronized (loadingLocales) {
+            queued = pendingCallbacks.remove(locale);
+        }
+        if (queued == null) return;
+        for (Runnable r : queued) {
+            runCallback(r);
+        }
     }
 
     /**
@@ -223,7 +290,7 @@ public class WordPredictor {
     public void preloadDictionary(final Context context, final String locale) {
         // Restore engine from static cache if needed
         if (engine == null && sharedEngine != null && sharedEngineMode == engineMode) {
-            engine = sharedEngine;
+            adoptEngine(sharedEngine);
         }
         if (engine == null) return;
 
@@ -260,7 +327,7 @@ public class WordPredictor {
         nativeEng.setNextWordEnabled(nextWordEnabled);
         nativeEng.setKeyboardAwareEnabled(keyboardAwareEnabled);
         final PredictionEngine newEngine = nativeEng;
-        engine = newEngine;
+        adoptEngine(newEngine);
         sharedEngine = newEngine;
         sharedEngineMode = engineMode;
         sharedEngineDictSize = dictSize;
@@ -348,17 +415,27 @@ public class WordPredictor {
     private void updateSuggestions() {
         // Restore engine from static cache if instance was cleared by shutdown
         if (engine == null && sharedEngine != null && sharedEngineMode == engineMode) {
-            engine = sharedEngine;
+            adoptEngine(sharedEngine);
         }
         if (engine == null || !engine.isReady()) {
-            return; // Dictionary not loaded yet — skip silently
+            // Dictionary still loading. Don't paint an empty bar — the ready
+            // listener recomputes and repaints as soon as it lands.
+            return;
         }
 
-        List<Suggestion> results = engine.suggest(currentWord, previousWord, suggestLimit);
+        final String prefix = currentWord;
+        List<Suggestion> results = engine.suggest(prefix, previousWord, suggestLimit);
         latestSuggestions = results;
-        if (listener != null) {
-            listener.onSuggestionsUpdated(results);
+        SuggestionListener l = listener;
+        if (l != null) {
+            l.onSuggestionsUpdated(results, prefix);
         }
+    }
+
+    /** Recompute suggestions for the word already held, e.g. after a dictionary load. */
+    public void refreshSuggestions() {
+        if (!enabled) return;
+        updateSuggestions();
     }
 
     /**

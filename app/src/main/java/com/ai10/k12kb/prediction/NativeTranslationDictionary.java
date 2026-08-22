@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Native CDB-based translation dictionary. Uses mmap for instant loading
@@ -37,10 +38,16 @@ public class NativeTranslationDictionary {
     private static native String[] nativeTranslate(long ptr, String word, String previousWord);
     private static native int nativeBuildCdbFromTsv(String tsvPath, String freqPath, String cdbPath, int maxEntries);
 
+    /**
+      * Guards nativePtr. A ReentrantLock rather than `synchronized` so lookups can
+      * tryLock and bail out instead of parking the UI thread for the whole of a
+      * dictionary build (extracting a TSV and building a CDB takes seconds).
+      */
+    private final ReentrantLock lock = new ReentrantLock();
     private long nativePtr = 0;
-    private String sourceLang;
-    private String targetLang;
-    private boolean loaded = false;
+    private volatile String sourceLang;
+    private volatile String targetLang;
+    private volatile boolean loaded = false;
     private boolean lastWasPhraseMatch = false;
     private int lastPhraseResultCount = 0;
     private int maxEntries = 0; // 0 = full (use pre-built CDB)
@@ -74,7 +81,16 @@ public class NativeTranslationDictionary {
      * 3. Direct mmap from APK asset (zero-copy, requires noCompress)
      * 4. Copy asset to files dir, then mmap (fallback for compressed assets)
      */
-    public synchronized void load(Context context, String fromLang, String toLang) {
+    public void load(Context context, String fromLang, String toLang) {
+        lock.lock();
+        try {
+            loadLocked(context, fromLang, toLang);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void loadLocked(Context context, String fromLang, String toLang) {
         close();
         this.sourceLang = fromLang;
         this.targetLang = toLang;
@@ -224,7 +240,18 @@ public class NativeTranslationDictionary {
      * Translate a word with optional previous word context.
      * Returns list of translation strings (phrase results first).
      */
-    public synchronized List<String> translate(String word, String previousWord) {
+    public List<String> translate(String word, String previousWord) {
+        // A load is in flight — skip this lookup rather than blocking the UI thread.
+        // The onDictionaryLoaded callback repaints once it finishes.
+        if (!lock.tryLock()) return new ArrayList<>();
+        try {
+            return translateLocked(word, previousWord);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private List<String> translateLocked(String word, String previousWord) {
         List<String> result = new ArrayList<>();
         lastWasPhraseMatch = false;
         lastPhraseResultCount = 0;
@@ -250,7 +277,7 @@ public class NativeTranslationDictionary {
         return result;
     }
 
-    public synchronized List<String> translate(String word) {
+    public List<String> translate(String word) {
         return translate(word, null);
     }
 
@@ -270,8 +297,18 @@ public class NativeTranslationDictionary {
         return loaded ? 1 : 0; // CDB doesn't expose entry count; nonzero = loaded
     }
 
+    /**
+     * Synchronized like load()/translate(): without it a language switch could
+     * nativeClose() the CDB while the loader thread is mid-load, or while a
+     * lookup holds the pointer.
+     */
     public void invalidate() {
-        close();
+        lock.lock();
+        try {
+            close();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public String getSourceLang() {

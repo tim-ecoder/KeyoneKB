@@ -29,6 +29,13 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
     protected boolean predictionBarHiddenByDefault = false;
     protected boolean predictionBarVisibleThisSession = false;
     protected boolean predictionBarOpenedByTranslation = false;
+    /**
+     * Dictionary loads finish on background threads. View.post() is not usable for
+     * hopping back: an IME's input view is detached whenever the keyboard window is
+     * down, and posts on a detached view only run if it is attached again.
+     */
+    private final android.os.Handler uiHandler =
+            new android.os.Handler(android.os.Looper.getMainLooper());
 
     // --- Method moved from InputMethodServiceCoreCustomizable ---
 
@@ -105,38 +112,66 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
     }
 
     protected void updateSuggestionBarWithTranslation(List<WordPredictor.Suggestion> suggestions) {
-        if(predictionBarHiddenByDefault && !predictionBarVisibleThisSession)
+        if (suggestionBar == null || wordPredictor == null) return;
+        if (predictionBarHiddenByDefault && !predictionBarVisibleThisSession)
             return;
         if (translationManager != null && translationManager.isEnabled()) {
             String word = wordPredictor.getCurrentWord();
             String prevWord = wordPredictor.getPreviousWord();
-            List<String> translations = null;
             if (word != null && !word.isEmpty()) {
-                translations = translationManager.translate(word, prevWord);
-            }
-            if (translations != null && !translations.isEmpty()) {
-                boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
-                int phraseResultCount = translationManager.getLastPhraseResultCount();
-                // Limit to translationSlotCount
-                if (translations.size() > translationSlotCount) {
-                    translations = translations.subList(0, translationSlotCount);
+                TranslationManager.Result result = translationManager.lookup(word, prevWord);
+                if (!result.isEmpty()) {
+                    List<String> translations = result.translations;
+                    // Limit to translationSlotCount
+                    if (translations.size() > translationSlotCount) {
+                        translations = translations.subList(0, translationSlotCount);
+                    }
+                    suggestionBar.updateTranslation(translations, word, translationSlotCount,
+                            result.phraseMatch, result.phraseResultCount);
+                    setSuggestionBarShown(true);
+                    return;
                 }
-                suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseResultCount);
-                setSuggestionBarShown(true);
-                return;
             }
+            // Translation on but nothing to show yet (dictionary still loading, or no
+            // entry) — fall through to predictions rather than blanking the bar.
         }
         // Fall back to normal predictions (limited to predictionSlotCount)
         if (suggestions != null && suggestions.size() > predictionSlotCount) {
             suggestions = suggestions.subList(0, predictionSlotCount);
         }
-        suggestionBar.update(suggestions, wordPredictor.getCurrentWord());
+        suggestionBar.update(suggestions, wordPredictor.getCurrentWord(), predictionSlotCount);
         if (suggestions != null && !suggestions.isEmpty()) {
             setSuggestionBarShown(true);
         } else {
             //Do not close suggestion bar, either it jumps
             //setSuggestionBarShown(false);
         }
+    }
+
+    /**
+     * Repaint the bar from the predictor's current state, without asking the engine
+     * for anything new. Used after a dictionary load and by the Ctrl+W / translation
+     * toggles, so all three paths render identically.
+     */
+    protected void refreshSuggestionBar() {
+        if (suggestionBar == null || wordPredictor == null) return;
+        updateSuggestionBarWithTranslation(wordPredictor.getLatestSuggestions());
+    }
+
+    /**
+     * A dictionary finished loading. Suggestions computed while it was loading were
+     * dropped (the engine had nothing to answer with), so recompute for the word at
+     * the cursor and repaint — otherwise the bar stays blank until the user forces a
+     * refresh with Ctrl+W.
+     */
+    protected void onDictionaryLoaded(String locale) {
+        uiHandler.post(new Runnable() {
+            public void run() {
+                if (wordPredictor == null || suggestionBar == null) return;
+                updatePredictorWordAtCursor();
+                refreshSuggestionBar();
+            }
+        });
     }
 
     protected void acceptTranslation(String translatedWord, boolean isPhraseResult) {
@@ -182,20 +217,7 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             // Translate current word immediately
             if (wordPredictor != null) {
                 updatePredictorWordAtCursor();
-                String word = wordPredictor.getCurrentWord();
-                String prevWord = wordPredictor.getPreviousWord();
-                if (word != null && !word.isEmpty()) {
-                    List<String> translations = translationManager.translate(word, prevWord);
-                    if (!translations.isEmpty()) {
-                        boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
-                        int phraseCount = translationManager.getLastPhraseResultCount();
-                        if (translations.size() > translationSlotCount) {
-                            translations = translations.subList(0, translationSlotCount);
-                        }
-                        suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseCount);
-                        setSuggestionBarShown(true);
-                    }
-                }
+                refreshSuggestionBar();
             }
         } else {
             // Translation disabled — restore predictions
@@ -207,12 +229,8 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             } else if (wordPredictor != null) {
                 // Force engine to recompute suggestions for current word
                 // (don't use updatePredictorWordAtCursor — IC can return null)
-                wordPredictor.setCurrentWord(wordPredictor.getCurrentWord());
-                List<WordPredictor.Suggestion> latest = wordPredictor.getLatestSuggestions();
-                if (latest != null && latest.size() > predictionSlotCount) {
-                    latest = latest.subList(0, predictionSlotCount);
-                }
-                suggestionBar.update(latest, wordPredictor.getCurrentWord());
+                wordPredictor.refreshSuggestions();
+                refreshSuggestionBar();
             } else {
                 suggestionBar.clear();
             }
@@ -227,21 +245,16 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
 
         if(!predictionBarVisibleThisSession) {
             predictionBarVisibleThisSession = true;
-            setSuggestionBarShown(true);
             Toast.makeText(getApplicationContext(), "\uD83D\uDD2E Predictions ON", Toast.LENGTH_SHORT).show();
-            // Read word at cursor and force prediction update
-            InputConnection ic = getCurrentInputConnection();
-            if (ic != null) {
-                CharSequence before = ic.getTextBeforeCursor(96, 0);
-                if (before != null && before.length() > 0) {
-                    int end = before.length();
-                    int start = end;
-                    while (start > 0 && WordDictionary.isWordChar(before.charAt(start - 1))) start--;
-                    String word = (start < end) ? before.subSequence(start, end).toString() : "";
-                    wordPredictor.setCurrentWord(word);
-                }
-            }
-            suggestionBar.update(wordPredictor.getLatestSuggestions(), wordPredictor.getCurrentWord());
+            // Read the word at the cursor and force a prediction update. Uses the
+            // shared extractor so previousWord is set too \u2014 without it next-word
+            // (bigram) prediction is dead on this path and a stale previousWord from
+            // another field can leak in.
+            updatePredictorWordAtCursor();
+            // Populate before showing: revealing the bar first leaves it visibly
+            // empty whenever the engine had nothing cached to paint.
+            refreshSuggestionBar();
+            setSuggestionBarShown(true);
         } else {
             predictionBarVisibleThisSession = false;
             setSuggestionBarShown(false);
@@ -265,7 +278,16 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
                     locale = "ru"; // use Russian dictionary as fallback for Ukrainian
                 }
             }
-            wordPredictor.loadDictionary(getApplicationContext(), locale);
+            // The load runs on a background thread; the completion callback is what
+            // repaints the bar. Without it the bar stays blank for the whole rebuild
+            // and never recovers, since every keystroke in between is dropped by an
+            // engine that isn't ready yet.
+            final String target = locale;
+            wordPredictor.loadDictionary(getApplicationContext(), target, new Runnable() {
+                public void run() {
+                    onDictionaryLoaded(target);
+                }
+            });
         } catch (Throwable ex) {
             Log.e(TAG2, "reloadDictionaryForCurrentLanguage error: " + ex);
         }
@@ -367,12 +389,6 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             wordPredictor.setNextWordEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_26_NEXT_WORD_PREDICTION));
             wordPredictor.setKeyboardAwareEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_27_KEYBOARD_AWARE));
             wordPredictor.setEngineMode(engineMode);
-            wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
-                public void run() {
-                    wordPredictor.preloadDictionary(getApplicationContext(), "ru");
-                }
-            });
-            Log.i(TAG2, "onCreate: WordPredictor initialized (engine cached: " + wordPredictor.isEngineReady() + ")");
             int predictionHeight = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_15_PREDICTION_HEIGHT);
             if (predictionHeight < 10) predictionHeight = 36;
             predictionSlotCount = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_16_PREDICTION_COUNT);
@@ -383,19 +399,39 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             suggestionBar = new SuggestionBar(this, predictionHeight, barSlots);
             wordPredictor.setSuggestLimit(predictionSlotCount);
             wordPredictor.setListener(new WordPredictor.SuggestionListener() {
-                public void onSuggestionsUpdated(final List<WordPredictor.Suggestion> suggestions) {
+                public void onSuggestionsUpdated(final List<WordPredictor.Suggestion> suggestions,
+                                                 final String prefix) {
                     if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
                         updateSuggestionBarWithTranslation(suggestions);
                     } else {
-                        final String pfx = wordPredictor.getCurrentWord();
-                        suggestionBar.post(new Runnable() {
+                        uiHandler.post(new Runnable() {
                             public void run() {
+                                if (wordPredictor == null) return;
+                                // Drop results the user has already typed past
+                                if (!prefix.equals(wordPredictor.getCurrentWord())) return;
                                 updateSuggestionBarWithTranslation(suggestions);
                             }
                         });
                     }
                 }
             });
+            // Repaint once a dictionary lands — suggestions requested while it was
+            // loading produced nothing and were never painted.
+            wordPredictor.setDictionaryLoadedListener(new WordPredictor.DictionaryLoadedListener() {
+                public void onDictionaryLoaded(String locale) {
+                    InputMethodServiceCorePrediction.this.onDictionaryLoaded(locale);
+                }
+            });
+            // Kick the load off only now that the listeners are wired — started any
+            // earlier, a fast (cached) load can finish before anyone is listening and
+            // the first repaint is lost.
+            wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
+                public void run() {
+                    WordPredictor wp = wordPredictor;
+                    if (wp != null) wp.preloadDictionary(getApplicationContext(), "ru");
+                }
+            });
+            Log.i(TAG2, "onCreate: WordPredictor initialized (engine cached: " + wordPredictor.isEngineReady() + ")");
             suggestionBar.setOnSuggestionClickListener(new SuggestionBar.OnSuggestionClickListener() {
                 public void onSuggestionClicked(int index, String word) {
                     if (suggestionBar.isShowingTranslations()) {
@@ -409,27 +445,13 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             translationManager = new TranslationManager(getApplicationContext());
             int transDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
             translationManager.setMaxEntries(transDictSize);
-            translationManager.setOnDictionaryLoadedListener(() -> {
+            translationManager.setOnDictionaryLoadedListener(() -> uiHandler.post(() -> {
                 if (suggestionBar == null || wordPredictor == null || translationManager == null) return;
                 if (!translationManager.isEnabled()) return;
-                suggestionBar.post(() -> {
-                    if (wordPredictor == null || translationManager == null) return;
-                    if (!translationManager.isEnabled()) return;
-                    String word = wordPredictor.getCurrentWord();
-                    String prevWord = wordPredictor.getPreviousWord();
-                    if (word != null && !word.isEmpty()) {
-                        List<String> translations = translationManager.translate(word, prevWord);
-                        if (!translations.isEmpty()) {
-                            boolean isPhraseMatch = translationManager.wasLastPhraseMatch();
-                            int phraseCount = translationManager.getLastPhraseResultCount();
-                            if (translations.size() > translationSlotCount)
-                                translations = translations.subList(0, translationSlotCount);
-                            suggestionBar.updateTranslation(translations, word, translationSlotCount, isPhraseMatch, phraseCount);
-                            setSuggestionBarShown(true);
-                        }
-                    }
-                });
-            });
+                // Lookups made while the CDB was loading returned nothing and fell
+                // back to predictions — repaint now that translations are available.
+                refreshSuggestionBar();
+            }));
             predictionBarHiddenByDefault = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN);
         }
     }

@@ -151,47 +151,69 @@ public class SuggestionBar extends LinearLayout {
     }
 
     /**
-     * Update displayed suggestions.
+     * Update displayed suggestions, spreading them over every slot.
      */
     public void update(List<WordPredictor.Suggestion> suggestions, String prefix) {
+        update(suggestions, prefix, numSlots);
+    }
+
+    /**
+     * Update displayed suggestions.
+     *
+     * @param maxSlots how many slots predictions may use. The bar is sized for
+     *                 max(predictionCount, translationCount); laying predictions
+     *                 out over all of them when the translation count is larger
+     *                 leaves permanently blank bubbles between the words.
+     */
+    public void update(List<WordPredictor.Suggestion> suggestions, String prefix, int maxSlots) {
         showingTranslations = false;
-        String pfx = (prefix != null) ? prefix.toLowerCase() : "";
-        int count = (suggestions != null) ? suggestions.size() : 0;
+        int limit = Math.max(1, Math.min(numSlots, maxSlots));
+        int count = (suggestions != null) ? Math.min(suggestions.size(), limit) : 0;
 
         // Build mapping: suggestion index -> slot position
         // Priority (index 0) in center, rarer words toward left
-        int[] suggToSlot = new int[numSlots];
-        int center = numSlots / 2;
+        int[] suggToSlot = new int[limit];
+        int center = limit / 2;
         suggToSlot[0] = center;
         int right = center + 1;
         int left = center - 1;
-        for (int s = 1; s < numSlots; s++) {
-            if (right < numSlots) {
+        for (int s = 1; s < limit; s++) {
+            if (right < limit) {
                 suggToSlot[s] = right++;
             } else if (left >= 0) {
                 suggToSlot[s] = left--;
             }
         }
-        // Build reverse mapping for click handler
-        for (int s = 0; s < numSlots; s++) {
-            slotToSuggestion[suggToSlot[s]] = s;
-        }
 
-        // Clear all slots first
+        // Clear all slots first; slots past the prediction count are dropped so the
+        // used ones share the full bar width instead of leaving gaps.
         for (int i = 0; i < numSlots; i++) {
             slots[i].setText("");
-            slots[i].setVisibility(View.VISIBLE);
             slots[i].setTypeface(null, Typeface.NORMAL);
             slots[i].setEllipsize(TextUtils.TruncateAt.END);
+            slots[i].setTextColor(COLOR_TEXT);
+            slotToSuggestion[i] = i;
             LayoutParams lp = (LayoutParams) slots[i].getLayoutParams();
-            lp.weight = 1;
-            lp.width = 0;
+            if (i < limit) {
+                slots[i].setVisibility(View.VISIBLE);
+                lp.weight = 1;
+                lp.width = 0;
+            } else {
+                slots[i].setVisibility(View.GONE);
+                lp.weight = 0;
+                lp.width = 0;
+            }
             slots[i].setLayoutParams(lp);
         }
 
+        // Build reverse mapping for click handler
+        for (int s = 0; s < limit; s++) {
+            slotToSuggestion[suggToSlot[s]] = s;
+        }
+
         // First pass: set text, typeface, ellipsize on all slots
-        float[] textWidths = new float[numSlots];
-        for (int s = 0; s < count && s < numSlots; s++) {
+        float[] textWidths = new float[limit];
+        for (int s = 0; s < count; s++) {
             String word = suggestions.get(s).word;
             int slot = suggToSlot[s];
             slots[slot].setText(word);
@@ -209,7 +231,7 @@ public class SuggestionBar extends LinearLayout {
         // Second pass: set weights
         // Priority uses WRAP_CONTENT (text always fits) + fixed weight for
         // modest breathing room. Non-priority gets text-proportional weight.
-        for (int s = 0; s < count && s < numSlots; s++) {
+        for (int s = 0; s < count; s++) {
             int slot = suggToSlot[s];
             LayoutParams lp = (LayoutParams) slots[slot].getLayoutParams();
             if (s == 0) {
@@ -239,7 +261,7 @@ public class SuggestionBar extends LinearLayout {
         showingTranslations = true;
         phraseMatch = isPhraseMatch;
         phraseResultCount = numPhraseResults;
-        int limit = Math.min(numSlots, maxSlots);
+        int limit = Math.max(1, Math.min(numSlots, maxSlots));
         int count = (translations != null) ? Math.min(translations.size(), limit) : 0;
 
         // Build center-based mapping: priority in center, next right, then left
