@@ -65,6 +65,12 @@ android {
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
     }
+    sourceSets {
+        devRelease {
+            res.srcDirs += 'src/dev/res'
+        }
+    }
+
     applicationVariants.all { variant ->
         variant.outputs.all {
             // versionName у dev несёт суффикс -dev, поэтому apk основной и
@@ -99,6 +105,23 @@ android {
             debuggable false
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        /**
+         * То же параллельное приложение, что и dev, но собранное как release:
+         * minify, без debuggable, логи вырезаны R8. Нужно, чтобы тестировать
+         * рядом с основной клавиатурой ровно тот код, который уедет в релиз.
+         *
+         * Ресурсы берёт из src/dev — иначе имя, authority провайдера и каталог
+         * на sdcard совпали бы с основной сборкой.
+         *
+         * Собирать: gradlew assembleDevRelease
+         */
+        devRelease {
+            initWith release
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+            signingConfig signingConfigs.release
+            matchingFallbacks = ['release']
         }
     }
 
