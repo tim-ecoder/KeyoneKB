@@ -381,8 +381,15 @@ public class K12KbAccessibilityService extends AccessibilityService {
                 // Пакет окна и подписка пересчитываются на дешёвых событиях —
                 // на них мы подписаны всегда.
                 CharSequence pkg = event.getPackageName();
-                if (pkg != null && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
+                if (pkg != null && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                        && !getPackageName().contentEquals(pkg)) {
+                    // Окно самой клавиатуры — тоже окно, и оно шлёт это событие.
+                    // Считать его "текущим приложением" нельзя: пользователь всё
+                    // это время остаётся в своём приложении, а подписка на
+                    // contentChanged снималась (нашего пакета нет в плагинах), и
+                    // плагин переставал видеть изменения — поиск не срабатывал.
                     lastWindowPackage = pkg.toString();
+                }
                 RefreshEventTypeSubscription();
             }
 
