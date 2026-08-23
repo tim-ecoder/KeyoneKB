@@ -945,6 +945,17 @@ public class K12KbAccessibilityService extends AccessibilityService {
             return;
         }
         Log.d(TAG3, "ProcessSearchPlugins:LOGIC");
+
+        // getRootInActiveWindow() — синхронный IPC, заставляющий приложение
+        // построить дерево узлов в своём UI-потоке. Раньше он вызывался до
+        // цикла, то есть на каждом событии от любого пакета из списка, хотя
+        // ProcessSearchField первым делом отсеивает событие по пакету и типу и
+        // до дерева чаще всего не доходит. Спрашиваем корень только когда хоть
+        // один плагин действительно заинтересован — приложения, которые спамят
+        // contentChanged (диалер, телеграм), перестают платить за каждое событие.
+        if (!AnyPluginInterested(event.getEventType(), packageName))
+            return;
+
         AccessibilityNodeInfo root = getRootInActiveWindow();
         for (SearchClickPlugin plugin : searchClickPlugins) {
             if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin)) {
@@ -961,6 +972,24 @@ public class K12KbAccessibilityService extends AccessibilityService {
             SetSearchHack(null);
             //LogEventD(event);
         }
+    }
+
+    /**
+     * Совпадает ли хоть один плагин по пакету и типу события — те же условия,
+     * с которых начинается ProcessSearchField, но без обращения к дереву узлов.
+     */
+    private boolean AnyPluginInterested(int eventType, String packageName) {
+        for (int i = 0; i < searchClickPlugins.size(); i++) {
+            SearchClickPlugin p = searchClickPlugins.get(i);
+            if (packageName.contains(p.getPartiallyPackageName()) && p.checkEventType(eventType))
+                return true;
+        }
+        for (int i = 0; i < clickerPlugins.size(); i++) {
+            SearchClickPlugin p = clickerPlugins.get(i);
+            if (packageName.contains(p.getPartiallyPackageName()) && p.checkEventType(eventType))
+                return true;
+        }
+        return false;
     }
 
     private boolean ContainsContains(String packageName) {
