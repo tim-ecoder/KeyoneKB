@@ -10,6 +10,7 @@ import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
 import android.text.InputType;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
@@ -86,6 +87,19 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     KeyboardMechanics KeyboardMechanics;
 
+    /**
+     * Вид параметра Action — определяется один раз при загрузке, чтобы в горячем
+     * пути не разбирать цепочку булевых флагов.
+     * Объявлено здесь, а не внутри Action: поле KeyboardMechanics выше затеняет
+     * одноимённый класс, и обратиться к KeyboardMechanics.Action.* изнутри нельзя.
+     */
+    static final int ARG_NONE     = 0;
+    static final int ARG_NAV      = 1;
+    static final int ARG_KEYCODE  = 2;
+    static final int ARG_CHAR     = 3;
+    static final int ARG_KEYPRESS = 4;
+    static final int ARG_KEYEVENT = 5;
+
     public static class KeyboardMechanics {
         @JsonProperty(index = 20)
         public ArrayList<Action> OnStartInputActions;
@@ -151,7 +165,8 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             public String Comment;
             @JsonProperty(index = 10)
             public ArrayList<String> MetaModeMethodNames;
-            public ArrayList<IActionMethod> MetaModeMethods;
+            /** Массив, а не ArrayList: обход в горячем пути без создания итератора. */
+            public IActionMethod[] MetaModeMethods;
 
             @JsonProperty(index = 20)
             public String ActionMethodName;
@@ -175,6 +190,25 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             @JsonProperty(index = 90)
             public boolean MethodNeedsNavActionParameter;
 
+            /** Вычисляется при загрузке. */
+            public int ArgKind = 0; // ARG_NONE
+            /**
+             * Константы из JSON, забоксенные один раз при загрузке. Раньше
+             * invoke(int) / invoke(char) боксили их заново на каждое нажатие.
+             */
+            public Integer BoxedKeyCode;
+            public Character BoxedChar;
+
+            /**
+             * Освободить то, что нужно было только на этапе разбора JSON.
+             * ActionMethodName оставляем — он единственный читается после загрузки,
+             * в диагностическом логе Processable2.InvokeMethod.
+             */
+            public void ReleaseLoadOnlyData() {
+                Comment = null;
+                MetaModeMethodNames = null;
+                CustomKeyCode = null;
+            }
         }
     }
 
@@ -330,7 +364,89 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 LOADING_STAGE += "SUB_STAGE: "+SB_STAGE;
             Log.e(TAG2, "CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" EXCEPTION: " + ex);
             throw new Exception("CAN NOT LOAD KEYBOARD MECHANICS ON STAGE "+LOADING_STAGE+" EXCEPTION: " + ex);
+        } finally {
+            // В finally, потому что выше есть ранний return при выключенных жестах.
+            ReleaseLoadOnlyStrings();
         }
+    }
+
+    /**
+     * Освобождает то, что нужно было только на этапе разбора JSON.
+     *
+     * После загрузки Action живёт в памяти всё время работы IME, но половина его
+     * полей уже мертва: имена методов нужны были лишь чтобы найти лямбду в
+     * Methods, key-code-строки — чтобы получить int, Comment вообще нигде не
+     * читается. Jackson не интернирует значения строк, поэтому каждое вхождение
+     * "ActionSendCtrlPlusKey" — отдельный объект: в механике порядка 270 строк
+     * имён методов при ~110 уникальных.
+     *
+     * ActionMethodName оставляем — он единственный читается после загрузки, в
+     * диагностическом логе Processable2.InvokeMethod; но канонизируем, чтобы
+     * одинаковые имена делили один объект.
+     *
+     * Вызывается один раз в самом конце: одна группа клавиш прогоняет тот же
+     * Action через маппинг по разу на каждый key-code, поэтому освобождать
+     * прямо в маппинге нельзя — второй проход не нашёл бы CustomKeyCode.
+     */
+    private void ReleaseLoadOnlyStrings() {
+        try {
+            if (KeyboardMechanics == null) return;
+            HashMap<String, String> canonical = new HashMap<>();
+            ArrayList<ArrayList<KeyboardMechanics.Action>> all = new ArrayList<>();
+            all.add(KeyboardMechanics.OnStartInputActions);
+            all.add(KeyboardMechanics.OnFinishInputActions);
+            all.add(KeyboardMechanics.BeforeSendCharActions);
+            all.add(KeyboardMechanics.AfterSendCharActions);
+            CollectGroupActions(KeyboardMechanics.OnAnyKeyBeforeActions, all);
+            for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.KeyGroupProcessors)
+                CollectGroupActions(kgp, all);
+            for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.NavKeyGroupProcessors)
+                CollectGroupActions(kgp, all);
+            if (KeyboardMechanics.GestureProcessor != null) {
+                all.add(KeyboardMechanics.GestureProcessor.OnGestureDoubleClick);
+                all.add(KeyboardMechanics.GestureProcessor.OnGestureTripleClick);
+                all.add(KeyboardMechanics.GestureProcessor.OnGestureSecondClickUp);
+            }
+
+            int released = 0;
+            for (ArrayList<KeyboardMechanics.Action> list : all) {
+                if (list == null) continue;
+                for (KeyboardMechanics.Action a : list) {
+                    if (a.ActionMethodName != null) {
+                        String prev = canonical.putIfAbsent(a.ActionMethodName, a.ActionMethodName);
+                        if (prev != null) a.ActionMethodName = prev;
+                    }
+                    a.ReleaseLoadOnlyData();
+                    released++;
+                }
+            }
+            // key-code-строки групп тоже больше не нужны — из них уже получены int
+            for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.KeyGroupProcessors) {
+                kgp.KeyCodes = null;
+                kgp.KeyCodeList = null;
+            }
+            for (KeyboardMechanics.KeyGroupProcessor kgp : KeyboardMechanics.NavKeyGroupProcessors) {
+                kgp.KeyCodes = null;
+                kgp.KeyCodeList = null;
+            }
+            KeyboardMechanics.ViewModeKeyTransparencyExcludeKeyCodes = null;
+            Log.i(TAG2, "ReleaseLoadOnlyStrings: actions=" + released
+                    + " unique method names=" + canonical.size());
+        } catch (Throwable ex) {
+            Log.w(TAG2, "ReleaseLoadOnlyStrings failed (non-critical): " + ex);
+        }
+    }
+
+    private static void CollectGroupActions(KeyboardMechanics.KeyGroupProcessor kgp,
+                                            ArrayList<ArrayList<KeyboardMechanics.Action>> out) {
+        if (kgp == null) return;
+        out.add(kgp.OnShortPress);
+        out.add(kgp.OnDoublePress);
+        out.add(kgp.OnLongPress);
+        out.add(kgp.OnHoldOn);
+        out.add(kgp.OnHoldOff);
+        out.add(kgp.OnTriplePress);
+        out.add(kgp.OnUndoShortPress);
     }
 
 
@@ -397,27 +513,48 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             action.ActionMethod = method;
 
             if (action.MetaModeMethodNames != null && !action.MetaModeMethodNames.isEmpty()) {
-                action.MetaModeMethods = new ArrayList<>();
-                for (String metaMethodName : action.MetaModeMethodNames) {
-
+                action.MetaModeMethods = new IActionMethod[action.MetaModeMethodNames.size()];
+                for (int mi = 0; mi < action.MetaModeMethodNames.size(); mi++) {
+                    String metaMethodName = action.MetaModeMethodNames.get(mi);
                     ActionMethod metaMethod = FindActionMethodByName(metaMethodName);
 
-                    action.MetaModeMethods.add(metaMethod);
+                    action.MetaModeMethods[mi] = metaMethod;
                     if (!metaMethod.getType().equals(Object.class)) {
                         Log.e(TAG2, "ACTION METHOD PARAMETER TYPE MISMATCH " + metaMethodName + " NEED: " + metaMethod.getType());
                         throw new Exception("ACTION METHOD PARAMETER TYPE MISMATCH " + metaMethodName + " NEED: " + metaMethod.getType());
                     }
                 }
             }
+
+            // Разбираем вид параметра один раз здесь, а не цепочкой if на каждое
+            // нажатие; заодно боксим константы, чтобы invoke() не делал этого в рантайме.
+            if (action.MethodNeedsNavActionParameter) {
+                action.ArgKind = ARG_NAV;
+            } else if (action.CustomKeyCodeInt > 0) {
+                action.ArgKind = ARG_KEYCODE;
+                action.BoxedKeyCode = Integer.valueOf(action.CustomKeyCodeInt);
+            } else if (action.CustomChar > 0) {
+                action.ArgKind = ARG_CHAR;
+                action.BoxedChar = Character.valueOf(action.CustomChar);
+            } else if (action.MethodNeedsKeyPressParameter) {
+                action.ArgKind = ARG_KEYPRESS;
+            } else if (action.MethodNeedsKeyEventParameter) {
+                action.ArgKind = ARG_KEYEVENT;
+            } else {
+                action.ArgKind = ARG_NONE;
+            }
+
         }
 
         Processable2 p = (Processable2) processable;
         if(p == null) {
             p = new Processable2();
-            p.Actions = list;
             p.Keyboard = this;
+            p.SetActions(list);
         } else {
-            p.Actions.addAll(list);
+            // Прежний addAll в общий список означал, что повторная загрузка
+            // механики продублировала бы каждое действие.
+            p.AddActions(list);
         }
         return p;
     }
@@ -655,44 +792,24 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     class Processable2 implements InputMethodServiceCoreKeyPress.Processable {
         @Override
         public boolean Process(KeyPressData keyPressData, KeyEvent keyEvent) {
-            if (Actions == null || Actions.isEmpty())
-                return true;
             try {
-                for (KeyboardMechanics.Action action : Actions) {
-
-                    if (action.MetaModeMethods != null && !action.MetaModeMethods.isEmpty()) {
-                        boolean metaResult = true;
-                        for (IActionMethod metaMethod : action.MetaModeMethods) {
-                            metaResult &= metaMethod.invoke(Keyboard);;
-                            if(!metaResult)
-                                break;
-                        }
-
-                        if (metaResult) {
-                            boolean result = InvokeMethod(keyPressData, action, keyEvent);
-                            if (result && action.NeedUpdateVisualState)
-                                Keyboard.ActionSetNeedUpdateVisualState();
-                            if (action.NeedUpdateGestureVisualState)
-                                Keyboard.ActionSetNeedUpdateGestureNotification();
-                            if (action.StopProcessingAtSuccessResult && result) {
-                                return true;
-                            }
-                        }
+                // Действия с мета-условиями идут первыми — порядок как раньше, но
+                // разбиение сделано при загрузке, а не двумя проходами по общему
+                // списку с созданием итератора на каждый проход.
+                for (int i = 0; i < WithMeta.length; i++) {
+                    KeyboardMechanics.Action action = WithMeta[i];
+                    boolean metaResult = true;
+                    for (int m = 0; m < action.MetaModeMethods.length; m++) {
+                        metaResult = action.MetaModeMethods[m].invoke(Keyboard);
+                        if (!metaResult)
+                            break;
                     }
+                    if (metaResult && RunAction(action, keyPressData, keyEvent))
+                        return true;
                 }
-                for (KeyboardMechanics.Action action : Actions) {
-
-                    if (action.MetaModeMethods == null || action.MetaModeMethods.isEmpty()) {
-                        boolean result = InvokeMethod(keyPressData, action, keyEvent);
-                        if (result && action.NeedUpdateVisualState)
-                            Keyboard.ActionSetNeedUpdateVisualState();
-                        if (action.NeedUpdateGestureVisualState)
-                            Keyboard.ActionSetNeedUpdateGestureNotification();
-                        if (action.StopProcessingAtSuccessResult && result) {
-                            return true;
-                        }
-                    }
-
+                for (int i = 0; i < WithoutMeta.length; i++) {
+                    if (RunAction(WithoutMeta[i], keyPressData, keyEvent))
+                        return true;
                 }
             } catch (Throwable ex) {
                 Log.e(TAG2, "Can not Process Actions " + ex);
@@ -700,32 +817,64 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             return true;
         }
 
+        /** @return true, если обработку надо прекратить (StopProcessingAtSuccessResult). */
+        private boolean RunAction(KeyboardMechanics.Action action, KeyPressData keyPressData, KeyEvent keyEvent) {
+            boolean result = InvokeMethod(keyPressData, action, keyEvent);
+            if (result && action.NeedUpdateVisualState)
+                Keyboard.ActionSetNeedUpdateVisualState();
+            if (action.NeedUpdateGestureVisualState)
+                Keyboard.ActionSetNeedUpdateGestureNotification();
+            return result && action.StopProcessingAtSuccessResult;
+        }
+
         private boolean InvokeMethod(KeyPressData keyPressData, KeyboardMechanics.Action action, KeyEvent keyEvent) {
-            boolean result;
             if (action.ActionMethod == null) {
                 Log.e(TAG2, "action.ActionMethod == null; MethodName: " + action.ActionMethodName + " KeyCode: " + keyPressData.KeyCode);
                 return false;
             }
-            // Эта проверка должна быть до action.CustomKeyCode так как action.CustomKeyCode в нем используется тоже, но есть и без него вариант, отдельный
-            if (action.MethodNeedsNavActionParameter) {
-                result = action.ActionMethod.invoke(new NavActionData(action.CustomKeyCodeInt, keyEvent.getMetaState()));
-            } else if (action.CustomKeyCodeInt > 0) {
-                result = action.ActionMethod.invoke(action.CustomKeyCodeInt);
-            } else if (action.CustomChar > 0) {
-                result = action.ActionMethod.invoke(action.CustomChar);
-            } else if (action.MethodNeedsKeyPressParameter) {
-                result = action.ActionMethod.invoke(keyPressData);
-            } else if (action.MethodNeedsKeyEventParameter) {
-                result = action.ActionMethod.invoke(keyEvent);
-            } else {
-                result = action.ActionMethod.invoke(Keyboard);
+            switch (action.ArgKind) {
+                case ARG_NAV:
+                    return action.ActionMethod.invoke(new NavActionData(action.CustomKeyCodeInt, keyEvent.getMetaState()));
+                case ARG_KEYCODE:
+                    return action.ActionMethod.invoke(action.BoxedKeyCode);
+                case ARG_CHAR:
+                    return action.ActionMethod.invoke(action.BoxedChar);
+                case ARG_KEYPRESS:
+                    return action.ActionMethod.invoke(keyPressData);
+                case ARG_KEYEVENT:
+                    return action.ActionMethod.invoke(keyEvent);
+                default:
+                    return action.ActionMethod.invoke(Keyboard);
             }
-
-            return result;
         }
 
+        void SetActions(ArrayList<KeyboardMechanics.Action> list) {
+            Actions = new ArrayList<>(list);
+            Rebuild();
+        }
 
-        ArrayList<KeyboardMechanics.Action> Actions = null;
+        void AddActions(ArrayList<KeyboardMechanics.Action> list) {
+            Actions.addAll(list);
+            Rebuild();
+        }
+
+        private void Rebuild() {
+            ArrayList<KeyboardMechanics.Action> withMeta = new ArrayList<>();
+            ArrayList<KeyboardMechanics.Action> withoutMeta = new ArrayList<>();
+            for (KeyboardMechanics.Action a : Actions) {
+                if (a.MetaModeMethods != null && a.MetaModeMethods.length > 0)
+                    withMeta.add(a);
+                else
+                    withoutMeta.add(a);
+            }
+            WithMeta = withMeta.toArray(new KeyboardMechanics.Action[0]);
+            WithoutMeta = withoutMeta.toArray(new KeyboardMechanics.Action[0]);
+        }
+
+        ArrayList<KeyboardMechanics.Action> Actions = new ArrayList<>();
+        /** Готовые массивы для горячего пути; пересобираются только при загрузке. */
+        KeyboardMechanics.Action[] WithMeta = new KeyboardMechanics.Action[0];
+        KeyboardMechanics.Action[] WithoutMeta = new KeyboardMechanics.Action[0];
 
         InputMethodServiceCoreCustomizable Keyboard = null;
     }
