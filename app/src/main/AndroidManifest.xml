@@ -69,7 +69,7 @@
             android:theme = "@style/AppTheme2.NoDisplay"
             -->
             <intent-filter>
-                <action android:name="com.ai10.k12kb.IntentQuickSettings"/>
+                <action android:name="${applicationId}.IntentQuickSettings"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -79,7 +79,7 @@
                 android:theme = "@android:style/Theme.Translucent.NoTitleBar"
         >
             <intent-filter>
-                <action android:name="com.ai10.k12kb.IntentNotifications"/>
+                <action android:name="${applicationId}.IntentNotifications"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

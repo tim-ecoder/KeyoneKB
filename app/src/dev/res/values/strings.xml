@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Переопределения для сборки dev — она ставится рядом с основной.
+    Ресурсы из source set типа сборки перекрывают одноимённые из main,
+    поэтому здесь перечислено только то, что обязано отличаться.
+-->
+<resources>
+    <!-- Чтобы отличать сборки в списке приложений и в выборе клавиатуры -->
+    <string name="app_name" translatable="false">K12KB dev</string>
+    <string name="k12kb_accessibility_service_label" translatable="false">K12KB dev</string>
+
+    <!--
+        Authority должен быть уникален в системе: при совпадении вторая
+        установка падает с INSTALL_FAILED_CONFLICTING_PROVIDER.
+    -->
+    <string name="file_provider_authority" translatable="false">com.ai10.k12kb.dev.fileprovider</string>
+
+    <!--
+        Свой каталог на sdcard, иначе две сборки делили бы одни json,
+        js-патчи и результаты патчей.
+    -->
+    <string name="app_files_dir" translatable="false">K12Kb_dev</string>
+</resources>

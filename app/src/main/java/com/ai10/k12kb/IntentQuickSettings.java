@@ -5,7 +5,9 @@ import android.os.Bundle;
 
 public class IntentQuickSettings extends Activity {
 
-    public static final String ACTION = "com.ai10.k12kb.IntentQuickSettings";
+    // С applicationId, иначе dev-сборка и основная слушали бы один и тот же
+    // action и перехватывали намерения друг друга.
+    public static final String ACTION = BuildConfig.APPLICATION_ID + ".IntentQuickSettings";
 
     /** Called when the activity is first created. */
     @Override

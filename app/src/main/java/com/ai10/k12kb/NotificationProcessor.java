@@ -36,7 +36,10 @@ public class NotificationProcessor {
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         Intent intent = new Intent(context, ActivityMain.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setClassName("com.ai10.k12kb", "com.ai10.k12kb.ActivityMain");
+        // Имя пакета берём у самого приложения: у dev-сборки applicationId
+        // другой, и жёстко прописанный "com.ai10.k12kb" открывал бы из
+        // уведомления настройки основной клавиатуры вместо своих.
+        intent.setClassName(context.getPackageName(), ActivityMain.class.getName());
         // FLAG_IMMUTABLE required on API 31+; use bitwise OR for compat (0x04000000 = FLAG_IMMUTABLE)
         int piFlags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= 31) {

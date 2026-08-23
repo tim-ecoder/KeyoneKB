@@ -474,7 +474,9 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 UpdateGestureModeVisualization();
             needUpdateGestureNotificationInsideSingleEvent = false;
             //TODO: Проверить как это работает
-            if (_lastPackageName.equals("com.ai10.k12kb")) {
+            // getPackageName(), а не константа: в dev-сборке пакет другой, и
+            // возврат из её же настроек не перезагружал бы конфигурацию.
+            if (_lastPackageName.equals(getPackageName())) {
                 LoadSettingsAndKeyboards(deviceFullMODEL);
                 onFinishInputPredictionSettingsReload();
             }

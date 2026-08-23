@@ -5,7 +5,9 @@ import android.os.Bundle;
 
 public class IntentNotifications extends Activity {
 
-    public static final String ACTION = "com.ai10.k12kb.IntentNotifications";
+    // См. комментарий в IntentQuickSettings — action должен быть уникален
+    // для каждой установленной сборки.
+    public static final String ACTION = BuildConfig.APPLICATION_ID + ".IntentNotifications";
 
     /**
      * Called when the activity is first created.

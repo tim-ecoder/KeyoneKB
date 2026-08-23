@@ -67,7 +67,8 @@ android {
     }
     applicationVariants.all { variant ->
         variant.outputs.all {
-            //outputFileName = "K12KB-${variant.name}-${variant.versionName}.apk"
+            // versionName у dev несёт суффикс -dev, поэтому apk основной и
+            // параллельной сборки не перезаписывают друг друга.
             outputFileName = "K12KB-${variant.versionName}.apk"
         }
     }
@@ -76,6 +77,22 @@ android {
         debug {
             signingConfig signingConfigs.debug
             debuggable true
+        }
+        /**
+         * Сборка для параллельной установки рядом с основной клавиатурой.
+         * Отдельный applicationId, поэтому Android считает её другим
+         * приложением: свои настройки, своя запись в списке клавиатур и в
+         * спецвозможностях, отдельный каталог на sdcard.
+         *
+         * Собирать: gradlew assembleDev
+         */
+        dev {
+            initWith debug
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+            signingConfig signingConfigs.debug
+            debuggable true
+            matchingFallbacks = ['debug']
         }
         release {
             signingConfig signingConfigs.release
