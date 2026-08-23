@@ -992,6 +992,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public boolean ActionTryDisableNavModeAndKeyboard() {
         if (keyboardStateFixed_NavModeAndKeyboard) {
             keyboardStateFixed_NavModeAndKeyboard = false;
+        OnNavModeChanged();
             keyboardStateFixed_SymbolOnScreenKeyboard = false;
             metaFixedModeFirstSymbolAlt = false;
             metaFixedModeAllSymbolsAlt = false;
@@ -1007,6 +1008,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         if (!keyboardStateFixed_NavModeAndKeyboard) {
             //Двойное нажание SYM -> Режим навигации
             keyboardStateFixed_NavModeAndKeyboard = true;
+        OnNavModeChanged();
             keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
             keyboardView.setFnNavMode(false);
             navSwitcherKeyCode = LastShortPressKey1.KeyCode;
@@ -1018,11 +1020,13 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public boolean ActionSetNavModeHoldOnState() {
         navSwitcherKeyCode = KeyDownList1.get(KeyDownList1.size()-1).KeyCode;
         keyboardStateHolding_NavModeAndKeyboard = true;
+        OnNavModeChanged();
         return true;
     }
 
     public boolean ActionSetNavModeHoldOffState() {
         keyboardStateHolding_NavModeAndKeyboard = false;
+        OnNavModeChanged();
         return true;
     }
 
@@ -1211,6 +1215,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public boolean ActionDisableNavSymFnKeyboard() {
         //Отключаем режим навигации
         keyboardStateFixed_NavModeAndKeyboard = false;
+        OnNavModeChanged();
         keyboardStateFixed_FnSymbolOnScreenKeyboard = false;
         keyboardView.setFnNavMode(false);
         return true;
@@ -2188,6 +2193,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     protected boolean IsShiftMeta(int meta) {
         return (meta & ( KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON)) > 0;
+    }
+
+    /** Вход и выход из nav-режима меняет потребность в событиях об изменении содержимого. */
+    protected void OnNavModeChanged() {
+        RefreshAccessibilityEventSubscription();
     }
 
     protected boolean IsNavMode() {

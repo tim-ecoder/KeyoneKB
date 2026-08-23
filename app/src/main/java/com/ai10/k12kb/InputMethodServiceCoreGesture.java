@@ -638,6 +638,16 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     boolean _modeGestureAtViewModeDisabledPermanently = false;
     boolean _modeGestureAtViewModePointerAfterEnable = false;
 
+    /**
+     * Служба доступности подписывается на TYPE_WINDOW_CONTENT_CHANGED только когда
+     * события кому-то нужны; смена режима курсора или навигации это меняет.
+     */
+    protected void RefreshAccessibilityEventSubscription() {
+        K12KbAccessibilityService as = K12KbAccessibilityService.Instance;
+        if (as != null)
+            as.RefreshEventTypeSubscription();
+    }
+
     public enum GestureAtViewMode {
         Disabled,
         Scroll,
@@ -717,6 +727,7 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
                 _modeGestureAtViewMode = GESTURE_MODE_AT_VIEW_MODE_DEFAULT;
         }
         Log.d(TAG2, "GESTURE_POINTER_MODE SET="+ _modeGestureAtViewMode);
+        RefreshAccessibilityEventSubscription();
         return true;
     }
 

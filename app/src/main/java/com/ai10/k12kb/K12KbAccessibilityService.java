@@ -132,7 +132,10 @@ public class K12KbAccessibilityService extends AccessibilityService {
                 info.flags = 0;
                 info.eventTypes = 0;
             }
+            info.eventTypes = BASE_EVENT_TYPES;
+            contentChangedSubscribed = false;
             setServiceInfo(info);
+            RefreshEventTypeSubscription();
 
             } catch(Throwable ex) {
                 Log.e(TAG3, "onServiceConnected Exception: "+ex);
@@ -188,6 +191,102 @@ public class K12KbAccessibilityService extends AccessibilityService {
     private long lastAccessibilityEventTime = 0;
     private static final long ACCESSIBILITY_THROTTLE_MS = 80;
 
+    /**
+     * Типы событий, на которые служба подписана всегда. Дёшевы: приходят на смену
+     * окна и фокуса, а не на каждое изменение содержимого.
+     */
+    private static final int BASE_EVENT_TYPES =
+            AccessibilityEvent.TYPE_VIEW_FOCUSED
+                    | AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                    | AccessibilityEvent.TYPE_WINDOWS_CHANGED;
+
+    /** Подписаны ли сейчас дополнительно на TYPE_WINDOW_CONTENT_CHANGED. */
+    private boolean contentChangedSubscribed = false;
+    /** Пакет окна, которое сейчас на экране — по нему решаем, нужна ли подписка. */
+    private String lastWindowPackage = "";
+
+    /**
+     * Включает и выключает подписку на TYPE_WINDOW_CONTENT_CHANGED.
+     *
+     * Замер на BlackBerry KEY2 (Android 15), скролл ленты Discord, dumpsys gfxinfo:
+     *
+     *   служба включена, подписка есть:  janky 162/884 (18.3%), 99p 200 мс,
+     *                                    Slow UI thread 124, Missed Vsync 85
+     *   служба выключена:                janky  39/699 ( 5.6%), 99p  73 мс,
+     *                                    Slow UI thread  28, Missed Vsync  7
+     *   служба включена, подписки нет:   janky  43/687 ( 6.3%), 99p 121 мс,
+     *                                    Slow UI thread  35, Missed Vsync 10
+     *
+     * То есть платит не наш обработчик (к дереву Discord мы в том прогоне почти
+     * не обращались), а само приложение: пока хоть один сервис подписан на этот
+     * тип, приложение обязано строить AccessibilityEvent со всем текстом в своём
+     * UI-потоке на каждое изменение содержимого. Throttle внутри
+     * onAccessibilityEvent тут не помогает — он срабатывает уже после того, как
+     * событие построено и доставлено.
+     *
+     * Поэтому подписываемся только когда события действительно кому-то нужны.
+     */
+    public void RefreshEventTypeSubscription() {
+        try {
+            boolean needed = NeedContentChangedEvents();
+            if (needed == contentChangedSubscribed)
+                return;
+            AccessibilityServiceInfo info = getServiceInfo();
+            if (info == null)
+                return;
+            info.eventTypes = needed
+                    ? (BASE_EVENT_TYPES | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
+                    : BASE_EVENT_TYPES;
+            setServiceInfo(info);
+            contentChangedSubscribed = needed;
+            Log.d(TAG3, "TYPE_WINDOW_CONTENT_CHANGED subscription = " + needed
+                    + " package=" + lastWindowPackage);
+        } catch (Throwable ex) {
+            Log.e(TAG3, "RefreshEventTypeSubscription: " + ex);
+        }
+    }
+
+    /**
+     * Кому нужны события об изменении содержимого:
+     * - плагину поиска или кликера, если текущий пакет вообще в их списке;
+     * - digits-хаку, если для текущего пакета заведён маркер;
+     * - навигационному режиму;
+     * - режиму курсора, но только когда узел уже выбран: пока его нет, новый
+     *   придёт с TYPE_VIEW_FOCUSED, на который мы подписаны всегда.
+     */
+    private boolean NeedContentChangedEvents() {
+        if (k12KbAccServiceOptions == null)
+            return true;
+        String pkg = lastWindowPackage;
+        if (k12KbAccServiceOptions.SearchPluginsEnabled && pkg != null && !pkg.isEmpty()
+                && ContainsContains(pkg))
+            return true;
+        if (k12KbAccServiceOptions.DigitsPadPluginEnabled && DigitsPadMarkersContain(pkg))
+            return true;
+        K12KbIME ime = K12KbIME.Instance;
+        if (ime == null)
+            return false;
+        if (ime.IsNavMode())
+            return true;
+        return ime._modeGestureAtViewMode == InputMethodServiceCoreGesture.GestureAtViewMode.Pointer
+                && (k12KbAccServiceOptions.SelectedNodeClickHack
+                    || k12KbAccServiceOptions.SelectedNodeHighlight)
+                && ime.CurrentNodeInfo != null;
+    }
+
+    /** Заведён ли для пакета маркер digits-хака. */
+    private boolean DigitsPadMarkersContain(String packageName) {
+        if (packageName == null || packageName.isEmpty() || DigitsPadHackOptionsAppMarkers == null)
+            return false;
+        for (int i = 0; i < DigitsPadHackOptionsAppMarkers.length; i++) {
+            K12KbAccServiceOptions.DigitsPadHackOptionsAppMarker marker = DigitsPadHackOptionsAppMarkers[i];
+            if (marker != null && marker.PackageName != null
+                    && marker.PackageName.equalsIgnoreCase(packageName))
+                return true;
+        }
+        return false;
+    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType() +" "+event.getPackageName());
@@ -195,6 +294,16 @@ public class K12KbAccessibilityService extends AccessibilityService {
         try {
             if(K12KbIME.Instance == null)
                 return;
+
+            if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                    || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
+                // Пакет окна и подписка пересчитываются на дешёвых событиях —
+                // на них мы подписаны всегда.
+                CharSequence pkg = event.getPackageName();
+                if (pkg != null && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
+                    lastWindowPackage = pkg.toString();
+                RefreshEventTypeSubscription();
+            }
 
             // Throttle: skip rapid-fire events to keep main thread free for key events
             // Always process TYPE_WINDOW_STATE_CHANGED (app switches) immediately
@@ -727,6 +836,9 @@ public class K12KbAccessibilityService extends AccessibilityService {
         if(K12KbIME.Instance != null) {
             K12KbIME.Instance.SetCurrentNodeInfo(info);
         }
+        // Режиму курсора события об изменении содержимого нужны только пока узел
+        // выбран — подписка следует за ним.
+        RefreshEventTypeSubscription();
     }
 
     //endregion
@@ -990,6 +1102,11 @@ public class K12KbAccessibilityService extends AccessibilityService {
                 SetDigitsHack(false);
                 return;
             }
+            // Пакет проверяем до getRootInActiveWindow(): раньше дерево строилось
+            // на каждом событии, а имя пакета читалось уже из его корня.
+            CharSequence eventPackage = event.getPackageName();
+            if (!DigitsPadMarkersContain(eventPackage != null ? eventPackage.toString() : null))
+                return;
             Log.d(TAG3, " ProcessDigitsPadHack:LOGIC");
             if (ContainsAllDigitsButtons2()) {
                 //ContainsAllDigitsButtons(root);
