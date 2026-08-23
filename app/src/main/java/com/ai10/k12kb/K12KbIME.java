@@ -326,6 +326,28 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     }
 
 
+    /**
+     * Так же, как это делает клавиатура AOSP (LatinIME): она не переопределяет
+     * этот метод и полностью полагается на штатную логику
+     * InputMethodService — решение зависит от конфигурации устройства
+     * (есть ли аппаратная клавиатура и включена ли системная настройка
+     * "показывать экранную клавиатуру при физической"), но НИКОГДА не от
+     * inputType текущего поля.
+     *
+     * K12KB же ориентируется на аппаратную клавиатуру, поэтому штатный ответ
+     * при видимой физической клавиатуре — false — ему не подходит: панель
+     * предсказаний и свайп-панель нужны и в этом случае. Возвращаем true, когда
+     * к нам привязан редактор, и false, когда редактора нет — тогда система
+     * показывает нас по запросу приложения (в Termux это клик по экрану) и не
+     * показывает в режиме просмотра.
+     */
+    @Override
+    public boolean onEvaluateInputViewShown() {
+        if (IsEditorAttached())
+            return true;
+        return super.onEvaluateInputViewShown();
+    }
+
     @Override
     public void onStartInputView(EditorInfo info, boolean restarting) {
         Log.d(TAG2, "onStartInputView");
@@ -404,10 +426,11 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             return;
 
         //Это нужно чтобы показать клаву (перейти в режим редактирования)
+        // Признак — привязанный редактор, а не inputType > 0: терминалы (Termux)
+        // ставят TYPE_NULL, и по inputType они выглядели как "поля нет".
         if (pref_show_default_onscreen_keyboard
                 && !isInputViewShown()
-                && getCurrentInputConnection() != null
-                && IsInputMode()
+                && IsEditorAttached()
                 && Orientation == 1) {
             keyboardView.setOnTouchListener(this);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -417,8 +440,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             }
         } else if (!pref_show_default_onscreen_keyboard
                 && wordPredictor != null
-                && getCurrentInputConnection() != null
-                && IsInputMode()) {
+                && IsEditorAttached()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 this.requestShowSelf(InputMethodManager.SHOW_IMPLICIT);
             }
@@ -1092,7 +1114,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     private void HideSwipePanelOnHidePreferenceAndVisibleState() {
         if (!pref_show_default_onscreen_keyboard) {
-            if (wordPredictor != null && IsInputMode()) {
+            // IsEditorAttached, а не IsInputMode: раньше в терминале с TYPE_NULL
+            // управление уходило в else и клавиатура прятала сама себя через
+            // requestHideSelf, хотя приложение её только что показало.
+            if (wordPredictor != null && IsEditorAttached()) {
                 // Hide swype-pad but keep IME window for prediction bar
                 keyboardView.setOnTouchListener(null);
                 if (keyboardView.getVisibility() == View.VISIBLE) {
