@@ -2218,7 +2218,14 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     public void SetSearchHack(SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData) {
         if(SearchPluginLauncher == null && searchPluginLaunchData == null)
             return;
-        if((IsInputMode() || isInputViewShown()) && searchPluginLaunchData != null) {
+        if(IsInputMode() && searchPluginLaunchData != null) {
+            // isInputViewShown() убран из условия. Он стоял тут как признак
+            // "пользователь уже в поле ввода": раньше окно клавиатуры показывалось
+            // только в режиме ввода, поэтому одно следовало из другого. Показ в
+            // терминалах это развязал — окно бывает открыто и когда текстового
+            // поля нет, а после выхода из поиска по Back оно остаётся показанным
+            // ещё какое-то время. Хак в этот момент отбрасывался, и повторная
+            // активация плагина не срабатывала.
             Log.d(TAG2, "SetSearchHack IS NOT SET IsInputMode()=true");
             return;
         }
