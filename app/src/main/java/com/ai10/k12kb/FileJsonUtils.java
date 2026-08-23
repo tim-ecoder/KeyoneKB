@@ -178,6 +178,91 @@ public class FileJsonUtils {
     public static Hashtable<String, List<String>> JsPatchesMap = new Hashtable<>();
     public static Hashtable<String, String> JsPatchDescriptions = new Hashtable<>();
 
+    /**
+     * Один js-патч. Живёт либо в assets (js_patches/), либо на диске в PATH.
+     * Диск переопределяет assets при совпадении имени, поэтому патч, положенный
+     * на sdcard, заменяет собой встроенный, а не добавляется к нему вторым.
+     */
+    private static final class JsPatchSource {
+        final String name;
+        final File file;   // null для патча из assets
+
+        JsPatchSource(String name, File file) {
+            this.name = name;
+            this.file = file;
+        }
+
+        boolean isFromAssets() {
+            return file == null;
+        }
+    }
+
+    /**
+     * Собирает патчи для ресурса: сначала встроенные из assets, затем дисковые
+     * поверх них. Патчи из assets доступны всегда — им не нужны ни разрешение на
+     * запись, ни предварительное сохранение на диск.
+     */
+    private static List<JsPatchSource> CollectJsPatches(String noFolderName, Context context) {
+        LinkedHashMap<String, JsPatchSource> byName = new LinkedHashMap<>();
+
+        try {
+            String[] assetPatches = context.getAssets().list(JsPatchesAssetFolder);
+            if (assetPatches != null) {
+                for (String name : assetPatches) {
+                    if (!name.endsWith(".js")) continue;
+                    if (!name.startsWith(noFolderName)) continue;
+                    byName.put(name, new JsPatchSource(name, null));
+                }
+            }
+        } catch (Throwable ex) {
+            Log.w(TAG2, "Can not list asset js patches: " + ex);
+        }
+
+        // Диск доступен только с разрешением на запись; отсутствие разрешения
+        // больше не отключает патчи целиком — встроенные продолжают работать.
+        try {
+            if (PATH != null
+                    && ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED) {
+                File[] jsFiles = findFilenamesMatchingRegex(noFolderName + ".*\\.js", new File(PATH));
+                if (jsFiles != null) {
+                    for (File f : jsFiles) {
+                        byName.put(f.getName(), new JsPatchSource(f.getName(), f));
+                    }
+                }
+            }
+        } catch (Throwable ex) {
+            Log.w(TAG2, "Can not list disk js patches: " + ex);
+        }
+
+        return new ArrayList<>(byName.values());
+    }
+
+    private static String ReadJsPatch(JsPatchSource patch, Context context) throws IOException {
+        InputStream is = patch.isFromAssets()
+                ? context.getAssets().open(JsPatchesAssetFolder + "/" + patch.name)
+                : new FileInputStream(patch.file);
+        try {
+            return slurp(is, 1024);
+        } finally {
+            is.close();
+        }
+    }
+
+    /** Первая строка вида "// @name ..." — человекочитаемое название патча. */
+    private static String ReadJsPatchDescription(JsPatchSource patch, Context context) {
+        try {
+            String body = ReadJsPatch(patch, context);
+            int eol = body.indexOf('\n');
+            String firstLine = (eol >= 0 ? body.substring(0, eol) : body).trim();
+            if (firstLine.startsWith(JS_NAME_PREFIX)) {
+                return firstLine.substring(JS_NAME_PREFIX.length()).trim();
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
     public static <T> T DeserializeFromJsonApplyPatches(String resName, TypeReference<T> typeReference, Context context) throws Exception {
 
         T object = null;
@@ -188,52 +273,50 @@ public class FileJsonUtils {
         JsPatchesMap.put(noFolderName, JsPatches);
 
         try {
-            if(ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            // Патчи из assets работают без разрешений и без копирования на диск;
+            // дисковые дополняют их и переопределяют по имени.
+            List<JsPatchSource> patches = CollectJsPatches(noFolderName, context);
+            List<JsPatchSource> active = new ArrayList<>();
+            for (JsPatchSource patch : patches) {
+                JsPatches.add(patch.name);
+                String desc = ReadJsPatchDescription(patch, context);
+                if (desc != null) {
+                    JsPatchDescriptions.put(patch.name, desc);
+                }
+                if (k12KbSettings.GetBooleanValue(patch.name))
+                    active.add(patch);
+            }
 
-                // В первую очередь грузим js-патчи, чтобы они потом в морде показались
+            boolean canUseDisk = PATH != null
+                    && ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED;
 
-                File[] jsFiles = findFilenamesMatchingRegex(noFolderName + ".*\\.js", new File(PATH));
-                List<File> jsFilesActive = new ArrayList<>();
-                if(jsFiles != null) {
-                    for (File jsPatch : jsFiles) {
-                        JsPatches.add(jsPatch.getName());
-                        String desc = readJsPatchName(jsPatch);
-                        if (desc != null) {
-                            JsPatchDescriptions.put(jsPatch.getName(), desc);
-                        }
-                        if (k12KbSettings.GetBooleanValue(jsPatch.getName()))
-                            jsFilesActive.add(jsPatch);
-                    }
+            // Если в папке уже сформированный json берем его
+            if (canUseDisk && FileJsonUtils.JsonsExist(noFolderName)) {
+                CustomizationLoadVariants.put(noFolderName, ResLoadVariant.CustomJson);
+                return FileJsonUtils.DeserializeFromFile(noFolderName + JsonFileExt, typeReference);
+            }
+
+            // Накидываем патчи на дефолтный json
+            if (!active.isEmpty()) {
+
+                InputStream is_base_json = getResStream(resName, context);
+                String base_json = slurp(is_base_json, 1024);
+                is_base_json.close();
+
+                String[] jss = new String[active.size()];
+                for (int i = 0; i < active.size(); i++) {
+                    jss[i] = ReadJsPatch(active.get(i), context);
                 }
 
-                // Если в папке уже сформированный json берем его
-                if (FileJsonUtils.JsonsExist(noFolderName)) {
-                    CustomizationLoadVariants.put(noFolderName, ResLoadVariant.CustomJson);
-                    return FileJsonUtils.DeserializeFromFile(noFolderName + JsonFileExt, typeReference);
+                String patched = patchJson(base_json, jss);
+                // Результат пишем на диск только если он доступен: патчи должны
+                // работать и без разрешения на запись.
+                if (canUseDisk) {
+                    SavePatchResult(noFolderName, patched);
                 }
-
-                // Накидываем патчи на дефолтный json
-                if (jsFilesActive.size() > 0) {
-
-                    InputStream is_base_json = getResStream(resName, context);
-                    String base_json = slurp(is_base_json, 1024);
-                    is_base_json.close();
-
-                    String[] jss = new String[jsFilesActive.size()];
-                    int i = 0;
-                    for (File f1 : jsFilesActive) {
-
-                        FileInputStream fIn = new FileInputStream(f1);
-                        jss[i] = slurp(fIn, 1024);
-                        fIn.close();
-                        i++;
-                    }
-
-                    String output = patchJsonAndSaveResult(noFolderName, base_json, jss);
-                    CustomizationLoadVariants.put(noFolderName, ResLoadVariant.JsPatched);
-                    return DeserializeFromString(output, typeReference);
-                }
-
+                CustomizationLoadVariants.put(noFolderName, ResLoadVariant.JsPatched);
+                return DeserializeFromString(patched, typeReference);
             }
 
             CustomizationLoadVariants.put(noFolderName, ResLoadVariant.DefaultFromAsset);
@@ -265,7 +348,8 @@ public class FileJsonUtils {
 
     }
 
-    private static String patchJsonAndSaveResult(String resName, String base_json, String[] Jscripts) throws IOException {
+    /** Прогоняет json через цепочку js-патчей. Ничего не пишет на диск. */
+    private static String patchJson(String base_json, String[] Jscripts) throws IOException {
         String updatingJsonText = base_json;
 
 
@@ -307,13 +391,28 @@ public class FileJsonUtils {
         }
 
 
-        FileOutputStream fOut = new FileOutputStream(PATH+ resName +JsFileExt+JsonFileExt,false);
-        InputStream stream = new ByteArrayInputStream(updatingJsonText.getBytes(StandardCharsets.UTF_8));
-        copyLarge(stream, fOut);
-        fOut.flush();
-        fOut.close();
-        stream.close();
         return updatingJsonText;
+    }
+
+    /**
+     * Кладёт результат патчей рядом с остальными файлами на диске — чтобы его
+     * можно было посмотреть и отредактировать вручную. Для работы патчей не
+     * обязательно: при недоступном диске json остаётся только в памяти.
+     */
+    private static void SavePatchResult(String resName, String json) {
+        try {
+            FileOutputStream fOut = new FileOutputStream(PATH + resName + JsFileExt + JsonFileExt, false);
+            InputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+            try {
+                copyLarge(stream, fOut);
+                fOut.flush();
+            } finally {
+                fOut.close();
+                stream.close();
+            }
+        } catch (Throwable ex) {
+            Log.w(TAG2, "Can not save patch result for " + resName + ": " + ex);
+        }
     }
 
     //endregion

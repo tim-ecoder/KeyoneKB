@@ -99,7 +99,9 @@ public class K12KbSettings {
         CheckSettingOrSetDefault(APP_PREFERENCES_14_NAV_PAD_ON_HOLD, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_15_PREDICTION_HEIGHT, 36);
         CheckSettingOrSetDefault(APP_PREFERENCES_16_PREDICTION_COUNT, 4);
-        CheckSettingOrSetDefault(APP_PREFERENCES_17_PREDICTION_ENABLED, true);
+        // Выключено по умолчанию: словари грузятся в фоне и занимают память,
+        // включать имеет смысл осознанно из настроек предсказаний.
+        CheckSettingOrSetDefault(APP_PREFERENCES_17_PREDICTION_ENABLED, false);
         CheckSettingOrSetDefault(APP_PREFERENCES_18_LIGHT_THEME, false);
         CheckSettingOrSetDefault(APP_PREFERENCES_19_PREDICTION_ENGINE, 2);
         CheckSettingOrSetDefault(APP_PREFERENCES_20_INTERFACE_LANG, 0);

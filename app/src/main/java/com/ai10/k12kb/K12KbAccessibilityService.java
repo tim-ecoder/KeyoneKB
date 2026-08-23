@@ -212,10 +212,7 @@ public class K12KbAccessibilityService extends AccessibilityService {
                             && event.getEventType() != AccessibilityEvent.TYPE_VIEW_SCROLLED
                             && event.getEventType() != AccessibilityEvent.TYPE_WINDOWS_CHANGED
             ) {
-
-                Log.d(TAG3, "------------------ NEW_EVENT ------------------");
                 LogEventD(event);
-                Log.d(TAG3, "------------------ NEW_EVENT ------------------");
                 return;
             }
 
@@ -857,7 +854,19 @@ public class K12KbAccessibilityService extends AccessibilityService {
         k12KbSettings.ClearFromSettings(plugin.getPreferenceKey());
     }
 
+    /**
+     * Диагностический дамп события.
+     *
+     * ВАЖНО: getSource() и особенно getRootInActiveWindow() — синхронный IPC в
+     * процесс приложения-источника, который заставляет его построить дерево
+     * узлов в своём UI-потоке. Раньше этот метод вызывался безусловно на каждом
+     * событии неподходящего типа, причём getRootInActiveWindow() дважды — то
+     * есть отладочный лог сам тормозил чужие приложения. Теперь дамп собирается
+     * только при явно включённом verbose-логе, а дорогие вызовы делаются один
+     * раз каждый.
+     */
     private void LogEventD(AccessibilityEvent event) {
+        if (!Log.isLoggable(TAG3, Log.VERBOSE)) return;
         Log.v(TAG3, "--------------------LogEventD--------------------");
         Log.v(TAG3, "event.getEventType() " + event.getEventType());
         Log.v(TAG3, "event.getPackageName() " + event.getPackageName());
@@ -867,7 +876,8 @@ public class K12KbAccessibilityService extends AccessibilityService {
         Log.v(TAG3, "event.getContentDescription() " + event.getContentDescription());
         AccessibilityNodeInfo info = event.getSource();
         Log.v(TAG3, "event.getSource() HASH " + (info != null ? info.hashCode() : "@NULL"));
-        Log.v(TAG3, "getRootInActiveWindow() HASH " + (getRootInActiveWindow() != null ? getRootInActiveWindow().hashCode() : "@NULL"));
+        AccessibilityNodeInfo root = getRootInActiveWindow();
+        Log.v(TAG3, "getRootInActiveWindow() HASH " + (root != null ? root.hashCode() : "@NULL"));
         Log.v(TAG3, "--------------------LogEventD--------------------");
     }
 
