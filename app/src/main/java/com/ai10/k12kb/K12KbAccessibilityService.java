@@ -1,5 +1,8 @@
 package com.ai10.k12kb;
 
+import android.content.ComponentName;
+import android.database.ContentObserver;
+import android.provider.Settings;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.accessibilityservice.GestureDescription;
@@ -133,8 +136,9 @@ public class K12KbAccessibilityService extends AccessibilityService {
                 info.eventTypes = 0;
             }
             info.eventTypes = BASE_EVENT_TYPES;
-            contentChangedSubscribed = false;
+            currentEventTypes = BASE_EVENT_TYPES;
             setServiceInfo(info);
+            StartWatchingSelectedIme();
             RefreshEventTypeSubscription();
 
             } catch(Throwable ex) {
@@ -149,6 +153,14 @@ public class K12KbAccessibilityService extends AccessibilityService {
     @Override
     public void onDestroy() {
         Log.v(TAG3, "onDestroy()");
+        if (imeChangeObserver != null) {
+            try {
+                getContentResolver().unregisterContentObserver(imeChangeObserver);
+            } catch (Throwable ex) {
+                Log.e(TAG3, "unregisterContentObserver: " + ex);
+            }
+            imeChangeObserver = null;
+        }
         Instance = null;
         super.onDestroy();
     }
@@ -200,10 +212,19 @@ public class K12KbAccessibilityService extends AccessibilityService {
                     | AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                     | AccessibilityEvent.TYPE_WINDOWS_CHANGED;
 
-    /** Подписаны ли сейчас дополнительно на TYPE_WINDOW_CONTENT_CHANGED. */
-    private boolean contentChangedSubscribed = false;
+    /** Набор типов, на который служба подписана прямо сейчас. */
+    private int currentEventTypes = BASE_EVENT_TYPES;
     /** Пакет окна, которое сейчас на экране — по нему решаем, нужна ли подписка. */
     private String lastWindowPackage = "";
+    /**
+     * Выбрана ли в системе наша клавиатура. Пока выбрана чужая, служба не нужна
+     * никому: все её функции (плагины поиска, digits-хак, режим курсора,
+     * подсветка узла) обслуживают ввод именно через K12KB. Поэтому при чужой IME
+     * подписка снимается полностью — приложения перестают строить для нас
+     * события, а не просто получают их отброшенными на нашей стороне.
+     */
+    private volatile boolean ourImeSelected = true;
+    private ContentObserver imeChangeObserver;
 
     /**
      * Включает и выключает подписку на TYPE_WINDOW_CONTENT_CHANGED.
@@ -228,22 +249,76 @@ public class K12KbAccessibilityService extends AccessibilityService {
      */
     public void RefreshEventTypeSubscription() {
         try {
-            boolean needed = NeedContentChangedEvents();
-            if (needed == contentChangedSubscribed)
+            int target;
+            if (!ourImeSelected) {
+                target = 0;
+            } else if (NeedContentChangedEvents()) {
+                target = BASE_EVENT_TYPES | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
+            } else {
+                target = BASE_EVENT_TYPES;
+            }
+            if (target == currentEventTypes)
                 return;
             AccessibilityServiceInfo info = getServiceInfo();
             if (info == null)
                 return;
-            info.eventTypes = needed
-                    ? (BASE_EVENT_TYPES | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
-                    : BASE_EVENT_TYPES;
+            info.eventTypes = target;
             setServiceInfo(info);
-            contentChangedSubscribed = needed;
-            Log.d(TAG3, "TYPE_WINDOW_CONTENT_CHANGED subscription = " + needed
-                    + " package=" + lastWindowPackage);
+            currentEventTypes = target;
+            Log.d(TAG3, "eventTypes = 0x" + Integer.toHexString(target)
+                    + " ourIme=" + ourImeSelected + " package=" + lastWindowPackage);
         } catch (Throwable ex) {
             Log.e(TAG3, "RefreshEventTypeSubscription: " + ex);
         }
+    }
+
+    /**
+     * Выбрана ли наша клавиатура: сравниваем пакет из
+     * Settings.Secure.DEFAULT_INPUT_METHOD со своим. Пакет службы и IME один и тот
+     * же APK, поэтому dev-сборка так же корректно узнаёт свою клавиатуру, а не
+     * основную.
+     */
+    private boolean ReadOurImeSelected() {
+        try {
+            String current = Settings.Secure.getString(getContentResolver(),
+                    Settings.Secure.DEFAULT_INPUT_METHOD);
+            if (current == null || current.isEmpty())
+                return false;
+            ComponentName cn = ComponentName.unflattenFromString(current);
+            String pkg = (cn != null) ? cn.getPackageName() : current;
+            return getPackageName().equals(pkg);
+        } catch (Throwable ex) {
+            Log.e(TAG3, "ReadOurImeSelected: " + ex);
+            // Не смогли выяснить — работаем как раньше, чтобы не отключить службу зря.
+            return true;
+        }
+    }
+
+    /** Следим за сменой клавиатуры, чтобы подписка включалась и снималась сама. */
+    private void StartWatchingSelectedIme() {
+        ourImeSelected = ReadOurImeSelected();
+        if (imeChangeObserver != null)
+            return;
+        imeChangeObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
+            @Override
+            public void onChange(boolean selfChange) {
+                boolean now = ReadOurImeSelected();
+                if (now == ourImeSelected)
+                    return;
+                ourImeSelected = now;
+                Log.d(TAG3, "selected IME changed, ours = " + now);
+                if (!now) {
+                    // Уходя, прибираем за собой: висящая подсветка и выбранный узел
+                    // относятся к нашему режиму курсора.
+                    SetCurrentNodeInfo(null);
+                    TryRemoveRectangleFast();
+                }
+                RefreshEventTypeSubscription();
+            }
+        };
+        getContentResolver().registerContentObserver(
+                Settings.Secure.getUriFor(Settings.Secure.DEFAULT_INPUT_METHOD),
+                false, imeChangeObserver);
     }
 
     /**
@@ -292,6 +367,12 @@ public class K12KbAccessibilityService extends AccessibilityService {
         //Log.v(TAG3, "onAccessibilityEvent() eventType: "+event.getEventType() +" "+event.getPackageName());
 
         try {
+            if (!ourImeSelected) {
+                // Выбрана чужая клавиатура — событий быть не должно вовсе, но одно
+                // может доехать между сменой IME и снятием подписки.
+                return;
+            }
+
             if(K12KbIME.Instance == null)
                 return;
 
