@@ -235,6 +235,29 @@ public class SearchClickPlugin {
             return true;
         }
 
+        /**
+         * Жив ли ещё узел, на который поставлен хак.
+         *
+         * refresh() — одна дешёвая транзакция, которая перечитывает состояние
+         * узла и возвращает false, если он исчез из дерева. Это позволяет не
+         * искать поле заново на каждом событии: раньше ProcessSearchField
+         * выполнял полный поиск и только потом сравнивал результат с уже
+         * установленным хаком, то есть в приложении, сыплющем contentChanged,
+         * дерево обходилось десятки раз в секунду впустую.
+         */
+        public boolean IsNodeStillUsable() {
+            if (_info == null)
+                return false;
+            try {
+                if (!_info.refresh())
+                    return false;
+                return _info.isVisibleToUser();
+            } catch (Throwable ex) {
+                Log.d(TAG3, "IsNodeStillUsable: " + ex);
+                return false;
+            }
+        }
+
     }
 
     public static class SearchClickPluginData {

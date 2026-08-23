@@ -1120,6 +1120,12 @@ public class K12KbAccessibilityService extends AccessibilityService {
             Log.d(TAG3, "TYPE_WINDOW_CONTENT_CHANGED TYPES: " +event.getContentChangeTypes());
         }
 
+        // Хак уже стоит на живом узле — искать поле заново незачем. Раньше поиск
+        // выполнялся всегда, и только потом результат сравнивался с установленным
+        // хаком: полный обход дерева ради вывода "ничего не изменилось".
+        if (IsSearchHackSet(fullPackageName) && IsSearchHackNodeUsable())
+            return true;
+
         AccessibilityNodeInfo info = searchClickPlugin.Convert(FindOrGetFromCache(root, searchClickPlugin));
 
         if (info != null) {
@@ -1189,6 +1195,13 @@ public class K12KbAccessibilityService extends AccessibilityService {
         if(K12KbIME.Instance.SearchPluginLauncher == null)
             return false;
         return K12KbIME.Instance.SearchPluginLauncher.IsSameAsMine(packageName, info);
+    }
+
+    /** Жив ли узел, на котором стоит хак. */
+    private boolean IsSearchHackNodeUsable() {
+        if (K12KbIME.Instance == null || K12KbIME.Instance.SearchPluginLauncher == null)
+            return false;
+        return K12KbIME.Instance.SearchPluginLauncher.IsNodeStillUsable();
     }
 
     private boolean IsSearchHackSet(String packageName) {
