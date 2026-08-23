@@ -54,7 +54,7 @@ public class SearchClickPlugin {
 
         for (SearchClickPluginData.DynamicSearchMethod method : DynamicSearchMethod) {
             if (method.DynamicSearchMethodFunction == SearchClickPluginData.DynamicSearchMethodFunction.FindFirstByTextRecursive) {
-                AccessibilityNodeInfo info = FindFirstByTextRecursive(root, method.ContainsString);
+                AccessibilityNodeInfo info = FindFirstByText(root, method.ContainsString);
                 if (info != null) {
                     return info;
                 }
@@ -70,11 +70,64 @@ public class SearchClickPlugin {
         return null;
     }
 
+    /**
+     * Узел с текстом, содержащим {@code text}, — то же, что возвращает
+     * {@link #FindFirstByTextRecursive}, но без ручного обхода дерева.
+     *
+     * getChild() — это обращение к процессу приложения, поэтому рекурсия стоит
+     * порядка одной транзакции на узел: для глубокого дерева (браузер, лента)
+     * счёт идёт на сотни, и всё это в UI-потоке приложения-источника.
+     * findAccessibilityNodeInfosByText() делает тот же обход на стороне системы
+     * за один запрос.
+     *
+     * Прямая замена изменила бы выбор узла: системный поиск регистронезависим и
+     * смотрит ещё и на contentDescription, то есть в одну сторону находит больше.
+     * Поэтому среди его кандидатов берём первый, подходящий под строгое условие
+     * рекурсии — getText() содержит подстроку с учётом регистра.
+     *
+     * В другую сторону он находит меньше: под капотом это View.findViewsWithText,
+     * который работает по настоящей иерархии View и не видит виртуальные узлы,
+     * отдаваемые через AccessibilityNodeProvider — содержимое WebView и Compose.
+     * Обход через getChild() их видит. Поэтому при отсутствии строгого совпадения
+     * рекурсия всё равно запускается: для гибридных приложений это единственный
+     * способ найти поле.
+     */
+    public static AccessibilityNodeInfo FindFirstByText(AccessibilityNodeInfo root, String text) {
+        if (root == null || text == null)
+            return null;
+
+        AccessibilityNodeInfo strict = FirstWithText(FindByTextSafe(root, text), text);
+        if (strict != null)
+            return strict;
+
+        return FindFirstByTextRecursive(root, text);
+    }
+
+    private static List<AccessibilityNodeInfo> FindByTextSafe(AccessibilityNodeInfo root, String text) {
+        try {
+            return root.findAccessibilityNodeInfosByText(text);
+        } catch (Throwable ex) {
+            Log.w(TAG3, "findAccessibilityNodeInfosByText failed: " + ex);
+            return null;
+        }
+    }
+
+    /** Первый узел, у которого именно getText() содержит подстроку (с учётом регистра). */
+    private static AccessibilityNodeInfo FirstWithText(List<AccessibilityNodeInfo> nodes, String text) {
+        if (nodes == null) return null;
+        for (int i = 0; i < nodes.size(); i++) {
+            AccessibilityNodeInfo n = nodes.get(i);
+            if (n == null) continue;
+            CharSequence t = n.getText();
+            if (t != null && t.toString().contains(text))
+                return n;
+        }
+        return null;
+    }
+
     public static AccessibilityNodeInfo FindFirstByTextRecursive(AccessibilityNodeInfo node, String text) {
         if (node == null)
             return null;
-        if(node.getViewIdResourceName() != null)
-            Log.d(TAG3, node.getViewIdResourceName());
         if (node.getText() != null) {
             if (node.getText().toString().contains(text))
                 return node;
@@ -90,17 +143,29 @@ public class SearchClickPlugin {
     }
 
     private AccessibilityNodeInfo findIdAll(AccessibilityNodeInfo root) {
+        if (root == null)
+            return null;
 
         for (String searchWord : K12KbAccessibilityService.Instance.DefaultSearchWords) {
 
+            // Один системный запрос вместо обхода всего дерева через getChild().
+            List<AccessibilityNodeInfo> candidates = FindByTextSafe(root, searchWord);
+
+            // Приоритет прежний: сначала то, что нашла бы рекурсия (строгое
+            // совпадение по getText()), и только потом любой кандидат — это то,
+            // что раньше давала вторая ветка. Рекурсия остаётся между ними: она
+            // видит виртуальные узлы WebView и Compose, до которых системный
+            // поиск не доходит, и раньше шла первой.
+            AccessibilityNodeInfo strict = FirstWithText(candidates, searchWord);
+            if (strict != null)
+                return strict;
+
             AccessibilityNodeInfo info = FindFirstByTextRecursive(root, searchWord);
-            if (info != null) {
+            if (info != null)
                 return info;
-            }
-            List<AccessibilityNodeInfo> infoList = root.findAccessibilityNodeInfosByText(searchWord);
-            if (infoList.size() > 0) {
-                return infoList.get(0);
-            }
+
+            if (candidates != null && !candidates.isEmpty())
+                return candidates.get(0);
         }
         return null;
     }
