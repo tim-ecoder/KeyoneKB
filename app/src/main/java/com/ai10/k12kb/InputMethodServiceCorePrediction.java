@@ -56,8 +56,18 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             if (ic == null || wordPredictor == null) return;
             CharSequence before = ic.getTextBeforeCursor(96, 0);
             if (before == null || before.length() == 0) {
-                wordPredictor.setPreviousWord("");
-                wordPredictor.setCurrentWord("");
+                // The editor gave us no text, which covers two very different cases
+                // that an InputConnection cannot tell apart:
+                //   - the field really is empty;
+                //   - the editor does not support text extraction at all (terminals
+                //     declaring TYPE_NULL, some WebView/Compose and custom views), or
+                //     was too busy to answer this synchronous IPC in time.
+                // Clearing here wiped the word the keystroke tracker had built up, so
+                // in such apps Ctrl+W (and every cursor update) blanked the bar. Keep
+                // what we track and just recompute; onStartInputPrediction drops the
+                // tracked words when a new field is attached, so nothing leaks across
+                // fields.
+                wordPredictor.refreshSuggestions();
                 return;
             }
             // Extract the word at cursor (characters before cursor until non-word char)
@@ -263,21 +273,27 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         return true;
     }
 
+    /** Dictionary locale for the layout in use. "en" when it cannot be determined. */
+    protected String currentPredictionLocale() {
+        try {
+            if (keyboardLayoutManager == null) return "en";
+            KeyboardLayout kl = keyboardLayoutManager.GetCurrentKeyboardLayout();
+            if (kl == null || kl.KeyboardName == null) return "en";
+            String lower = kl.KeyboardName.toLowerCase(java.util.Locale.ROOT);
+            if (lower.contains("русск") || lower.contains("russian")) return "ru";
+            // Ukrainian falls back to the Russian dictionary
+            if (lower.contains("украин") || lower.contains("ukrain")) return "ru";
+            return "en";
+        } catch (Throwable ex) {
+            return "en";
+        }
+    }
+
     protected void reloadDictionaryForCurrentLanguage() {
         try {
             if (wordPredictor == null) return;
-            KeyboardLayout kl = keyboardLayoutManager.GetCurrentKeyboardLayout();
-            if (kl == null) return;
-            String kbName = kl.KeyboardName;
-            String locale = "en"; // default
-            if (kbName != null) {
-                String lower = kbName.toLowerCase(java.util.Locale.ROOT);
-                if (lower.contains("русск") || lower.contains("russian")) {
-                    locale = "ru";
-                } else if (lower.contains("украин") || lower.contains("ukrain")) {
-                    locale = "ru"; // use Russian dictionary as fallback for Ukrainian
-                }
-            }
+            if (keyboardLayoutManager.GetCurrentKeyboardLayout() == null) return;
+            String locale = currentPredictionLocale();
             // The load runs on a background thread; the completion callback is what
             // repaints the bar. Without it the bar stays blank for the whole rebuild
             // and never recovers, since every keystroke in between is dropped by an
@@ -425,10 +441,16 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             // Kick the load off only now that the listeners are wired — started any
             // earlier, a fast (cached) load can finish before anyone is listening and
             // the first repaint is lost.
-            wordPredictor.loadDictionary(getApplicationContext(), "en", new Runnable() {
+            // Load the locale of the layout actually in use: the engine holds one
+            // active dictionary, so hardcoding "en" here left a keyboard that starts
+            // in Russian answering Cyrillic prefixes from the English dictionary —
+            // that is, no suggestions at all — until the user toggled the language.
+            final String initialLocale = currentPredictionLocale();
+            final String otherLocale = "ru".equals(initialLocale) ? "en" : "ru";
+            wordPredictor.loadDictionary(getApplicationContext(), initialLocale, new Runnable() {
                 public void run() {
                     WordPredictor wp = wordPredictor;
-                    if (wp != null) wp.preloadDictionary(getApplicationContext(), "ru");
+                    if (wp != null) wp.preloadDictionary(getApplicationContext(), otherLocale);
                 }
             });
             Log.i(TAG2, "onCreate: WordPredictor initialized (engine cached: " + wordPredictor.isEngineReady() + ")");
@@ -458,6 +480,10 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
 
     protected void onStartInputPrediction() {
         predictionBarVisibleThisSession = false;
+        // A new field is a new context: drop the words tracked for the old one,
+        // otherwise the extractor's "editor told us nothing, keep tracking" path
+        // could carry them over.
+        if (wordPredictor != null) wordPredictor.clearTracking();
         if (wordPredictor != null && !predictionBarHiddenByDefault) {
             setSuggestionBarShown(true);
             updatePredictorWordAtCursor();

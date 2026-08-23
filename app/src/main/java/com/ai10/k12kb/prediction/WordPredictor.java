@@ -432,6 +432,17 @@ public class WordPredictor {
         }
     }
 
+    /**
+     * Forget the tracked words. Unlike reset() this does not promote currentWord to
+     * previousWord — used when a new input field is attached, where nothing about the
+     * old field should survive.
+     */
+    public void clearTracking() {
+        currentWord = "";
+        previousWord = "";
+        latestSuggestions = Collections.emptyList();
+    }
+
     /** Recompute suggestions for the word already held, e.g. after a dictionary load. */
     public void refreshSuggestions() {
         if (!enabled) return;
