@@ -12,7 +12,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -50,6 +52,23 @@ public class NativeSymSpellEngine implements PredictionEngine {
 
     /** The dictionary lookups run against. Null means "nothing loaded yet". */
     private volatile Snapshot active;
+    /**
+     * Dictionaries already built, keyed by locale, most recently used last.
+     *
+     * The engine used to hold exactly one: every language switch rebuilt the
+     * incoming dictionary from its cache file and destroyed the outgoing one
+     * (130-700 ms on a KEY2). Until that finished, lookups were answered by the
+     * previous language's dictionary — that is, no suggestions at all for what
+     * the user was typing. With Ctrl bound to language switch that window opens
+     * constantly, which is what made the bar look like it worked only sometimes.
+     * Keeping the built dictionaries makes a switch a pointer swap.
+     *
+     * Guarded by {@link #loadLock}.
+     */
+    private final LinkedHashMap<String, NativeSymSpell> loaded =
+            new LinkedHashMap<>(4, 0.75f, true);
+    /** How many dictionaries to keep alive. Two languages plus room to switch. */
+    private static final int MAX_CACHED = 3;
     /** Serialises loads so two threads never build the same locale at once. */
     private final Object loadLock = new Object();
     /**
@@ -195,6 +214,13 @@ public class NativeSymSpellEngine implements PredictionEngine {
             if (cur != null && locale.equals(cur.locale)) {
                 return; // already the active dictionary
             }
+            // Already built — switching languages is then just a pointer swap.
+            NativeSymSpell cached = loaded.get(locale);
+            if (cached != null) {
+                publish(cached, locale);
+                Log.w(TAG, "Switched to cached dictionary " + locale);
+                return;
+            }
             // Built into a fresh instance: the currently active dictionary keeps
             // serving suggestions for the whole rebuild instead of going dead.
             NativeSymSpell built = build(context, locale, true);
@@ -202,7 +228,9 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 Log.e(TAG, "Load failed for " + locale + ", keeping previous dictionary");
                 return;
             }
+            loaded.put(locale, built);
             publish(built, locale);
+            evictExtras();
         }
     }
 
@@ -211,21 +239,47 @@ public class NativeSymSpellEngine implements PredictionEngine {
         synchronized (loadLock) {
             Snapshot cur = active;
             if (cur != null && locale.equals(cur.locale)) return;
+            if (loaded.containsKey(locale)) return;
 
-            // Only ensure the cache file exists — never touch the active dictionary
-            if (new File(cachePath(context, locale)).exists()) {
-                Log.d(TAG, "Cache exists for " + locale + ", skip preload");
-                return;
-            }
-
-            // Build into a throw-away instance purely to materialise the cache file.
-            NativeSymSpell built = build(context, locale, false);
+            // Build it for real and keep it: the point of a preload is that the
+            // switch to this language costs nothing. Materialising only the cache
+            // file (what this did before) still left a full rebuild on the switch.
+            NativeSymSpell built = build(context, locale, true);
             if (built != null) {
-                built.destroy();
-                Log.d(TAG, "Preloaded cache for " + locale
+                loaded.put(locale, built);
+                evictExtras();
+                Log.w(TAG, "Preloaded " + locale
                         + ", active dict remains " + getLoadedLocale());
             }
         }
+    }
+
+    /**
+     * Drop dictionaries past {@link #MAX_CACHED}, oldest first, never the active one.
+     * Call under {@link #loadLock}.
+     */
+    private void evictExtras() {
+        if (loaded.size() <= MAX_CACHED) return;
+        String activeLocale = getLoadedLocale();
+        Iterator<Map.Entry<String, NativeSymSpell>> it = loaded.entrySet().iterator();
+        while (loaded.size() > MAX_CACHED && it.hasNext()) {
+            Map.Entry<String, NativeSymSpell> e = it.next();
+            if (e.getKey().equals(activeLocale)) continue;
+            it.remove();
+            retire(e.getValue());
+        }
+    }
+
+    /**
+     * Free a dictionary that is no longer reachable through {@link #active}.
+     * Taking the write lock waits for every in-flight suggest() to return, so no
+     * thread can still be holding it when the native memory goes away.
+     */
+    private void retire(NativeSymSpell ns) {
+        if (ns == null) return;
+        accessLock.writeLock().lock();
+        accessLock.writeLock().unlock();
+        ns.destroy();
     }
 
     @Override
@@ -240,22 +294,16 @@ public class NativeSymSpellEngine implements PredictionEngine {
     }
 
     /**
-     * Swap in a freshly built dictionary and retire the old one.
-     * The write lock waits for every in-flight suggest() to return, so once it is
-     * held no thread can still be holding — or later obtain — the old snapshot.
+     * Swap in a dictionary. The outgoing one is kept in {@link #loaded} for the next
+     * switch back and is freed only by {@link #evictExtras()}, so nothing is
+     * destroyed here.
      */
     private void publish(NativeSymSpell ns, String locale) {
-        NativeSymSpell old;
         accessLock.writeLock().lock();
         try {
-            Snapshot prev = active;
-            old = (prev != null) ? prev.ss : null;
             active = new Snapshot(ns, locale);
         } finally {
             accessLock.writeLock().unlock();
-        }
-        if (old != null && old != ns) {
-            old.destroy();
         }
         ReadyListener l = readyListener;
         if (l != null) {
