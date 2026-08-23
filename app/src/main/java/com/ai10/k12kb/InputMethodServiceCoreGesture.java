@@ -398,33 +398,37 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
     protected abstract boolean IsNoGesturesMode();
 
     /**
-     * Редактируемое текстовое поле: inputType задан.
-     * Используется для режимов ввода/просмотра и жестов — там важно именно то,
-     * что поле принимает текст. Для решения "показывать ли экранную клавиатуру"
-     * этот признак не годится, см. {@link #IsEditorAttached()}.
+     * Есть поле ввода, в которое идёт набор.
+     *
+     * Единый признак "режима ввода" для всей клавиатуры: показ экранной панели,
+     * жесты, режим просмотра, плагины поиска, digits-хак — всё решается по нему.
+     *
+     * На inputType не смотрим. Штатный InputMethodService нигде его не
+     * использует, решая, показывать ли экранную клавиатуру:
+     * onEvaluateInputViewShown() опирается только на конфигурацию устройства, а
+     * сам показ инициирует приложение через showSoftInput — поэтому
+     * AOSP-клавиатура нормально появляется и в терминалах. Termux и другие
+     * эмуляторы консоли ставят inputType = TYPE_NULL (это 0), потому что им
+     * нужны сырые key-события, а не обработка ввода на стороне IME; это значит
+     * "поле принимает только клавиши", а не "поля нет". Прежняя проверка
+     * inputType > 0 считала такое поле отсутствующим.
+     *
+     * Одной привязки редактора тоже мало: в режиме просмотра (лаунчер, любое
+     * окно без поля ввода) система всё равно стартует ввод и отдаёт
+     * fallback-соединение, только EditorInfo при этом пустой —
+     *
+     *   лаунчер: inputType=0x0 imeOptions=0x0       fieldId=0
+     *   Termux:  inputType=0x0 imeOptions=0x2000000 fieldId=0x7f0b0451
+     *
+     * У терминала это настоящая View со своим id, по ней и отличаем настоящее
+     * поле от его отсутствия.
      */
     protected boolean IsInputMode() {
-        if(getCurrentInputEditorInfo() == null) return false;
-        return getCurrentInputEditorInfo().inputType > 0;
-    }
-
-    /**
-     * К нам привязан редактор — так же, как это понимает AOSP.
-     *
-     * Штатный InputMethodService нигде не смотрит на inputType, решая, показывать
-     * ли экранную клавиатуру: onEvaluateInputViewShown() опирается только на
-     * конфигурацию устройства, а сам показ происходит по запросу приложения
-     * (showSoftInput). Поэтому AOSP-клавиатура нормально появляется в терминалах.
-     *
-     * Termux и другие эмуляторы консоли ставят inputType = TYPE_NULL (это 0),
-     * потому что им нужны сырые key-события, а не обработка ввода на стороне IME.
-     * Это значит "поле принимает только клавиши", а не "поля нет", поэтому
-     * проверка inputType > 0 ошибочно считала такое поле отсутствующим и
-     * клавиатура пряталась.
-     */
-    protected boolean IsEditorAttached() {
         if (!getCurrentInputStarted()) return false;
-        return getCurrentInputConnection() != null;
+        if (getCurrentInputConnection() == null) return false;
+        EditorInfo ei = getCurrentInputEditorInfo();
+        if (ei == null) return false;
+        return ei.inputType != 0 || ei.fieldId != 0;
     }
 
 

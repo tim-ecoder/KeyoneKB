@@ -343,7 +343,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
      */
     @Override
     public boolean onEvaluateInputViewShown() {
-        if (IsEditorAttached())
+        if (IsInputMode())
             return true;
         return super.onEvaluateInputViewShown();
     }
@@ -382,7 +382,8 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         Log.d(TAG2, "onStartInput restarting="+restarting+
                 " package: " + editorInfo.packageName
                 + " editorInfo.inputType: "+Integer.toBinaryString(editorInfo.inputType)
-                +" editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions));
+                +" editorInfo.imeOptions: "+Integer.toBinaryString(editorInfo.imeOptions)
+                +" editorInfo.fieldId: "+editorInfo.fieldId);
         if(isNotStarted)
             return;
         try {
@@ -430,7 +431,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         // ставят TYPE_NULL, и по inputType они выглядели как "поля нет".
         if (pref_show_default_onscreen_keyboard
                 && !isInputViewShown()
-                && IsEditorAttached()
+                && IsInputMode()
                 && Orientation == 1) {
             keyboardView.setOnTouchListener(this);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -440,7 +441,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             }
         } else if (!pref_show_default_onscreen_keyboard
                 && wordPredictor != null
-                && IsEditorAttached()) {
+                && IsInputMode()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 this.requestShowSelf(InputMethodManager.SHOW_IMPLICIT);
             }
@@ -1116,10 +1117,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     private void HideSwipePanelOnHidePreferenceAndVisibleState() {
         if (!pref_show_default_onscreen_keyboard) {
-            // IsEditorAttached, а не IsInputMode: раньше в терминале с TYPE_NULL
-            // управление уходило в else и клавиатура прятала сама себя через
-            // requestHideSelf, хотя приложение её только что показало.
-            if (wordPredictor != null && IsEditorAttached()) {
+            // IsInputMode теперь не зависит от inputType: раньше в терминале с
+            // TYPE_NULL управление уходило в else и клавиатура прятала сама себя
+            // через requestHideSelf, хотя приложение её только что показало.
+            if (wordPredictor != null && IsInputMode()) {
                 // Hide swype-pad but keep IME window for prediction bar
                 keyboardView.setOnTouchListener(null);
                 if (keyboardView.getVisibility() == View.VISIBLE) {
@@ -1235,6 +1236,12 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             UpdateKeyboardViewLetterMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId);
         }
 
+        // Видимость экранной клавиатуры не зависит от inputType: терминалы
+        // (Termux) ставят TYPE_NULL, и прежний IsInputMode() возвращал false —
+        // система окно показывала (по showSoftInput от приложения), а мы тут же
+        // прятали его содержимое через HideKeyboard, поэтому клавиатуры не было
+        // видно. AOSP так не делает: LatinIME нигде не смотрит на inputType,
+        // решая, показывать ли себя.
         if (needUsefulKeyboard)
             if (IsInputMode())
                 ShowKeyboard();
