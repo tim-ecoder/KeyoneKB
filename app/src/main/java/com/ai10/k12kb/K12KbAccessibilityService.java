@@ -153,6 +153,7 @@ public class K12KbAccessibilityService extends AccessibilityService {
     @Override
     public void onDestroy() {
         Log.v(TAG3, "onDestroy()");
+        CancelPendingSearch();
         if (imeChangeObserver != null) {
             try {
                 getContentResolver().unregisterContentObserver(imeChangeObserver);
@@ -359,9 +360,35 @@ public class K12KbAccessibilityService extends AccessibilityService {
      */
     private static final long SEARCH_FAIL_TTL_MS = 250;
 
+    /**
+     * Отложенный поиск: окно при открытии сыплет десятками contentChanged, а
+     * искать достаточно один раз, когда оно устоялось.
+     */
+    private static final long SEARCH_DEBOUNCE_MS = 200;
+
+    /**
+     * Предел откладывания. Telegram при открытии поиска шлёт contentChanged
+     * непрерывно, и дебаунс, отменяющий предыдущий запрос, откладывал бы поиск
+     * до конца потока — поле не находилось бы вовсе.
+     */
+    private static final long SEARCH_DEBOUNCE_MAX_MS = 400;
+
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable pendingSearch;
+    /** Когда был запрошен первый отложенный поиск текущей серии. */
+    private long pendingSearchFirstAt = 0;
+
     private String lastSearchFailPackage;
     private int lastSearchFailWindowId = -1;
     private long lastSearchFailAt = 0;
+
+    private void CancelPendingSearch() {
+        if (pendingSearch != null) {
+            searchHandler.removeCallbacks(pendingSearch);
+            pendingSearch = null;
+        }
+        pendingSearchFirstAt = 0;
+    }
 
     /** Сбросить память о неудачном поиске — окно или фокус изменились по-настоящему. */
     private void ResetSearchFailCache() {
@@ -376,6 +403,16 @@ public class K12KbAccessibilityService extends AccessibilityService {
         if (!lastSearchFailPackage.equals(packageName) || lastSearchFailWindowId != windowId)
             return false;
         return SystemClock.uptimeMillis() - lastSearchFailAt < SEARCH_FAIL_TTL_MS;
+    }
+
+    /** Сколько осталось до конца паузы после неудачного поиска, 0 — паузы нет. */
+    private long SearchFailCooldownLeft(String packageName, int windowId) {
+        if (lastSearchFailPackage == null)
+            return 0;
+        if (!lastSearchFailPackage.equals(packageName) || lastSearchFailWindowId != windowId)
+            return 0;
+        long passed = SystemClock.uptimeMillis() - lastSearchFailAt;
+        return passed < SEARCH_FAIL_TTL_MS ? (SEARCH_FAIL_TTL_MS - passed) : 0;
     }
 
     private void RememberSearchFail(String packageName, int windowId) {
@@ -973,6 +1010,9 @@ public class K12KbAccessibilityService extends AccessibilityService {
 
         if(K12KbIME.Instance != null && K12KbIME.Instance.IsInputMode()) {
             Log.d(TAG3, "ProcessSearchPlugins:K12KbIME.Instance.IsInputMode()");
+            // Отложенный поиск обязан быть снят вместе с хаком, иначе он
+            // выстрелит уже в режиме ввода и поставит хак заново.
+            CancelPendingSearch();
             SetSearchHack(null);
             return;
         }
@@ -997,31 +1037,110 @@ public class K12KbAccessibilityService extends AccessibilityService {
         // contentChanged (диалер, телеграм), перестают платить за каждое событие.
         // Смена окна и фокуса — редкие и значимые события: поле могло появиться
         // именно сейчас, поэтому память о прошлой неудаче сбрасывается.
-        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED)
+        int eventType = event.getEventType();
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                || eventType == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
             ResetSearchFailCache();
+            CancelPendingSearch();
+        }
 
-        if (!AnyPluginInterested(event.getEventType(), packageName))
+        if (!AnyPluginInterested(eventType, packageName))
             return;
 
-        if (SearchRecentlyFailed(packageName, event.getWindowId()))
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+            ScheduleSearch(packageName, eventType, event.getWindowId());
             return;
+        }
+        RunSearchPlugins(packageName, eventType, event.getWindowId(), event);
+    }
+
+    /** Отложить поиск, отменив предыдущий запрос: важно последнее состояние окна. */
+    private void ScheduleSearch(final String packageName, final int eventType, final int windowId) {
+        long now = SystemClock.uptimeMillis();
+        long firstAt = pendingSearchFirstAt;
+        if (pendingSearch == null) {
+            // Передний фронт: первое событие серии обрабатываем немедленно.
+            // Иначе после выхода из поиска экран перестраивается, поток
+            // contentChanged откладывает поиск до своего конца, и нажатие,
+            // сделанное раньше, попадает в момент, когда хак ещё не поставлен —
+            // первое нажатие пропадало. Дороже это не обходится: от повторных
+            // обходов защищает отрицательный кэш, а неудачный поиск переносится
+            // на конец его паузы.
+            RunSearchPlugins(packageName, eventType, windowId, null);
+            return;
+        }
+        if (firstAt != 0 && now - firstAt >= SEARCH_DEBOUNCE_MAX_MS) {
+            // Ждём уже достаточно долго — ищем сейчас, не откладывая дальше.
+            CancelPendingSearch();
+            RunSearchPlugins(packageName, eventType, windowId, null);
+            return;
+        }
+        CancelPendingSearch();
+        pendingSearchFirstAt = (firstAt != 0) ? firstAt : now;
+        PostSearch(packageName, eventType, windowId, SEARCH_DEBOUNCE_MS, false);
+    }
+
+    /**
+     * Поставить отложенный поиск в очередь.
+     *
+     * @param resetFail сбрасывать ли перед запуском память о неудаче: так
+     *                  переносится запрос, попавший в паузу отрицательного кэша.
+     */
+    private void PostSearch(final String packageName, final int eventType, final int windowId,
+                            long delay, final boolean resetFail) {
+        pendingSearch = new Runnable() {
+            public void run() {
+                pendingSearch = null;
+                pendingSearchFirstAt = 0;
+                try {
+                    if (resetFail)
+                        ResetSearchFailCache();
+                    RunSearchPlugins(packageName, eventType, windowId, null);
+                } catch (Throwable ex) {
+                    Log.e(TAG3, "delayed search: " + ex);
+                }
+            }
+        };
+        searchHandler.postDelayed(pendingSearch, delay);
+    }
+
+    /** Прогнать плагины по текущему окну. event == null, если поиск отложенный. */
+    private void RunSearchPlugins(String packageName, int eventType, int windowId, AccessibilityEvent event) {
+        // Хак стоит на живом узле — искать нечего. Проверка стоит одну дешёвую
+        // транзакцию refresh() и экономит getRootInActiveWindow(): тот же выход
+        // внутри ProcessSearchField срабатывал уже после запроса дерева, то есть
+        // приложение всё равно строило его в своём UI-потоке.
+        if (eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                && IsSearchHackSet(packageName) && IsSearchHackNodeUsable())
+            return;
+
+        long wait = SearchFailCooldownLeft(packageName, windowId);
+        if (wait > 0) {
+            // Поиск не отменяем, а переносим на конец паузы. Иначе терялся
+            // последний запрос серии: первый поиск идёт по window-state-changed,
+            // когда дерево ещё не построено, записывает неудачу, а следующие
+            // contentChanged попадают в паузу и отбрасываются. События к тому
+            // моменту заканчиваются — повторить поиск оказывается некому.
+            CancelPendingSearch();
+            PostSearch(packageName, eventType, windowId, wait, true);
+            return;
+        }
 
         AccessibilityNodeInfo root = getRootInActiveWindow();
         for (SearchClickPlugin plugin : searchClickPlugins) {
-            if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin)) {
+            if (ProcessSearchField(eventType, packageName, root, event, plugin)) {
                 return;
             }
         }
         for (SearchClickPlugin plugin : clickerPlugins) {
-            if (ProcessSearchField(event.getEventType(), packageName, root, event, plugin)) {
+            if (ProcessSearchField(eventType, packageName, root, event, plugin)) {
                 return;
             }
         }
         // Ни один плагин поля не нашёл — не повторять обход ближайшие
         // SEARCH_FAIL_TTL_MS для этого же окна.
-        RememberSearchFail(packageName, event.getWindowId());
-        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+        RememberSearchFail(packageName, windowId);
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                 && IsSearchHackSet(packageName)) {
             SetSearchHack(null);
             //LogEventD(event);
@@ -1163,7 +1282,7 @@ public class K12KbAccessibilityService extends AccessibilityService {
         if(!searchClickPlugin.checkEventType(eventType))
             return false;
 
-        if((eventType & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+        if(event != null && (eventType & AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             Log.d(TAG3, "TYPE_WINDOW_CONTENT_CHANGED TYPES: " +event.getContentChangeTypes());
         }
 
@@ -1181,13 +1300,13 @@ public class K12KbAccessibilityService extends AccessibilityService {
             if(info.isFocused() )
                 return true;
             Log.d(TAG3, "SetSearchHack=SET package: "+ fullPackageName);
-            Log.d(TAG3, "SetSearchHack=SET getClassName: " + event.getClassName());
+            Log.d(TAG3, "SetSearchHack=SET getClassName: " + (event != null ? event.getClassName() : null));
             SearchClickPlugin.SearchPluginLauncher searchPluginLaunchData = new SearchClickPlugin.SearchPluginLauncher(fullPackageName, info, searchClickPlugin.WaitBeforeSendChar);
             SetSearchHack(searchPluginLaunchData);
             return true;
         } else {
             Log.d(TAG3, "SetSearchHack=NULL package: "+ fullPackageName);
-            Log.d(TAG3, "SetSearchHack=NULL: getClassName: " + event.getClassName());
+            Log.d(TAG3, "SetSearchHack=NULL: getClassName: " + (event != null ? event.getClassName() : null));
             SetSearchHack(null);
             return false;
         }
