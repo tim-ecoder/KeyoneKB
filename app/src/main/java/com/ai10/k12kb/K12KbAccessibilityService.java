@@ -349,6 +349,41 @@ public class K12KbAccessibilityService extends AccessibilityService {
                 && ime.CurrentNodeInfo != null;
     }
 
+    // --- отрицательный кэш поиска поля ---
+
+    /**
+     * Как долго не повторять поиск в том же окне после неудачи. Полный обход
+     * дерева стоит дорого, а поле, которого нет, не появится от того, что мы
+     * посмотрим ещё раз через 20 мс. Появление настоящего поля приходит со
+     * сменой окна или фокуса — они сбрасывают кэш немедленно.
+     */
+    private static final long SEARCH_FAIL_TTL_MS = 250;
+
+    private String lastSearchFailPackage;
+    private int lastSearchFailWindowId = -1;
+    private long lastSearchFailAt = 0;
+
+    /** Сбросить память о неудачном поиске — окно или фокус изменились по-настоящему. */
+    private void ResetSearchFailCache() {
+        lastSearchFailPackage = null;
+        lastSearchFailWindowId = -1;
+        lastSearchFailAt = 0;
+    }
+
+    private boolean SearchRecentlyFailed(String packageName, int windowId) {
+        if (lastSearchFailPackage == null)
+            return false;
+        if (!lastSearchFailPackage.equals(packageName) || lastSearchFailWindowId != windowId)
+            return false;
+        return SystemClock.uptimeMillis() - lastSearchFailAt < SEARCH_FAIL_TTL_MS;
+    }
+
+    private void RememberSearchFail(String packageName, int windowId) {
+        lastSearchFailPackage = packageName;
+        lastSearchFailWindowId = windowId;
+        lastSearchFailAt = SystemClock.uptimeMillis();
+    }
+
     /** Заведён ли для пакета маркер digits-хака. */
     private boolean DigitsPadMarkersContain(String packageName) {
         if (packageName == null || packageName.isEmpty() || DigitsPadHackOptionsAppMarkers == null)
@@ -960,7 +995,16 @@ public class K12KbAccessibilityService extends AccessibilityService {
         // до дерева чаще всего не доходит. Спрашиваем корень только когда хоть
         // один плагин действительно заинтересован — приложения, которые спамят
         // contentChanged (диалер, телеграм), перестают платить за каждое событие.
+        // Смена окна и фокуса — редкие и значимые события: поле могло появиться
+        // именно сейчас, поэтому память о прошлой неудаче сбрасывается.
+        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED)
+            ResetSearchFailCache();
+
         if (!AnyPluginInterested(event.getEventType(), packageName))
+            return;
+
+        if (SearchRecentlyFailed(packageName, event.getWindowId()))
             return;
 
         AccessibilityNodeInfo root = getRootInActiveWindow();
@@ -974,6 +1018,9 @@ public class K12KbAccessibilityService extends AccessibilityService {
                 return;
             }
         }
+        // Ни один плагин поля не нашёл — не повторять обход ближайшие
+        // SEARCH_FAIL_TTL_MS для этого же окна.
+        RememberSearchFail(packageName, event.getWindowId());
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                 && IsSearchHackSet(packageName)) {
             SetSearchHack(null);
