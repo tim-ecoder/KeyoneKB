@@ -160,6 +160,7 @@
   ],
   "view-mode-key-transparency-exclude-key-codes": [
     "KEYCODE_CTRL_LEFT",
+    "KEYCODE_CTRL_RIGHT",
     "KEYCODE_SHIFT_RIGHT",
     "KEYCODE_FUNCTION",
     "289",
