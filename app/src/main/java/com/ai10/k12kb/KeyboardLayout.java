@@ -41,6 +41,13 @@ public class KeyboardLayout {
         public Character SinglePressAltShiftMode = null;
         @JsonProperty(index=80)
         public String AltMoreVariants = null;
+        /**
+         * Цепочка вариантов буквы для повторных нажатий: "éèêë" у KEYCODE_E.
+         * В отличие от double-press здесь строка, а не один символ — нажатия
+         * идут по списку и с последнего возвращаются к базовой букве.
+         */
+        @JsonProperty(index=90)
+        public String DoublePressVariants = null;
     }
 
     public static class KeyboardLayoutOptions {

@@ -215,6 +215,14 @@ public class KeyboardLayoutManager {
         return result;
     }
 
+    /** Цепочка вариантов буквы для повторных нажатий, null — вариантов нет. */
+    public synchronized String KeyToDoublePressVariants(InputMethodServiceCoreKeyPress.KeyPressData keyPressData) {
+        KeyboardLayout.KeyVariants keyVariants = getCurKeyVariants(KeyboardLayoutList.get(CurrentLanguageListIndex), keyPressData.KeyCode);
+        if(keyVariants == null)
+            return null;
+        return keyVariants.DoublePressVariants;
+    }
+
     public synchronized int KeyToAltPopup(InputMethodServiceCoreKeyPress.KeyPressData keyPressData) {
         KeyboardLayout.KeyVariants keyVariants = getCurKeyVariants(KeyboardLayoutList.get(CurrentLanguageListIndex), keyPressData.KeyCode);
         if(keyVariants == null)

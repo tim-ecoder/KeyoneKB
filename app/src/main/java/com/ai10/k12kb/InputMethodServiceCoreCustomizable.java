@@ -676,6 +676,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionKeyDownUpDefaultFlags", InitializeMethod3(this::ActionKeyDownUpDefaultFlags, Integer.class));
         Methods.put("ActionKeyDownUpNoMetaKeepTouch", InitializeMethod3(this::ActionKeyDownUpNoMetaKeepTouch, Integer.class));
         Methods.put("ActionResetDoubleClickGestureState", InitializeMethod3((Object o) -> ActionResetDoubleClickGestureState(), Object.class));
+        Methods.put("ActionSendCharCycleDoublePressVariants", InitializeMethod3(this::ActionSendCharCycleDoublePressVariants, KeyPressData.class));
         Methods.put("ActionSendCharDoublePressNoMeta", InitializeMethod3(this::ActionSendCharDoublePressNoMeta, KeyPressData.class));
         Methods.put("ActionSendCharLongPressAltSymbolAltMode", InitializeMethod3(this::ActionSendCharLongPressAltSymbolAltMode, KeyPressData.class));
         Methods.put("ActionSendCharLongPressAltSymbolNoMeta", InitializeMethod3(this::ActionSendCharLongPressAltSymbolNoMeta, KeyPressData.class));
@@ -1826,6 +1827,81 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         int code2send;
         code2send = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, false);
         SendLetterOrSymbol(code2send);
+        return true;
+    }
+
+    private int lastVariantCycleKeyCode = 0;
+    private long lastVariantCycleAt = 0;
+
+    /**
+     * Перебор вариантов буквы повторными нажатиями: e -> é -> è -> ê -> ë -> e.
+     *
+     * Состояние не хранится, а вычитывается из поля: смотрим символ перед
+     * курсором и, если он принадлежит цепочке этой клавиши, заменяем его
+     * следующим. Тот же приём, что в ActionSendCharFromAltPopupAtSingleAltTriplePress.
+     *
+     * Второе нажатие приходит как double-press, третье и дальше — уже как
+     * обычные короткие (после двойного LastShortPressKey1 не обновляется), и
+     * различать их не нужно: цепочку продолжает сам текст. Чтобы перебор не
+     * срабатывал при спокойном наборе, продолжение требует, чтобы предыдущий
+     * шаг был сделан этой же клавишей и не позже TIME_DOUBLE_PRESS назад.
+     */
+    public boolean ActionSendCharCycleDoublePressVariants(KeyPressData keyPressData) {
+        String variants = keyboardLayoutManager.KeyToDoublePressVariants(keyPressData);
+        if (variants == null || variants.isEmpty())
+            return false;
+
+        int letterBeforeCursor = GetLetterBeforeCursor();
+        if (letterBeforeCursor == 0)
+            return false;
+
+        int base = keyboardLayoutManager.KeyToCharCode(keyPressData, false, false, false);
+        int baseShifted = keyboardLayoutManager.KeyToCharCode(keyPressData, false, true, false);
+
+        boolean upperCase = false;
+        int next = -1;
+        if (letterBeforeCursor == base) {
+            next = 0;
+        } else if (letterBeforeCursor == baseShifted) {
+            next = 0;
+            upperCase = true;
+        } else {
+            for (int i = 0; i < variants.length(); i++) {
+                char variant = variants.charAt(i);
+                if (letterBeforeCursor == variant) {
+                    next = i + 1;
+                    break;
+                }
+                if (letterBeforeCursor == Character.toUpperCase(variant)) {
+                    next = i + 1;
+                    upperCase = true;
+                    break;
+                }
+            }
+        }
+        if (next < 0)
+            return false;
+
+        // Продолжение цепочки — только пока нажатия идут подряд. Иначе буква с
+        // диакритикой, набранная минуту назад, менялась бы от нового нажатия.
+        if (next > 0
+                && (keyPressData.KeyCode != lastVariantCycleKeyCode
+                    || SystemClock.uptimeMillis() - lastVariantCycleAt > TIME_DOUBLE_PRESS))
+            return false;
+
+        int code2send;
+        if (next < variants.length()) {
+            char variant = variants.charAt(next);
+            code2send = upperCase ? Character.toUpperCase(variant) : variant;
+        } else {
+            // Цепочка кончилась — возвращаемся к базовой букве.
+            code2send = upperCase ? baseShifted : base;
+        }
+
+        DeleteLastSymbol();
+        SendLetterOrSymbol(code2send);
+        lastVariantCycleKeyCode = keyPressData.KeyCode;
+        lastVariantCycleAt = SystemClock.uptimeMillis();
         return true;
     }
 

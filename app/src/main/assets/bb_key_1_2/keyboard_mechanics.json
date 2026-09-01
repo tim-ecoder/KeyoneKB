@@ -230,6 +230,11 @@
           "action-method-name": "ActionTryTurnOffGesturesMode"
         },
         {
+          "action-method-name": "ActionSendCharCycleDoublePressVariants",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
+        {
           "action-method-name": "ActionSendCharSinglePressNoMeta",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
@@ -283,6 +288,11 @@
         }
       ],
       "on-double-press": [
+        {
+          "action-method-name": "ActionSendCharCycleDoublePressVariants",
+          "method-needs-key-press-parameter": true,
+          "stop-processing-at-success-result": true
+        },
         {
           "action-method-name": "ActionSendCharDoublePressNoMeta",
           "method-needs-key-press-parameter": true,
