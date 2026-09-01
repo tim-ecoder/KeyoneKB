@@ -114,15 +114,22 @@ public class NativeTranslationDictionary {
             }
         }
 
-        // 2. If size-limited, build/use trimmed CDB from TSV
-        if (maxEntries > 0) {
-            loadTrimmed(context, fromLang, toLang);
-            return;
-        }
-
-        // 3. Full mode: try direct mmap from APK asset (zero-copy, instant)
+        // 2. Готовый индекс важнее ограничения размера: он маппится прямо из APK
+        //    (свой или языкового пакета), открывается мгновенно и не занимает
+        //    кучу. Раньше при любом ненулевом лимите — а по умолчанию он 35000 —
+        //    сюда не доходили вовсе: словарь каждый раз пересобирался из TSV, и
+        //    готовый .cdb в пакете просто лежал без дела. Урезание осталось для
+        //    случая, когда готового индекса нет и есть только TSV.
         try {
-            AssetFileDescriptor afd = context.getAssets().openFd("dict/" + cdbName);
+            AssetFileDescriptor afd;
+            try {
+                afd = context.getAssets().openFd("dict/" + cdbName);
+            } catch (Exception e) {
+                // Своего словаря нет — ищем в установленных пакетах языков.
+                afd = LanguagePacks.openFd(context, "dict/" + cdbName);
+                if (afd == null)
+                    throw e;
+            }
             nativePtr = nativeOpenFd(afd.getParcelFileDescriptor().getFd(),
                     afd.getStartOffset(), afd.getLength());
             afd.close();
@@ -142,7 +149,14 @@ public class NativeTranslationDictionary {
 
         if (!cdbFile.exists()) {
             try {
-                InputStream is = context.getAssets().open("dict/" + cdbName);
+                InputStream is;
+                try {
+                    is = context.getAssets().open("dict/" + cdbName);
+                } catch (Exception e0) {
+                    is = LanguagePacks.open(context, "dict/" + cdbName);
+                    if (is == null)
+                        throw e0;
+                }
                 FileOutputStream fos = new FileOutputStream(cdbFile);
                 byte[] buf = new byte[262144]; // 256KB buffer
                 int n;
@@ -151,7 +165,12 @@ public class NativeTranslationDictionary {
                 is.close();
                 Log.i(TAG, "Copied CDB to: " + cdbFile + " (" + cdbFile.length() + " bytes)");
             } catch (Exception e) {
-                Log.w(TAG, "No CDB found for " + fromLang + " -> " + toLang + ": " + e);
+                // Готового .cdb нет нигде — собираем из TSV. Тут ограничение
+                // размера и работает: при нулевом лимите словарь будет полным.
+                Log.i(TAG, "Нет готового CDB для " + fromLang + " -> " + toLang
+                        + ", собираем из TSV");
+                cdbFile.delete();
+                loadTrimmed(context, fromLang, toLang);
                 return;
             }
         }
@@ -168,6 +187,18 @@ public class NativeTranslationDictionary {
     /**
      * Load a trimmed CDB: check cache, or build from TSV asset sorted by word frequency.
      */
+    /** Файл из assets клавиатуры, а если его там нет — из пакета языка. */
+    private static InputStream OpenAssetOrPack(Context context, String assetPath) throws Exception {
+        try {
+            return context.getAssets().open(assetPath);
+        } catch (Exception e) {
+            InputStream is = LanguagePacks.open(context, assetPath);
+            if (is == null)
+                throw e;
+            return is;
+        }
+    }
+
     private void loadTrimmed(Context context, String fromLang, String toLang) {
         File cacheDir = new File(context.getFilesDir(), "dict_cache");
         if (!cacheDir.exists()) cacheDir.mkdirs();
@@ -190,7 +221,7 @@ public class NativeTranslationDictionary {
         String tsvName = "dict/" + fromLang + "_" + toLang + ".tsv";
         File tsvTemp = new File(cacheDir, fromLang + "_" + toLang + ".tsv.tmp");
         try {
-            InputStream is = context.getAssets().open(tsvName);
+            InputStream is = OpenAssetOrPack(context, tsvName);
             FileOutputStream fos = new FileOutputStream(tsvTemp);
             byte[] buf = new byte[262144];
             int n;
@@ -207,7 +238,7 @@ public class NativeTranslationDictionary {
         String freqName = "dictionaries/" + fromLang + "_base.txt";
         File freqTemp = new File(cacheDir, fromLang + "_freq.tmp");
         try {
-            InputStream is = context.getAssets().open(freqName);
+            InputStream is = OpenAssetOrPack(context, freqName);
             FileOutputStream fos = new FileOutputStream(freqTemp);
             byte[] buf = new byte[262144];
             int n;

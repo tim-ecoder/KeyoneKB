@@ -2,10 +2,15 @@ package com.ai10.k12kb;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import android.net.Uri;
+import com.ai10.k12kb.prediction.LanguagePacks;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -172,6 +177,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             Log.i(TAG2, "  deviceFullMODEL=" + deviceFullMODEL);
             LoadSettingsAndKeyboards(deviceFullMODEL);
 
+            STEP = "WatchLanguagePacks";
+            Log.i(TAG2, "onCreate STEP: " + STEP);
+            StartWatchingLanguagePacks();
+
             STEP = "LoadKeyProcessingMechanics";
             Log.i(TAG2, "onCreate STEP: " + STEP);
             LoadKeyProcessingMechanics(this);
@@ -264,7 +273,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
         ShortcutInfo dsQuickSettings = new ShortcutInfo.Builder(c, "shct_id_QuickSettings")
                 .setShortLabel("Show quick settings")
-                .setIcon(Icon.createWithResource(c, R.drawable.ic_rus_shift_all))
+                .setIcon(Icon.createWithResource(c, R.mipmap.ic_launcher))
                 .setIntents(
                         new Intent[]{
                                 new Intent(IntentQuickSettings.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -274,7 +283,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
         ShortcutInfo dsNotifications = new ShortcutInfo.Builder(c, "shct_id_Notifications")
                 .setShortLabel("Show notifications")
-                .setIcon(Icon.createWithResource(c, R.drawable.ic_rus_shift_all))
+                .setIcon(Icon.createWithResource(c, R.mipmap.ic_launcher))
                 .setIntents(
                         new Intent[]{
                                 new Intent(IntentNotifications.ACTION).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -292,6 +301,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     @Override
     public void onDestroy() {
         Instance = null;
+        StopWatchingLanguagePacks();
         notificationProcessor.CancelAll();
         if (telephonyManager != null) {
             telephonyManager.listen(callStateCallback, PhoneStateListener.LISTEN_NONE);
@@ -1216,24 +1226,24 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             } else {
                 changed = UpdateNotification(AltAllIconRes, TITLE_SYM2_TEXT);
             }
-            UpdateKeyboardViewAltMode(updateSwipePanelData, keyboardLayout.Resources.FlagResId, false);
+            UpdateKeyboardViewAltMode(updateSwipePanelData, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources), false);
         } else if (metaFixedModeFirstSymbolAlt) {
             if (IsSym2Mode()) {
                 changed = UpdateNotification(SymOneIconRes, TITLE_SYM2_TEXT);
             } else {
                 changed = UpdateNotification(AltOneIconRes, TITLE_SYM_TEXT);
             }
-            UpdateKeyboardViewAltMode(updateSwipePanelData, keyboardLayout.Resources.FlagResId, true);
+            UpdateKeyboardViewAltMode(updateSwipePanelData, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources), true);
         } else if (metaFixedModeCapslock || metaHoldShift) {
             changed = UpdateNotification(keyboardLayout.Resources.IconCapsRes, languageOnScreenNaming);
-            UpdateKeyboardViewShiftMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId);
+            UpdateKeyboardViewShiftMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources));
         } else if (metaFixedModeFirstLetterUpper) {
             changed = UpdateNotification(keyboardLayout.Resources.IconFirstShiftRes, languageOnScreenNaming);
-            UpdateKeyboardViewShiftOneMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId);
+            UpdateKeyboardViewShiftOneMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources));
         } else {
             // Случай со строными буквами
             changed = UpdateNotification(keyboardLayout.Resources.IconLowercaseRes, languageOnScreenNaming);
-            UpdateKeyboardViewLetterMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId);
+            UpdateKeyboardViewLetterMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources));
         }
 
         // Видимость экранной клавиатуры не зависит от inputType: терминалы
@@ -1259,40 +1269,40 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             notificationProcessor.UpdateNotificationLayoutMode();
     }
 
-    private void UpdateKeyboardViewShiftOneMode(boolean updateSwipePanelData, String languageOnScreenNaming, int flagResId) {
+    private void UpdateKeyboardViewShiftOneMode(boolean updateSwipePanelData, String languageOnScreenNaming, int flagResId, Drawable flagDrawable) {
         keyboardView.setKeyboard(keyboardSwipeOnScreen);
         if (updateSwipePanelData) {
-            keyboardView.setLang(languageOnScreenNaming, flagResId);
+            keyboardView.setLang(languageOnScreenNaming, flagResId, flagDrawable);
             keyboardView.setShiftFirst();
             keyboardView.setSwipePanelMode();
         }
     }
 
-    private void UpdateKeyboardViewLetterMode(boolean updateSwipePanelData, String languageOnScreenNaming, int flagResId) {
+    private void UpdateKeyboardViewLetterMode(boolean updateSwipePanelData, String languageOnScreenNaming, int flagResId, Drawable flagDrawable) {
         keyboardView.setKeyboard(keyboardSwipeOnScreen);
         if (updateSwipePanelData) {
             keyboardView.notShift();
-            keyboardView.setLang(languageOnScreenNaming, flagResId);
+            keyboardView.setLang(languageOnScreenNaming, flagResId, flagDrawable);
             keyboardView.setSwipePanelMode();
         }
     }
 
-    private void UpdateKeyboardViewShiftMode(boolean updateSwipePanelData, String languageOnScreenNaming, int flagResId) {
+    private void UpdateKeyboardViewShiftMode(boolean updateSwipePanelData, String languageOnScreenNaming, int flagResId, Drawable flagDrawable) {
         keyboardView.setKeyboard(keyboardSwipeOnScreen);
         if (updateSwipePanelData) {
-            keyboardView.setLang(languageOnScreenNaming, flagResId);
+            keyboardView.setLang(languageOnScreenNaming, flagResId, flagDrawable);
             keyboardView.setShiftAll();
             keyboardView.setSwipePanelMode();
         }
     }
 
-    private void UpdateKeyboardViewAltMode(boolean updateSwipePanelData, int flagResId, boolean single) {
+    private void UpdateKeyboardViewAltMode(boolean updateSwipePanelData, int flagResId, Drawable flagDrawable, boolean single) {
         keyboardView.setKeyboard(keyboardSwipeOnScreen);
         if (updateSwipePanelData) {
             if (IsSym2Mode()) {
-                keyboardView.setLang(TITLE_SYM2_TEXT, flagResId);
+                keyboardView.setLang(TITLE_SYM2_TEXT, flagResId, flagDrawable);
             } else {
-                keyboardView.setLang(TITLE_SYM_TEXT, flagResId);
+                keyboardView.setLang(TITLE_SYM_TEXT, flagResId, flagDrawable);
             }
             keyboardView.setAltMode(single);
         }
@@ -1300,12 +1310,31 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     private boolean UpdateNotification(KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes, String notificationText) {
         if(!pref_system_icon_no_notification_text) {
-            boolean changed = notificationProcessor.SetSmallIconLayout(iconRes.MipmapResId);
+            boolean changed = notificationProcessor.SetSmallIconLayout(iconRes.PackageName, iconRes.MipmapResId);
             changed |= notificationProcessor.SetContentTitleLayout(notificationText);
             return changed;
         }
+        if (iconRes.PackageName != null) {
+            // showStatusIcon умеет только свои ресурсы: у языка из пакета
+            // показываем общий значок клавиатуры, а не пустоту.
+            this.showStatusIcon(R.drawable.ic_kb_alt_all);
+            return true;
+        }
         this.showStatusIcon(iconRes.DrawableResId);
         return true;
+    }
+
+    /** Флаг раскладки: из своих ресурсов или из APK языкового пакета. */
+    private Drawable FlagDrawable(KeyboardLayout.KeyboardLayoutOptions options) {
+        if (options == null || options.FlagPackageName == null || options.FlagResId == 0)
+            return null;
+        try {
+            Context pc = createPackageContext(options.FlagPackageName, Context.CONTEXT_IGNORE_SECURITY);
+            return pc.getResources().getDrawable(options.FlagResId, pc.getTheme());
+        } catch (Throwable ex) {
+            Log.w(TAG2, "Флаг из пакета " + options.FlagPackageName + " не загружен: " + ex);
+            return null;
+        }
     }
 
     //endregion
@@ -1404,6 +1433,57 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
 
 
+
+    // --- языковые пакеты ---
+
+    private BroadcastReceiver languagePackReceiver;
+
+    /**
+     * Перечитать раскладки и словари, когда языковой пакет поставили или сняли.
+     *
+     * Без этого пакет замечался бы только при следующем запуске клавиатуры:
+     * список раскладок и найденные пакеты читаются один раз в onCreate, а
+     * служба ввода живёт, пока её не выгрузит система.
+     */
+    private void StartWatchingLanguagePacks() {
+        try {
+            languagePackReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Uri data = intent.getData();
+                    String pkg = data != null ? data.getSchemeSpecificPart() : null;
+                    Log.i(TAG2, "Изменился пакет " + pkg + ", перечитываем языки");
+                    LanguagePacks.invalidate();
+                    try {
+                        LoadSettingsAndKeyboards(deviceFullMODEL);
+                        reloadDictionaryForCurrentLanguage();
+                        updateTranslationLanguages();
+                        UpdateKeyboardModeVisualization();
+                    } catch (Throwable ex) {
+                        Log.e(TAG2, "Перечитать языки не удалось: " + ex);
+                    }
+                }
+            };
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(Intent.ACTION_PACKAGE_ADDED);
+            filter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+            filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+            filter.addDataScheme("package");
+            registerReceiver(languagePackReceiver, filter);
+        } catch (Throwable ex) {
+            Log.e(TAG2, "Не удалось подписаться на установку пакетов: " + ex);
+        }
+    }
+
+    private void StopWatchingLanguagePacks() {
+        if (languagePackReceiver == null)
+            return;
+        try {
+            unregisterReceiver(languagePackReceiver);
+        } catch (Throwable ignored) {
+        }
+        languagePackReceiver = null;
+    }
 
     private void LoadSettingsAndKeyboards(String deviceFullMODEL) throws Exception {
 

@@ -7,6 +7,7 @@ import android.view.inputmethod.InputConnection;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.ai10.k12kb.prediction.LanguagePacks;
 import com.ai10.k12kb.prediction.SuggestionBar;
 import com.ai10.k12kb.prediction.TranslationManager;
 import com.ai10.k12kb.prediction.WordDictionary;
@@ -280,10 +281,19 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             KeyboardLayout kl = keyboardLayoutManager.GetCurrentKeyboardLayout();
             if (kl == null || kl.KeyboardName == null) return "en";
             String lower = kl.KeyboardName.toLowerCase(java.util.Locale.ROOT);
-            if (lower.contains("русск") || lower.contains("russian")) return "ru";
-            // Ukrainian falls back to the Russian dictionary
+            // Украинский считает своим русский словарь — своего у нас нет.
             if (lower.contains("украин") || lower.contains("ukrain")) return "ru";
-            return "en";
+            // Язык раскладки определяется там же, где и для перевода, чтобы два
+            // списка языков не расходились. Но словарь может быть не установлен:
+            // французский и немецкий живут в отдельных пакетах, и без пакета
+            // предсказания должны молча остаться английскими, а не пропасть.
+            String lang = layoutToLangCode(kl);
+            if (!"en".equals(lang)
+                    && !LanguagePacks.exists(getApplicationContext(), "dictionaries/" + lang + "_base.txt")) {
+                Log.d(TAG2, "Нет словаря предсказаний для " + lang + ", остаёмся на en");
+                return "en";
+            }
+            return lang;
         } catch (Throwable ex) {
             return "en";
         }
@@ -318,6 +328,25 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         } catch (Throwable ex) {
             Log.w(TAG2, "updateTranslationLanguages error: " + ex);
         }
+    }
+
+    /**
+     * Язык раскладки, которая станет следующей при переключении. Если словаря
+     * для неё нет, греть нечего — возвращаем язык, отличный от текущего, чтобы
+     * второй словарь всё же оказался под рукой.
+     */
+    protected String nextPredictionLocale(String currentLocale) {
+        try {
+            if (keyboardLayoutManager != null) {
+                String next = layoutToLangCode(keyboardLayoutManager.GetNextKeyboardLayout());
+                if (next != null && !next.equals(currentLocale)
+                        && LanguagePacks.exists(getApplicationContext(), "dictionaries/" + next + "_base.txt"))
+                    return next;
+            }
+        } catch (Throwable ignored) {
+        }
+        return LanguagePacks.BUILTIN_LANGUAGE.equals(currentLocale)
+                ? currentLocale : LanguagePacks.BUILTIN_LANGUAGE;
     }
 
     protected String layoutToLangCode(KeyboardLayout kl) {
@@ -446,7 +475,10 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             // in Russian answering Cyrillic prefixes from the English dictionary —
             // that is, no suggestions at all — until the user toggled the language.
             final String initialLocale = currentPredictionLocale();
-            final String otherLocale = "ru".equals(initialLocale) ? "en" : "ru";
+            // Второй словарь греем не жёстко русский, а язык следующей раскладки:
+            // по кругу переключений именно он понадобится первым, и набор языков
+            // теперь зависит от того, какие пакеты установлены.
+            final String otherLocale = nextPredictionLocale(initialLocale);
             wordPredictor.loadDictionary(getApplicationContext(), initialLocale, new Runnable() {
                 public void run() {
                     WordPredictor wp = wordPredictor;

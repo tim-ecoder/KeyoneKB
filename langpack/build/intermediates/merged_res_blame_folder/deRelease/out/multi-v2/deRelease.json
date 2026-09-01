@@ -1,0 +1,26 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.ai10.k12kb.langpack-merged_res-5:/values_values.arsc.flat",
+            "map": [
+                {
+                    "source": "/data/@K12KB/branch1/langpack/build/generated/res/resValues/de/release/values/gradleResValues.xml",
+                    "from": {
+                        "startLines": "6",
+                        "startColumns": "4",
+                        "startOffsets": "157",
+                        "endColumns": "71",
+                        "endOffsets": "224"
+                    },
+                    "to": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "71",
+                        "endOffsets": "122"
+                    }
+                }
+            ]
+        }
+    ]
+}

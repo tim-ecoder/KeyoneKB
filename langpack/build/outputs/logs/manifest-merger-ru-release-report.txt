@@ -1,0 +1,70 @@
+-- Merging decision tree log ---
+meta-data#com.ai10.k12kb.languages
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:23:13-25:52
+	android:value
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:25:17-49
+	android:name
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:24:17-56
+manifest
+ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:1-28:12
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:1-28:12
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:1-28:12
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:1-28:12
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:1-28:12
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:1-28:12
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:1-28:12
+	package
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:3:5-38
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:1-28:12
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+	android:versionCode
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:1-28:12
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:2:11-69
+application
+ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:9:5-27:19
+	android:label
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:11:9-41
+	android:hasCode
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:14:9-31
+	android:roundIcon
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:13:9-54
+	android:icon
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:12:9-43
+	android:allowBackup
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:10:9-36
+service#com.ai10.k12kb.langpack.LanguagePackService
+ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:16:9-26:19
+	android:enabled
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:19:13-35
+	android:exported
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:18:13-36
+	android:name
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:17:13-71
+intent-filter#action:name:com.ai10.k12kb.LANGUAGE_PACK
+ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:20:13-22:29
+action#com.ai10.k12kb.LANGUAGE_PACK
+ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:21:17-71
+	android:name
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:21:25-68
+uses-sdk
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+		ADDED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+		INJECTED from /data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml

@@ -1,0 +1,52 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.ai10.k12kb.lang.ru"
+4    android:versionCode="3"
+5    android:versionName="1.0.2" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+8-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+9        android:targetSdkVersion="27" />
+9-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml
+10    <!--
+11      Пакет данных: ни кода, ни разрешений. Клавиатура находит его по действию
+12      LANGUAGE_PACK, проверяет подпись и читает assets через createPackageContext.
+13    -->
+14    <application
+14-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:9:5-27:19
+15        android:allowBackup="false"
+15-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:10:9-36
+16        android:extractNativeLibs="false"
+17        android:hasCode="true"
+17-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:14:9-31
+18        android:icon="@mipmap/ic_launcher"
+18-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:12:9-43
+19        android:label="@string/app_name"
+19-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:11:9-41
+20        android:roundIcon="@mipmap/ic_launcher_round" >
+20-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:13:9-54
+21        <service
+21-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:16:9-26:19
+22            android:name="com.ai10.k12kb.langpack.LanguagePackService"
+22-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:17:13-71
+23            android:enabled="true"
+23-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:19:13-35
+24            android:exported="true" >
+24-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:18:13-36
+25            <intent-filter>
+25-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:20:13-22:29
+26                <action android:name="com.ai10.k12kb.LANGUAGE_PACK" />
+26-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:21:17-71
+26-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:21:25-68
+27            </intent-filter>
+28
+29            <meta-data
+30                android:name="com.ai10.k12kb.languages"
+30-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:24:17-56
+31                android:value="ru,uk" />
+31-->/data/@K12KB/branch1/langpack/src/main/AndroidManifest.xml:25:17-49
+32        </service>
+33    </application>
+34
+35</manifest>

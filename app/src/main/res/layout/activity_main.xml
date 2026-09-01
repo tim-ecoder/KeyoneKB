@@ -127,6 +127,20 @@
             <TextView style="@style/Chevron" android:text="\u203A" />
         </LinearLayout>
 
+        <!-- Language packs -->
+        <LinearLayout style="@style/ItemPill"
+            android:id="@+id/pill_language_packs">
+            <Button
+                android:id="@+id/btn_language_packs"
+                style="@style/ItemPillText"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:text="@string/main_btn_language_packs"
+                android:textColor="?attr/textPrimaryColor"
+                android:textAllCaps="false" />
+            <TextView style="@style/Chevron" android:text="\u203A" />
+        </LinearLayout>
+
         <!-- Advanced Settings (dynamically positioned with Suggestions) -->
         <LinearLayout style="@style/ItemPill"
             android:id="@+id/pill_more_settings">

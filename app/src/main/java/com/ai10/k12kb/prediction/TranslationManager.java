@@ -37,7 +37,10 @@ public class TranslationManager {
             new Result(java.util.Collections.<String>emptyList(), false, 0);
 
     private boolean enabled = false;
-    private String sourceLang = "ru";
+    // Начальные значения ни на что не влияют: их перетирает updateLanguages при
+    // первом же переключении раскладки. Раньше здесь стоял русский — при языках
+    // в отдельных пакетах такой умолчание вводит в заблуждение.
+    private String sourceLang = "en";
     private String targetLang = "en";
     private NativeTranslationDictionary dictionary;
     private Context context;

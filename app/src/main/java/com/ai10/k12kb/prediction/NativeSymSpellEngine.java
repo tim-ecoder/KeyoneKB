@@ -412,7 +412,14 @@ public class NativeSymSpellEngine implements PredictionEngine {
     private void loadBigrams(NativeSymSpell ns, Context context, String locale) {
         String bigramFile = "dictionaries/" + locale + "_bigrams.json";
         try {
-            InputStream is = context.getAssets().open(bigramFile);
+            InputStream is;
+            try {
+                is = context.getAssets().open(bigramFile);
+            } catch (java.io.FileNotFoundException e) {
+                is = LanguagePacks.open(context, bigramFile);
+                if (is == null)
+                    throw e;
+            }
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8192);
             StringBuilder sb = new StringBuilder();
             char[] buf = new char[4096];
@@ -453,8 +460,20 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 is = context.getAssets().open(txtFilename);
                 useTxt = true;
             } catch (java.io.FileNotFoundException e) {
-                is = context.getAssets().open(jsonFilename);
-                useTxt = false;
+                try {
+                    is = context.getAssets().open(jsonFilename);
+                    useTxt = false;
+                } catch (java.io.FileNotFoundException e2) {
+                    // Своего словаря для языка нет — ищем в установленных пакетах.
+                    is = LanguagePacks.open(context, txtFilename);
+                    useTxt = true;
+                    if (is == null) {
+                        is = LanguagePacks.open(context, jsonFilename);
+                        useTxt = false;
+                    }
+                    if (is == null)
+                        throw e;
+                }
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 16384);
 

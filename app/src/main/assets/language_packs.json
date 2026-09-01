@@ -1,0 +1,35 @@
+{
+  "release-page": "https://github.com/tim-ecoder/K12KB/releases/tag/lang-packs",
+  "packs": [
+    {
+      "language": "fr",
+      "title": "Français",
+      "package": "com.ai10.k12kb.lang.fr",
+      "version-code": 3,
+      "version-name": "1.1.1",
+      "size-mb": 44,
+      "contents": "QWERTY, AZERTY; 612k words; fr↔en 416k / 193k",
+      "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-lang-fr.apk"
+    },
+    {
+      "language": "de",
+      "title": "Deutsch",
+      "package": "com.ai10.k12kb.lang.de",
+      "version-code": 3,
+      "version-name": "1.1.1",
+      "size-mb": 49,
+      "contents": "QWERTY, QWERTZ; 882k words; de↔en 348k / 189k",
+      "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-lang-de.apk"
+    },
+    {
+      "language": "ru",
+      "title": "Русский",
+      "package": "com.ai10.k12kb.lang.ru",
+      "version-code": 3,
+      "version-name": "1.0.2",
+      "size-mb": 53,
+      "contents": "Русский, транслит, украинский; 668k words; ru↔en 443k / 227k",
+      "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-lang-ru.apk"
+    }
+  ]
+}

@@ -16,11 +16,14 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ai10.k12kb.prediction.LanguagePacks;
 import com.ai10.k12kb.prediction.NativeTranslationDictionary;
 import com.ai10.k12kb.prediction.WordDictionary;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 public class ActivityPredictionSettings extends Activity {
@@ -204,6 +207,18 @@ public class ActivityPredictionSettings extends Activity {
         tvTranslationStatus = (TextView) findViewById(R.id.tv_translation_status);
     }
 
+    /** Файл из assets клавиатуры, а если его там нет — из языкового пакета. */
+    private java.io.InputStream OpenAssetOrPack(String assetPath) throws java.io.IOException {
+        try {
+            return getAssets().open(assetPath);
+        } catch (java.io.IOException ex) {
+            java.io.InputStream is = LanguagePacks.open(getApplicationContext(), assetPath);
+            if (is == null)
+                throw ex;
+            return is;
+        }
+    }
+
     private void refreshTranslationStatus() {
         // Pre-fetch string resources on the UI thread (cannot access from background)
         final String strWords = getString(R.string.pred_translation_words);
@@ -212,14 +227,25 @@ public class ActivityPredictionSettings extends Activity {
         final String strExternal = getString(R.string.pred_translation_external);
         final int maxEntries = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
 
+        // Направления перевода строятся от установленных языков, а не из
+        // жёсткого списка: перевод всегда идёт через английский, поэтому для
+        // каждого языка пакета есть пара в обе стороны.
+        final List<String> pairs = new ArrayList<>();
+        for (String lang : LanguagePacks.availableLanguages(getApplicationContext())) {
+            if (LanguagePacks.BUILTIN_LANGUAGE.equals(lang))
+                continue;
+            pairs.add(lang + "_" + LanguagePacks.BUILTIN_LANGUAGE);
+            pairs.add(LanguagePacks.BUILTIN_LANGUAGE + "_" + lang);
+        }
+
         Executors.newSingleThreadExecutor().execute(() -> {
             StringBuilder sb = new StringBuilder();
-            // Check which dictionary files exist in assets
-            String[] pairs = {"ru_en", "en_ru"};
+            if (pairs.isEmpty())
+                sb.append(getString(R.string.pred_translation_no_packs)).append("\n");
             for (String pair : pairs) {
                 String assetName = "dict/" + pair + ".tsv";
                 try {
-                    java.io.InputStream is = getAssets().open(assetName);
+                    java.io.InputStream is = OpenAssetOrPack(assetName);
                     java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(is));
                     int wordCount = 0;
                     int phraseCount = 0;
@@ -285,7 +311,7 @@ public class ActivityPredictionSettings extends Activity {
 
         // Per-locale stats
         HashMap<String, WordDictionary.LoadStats> allStats = WordDictionary.getAllLoadStats();
-        String[] locales = {"en", "ru"};
+        List<String> locales = LanguagePacks.availableLanguages(getApplicationContext());
         for (String locale : locales) {
             WordDictionary.LoadStats stats = allStats.get(locale);
             if (stats != null && "loading".equals(stats.source)) {
@@ -351,7 +377,7 @@ public class ActivityPredictionSettings extends Activity {
         File nativeCacheDir = new File(getFilesDir(), "native_dict_cache");
         StringBuilder sb = new StringBuilder();
 
-        String[] locales = {"en", "ru"};
+        List<String> locales = LanguagePacks.availableLanguages(getApplicationContext());
         for (String locale : locales) {
             File nf = new File(nativeCacheDir, locale + ".ssnd");
             if (nf.exists()) {

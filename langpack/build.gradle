@@ -1,0 +1,91 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Версия данных в пакетах. Клавиатура сравнивает её с каталогом в своих
+// assets и так узнаёт об обновлении, не выходя в сеть. Версия у каждого языка
+// своя: данные обновляются по отдельности, и общий счётчик заставлял бы
+// пользователя перекачивать пакеты, в которых ничего не изменилось.
+ext {
+    packVersions = [
+        fr: [code: 3, name: "1.1.1"],
+        de: [code: 3, name: "1.1.1"],
+        ru: [code: 3, name: "1.0.2"],
+    ]
+}
+
+android {
+    signingConfigs {
+        release {
+            storeFile file('d:\\Programming\\keystores\\keystore2.jks')
+            storePassword 'qwerty'
+            keyAlias 'key0'
+            keyPassword 'qwerty'
+        }
+    }
+
+    lintOptions {
+        disable 'ExpiredTargetSdkVersion'
+    }
+
+    compileSdkVersion 30
+
+    // .cdb клавиатура открывает через openFd и маппит прямо из APK пакета,
+    // поэтому он обязан лежать несжатым — иначе openFd его не отдаст.
+    aaptOptions {
+        noCompress '.cdb'
+    }
+
+    defaultConfig {
+        minSdkVersion 26
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    flavorDimensions "lang"
+    productFlavors {
+        fr {
+            dimension "lang"
+            applicationId "com.ai10.k12kb.lang.fr"
+            versionCode project.ext.packVersions.fr.code
+            versionName project.ext.packVersions.fr.name
+            resValue "string", "app_name", "K12KB Français"
+            manifestPlaceholders = [packLanguages: "fr"]
+        }
+        de {
+            dimension "lang"
+            applicationId "com.ai10.k12kb.lang.de"
+            versionCode project.ext.packVersions.de.code
+            versionName project.ext.packVersions.de.name
+            resValue "string", "app_name", "K12KB Deutsch"
+            manifestPlaceholders = [packLanguages: "de"]
+        }
+        ru {
+            dimension "lang"
+            applicationId "com.ai10.k12kb.lang.ru"
+            versionCode project.ext.packVersions.ru.code
+            versionName project.ext.packVersions.ru.name
+            resValue "string", "app_name", "K12KB Русский"
+            manifestPlaceholders = [packLanguages: "ru,uk"]
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            // Имя без версии: ссылка на пакет в релизе GitHub должна быть
+            // постоянной, а версия видна в самом APK и в каталоге.
+            outputFileName = "K12KB-lang-${variant.flavorName}.apk"
+        }
+    }
+}

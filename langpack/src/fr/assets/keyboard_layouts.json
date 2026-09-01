@@ -1,0 +1,22 @@
+[
+  {
+    "options-name": "Blackberry Key1|2 Français",
+    "keyboard-mapping": "bb_key_1_2/french_hw",
+    "icon-lowercase": "ic_fra_small",
+    "icon-first-shift": "ic_fra_shift_first",
+    "icon-capslock": "ic_fra_shift_all",
+    "flag": "ic_flag_france_col",
+    "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)"
+  },
+  {
+    "options-name": "Blackberry Key1|2 Français (AZERTY)",
+    "keyboard-mapping": "bb_key_1_2/french_azerty_hw",
+    "icon-lowercase": "ic_fra_small",
+    "icon-first-shift": "ic_fra_shift_first",
+    "icon-capslock": "ic_fra_shift_all",
+    "flag": "ic_flag_france_col",
+    "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)"
+  }
+]

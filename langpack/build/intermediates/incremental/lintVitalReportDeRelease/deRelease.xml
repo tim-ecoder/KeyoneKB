@@ -1,0 +1,55 @@
+<variant
+    name="deRelease"
+    package="com.ai10.k12kb.langpack"
+    minSdkVersion="26"
+    targetSdkVersion="27"
+    mergedManifest="build/intermediates/merged_manifest/deRelease/AndroidManifest.xml"
+    manifestMergeReport="build/outputs/logs/manifest-merger-de-release-report.txt"
+    proguardFiles="build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.2"
+    partialResultsDir="build/intermediates/lint_vital_partial_results/deRelease/out">
+  <buildFeatures
+      namespacing="REQUIRED"/>
+  <sourceProviders>
+    <sourceProvider
+        manifest="src/main/AndroidManifest.xml"
+        javaDirectories="src/main/java:src/main/kotlin"
+        resDirectories="src/main/res"
+        assetsDirectories="src/main/assets"/>
+    <sourceProvider
+        manifest="src/de/AndroidManifest.xml"
+        javaDirectories="src/de/java:src/de/kotlin"
+        resDirectories="src/de/res"
+        assetsDirectories="src/de/assets"/>
+    <sourceProvider
+        manifest="src/release/AndroidManifest.xml"
+        javaDirectories="src/release/java:src/release/kotlin"
+        resDirectories="src/release/res"
+        assetsDirectories="src/release/assets"/>
+    <sourceProvider
+        manifest="src/deRelease/AndroidManifest.xml"
+        javaDirectories="src/deRelease/java:src/deRelease/kotlin"
+        resDirectories="src/deRelease/res"
+        assetsDirectories="src/deRelease/assets"/>
+  </sourceProviders>
+  <testSourceProviders>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <resValues>
+    <resValue
+        type="string"
+        name="app_name"
+        value="K12KB Deutsch" />
+  </resValues>
+  <manifestPlaceholders>
+    <placeholder
+        name="packLanguages"
+        value="de" />
+  </manifestPlaceholders>
+  <mainArtifact
+      classOutputs="build/intermediates/javac/deRelease/classes:build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/deRelease/R.jar"
+      applicationId="com.ai10.k12kb.lang.de"
+      generatedSourceFolders="build/generated/ap_generated_sources/deRelease/out:build/generated/aidl_source_output_dir/deRelease/out:build/generated/source/buildConfig/de/release:build/generated/renderscript_source_output_dir/deRelease/out"
+      generatedResourceFolders="build/generated/res/rs/de/release:build/generated/res/resValues/de/release">
+  </mainArtifact>
+</variant>

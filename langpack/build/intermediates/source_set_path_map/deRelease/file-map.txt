@@ -1,0 +1,10 @@
+com.ai10.k12kb.langpack-de-0 /data/@K12KB/branch1/langpack/build/generated/res/pngs/de/release
+com.ai10.k12kb.langpack-de-1 /data/@K12KB/branch1/langpack/build/generated/res/resValues/de/release
+com.ai10.k12kb.langpack-de-2 /data/@K12KB/branch1/langpack/build/generated/res/rs/de/release
+com.ai10.k12kb.langpack-mergeDeReleaseResources-3 /data/@K12KB/branch1/langpack/build/intermediates/incremental/deRelease/mergeDeReleaseResources/merged.dir
+com.ai10.k12kb.langpack-mergeDeReleaseResources-4 /data/@K12KB/branch1/langpack/build/intermediates/incremental/deRelease/mergeDeReleaseResources/stripped.dir
+com.ai10.k12kb.langpack-merged_res-5 /data/@K12KB/branch1/langpack/build/intermediates/merged_res/deRelease
+com.ai10.k12kb.langpack-de-6 /data/@K12KB/branch1/langpack/src/de/res
+com.ai10.k12kb.langpack-deRelease-7 /data/@K12KB/branch1/langpack/src/deRelease/res
+com.ai10.k12kb.langpack-main-8 /data/@K12KB/branch1/langpack/src/main/res
+com.ai10.k12kb.langpack-release-9 /data/@K12KB/branch1/langpack/src/release/res

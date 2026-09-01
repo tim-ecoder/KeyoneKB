@@ -15,6 +15,18 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <!--
+      Видимость пакетов словарей. Это не разрешение: без этого блока на
+      Android 11+ queryIntentServices просто не вернёт чужие приложения.
+      Сеть для загрузки словарей не нужна — они читаются из установленных APK.
+    -->
+    <queries>
+        <intent>
+            <action android:name="com.ai10.k12kb.LANGUAGE_PACK" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -25,6 +37,7 @@
         <activity android:name=".ActivitySettings"></activity>
         <activity android:name=".ActivitySettingsMore"></activity>
         <activity android:name=".ActivityPredictionSettings"></activity>
+        <activity android:name=".ActivityLanguagePacks"></activity>
         <activity android:name=".ActivityKeyboardTest"></activity>
         <activity
             android:name=".ActivityMain"

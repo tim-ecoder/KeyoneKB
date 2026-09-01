@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.ai10.k12kb.lang.fr",
+  "variantName": "frRelease",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 3,
+      "versionName": "1.1.1",
+      "outputFile": "K12KB-lang-fr.apk"
+    }
+  ],
+  "elementType": "File"
+}

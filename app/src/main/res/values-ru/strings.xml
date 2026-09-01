@@ -170,4 +170,23 @@
     <string name="settingsBlockExtra">Прочее</string>
     <string name="main_interface_language">Язык интерфейса</string>
 
+    <string name="packs_title">Языковые пакеты</string>
+    <string name="packs_header_hint">Раскладки, подсказки и перевод для других языков живут в отдельных приложениях. Клавиатура читает их локально и в сеть не выходит — скачивание открывается в браузере.</string>
+    <string name="packs_section_available">Пакеты</string>
+    <string name="packs_section_updates">Обновления</string>
+    <string name="packs_installed">Установлен</string>
+    <string name="packs_not_installed">Не установлен</string>
+    <string name="packs_tap_to_download">нажмите, чтобы скачать</string>
+    <string name="packs_update_available">есть обновление:</string>
+    <string name="packs_up_to_date">актуальная версия</string>
+    <string name="packs_open_release_page">Открыть страницу релизов</string>
+    <string name="packs_catalog_missing">В этой сборке нет каталога пакетов</string>
+    <string name="main_btn_language_packs">Языковые пакеты</string>
+    <string name="packs_action_reinstall">Скачать / обновить</string>
+    <string name="packs_action_uninstall">Удалить пакет</string>
+    <string name="packs_badge_update">ОБНОВИТЬ</string>
+    <string name="pred_translation_no_packs">Языковые пакеты не установлены — переводить не с чего</string>
+    <string name="packs_action_uninstall_short">Удалить</string>
+    <string name="packs_after_install_hint">После установки пакета его раскладки выключены. Откройте настройки и включите нужные — они появятся в списке раскладок клавиатуры.</string>
+    <string name="packs_open_layout_settings">Открыть раскладки клавиатуры ›</string>
 </resources>

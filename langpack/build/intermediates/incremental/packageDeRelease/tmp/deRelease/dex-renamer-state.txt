@@ -1,0 +1,4 @@
+#Tue Sep 01 16:53:29 EAT 2026
+base.0=/data/@K12KB/branch1/langpack/build/intermediates/dex/deRelease/mergeDexDeRelease/classes.dex
+renamed.0=classes.dex
+path.0=classes.dex

@@ -51,6 +51,7 @@ public class ViewSatedaKeyboard extends KeyboardView {
     private String lang = "";
     private String draw_lang = "";
     private int flagResId = 0;
+    private Drawable flagDrawable = null;
     private boolean modeSwipeSingleShift = false;
     boolean modeSwipeAltMode = false;
     boolean modeSwipeSingleAltMode = false;
@@ -213,9 +214,18 @@ public class ViewSatedaKeyboard extends KeyboardView {
     }
 
     public void setLang(String lang, int flagResId){
+        setLang(lang, flagResId, null);
+    }
+
+    /**
+     * @param flagDrawable готовая картинка, если флаг лежит в языковом пакете:
+     *                     его id не разрешить через getResources() клавиатуры.
+     */
+    public void setLang(String lang, int flagResId, Drawable flagDrawable){
         this.lang = lang;
         draw_lang = lang;
         this.flagResId = flagResId;
+        this.flagDrawable = flagDrawable;
     }
 
     private boolean isKeyboard(int keyCode1) {
@@ -565,7 +575,9 @@ public class ViewSatedaKeyboard extends KeyboardView {
             if(showFlag && !modeSwipeAltMode && !modeSwipeSingleAltMode) {
                 // Show flag icon
                 try {
-                    Drawable langIcon = getResources().getDrawable(flagResId == 0 ? R.drawable.ic_flag_gb_col : flagResId);
+                    Drawable langIcon = flagDrawable != null
+                            ? flagDrawable
+                            : getResources().getDrawable(flagResId == 0 ? R.drawable.ic_flag_gb_col : flagResId);
                     //canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), key.x + (key.width / 2) - scaleX(235), key.y + (height/2 - scaleY(24)), paint_white);
 
                     canvas.drawBitmap(IconsHelper.drawableToBitmap(langIcon), startDrawLine - scaleX(100), key.y + (height/2 - scaleY(24)), paint_white);

@@ -55,6 +55,8 @@ public class KeyboardLayout {
         public static class IconRes {
             int MipmapResId;
             int DrawableResId;
+            /** APK, в котором лежит картинка: null — сама клавиатура, иначе пакет языка. */
+            String PackageName;
         }
 
         public static IconRes CreateIconRes(int mipmapResId, int drawableResId) {
@@ -80,6 +82,8 @@ public class KeyboardLayout {
         @JsonProperty(index=55)
         String Flag;
         int FlagResId;
+        /** APK, в котором лежит флаг: null — сама клавиатура, иначе пакет языка. */
+        String FlagPackageName;
         @JsonProperty(index=60)
         String CustomKeyboardMechanics;
 

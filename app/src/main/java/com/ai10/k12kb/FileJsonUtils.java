@@ -2,6 +2,7 @@ package com.ai10.k12kb;
 
 import android.Manifest;
 import android.content.Context;
+import com.ai10.k12kb.prediction.LanguagePacks;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -84,6 +85,21 @@ public class FileJsonUtils {
         return SaveAssetToFile(resName +JsonFileExt, PATH_DEF, ResNameNoFolder(resName)+JsonFileExt, context);
     }
 
+    /** Сохранить готовый json (например, склеенный реестр раскладок) как ресурс. */
+    public static String SaveJsonTextToFile(String resName, String json){
+        CheckFoldersAndCreate(PATH_DEF);
+        String fileName = PATH_DEF + ResNameNoFolder(resName) + JsonFileExt;
+        try {
+            FileOutputStream fOut = new FileOutputStream(fileName, false);
+            fOut.write(json.getBytes("UTF-8"));
+            fOut.flush();
+            fOut.close();
+        } catch (Throwable e) {
+            Log.e(TAG2, "Save file error: " + e);
+        }
+        return PATH_DEF;
+    }
+
     public static String SaveAssetToFile(String assetFile, String NEW_PATH, String saveFile, Context context){
 
         CheckFoldersAndCreate(NEW_PATH);
@@ -91,7 +107,17 @@ public class FileJsonUtils {
 
         AssetManager am = context.getAssets();
         try {
-            InputStream is = am.open(assetFile);
+            InputStream is;
+            try {
+                is = am.open(assetFile);
+            } catch (Throwable ex) {
+                // Раскладки и словари языковых пакетов лежат в чужих APK:
+                // без этого «сохранить данные клавиатуры» выгружало бы только
+                // английский, а раскладки установленных пакетов терялись.
+                is = LanguagePacks.open(context, assetFile);
+                if (is == null)
+                    throw ex;
+            }
 
             FileOutputStream fOut = new FileOutputStream(fileName,false);
             copyLarge(is, fOut);
@@ -151,7 +177,7 @@ public class FileJsonUtils {
         }
     }
 
-    private static <T> T DeserializeFromFile(InputStream is, TypeReference<T> typeReference) throws IOException {
+    static <T> T DeserializeFromFile(InputStream is, TypeReference<T> typeReference) throws IOException {
         JsonMapper mapper= PrepareJsonMapper();
         T obj = mapper.readValue(is, typeReference);
         return obj;
@@ -264,6 +290,17 @@ public class FileJsonUtils {
     }
 
     public static <T> T DeserializeFromJsonApplyPatches(String resName, TypeReference<T> typeReference, Context context) throws Exception {
+        return DeserializeFromJsonApplyPatches(resName, typeReference, context, null);
+    }
+
+    /**
+     * @param baseJsonOverride готовый исходный json вместо файла из assets.
+     *                         Нужен для реестра раскладок: он склеивается из
+     *                         клавиатуры и установленных языковых пакетов, и
+     *                         js-патчи должны накладываться уже на склейку —
+     *                         иначе патч не увидит раскладок из пакета.
+     */
+    public static <T> T DeserializeFromJsonApplyPatches(String resName, TypeReference<T> typeReference, Context context, String baseJsonOverride) throws Exception {
 
         T object = null;
         Context psc = GetContext(context);
@@ -300,9 +337,14 @@ public class FileJsonUtils {
             // Накидываем патчи на дефолтный json
             if (!active.isEmpty()) {
 
-                InputStream is_base_json = getResStream(resName, context);
-                String base_json = slurp(is_base_json, 1024);
-                is_base_json.close();
+                String base_json;
+                if (baseJsonOverride != null) {
+                    base_json = baseJsonOverride;
+                } else {
+                    InputStream is_base_json = getResStream(resName, context);
+                    base_json = slurp(is_base_json, 1024);
+                    is_base_json.close();
+                }
 
                 String[] jss = new String[active.size()];
                 for (int i = 0; i < active.size(); i++) {
@@ -320,6 +362,8 @@ public class FileJsonUtils {
             }
 
             CustomizationLoadVariants.put(noFolderName, ResLoadVariant.DefaultFromAsset);
+            if (baseJsonOverride != null)
+                return DeserializeFromString(baseJsonOverride, typeReference);
             InputStream is = getResStream(resName, context);
             object = FileJsonUtils.DeserializeFromFile(is, typeReference);
             is.close();
@@ -342,10 +386,59 @@ public class FileJsonUtils {
         return noFolderName;
     }
 
+    /**
+     * Реестр раскладок как единый json: сначала свои раскладки, затем из каждого
+     * установленного языкового пакета. Именно эта склейка идёт под js-патчи и
+     * на сохранение, поэтому пакеты видны обоим механизмам.
+     */
+    public static String MergedJsonArrayWithPacks(String resName, Context context) throws IOException {
+        InputStream own = null;
+        org.json.JSONArray merged = new org.json.JSONArray();
+        try {
+            own = context.getAssets().open(resName + JsonFileExt);
+            AppendJsonArray(merged, slurp(own, 1024));
+        } catch (Throwable ex) {
+            Log.w(TAG2, "Свой " + resName + " не прочитан: " + ex);
+        } finally {
+            if (own != null) own.close();
+        }
+
+        List<String> packs = LanguagePacks.packages(context);
+        for (int i = 0; i < packs.size(); i++) {
+            InputStream is = LanguagePacks.openIn(context, packs.get(i), resName + JsonFileExt);
+            if (is == null)
+                continue;
+            try {
+                AppendJsonArray(merged, slurp(is, 1024));
+            } catch (Throwable ex) {
+                Log.w(TAG2, "Реестр пакета " + packs.get(i) + " не прочитан: " + ex);
+            } finally {
+                is.close();
+            }
+        }
+        return merged.toString();
+    }
+
+    private static void AppendJsonArray(org.json.JSONArray target, String json) throws org.json.JSONException {
+        org.json.JSONArray from = new org.json.JSONArray(json);
+        for (int i = 0; i < from.length(); i++)
+            target.put(from.get(i));
+    }
+
     private static InputStream getResStream(String resName, Context context) throws IOException {
         AssetManager am = context.getAssets();
-        return am.open(resName+JsonFileExt);
-
+        String assetPath = resName + JsonFileExt;
+        try {
+            return am.open(assetPath);
+        } catch (IOException ex) {
+            // Раскладки языков живут в отдельных APK-пакетах: это единственное
+            // место, через которое читаются все json-ресурсы, поэтому раскладки
+            // из пакетов подхватываются вместе с механикой и патчами.
+            InputStream is = LanguagePacks.open(context, assetPath);
+            if (is == null)
+                throw ex;
+            return is;
+        }
     }
 
     /** Прогоняет json через цепочку js-патчей. Ничего не пишет на диск. */

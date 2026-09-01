@@ -93,6 +93,14 @@ public class ActivityMain extends Activity {
             }
         });
 
+        Button btn_language_packs = (Button) findViewById(R.id.btn_language_packs);
+        btn_language_packs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(ActivityMain.this, ActivityLanguagePacks.class));
+            }
+        });
+
         btn_more_settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

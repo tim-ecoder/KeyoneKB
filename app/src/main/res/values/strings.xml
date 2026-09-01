@@ -179,4 +179,23 @@ For more utilities for working with Capital letters, see the Manual in chapter B
         <item>English</item>
         <item>Русский</item>
     </string-array>
+    <string name="packs_title">Language packs</string>
+    <string name="packs_header_hint">Layouts, suggestions and translation for other languages live in separate apps. The keyboard reads them locally and never goes online — downloads open in your browser.</string>
+    <string name="packs_section_available">Packs</string>
+    <string name="packs_section_updates">Updates</string>
+    <string name="packs_installed">Installed</string>
+    <string name="packs_not_installed">Not installed</string>
+    <string name="packs_tap_to_download">tap to download</string>
+    <string name="packs_update_available">update available:</string>
+    <string name="packs_up_to_date">up to date</string>
+    <string name="packs_open_release_page">Open releases page</string>
+    <string name="packs_catalog_missing">Pack catalogue is missing from this build</string>
+    <string name="main_btn_language_packs">Language packs</string>
+    <string name="packs_action_reinstall">Download / update</string>
+    <string name="packs_action_uninstall">Uninstall pack</string>
+    <string name="packs_badge_update">UPDATE</string>
+    <string name="pred_translation_no_packs">No language packs installed — translation needs one</string>
+    <string name="packs_action_uninstall_short">Remove</string>
+    <string name="packs_after_install_hint">After installing a pack its layouts arrive switched off. Open settings and enable the ones you need — they appear in the keyboard layouts list.</string>
+    <string name="packs_open_layout_settings">Open keyboard layouts ›</string>
 </resources>

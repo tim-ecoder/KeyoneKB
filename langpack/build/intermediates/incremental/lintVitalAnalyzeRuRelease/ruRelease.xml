@@ -1,0 +1,55 @@
+<variant
+    name="ruRelease"
+    package="com.ai10.k12kb.langpack"
+    minSdkVersion="26"
+    targetSdkVersion="27"
+    mergedManifest="build/intermediates/merged_manifest/ruRelease/AndroidManifest.xml"
+    proguardFiles="build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.2"
+    partialResultsDir="build/intermediates/lint_vital_partial_results/ruRelease/out"
+    desugaredMethodsFiles="/home/user/.gradle/caches/transforms-3/4e4c5f6a2a10c56cbc9b580ffee61233/transformed/D8BackportedDesugaredMethods.txt">
+  <buildFeatures
+      namespacing="REQUIRED"/>
+  <sourceProviders>
+    <sourceProvider
+        manifest="src/main/AndroidManifest.xml"
+        javaDirectories="src/main/java:src/main/kotlin"
+        resDirectories="src/main/res"
+        assetsDirectories="src/main/assets"/>
+    <sourceProvider
+        manifest="src/ru/AndroidManifest.xml"
+        javaDirectories="src/ru/java:src/ru/kotlin"
+        resDirectories="src/ru/res"
+        assetsDirectories="src/ru/assets"/>
+    <sourceProvider
+        manifest="src/release/AndroidManifest.xml"
+        javaDirectories="src/release/java:src/release/kotlin"
+        resDirectories="src/release/res"
+        assetsDirectories="src/release/assets"/>
+    <sourceProvider
+        manifest="src/ruRelease/AndroidManifest.xml"
+        javaDirectories="src/ruRelease/java:src/ruRelease/kotlin"
+        resDirectories="src/ruRelease/res"
+        assetsDirectories="src/ruRelease/assets"/>
+  </sourceProviders>
+  <testSourceProviders>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <resValues>
+    <resValue
+        type="string"
+        name="app_name"
+        value="K12KB Русский" />
+  </resValues>
+  <manifestPlaceholders>
+    <placeholder
+        name="packLanguages"
+        value="ru,uk" />
+  </manifestPlaceholders>
+  <mainArtifact
+      classOutputs="build/intermediates/javac/ruRelease/classes:build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/ruRelease/R.jar"
+      applicationId="com.ai10.k12kb.lang.ru"
+      generatedSourceFolders="build/generated/ap_generated_sources/ruRelease/out:build/generated/aidl_source_output_dir/ruRelease/out:build/generated/source/buildConfig/ru/release:build/generated/renderscript_source_output_dir/ruRelease/out"
+      generatedResourceFolders="build/generated/res/rs/ru/release:build/generated/res/resValues/ru/release">
+  </mainArtifact>
+</variant>

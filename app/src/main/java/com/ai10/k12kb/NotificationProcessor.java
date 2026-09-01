@@ -148,6 +148,32 @@ public class NotificationProcessor {
     int currentIconLayout = 0;
     String currentTitleLayout = "";
 
+    /**
+     * Иконка из другого APK (языкового пакета): id чужого ресурса нельзя отдать
+     * в setSmallIcon(int) — он ищется в ресурсах нашего пакета. Icon с явным
+     * именем пакета система разрешает сама.
+     */
+    public boolean SetSmallIconLayout(String packageName, int icon1) {
+        if (packageName == null)
+            return SetSmallIconLayout(icon1);
+        // Чужой ресурс принимает только Notification.Builder: у compat-билдера
+        // setSmallIcon берёт id и ищет его в нашем пакете.
+        if (builder2Layout == null)
+            return SetSmallIconLayout(icon1);
+        try {
+            android.graphics.drawable.Icon icon =
+                    android.graphics.drawable.Icon.createWithResource(packageName, icon1);
+            builder2Layout.setSmallIcon(icon);
+        } catch (Throwable ex) {
+            return SetSmallIconLayout(icon1);
+        }
+        if (currentIconLayout != icon1) {
+            currentIconLayout = icon1;
+            return true;
+        }
+        return false;
+    }
+
     public boolean SetSmallIconLayout(int icon1) {
         if(builderLayout != null) {
             builderLayout.setSmallIcon(icon1);

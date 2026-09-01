@@ -1,0 +1,26 @@
+<lint-module
+    format="1"
+    dir="/data/@K12KB/branch1/langpack"
+    name=":langpack"
+    type="APP"
+    maven="KeyoneKB2:langpack:"
+    gradle="7.4.2"
+    buildFolder="build"
+    bootClassPath="/home/user/android-sdk/platforms/android-30/android.jar:/home/user/android-sdk/build-tools/30.0.3/core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-30"
+    neverShrinking="true">
+  <lintOptions
+      disable="ExpiredTargetSdkVersion"
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true">
+    <severities>
+      <severity
+        id="ExpiredTargetSdkVersion"
+        severity="IGNORE" />
+    </severities>
+  </lintOptions>
+  <variant name="frRelease"/>
+</lint-module>

@@ -6,7 +6,10 @@ import android.inputmethodservice.Keyboard;
 import android.os.Build;
 import android.util.Log;
 
+import com.ai10.k12kb.prediction.LanguagePacks;
 import com.fasterxml.jackson.core.type.TypeReference;
+
+import java.io.InputStream;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -236,25 +239,73 @@ public class KeyboardLayoutManager {
         // Load keyboard layouts
         //Открывает R.xml.keyboard_layouts и загружает все настройки клавиатуры
 
-        ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayoutOptionsArray =  FileJsonUtils.DeserializeFromJsonApplyPatches(RES_KEYBOARD_LAYOUTS, new TypeReference<ArrayList<KeyboardLayout.KeyboardLayoutOptions>>() {}, context);
+        // Сначала склеиваем реестр из клавиатуры и установленных языковых
+        // пакетов, и уже на склейку накладываются js-патчи: патч, дописывающий
+        // или правящий раскладку, должен видеть языки из пакетов.
+        String merged = FileJsonUtils.MergedJsonArrayWithPacks(RES_KEYBOARD_LAYOUTS, context);
+        ArrayList<KeyboardLayout.KeyboardLayoutOptions> keyboardLayoutOptionsArray =
+                FileJsonUtils.DeserializeFromJsonApplyPatches(RES_KEYBOARD_LAYOUTS,
+                        new TypeReference<ArrayList<KeyboardLayout.KeyboardLayoutOptions>>() {}, context, merged);
 
         for ( KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayoutOptionsArray) {
 
-            keyboardLayoutOptions.IconCapsRes.DrawableResId= resources.getIdentifier(keyboardLayoutOptions.IconCapslock, "drawable", context.getPackageName());
-            keyboardLayoutOptions.IconFirstShiftRes.DrawableResId = resources.getIdentifier(keyboardLayoutOptions.IconFirstShift, "drawable", context.getPackageName());
-            keyboardLayoutOptions.IconLowercaseRes.DrawableResId = resources.getIdentifier(keyboardLayoutOptions.IconLowercase, "drawable", context.getPackageName());
-
-            keyboardLayoutOptions.IconCapsRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconCapslock, "mipmap", context.getPackageName());
-            keyboardLayoutOptions.IconFirstShiftRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconFirstShift, "mipmap", context.getPackageName());
-            keyboardLayoutOptions.IconLowercaseRes.MipmapResId = resources.getIdentifier(keyboardLayoutOptions.IconLowercase, "mipmap", context.getPackageName());
+            // Картинки ищутся сначала у себя, потом в языковых пакетах: пакет
+            // приносит не только раскладку и словари, но и значок языка со
+            // флагом, иначе новый язык был бы без иконок до пересборки самой
+            // клавиатуры — а это ровно то, ради чего пакеты и заводились.
+            ResolveIcon(context, resources, keyboardLayoutOptions.IconCapsRes, keyboardLayoutOptions.IconCapslock);
+            ResolveIcon(context, resources, keyboardLayoutOptions.IconFirstShiftRes, keyboardLayoutOptions.IconFirstShift);
+            ResolveIcon(context, resources, keyboardLayoutOptions.IconLowercaseRes, keyboardLayoutOptions.IconLowercase);
 
             keyboardLayoutOptions.FlagResId = resources.getIdentifier(keyboardLayoutOptions.Flag, "drawable", context.getPackageName());
+            keyboardLayoutOptions.FlagPackageName = null;
+            if (keyboardLayoutOptions.FlagResId == 0) {
+                List<String> packs = LanguagePacks.packages(context);
+                for (int i = 0; i < packs.size(); i++) {
+                    int id = PackResource(context, packs.get(i), keyboardLayoutOptions.Flag, "drawable");
+                    if (id != 0) {
+                        keyboardLayoutOptions.FlagResId = id;
+                        keyboardLayoutOptions.FlagPackageName = packs.get(i);
+                        break;
+                    }
+                }
+            }
 
         }
 
         return keyboardLayoutOptionsArray;
 
 
+    }
+
+    /** Значок языка: свои ресурсы, иначе ресурсы пакета, который его принёс. */
+    private static void ResolveIcon(Context context, Resources resources,
+                                    KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes, String name) {
+        iconRes.DrawableResId = resources.getIdentifier(name, "drawable", context.getPackageName());
+        iconRes.MipmapResId = resources.getIdentifier(name, "mipmap", context.getPackageName());
+        iconRes.PackageName = null;
+        if (iconRes.DrawableResId != 0 || iconRes.MipmapResId != 0)
+            return;
+        List<String> packs = LanguagePacks.packages(context);
+        for (int i = 0; i < packs.size(); i++) {
+            int drawable = PackResource(context, packs.get(i), name, "drawable");
+            int mipmap = PackResource(context, packs.get(i), name, "mipmap");
+            if (drawable != 0 || mipmap != 0) {
+                iconRes.DrawableResId = drawable;
+                iconRes.MipmapResId = mipmap;
+                iconRes.PackageName = packs.get(i);
+                return;
+            }
+        }
+    }
+
+    private static int PackResource(Context context, String pkg, String name, String type) {
+        try {
+            Context pc = context.createPackageContext(pkg, Context.CONTEXT_IGNORE_SECURITY);
+            return pc.getResources().getIdentifier(name, type, pkg);
+        } catch (Throwable ex) {
+            return 0;
+        }
     }
 
     public static boolean IsCurrentDevice(String deviceFullMODEL, KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions) {

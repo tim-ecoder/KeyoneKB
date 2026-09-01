@@ -372,7 +372,15 @@ public class ActivitySettingsMore extends Activity {
             return;
         }
 
-        path = FileJsonUtils.SaveJsonResToFile(RES_KEYBOARD_LAYOUTS, getApplicationContext());
+        // Реестр раскладок сохраняем склеенным с языковыми пакетами: иначе на
+        // диск уехал бы только английский, а установленные языки пропали бы —
+        // и при следующем запуске клавиатура прочитала бы с диска именно его.
+        try {
+            path = FileJsonUtils.SaveJsonTextToFile(RES_KEYBOARD_LAYOUTS,
+                    FileJsonUtils.MergedJsonArrayWithPacks(RES_KEYBOARD_LAYOUTS, getApplicationContext()));
+        } catch (Throwable ex) {
+            path = FileJsonUtils.SaveJsonResToFile(RES_KEYBOARD_LAYOUTS, getApplicationContext());
+        }
         path = FileJsonUtils.SaveJsonResToFile(RES_KEYBOARD_CORE, getApplicationContext());
         path = FileJsonUtils.SaveJsonResToFile(K12KbIME.Instance.keyboard_mechanics_res, getApplicationContext());
         path = FileJsonUtils.SaveJsonResToFile(K12KbAccessibilityService.K12KbAccServiceOptions.ResName, getApplicationContext());

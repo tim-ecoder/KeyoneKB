@@ -1,0 +1,10 @@
+com.ai10.k12kb.langpack-ru-0 /data/@K12KB/branch1/langpack/build/generated/res/pngs/ru/release
+com.ai10.k12kb.langpack-ru-1 /data/@K12KB/branch1/langpack/build/generated/res/resValues/ru/release
+com.ai10.k12kb.langpack-ru-2 /data/@K12KB/branch1/langpack/build/generated/res/rs/ru/release
+com.ai10.k12kb.langpack-mergeRuReleaseResources-3 /data/@K12KB/branch1/langpack/build/intermediates/incremental/ruRelease/mergeRuReleaseResources/merged.dir
+com.ai10.k12kb.langpack-mergeRuReleaseResources-4 /data/@K12KB/branch1/langpack/build/intermediates/incremental/ruRelease/mergeRuReleaseResources/stripped.dir
+com.ai10.k12kb.langpack-merged_res-5 /data/@K12KB/branch1/langpack/build/intermediates/merged_res/ruRelease
+com.ai10.k12kb.langpack-main-6 /data/@K12KB/branch1/langpack/src/main/res
+com.ai10.k12kb.langpack-release-7 /data/@K12KB/branch1/langpack/src/release/res
+com.ai10.k12kb.langpack-ru-8 /data/@K12KB/branch1/langpack/src/ru/res
+com.ai10.k12kb.langpack-ruRelease-9 /data/@K12KB/branch1/langpack/src/ruRelease/res

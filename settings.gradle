@@ -1,2 +1,3 @@
 include ':app'
+include ':langpack'
 rootProject.name = "KeyoneKB2"
