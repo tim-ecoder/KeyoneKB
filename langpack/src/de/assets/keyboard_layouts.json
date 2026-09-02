@@ -7,7 +7,8 @@
     "icon-capslock": "ic_deu_shift_all",
     "flag": "ic_flag_germany_col",
     "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)"
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)",
+    "language": "de"
   },
   {
     "options-name": "Blackberry Key1|2 Deutsch (QWERTZ)",
@@ -17,6 +18,7 @@
     "icon-capslock": "ic_deu_shift_all",
     "flag": "ic_flag_germany_col",
     "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)"
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)",
+    "language": "de"
   }
 ]

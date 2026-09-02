@@ -7,7 +7,8 @@
     "icon-capslock": "ic_fra_shift_all",
     "flag": "ic_flag_france_col",
     "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)"
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)",
+    "language": "fr"
   },
   {
     "options-name": "Blackberry Key1|2 Français (AZERTY)",
@@ -17,6 +18,7 @@
     "icon-capslock": "ic_fra_shift_all",
     "flag": "ic_flag_france_col",
     "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)"
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)",
+    "language": "fr"
   }
 ]

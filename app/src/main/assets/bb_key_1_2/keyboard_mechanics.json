@@ -8,32 +8,41 @@
     },
     {
       "action-method-name": "ActionDisableFirstSymbolAltMode"
-    }, {
+    },
+    {
       "action-method-name": "ActionTryDisableFixedAltModeState"
-    }, {
+    },
+    {
       "action-method-name": "ActionTryDisableFirstLetterShiftMode"
-    }, {
+    },
+    {
       "action-method-name": "ActionTryDisableCapslockShiftMode"
-    }, {
+    },
+    {
       "action-method-name": "ActionDisableAndResetGestureMode",
       "need-update-gesture-visual-state": true
-    }, {
+    },
+    {
       "action-method-name": "ActionTryCapitalizeFirstLetter"
-    }, {
+    },
+    {
       "action-method-name": "ActionSetNeedUpdateVisualState"
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "MetaIsPackageChanged"
       ],
       "action-method-name": "ActionDisableNavSymFnKeyboard",
       "need-update-gesture-visual-state": true
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "MetaIsPackageChanged"
       ],
       "action-method-name": "ActionResetGesturePointerMode",
       "need-update-gesture-visual-state": true
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "MetaIsPackageChanged"
       ],
@@ -45,79 +54,92 @@
       ],
       "action-method-name": "ActionDisableAndResetGestureMode",
       "need-update-gesture-visual-state": true
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsNumber"
       ],
       "action-method-name": "ActionTryDisableFirstLetterShiftMode"
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsNumber"
       ],
       "action-method-name": "ActionTryDisableCapslockShiftMode"
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsNumber"
       ],
       "action-method-name": "ActionEnableFixedAltModeState",
       "need-update-visual-state": true,
       "stop-processing-at-success-result": true
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsPhone"
       ],
       "action-method-name": "ActionEnableFixedAltModeState",
       "stop-processing-at-success-result": true
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsPhone"
       ],
       "action-method-name": "ActionTryDisableFirstLetterShiftMode",
       "stop-processing-at-success-result": false
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsPhone"
       ],
       "action-method-name": "ActionTryDisableCapslockShiftMode",
       "need-update-visual-state": true,
       "stop-processing-at-success-result": true
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsDate"
       ],
       "action-method-name": "ActionEnableFixedAltModeState",
       "stop-processing-at-success-result": true
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsDate"
       ],
       "action-method-name": "ActionTryDisableFirstLetterShiftMode",
       "stop-processing-at-success-result": false
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsDate"
       ],
       "action-method-name": "ActionTryDisableCapslockShiftMode",
       "need-update-visual-state": true,
       "stop-processing-at-success-result": true
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsText"
       ],
       "action-method-name": "ActionTryDisableFixedAltModeState",
       "stop-processing-at-success-result": false
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsText"
       ],
       "action-method-name": "ActionDisableFirstSymbolAltMode",
       "stop-processing-at-success-result": false
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsText"
       ],
       "action-method-name": "ActionTryEnableGestureInputScrollMode"
-    }, {
+    },
+    {
       "meta-mode-method-names": [
         "InputIsText"
       ],
@@ -129,18 +151,23 @@
   "on-finish-input-actions": [
     {
       "action-method-name": "ActionTryDisableSymPad"
-    }, {
+    },
+    {
       "action-method-name": "ActionResetDigitsHack",
       "need-update-visual-state": true
-    }, {
+    },
+    {
       "action-method-name": "ActionDisableAndResetGestureMode",
       "need-update-gesture-visual-state": true
-    }, {
+    },
+    {
       "action-method-name": "ActionDisableFirstSymbolAltMode"
-    }, {
+    },
+    {
       "action-method-name": "ActionTryDisableFixedAltModeState",
       "need-update-visual-state": true
-    }, {
+    },
+    {
       "action-method-name": "ActionTryRemoveSelectedNodeRectangle"
     }
   ],
@@ -152,9 +179,11 @@
   "after-send-char-actions": [
     {
       "action-method-name": "ActionTryDisableFirstSymbolAltMode"
-    }, {
+    },
+    {
       "action-method-name": "ActionTryDisableFirstLetterShiftMode"
-    }, {
+    },
+    {
       "action-method-name": "ActionSetNeedUpdateVisualState"
     }
   ],
@@ -172,13 +201,15 @@
     "KEYCODE_SHIFT_LEFT",
     "KEYCODE_ALT_LEFT"
   ],
-  "on-any-key-before-actions" :
-  {
-    "on-short-press": [ {
+  "on-any-key-before-actions": {
+    "on-short-press": [
+      {
         "action-method-name": "ActionTryVibrate"
-      }, {
+      },
+      {
         "action-method-name": "ActionTryDisableGestureInputScrollMode"
-      }, {
+      },
+      {
         "action-method-name": "ActionResetDoubleClickGestureState",
         "need-update-gesture-visual-state": true
       }
@@ -217,10 +248,33 @@
     },
     {
       "key-codes": [
-        "KEYCODE_A", "KEYCODE_B", "KEYCODE_C", "KEYCODE_D", "KEYCODE_E", "KEYCODE_F", "KEYCODE_G", "KEYCODE_H",
-        "KEYCODE_I", "KEYCODE_J", "KEYCODE_K", "KEYCODE_L", "KEYCODE_M", "KEYCODE_N", "KEYCODE_O", "KEYCODE_P",
-        "KEYCODE_Q", "KEYCODE_R", "KEYCODE_S", "KEYCODE_T", "KEYCODE_U", "KEYCODE_V", "KEYCODE_W", "KEYCODE_X",
-        "KEYCODE_Y", "KEYCODE_Z", "KEYCODE_4"
+        "KEYCODE_A",
+        "KEYCODE_B",
+        "KEYCODE_C",
+        "KEYCODE_D",
+        "KEYCODE_E",
+        "KEYCODE_F",
+        "KEYCODE_G",
+        "KEYCODE_H",
+        "KEYCODE_I",
+        "KEYCODE_J",
+        "KEYCODE_K",
+        "KEYCODE_L",
+        "KEYCODE_M",
+        "KEYCODE_N",
+        "KEYCODE_O",
+        "KEYCODE_P",
+        "KEYCODE_Q",
+        "KEYCODE_R",
+        "KEYCODE_S",
+        "KEYCODE_T",
+        "KEYCODE_U",
+        "KEYCODE_V",
+        "KEYCODE_W",
+        "KEYCODE_X",
+        "KEYCODE_Y",
+        "KEYCODE_Z",
+        "KEYCODE_4"
       ],
       "on-short-press": [
         {
@@ -244,41 +298,49 @@
             "MetaIsCtrlPressed"
           ],
           "action-method-name": "ActionTrySearchInputActivateOnLetterHack"
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsCtrlPressed"
           ],
           "action-method-name": "ActionSendCtrlPlusKey",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "InputIsDigitsPad"
           ],
           "action-method-name": "ActionSetKeyTransparency",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
-            "MetaIsAltMode", "MetaIsShiftPressed"
+            "MetaIsAltMode",
+            "MetaIsShiftPressed"
           ],
           "action-method-name": "ActionSendCharSinglePressSymMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
-            "MetaIsAltMode", "MetaIsSymPadAltShiftMode"
+            "MetaIsAltMode",
+            "MetaIsSymPadAltShiftMode"
           ],
           "action-method-name": "ActionSendCharSinglePressSymMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
           "action-method-name": "ActionSendCharSinglePressAltMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsShiftMode"
           ],
@@ -313,34 +375,41 @@
           "action-method-name": "ActionSendCtrlPlusKey",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "InputIsDigitsPad"
           ],
           "action-method-name": "ActionSetKeyTransparency",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
-            "MetaIsAltMode", "MetaIsShiftMode"
+            "MetaIsAltMode",
+            "MetaIsShiftMode"
           ],
           "action-method-name": "ActionSendCharSinglePressSymMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
-            "MetaIsAltMode", "MetaIsSymPadAltShiftMode"
+            "MetaIsAltMode",
+            "MetaIsSymPadAltShiftMode"
           ],
           "action-method-name": "ActionSendCharSinglePressSymMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
           "action-method-name": "ActionSendCharSinglePressAltMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsShiftMode"
           ],
@@ -354,35 +423,42 @@
           "action-method-name": "ActionSendCharLongPressCapitalize",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
-            "MetaIsAltMode","PrefLongPressAltSymbol"
+            "MetaIsAltMode",
+            "PrefLongPressAltSymbol"
           ],
           "action-method-name": "ActionSendCharLongPressAltSymbolAltMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
-            "MetaIsShiftPressed", "PrefLongPressAltSymbol"
+            "MetaIsShiftPressed",
+            "PrefLongPressAltSymbol"
           ],
           "action-method-name": "ActionSendCharLongPressAltSymbolShiftMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "PrefLongPressAltSymbol"
           ],
           "action-method-name": "ActionSendCharLongPressAltSymbolNoMeta",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
           "action-method-name": "ActionSendCharLongPressCapitalizeAltMode",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsCtrlPressed"
           ],
@@ -400,39 +476,46 @@
           "action-method-name": "ActionTryChangeKeyboardLayoutAtBaseMetaShift",
           "method-needs-key-press-parameter": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryDisableAltModeUponSpace"
-        }, {
+        },
+        {
           "action-method-name": "ActionTryTurnOffGesturesMode",
           "need-update-gesture-visual-state": true
-        }, {
+        },
+        {
           "action-method-name": "ActionSendCharToInput",
           "custom-char": " ",
           "need-update-visual-state": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsAltPressed",
             "MetaIsViewMode"
           ],
-          "action-method-name" : "ActionTryPerformLongClickCurrentNode",
+          "action-method-name": "ActionTryPerformLongClickCurrentNode",
           "stop-processing-at-success-result": true
-        }, {
-          "comment" : "Если идет звонок в режиме просмотра надо досрочно выйти, чтобы не сработал клик на выделенный элемент (следующая опция)",
+        },
+        {
+          "comment": "Если идет звонок в режиме просмотра надо досрочно выйти, чтобы не сработал клик на выделенный элемент (следующая опция)",
           "meta-mode-method-names": [
             "MetaStateIsOnCall",
             "MetaIsViewMode"
           ],
           "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsViewMode"
           ],
           "action-method-name": "ActionTryPerformClickCurrentNode",
           "stop-processing-at-success-result": true
-        }, {
-        "meta-mode-method-names": [
-          "MetaIsAltPressed"
+        },
+        {
+          "meta-mode-method-names": [
+            "MetaIsAltPressed"
           ],
           "action-method-name": "ActionSendCharToInput",
           "custom-char": "\t",
@@ -440,14 +523,15 @@
           "stop-processing-at-success-result": true
         },
         {
-          "comment" : "Пока отключим, проще удалить лишний пробел",
+          "comment": "Пока отключим, проще удалить лишний пробел",
           "meta-mode-method-names": [
             "MetaStateIsOnCall",
             "MetaIsDisabled"
           ],
           "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsShiftPressed"
           ],
@@ -458,27 +542,31 @@
       ],
       "on-double-press": [
         {
-          "comment" : "Если мы в режиме ввода, то на одиночный пробел (первый клик) ввелся пробел, его надо удалить ",
+          "comment": "Если мы в режиме ввода, то на одиночный пробел (первый клик) ввелся пробел, его надо удалить ",
           "meta-mode-method-names": [
             "MetaStateIsOnCall",
             "InputIsAnyInput"
           ],
           "action-method-name": "ActionDeletePreviousSymbol"
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaStateIsOnCall"
           ],
           "action-method-name": "ActionTryAcceptCall",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryDoubleSpaceDotSpaceConversion",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionSendCharToInput",
           "custom-char": " ",
           "need-update-visual-state": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsShiftMode"
           ],
@@ -492,47 +580,55 @@
       "key-codes": [
         "KEYCODE_DEL"
       ],
-      "on-short-press": [ {
+      "on-short-press": [
+        {
           "meta-mode-method-names": [
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTrySearchInputActivateOnLetterHack"
-        }, {
+        },
+        {
           "action-method-name": "ActionSetKeyTransparency",
           "need-update-visual-state": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryTurnOffGesturesMode"
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsShiftPressed",
             "MetaIsAltPressed"
           ],
           "action-method-name": "ActionDeleteUntilFwdCrLf",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsAltPressed"
           ],
           "action-method-name": "ActionDeleteUntilPrevCrLf",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsShiftPressed",
             "MetaIsKey0Pressed"
           ],
           "action-method-name": "ActionDeleteFwdWord",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsShiftPressed"
           ],
           "action-method-name": "ActionKeyDownUpDefaultFlags",
           "stop-processing-at-success-result": true,
           "custom-key-code": "KEYCODE_FORWARD_DEL"
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsKey0Pressed"
           ],
@@ -547,19 +643,22 @@
       ],
       "on-short-press": [
         {
-          "comment" : "Пока отключим, т.к. в некоторых приложениях не срабатывает. Вместо этого будет явная отправка ENTER",
+          "comment": "Пока отключим, т.к. в некоторых приложениях не срабатывает. Вместо этого будет явная отправка ENTER",
           "meta-mode-method-names": [
             "MetaIsDisabled"
           ],
           "action-method-name": "ActionSetKeyTransparency"
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsActionBeforeMeta"
           ],
           "action-method-name": "ActionTryTurnOffGesturesMode"
-        }, {
+        },
+        {
           "action-method-name": "ActionSendEnterOrCustomButton"
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsShiftPressed"
           ],
@@ -570,7 +669,8 @@
     },
     {
       "key-codes": [
-        "KEYCODE_ALT_LEFT", "KEYCODE_ALT_RIGHT"
+        "KEYCODE_ALT_LEFT",
+        "KEYCODE_ALT_RIGHT"
       ],
       "on-short-press": [
         {
@@ -590,11 +690,13 @@
           "action-method-name": "ActionTryChangeSymPadLayout",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryDisableFixedAltModeState",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionChangeFirstSymbolAltMode",
           "need-update-visual-state": true
         }
@@ -617,7 +719,7 @@
           "need-update-visual-state": true
         }
       ],
-      "on-undo-short-press" : [
+      "on-undo-short-press": [
         {
           "action-method-name": "ActionDisableFirstSymbolAltMode",
           "need-update-visual-state": true
@@ -626,20 +728,26 @@
     },
     {
       "key-codes": [
-        "KEYCODE_CTRL_LEFT", "KEYCODE_CTRL_RIGHT", "KEYCODE_SHIFT_RIGHT", "KEYCODE_FUNCTION", "289"
+        "KEYCODE_CTRL_LEFT",
+        "KEYCODE_CTRL_RIGHT",
+        "KEYCODE_SHIFT_RIGHT",
+        "KEYCODE_FUNCTION",
+        "289"
       ],
       "on-short-press": [
         {
           "action-method-name": "ActionDisableAndResetGesturesAtInputMode",
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsShiftPressed"
           ],
           "action-method-name": "ActionChangeSwipePanelVisibility",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsSymPressed"
           ],
@@ -660,7 +768,8 @@
           "action-method-name": "ActionTryChangeGesturePointerModeAtViewMode",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryRemoveSelectedNodeRectangle"
         }
       ],
@@ -681,7 +790,8 @@
           "action-method-name": "ActionChangeGestureModeEnableState",
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryRemoveSelectedNodeRectangle"
         }
       ]
@@ -691,16 +801,17 @@
         "KEYCODE_SHIFT_LEFT"
       ],
       "on-short-press": [
-
         {
           "action-method-name": "ActionTryChangeSymPadLayout",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryDisableCapslockShiftMode",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionChangeFirstLetterShiftMode",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
@@ -728,7 +839,7 @@
           "need-update-visual-state": true
         }
       ],
-      "on-undo-short-press" : [
+      "on-undo-short-press": [
         {
           "action-method-name": "ActionTryDisableFirstLetterShiftMode",
           "need-update-visual-state": true
@@ -750,14 +861,16 @@
           "action-method-name": "ActionChangeKeyboardLayout",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "InputIsDigitsPad"
           ],
           "action-method-name": "ActionKeyDownUpDefaultFlags",
           "custom-key-code": "KEYCODE_0",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
@@ -771,13 +884,15 @@
           "action-method-name": "ActionTryChangeGestureModeStateAtInputMode",
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "InputIsDigitsPad"
           ],
           "action-method-name": "ActionSetKeyTransparency",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
@@ -841,7 +956,8 @@
           "action-method-name": "ActionEnableGestureAtInputMode",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsAltMode"
           ],
@@ -850,7 +966,7 @@
           "custom-char": "0"
         }
       ],
-      "on-undo-short-press" : [
+      "on-undo-short-press": [
         {
           "action-method-name": "ActionChangeBackKeyboardLayout",
           "need-update-visual-state": true
@@ -880,7 +996,8 @@
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true,
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryChangeSymPadVisibilityAtInputMode",
           "need-update-visual-state": true,
           "stop-processing-at-success-result": true
@@ -891,7 +1008,8 @@
           ],
           "action-method-name": "ActionToggleTransparencyMode",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "MetaIsCtrlPressed"
           ],
@@ -903,7 +1021,8 @@
         {
           "action-method-name": "ActionTryDeclineCall",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "action-method-name": "ActionTryEnableNavModeAndKeyboard",
           "need-update-visual-state": true,
           "need-update-gesture-visual-state": true
@@ -944,7 +1063,7 @@
           "stop-processing-at-success-result": true
         }
       ],
-      "on-undo-short-press" : [
+      "on-undo-short-press": [
         {
           "action-method-name": "ActionTryDisableSymPad",
           "need-update-visual-state": true
@@ -955,7 +1074,8 @@
       "key-codes": [
         "KEYCODE_BACK"
       ],
-      "on-short-press": [ {
+      "on-short-press": [
+        {
           "action-method-name": "ActionSetKeyTransparency",
           "stop-processing-at-success-result": true
         },
@@ -967,14 +1087,16 @@
           ],
           "action-method-name": "ActionDoNothing",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "InputIsAnyInput"
           ],
           "action-method-name": "TryDoTelegramRightDialogueExitHack"
         }
       ],
-      "on-double-press": [ {
+      "on-double-press": [
+        {
           "action-method-name": "ActionSetKeyTransparency",
           "stop-processing-at-success-result": true
         }
@@ -984,10 +1106,12 @@
       "key-codes": [
         "KEYCODE_HOME"
       ],
-      "on-short-press": [ {
+      "on-short-press": [
+        {
           "action-method-name": "ActionSetKeyTransparency",
           "stop-processing-at-success-result": true
-        }, {
+        },
+        {
           "meta-mode-method-names": [
             "InputIsAnyInput",
             "PrefEnsureEnteredText",
@@ -997,7 +1121,8 @@
           "stop-processing-at-success-result": true
         }
       ],
-      "on-double-press": [ {
+      "on-double-press": [
+        {
           "action-method-name": "ActionSetKeyTransparency",
           "stop-processing-at-success-result": true
         }
@@ -1012,6 +1137,15 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_F7",
+          "stop-processing-at-success-result": true
+        },
+        {
           "action-method-name": "ActionMoveCursorPrevWord",
           "method-needs-key-event-parameter": true
         }
@@ -1023,6 +1157,15 @@
         "KEYCODE_M"
       ],
       "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_F8",
+          "stop-processing-at-success-result": true
+        },
         {
           "action-method-name": "ActionMoveCursorFwdWord",
           "method-needs-key-event-parameter": true
@@ -1037,7 +1180,7 @@
         {
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_ESCAPE"
+          "custom-key-code": "KEYCODE_ESCAPE"
         }
       ]
     },
@@ -1048,9 +1191,18 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_MOVE_HOME"
+          "custom-key-code": "KEYCODE_F1",
+          "stop-processing-at-success-result": true
+        },
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_MOVE_HOME"
         }
       ]
     },
@@ -1061,9 +1213,18 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_DPAD_UP"
+          "custom-key-code": "KEYCODE_F2",
+          "stop-processing-at-success-result": true
+        },
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_DPAD_UP"
         }
       ]
     },
@@ -1074,9 +1235,18 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_MOVE_END"
+          "custom-key-code": "KEYCODE_F3",
+          "stop-processing-at-success-result": true
+        },
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_MOVE_END"
         }
       ]
     },
@@ -1089,7 +1259,7 @@
         {
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_PAGE_UP"
+          "custom-key-code": "KEYCODE_PAGE_UP"
         }
       ]
     },
@@ -1101,7 +1271,7 @@
         {
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_TAB"
+          "custom-key-code": "KEYCODE_TAB"
         }
       ]
     },
@@ -1112,9 +1282,18 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_DPAD_LEFT"
+          "custom-key-code": "KEYCODE_F4",
+          "stop-processing-at-success-result": true
+        },
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_DPAD_LEFT"
         }
       ]
     },
@@ -1125,9 +1304,18 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_DPAD_DOWN"
+          "custom-key-code": "KEYCODE_F5",
+          "stop-processing-at-success-result": true
+        },
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_DPAD_DOWN"
         }
       ]
     },
@@ -1138,9 +1326,18 @@
       ],
       "on-short-press": [
         {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_DPAD_RIGHT"
+          "custom-key-code": "KEYCODE_F6",
+          "stop-processing-at-success-result": true
+        },
+        {
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_DPAD_RIGHT"
         }
       ]
     },
@@ -1153,7 +1350,7 @@
         {
           "action-method-name": "ActionSendNavKey",
           "method-needs-nav-action-parameter": true,
-          "custom-key-code" : "KEYCODE_PAGE_DOWN"
+          "custom-key-code": "KEYCODE_PAGE_DOWN"
         }
       ]
     },
@@ -1167,24 +1364,88 @@
           "custom-key-code": "KEYCODE_DEL"
         }
       ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_C"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_F9",
+          "stop-processing-at-success-result": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_0"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_F10",
+          "stop-processing-at-success-result": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_V"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_F11",
+          "stop-processing-at-success-result": true
+        }
+      ]
+    },
+    {
+      "key-codes": [
+        "KEYCODE_B"
+      ],
+      "on-short-press": [
+        {
+          "meta-mode-method-names": [
+            "MetaIsFnMode"
+          ],
+          "action-method-name": "ActionSendNavKey",
+          "method-needs-nav-action-parameter": true,
+          "custom-key-code": "KEYCODE_F12",
+          "stop-processing-at-success-result": true
+        }
+      ]
     }
-    ],
-  "gesture-processor" : {
-    "keyboard-gestures-at-input-mode-enabled" : true,
-    "key-hold-plus-gesture-enabled" : true,
-    "on-gesture-double-click" : [
+  ],
+  "gesture-processor": {
+    "keyboard-gestures-at-input-mode-enabled": true,
+    "key-hold-plus-gesture-enabled": true,
+    "on-gesture-double-click": [
       {
         "action-method-name": "ActionTryChangeGestureModeStateAtInputMode",
         "need-update-gesture-visual-state": true
       }
     ],
-    "on-gesture-triple-click" : [
+    "on-gesture-triple-click": [
       {
         "action-method-name": "ActionChangeGestureAtInputModeUpAndDownMode",
         "need-update-gesture-visual-state": true
       }
     ],
-    "on-gesture-second-click-up" : [
+    "on-gesture-second-click-up": [
       {
         "action-method-name": "ActionDoNothing",
         "need-update-gesture-visual-state": true

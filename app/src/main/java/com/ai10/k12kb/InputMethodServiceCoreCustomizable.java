@@ -743,6 +743,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionTryChangeGestureInputScrollMode", InitializeMethod3((Object o) -> ActionTryChangeGestureInputScrollMode(), Object.class));
         Methods.put("ActionTryDisableGestureInputScrollMode", InitializeMethod3((Object o) -> ActionTryDisableGestureInputScrollMode(), Object.class));
         Methods.put("MetaIsViewMode", InitializeMethod3((Object o) -> MetaIsViewMode(), Object.class));
+        Methods.put("MetaIsFnMode", InitializeMethod3((Object o) -> MetaIsFnMode(), Object.class));
         Methods.put("ActionTryPerformClickCurrentNode", InitializeMethod3((Object o) -> ActionTryPerformClickCurrentNode(), Object.class));
         Methods.put("ActionTryPerformLongClickCurrentNode", InitializeMethod3((Object o) -> ActionTryPerformLongClickCurrentNode(), Object.class));
         Methods.put("ActionTryRemoveSelectedNodeRectangle", InitializeMethod3((Object o) -> ActionTryRemoveSelectedNodeRectangle(), Object.class));
@@ -2164,6 +2165,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
     public boolean MetaIsViewMode() {
         return !IsInputMode();
+    }
+
+    /** Включён ли режим F-клавиш внутри навигации. Переопределяется клавиатурой. */
+    public boolean MetaIsFnMode() {
+        return false;
     }
 
 

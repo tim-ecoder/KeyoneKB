@@ -10,6 +10,9 @@ import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.inputmethodservice.Keyboard;
@@ -641,96 +644,15 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
 
 
-    //TODO: Вынести в XML/JSON
-    public int getNavigationCode(int keyCode) {
-        int keyEventCode = 0;
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_Q: //Q
-                keyEventCode = KeyEvent.KEYCODE_ESCAPE; //ESC
-                break;
-            case KeyEvent.KEYCODE_W: //W (1)
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = KeyEvent.KEYCODE_F1; //F1
-                    break;
-                }
-            case KeyEvent.KEYCODE_Y: //Y
-                keyEventCode = KeyEvent.KEYCODE_MOVE_HOME; //Home
-                break;
-            case KeyEvent.KEYCODE_E: //E (2)
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = KeyEvent.KEYCODE_F2; //F2
-                    break;
-                }
-            case KeyEvent.KEYCODE_U: //U
-                keyEventCode = KeyEvent.KEYCODE_DPAD_UP; //Arrow Up
-                break;
-            case KeyEvent.KEYCODE_R: //R (3)
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = KeyEvent.KEYCODE_F3; //F3
-                    break;
-                }
-            case KeyEvent.KEYCODE_I: //I
-                keyEventCode = KeyEvent.KEYCODE_MOVE_END; //END
-                break;
-            case KeyEvent.KEYCODE_T: //T
-            case KeyEvent.KEYCODE_O: //O
-                keyEventCode = KeyEvent.KEYCODE_PAGE_UP; //Page Up
-                break;
-            case KeyEvent.KEYCODE_P: //P
-                keyEventCode = -7; //FN
-                break;
-
-            case KeyEvent.KEYCODE_A: //A
-                keyEventCode = KeyEvent.KEYCODE_TAB; //Tab
-                break;
-            case KeyEvent.KEYCODE_S: //S
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = KeyEvent.KEYCODE_F4; //F4
-                    break;
-                }
-            case KeyEvent.KEYCODE_H: //H
-                keyEventCode = KeyEvent.KEYCODE_DPAD_LEFT; //Arrow Left
-                break;
-            case KeyEvent.KEYCODE_D: //D
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = KeyEvent.KEYCODE_F5; //F5
-                    break;
-                }
-            case KeyEvent.KEYCODE_J: //J
-                keyEventCode = KeyEvent.KEYCODE_DPAD_DOWN; //Arrow Down
-                break;
-            case KeyEvent.KEYCODE_F: //F
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) {
-                    keyEventCode = KeyEvent.KEYCODE_F6; //F6
-                    break;
-                }
-            case KeyEvent.KEYCODE_K: //K
-                keyEventCode = KeyEvent.KEYCODE_DPAD_RIGHT; //Arrow Right
-                break;
-            case KeyEvent.KEYCODE_G: //G
-            case KeyEvent.KEYCODE_L: //L
-                keyEventCode = KeyEvent.KEYCODE_PAGE_DOWN; //Page down
-                break;
-
-            case KeyEvent.KEYCODE_Z: //Z (7)
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = KeyEvent.KEYCODE_F7; //F7
-                break;
-            case KeyEvent.KEYCODE_X: //X (8)
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = KeyEvent.KEYCODE_F8; //F8
-                break;
-            case KeyEvent.KEYCODE_C: //C (9)
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = KeyEvent.KEYCODE_F9; //F9
-                break;
-
-            case KeyEvent.KEYCODE_0: //0
-                if (keyboardStateFixed_FnSymbolOnScreenKeyboard) keyEventCode = KeyEvent.KEYCODE_F10; //F10
-                break;
-
-            default:
-        }
-
-        return keyEventCode;
+    /**
+     * Режим F-клавиш: включается клавишей FN внутри навигации. Механика читает
+     * его как мета-условие, поэтому раскладка F1-F12 задаётся в json, а не в коде.
+     */
+    @Override
+    public boolean MetaIsFnMode() {
+        return keyboardStateFixed_FnSymbolOnScreenKeyboard;
     }
+
 
     //private int lastOrientation = 0;
     private int lastVisibility = -1;
@@ -1308,20 +1230,72 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         }
     }
 
+    /**
+     * Значок раскладки: в режиме с текстом — уведомление, иначе значок клавиатуры
+     * в статус-баре.
+     *
+     * Языки из пакетов: showStatusIcon отдаёт системе только номер ресурса, и
+     * ищется он в APK клавиатуры — картинку из чужого APK туда не передать.
+     * Поэтому значки на все коды языков нарисованы заранее в самой клавиатуре
+     * (см. ResolveIcon), и до ветки с пакетом дело доходит лишь для языка, кода
+     * которого мы не знаем; там значок показывает уведомление — оно умеет
+     * произвольную картинку.
+     */
     private boolean UpdateNotification(KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes, String notificationText) {
-        if(!pref_system_icon_no_notification_text) {
-            boolean changed = notificationProcessor.SetSmallIconLayout(iconRes.PackageName, iconRes.MipmapResId);
+        boolean fromPack = iconRes.PackageName != null;
+
+        if (!pref_system_icon_no_notification_text || fromPack) {
+            boolean changed = fromPack
+                    ? notificationProcessor.SetSmallIconBitmapLayout(
+                            iconRes.PackageName + ":" + NotificationIconId(iconRes), PackIcon(iconRes))
+                    : notificationProcessor.SetSmallIconLayout(NotificationIconId(iconRes));
             changed |= notificationProcessor.SetContentTitleLayout(notificationText);
+            if (fromPack) {
+                // В режиме системного значка уведомление снаружи не публикуется
+                // (см. условие в UpdateKeyboardModeVisualization), поэтому здесь
+                // отправляем его сами, иначе значок остался бы только в билдере.
+                this.hideStatusIcon();
+                if (changed)
+                    notificationProcessor.UpdateNotificationLayoutMode();
+            }
             return changed;
-        }
-        if (iconRes.PackageName != null) {
-            // showStatusIcon умеет только свои ресурсы: у языка из пакета
-            // показываем общий значок клавиатуры, а не пустоту.
-            this.showStatusIcon(R.drawable.ic_kb_alt_all);
-            return true;
         }
         this.showStatusIcon(iconRes.DrawableResId);
         return true;
+    }
+
+    /**
+     * Ресурс для уведомления: mipmap, если он есть, иначе drawable. Общие значки
+     * языков нарисованы только в drawable — держать их во второй плотности
+     * значило бы возить в APK лишние сотни файлов.
+     */
+    private int NotificationIconId(KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes) {
+        return iconRes.MipmapResId != 0 ? iconRes.MipmapResId : iconRes.DrawableResId;
+    }
+
+    /** Значок языка из APK пакета — готовой картинкой, а не ссылкой на ресурс. */
+    private Icon PackIcon(KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes) {
+        try {
+            Context pc = createPackageContext(iconRes.PackageName, Context.CONTEXT_IGNORE_SECURITY);
+            int resId = NotificationIconId(iconRes);
+            if (resId == 0)
+                return null;
+            Drawable d = pc.getResources().getDrawable(resId, pc.getTheme());
+            if (d instanceof BitmapDrawable) {
+                Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
+                if (bitmap != null)
+                    return Icon.createWithBitmap(bitmap);
+            }
+            int w = Math.max(1, d.getIntrinsicWidth());
+            int h = Math.max(1, d.getIntrinsicHeight());
+            Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            d.setBounds(0, 0, w, h);
+            d.draw(new Canvas(bitmap));
+            return Icon.createWithBitmap(bitmap);
+        } catch (Throwable ex) {
+            Log.w(TAG2, "Значок из пакета " + iconRes.PackageName + " не загружен: " + ex);
+            return null;
+        }
     }
 
     /** Флаг раскладки: из своих ресурсов или из APK языкового пакета. */

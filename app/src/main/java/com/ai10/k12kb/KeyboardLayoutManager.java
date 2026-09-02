@@ -249,13 +249,16 @@ public class KeyboardLayoutManager {
 
         for ( KeyboardLayout.KeyboardLayoutOptions keyboardLayoutOptions : keyboardLayoutOptionsArray) {
 
-            // Картинки ищутся сначала у себя, потом в языковых пакетах: пакет
-            // приносит не только раскладку и словари, но и значок языка со
-            // флагом, иначе новый язык был бы без иконок до пересборки самой
-            // клавиатуры — а это ровно то, ради чего пакеты и заводились.
-            ResolveIcon(context, resources, keyboardLayoutOptions.IconCapsRes, keyboardLayoutOptions.IconCapslock);
-            ResolveIcon(context, resources, keyboardLayoutOptions.IconFirstShiftRes, keyboardLayoutOptions.IconFirstShift);
-            ResolveIcon(context, resources, keyboardLayoutOptions.IconLowercaseRes, keyboardLayoutOptions.IconLowercase);
+            // Значок языка ищется у себя (см. ResolveIcon), флаг — у себя, а
+            // затем в пакетах: флаг рисуется нами на панели, поэтому картинку из
+            // чужого APK для него взять можно, в отличие от значка статус-бара.
+            String lang = LanguageCodeOf(keyboardLayoutOptions);
+            ResolveIcon(context, resources, keyboardLayoutOptions.IconCapsRes,
+                    keyboardLayoutOptions.IconCapslock, lang, "shift_all");
+            ResolveIcon(context, resources, keyboardLayoutOptions.IconFirstShiftRes,
+                    keyboardLayoutOptions.IconFirstShift, lang, "shift_first");
+            ResolveIcon(context, resources, keyboardLayoutOptions.IconLowercaseRes,
+                    keyboardLayoutOptions.IconLowercase, lang, "small");
 
             keyboardLayoutOptions.FlagResId = resources.getIdentifier(keyboardLayoutOptions.Flag, "drawable", context.getPackageName());
             keyboardLayoutOptions.FlagPackageName = null;
@@ -278,14 +281,46 @@ public class KeyboardLayoutManager {
 
     }
 
-    /** Значок языка: свои ресурсы, иначе ресурсы пакета, который его принёс. */
+    /**
+     * Код языка раскладки: из реестра, иначе по имени раскладки. Нужен для
+     * значка статус-бара, который может жить только в ресурсах клавиатуры.
+     */
+    private static String LanguageCodeOf(KeyboardLayout.KeyboardLayoutOptions options) {
+        if (options.Language != null && !options.Language.isEmpty())
+            return options.Language.toLowerCase(Locale.ROOT);
+        String name = options.OptionsName != null ? options.OptionsName.toLowerCase(Locale.ROOT) : "";
+        if (name.contains("русск") || name.contains("russian")) return "ru";
+        if (name.contains("украин") || name.contains("ukrain")) return "uk";
+        if (name.contains("français") || name.contains("french")) return "fr";
+        if (name.contains("deutsch") || name.contains("german")) return "de";
+        if (name.contains("español") || name.contains("spanish")) return "es";
+        if (name.contains("eesti") || name.contains("estonian")) return "et";
+        if (name.contains("latvi")) return "lv";
+        return "en";
+    }
+
+    /**
+     * Значок языка. Порядок: названный ресурс клавиатуры, затем нарисованный
+     * заранее значок по коду языка, и лишь потом ресурсы пакета. Средний шаг
+     * важен: значок в слоте статус-бара система читает из APK клавиатуры, и
+     * картинку из пакета туда передать нельзя вообще.
+     */
     private static void ResolveIcon(Context context, Resources resources,
-                                    KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes, String name) {
+                                    KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes,
+                                    String name, String languageCode, String state) {
         iconRes.DrawableResId = resources.getIdentifier(name, "drawable", context.getPackageName());
         iconRes.MipmapResId = resources.getIdentifier(name, "mipmap", context.getPackageName());
         iconRes.PackageName = null;
         if (iconRes.DrawableResId != 0 || iconRes.MipmapResId != 0)
             return;
+
+        String generated = "ic_lang_" + languageCode + "_" + state;
+        int drawableByLang = resources.getIdentifier(generated, "drawable", context.getPackageName());
+        if (drawableByLang != 0) {
+            iconRes.DrawableResId = drawableByLang;
+            iconRes.MipmapResId = resources.getIdentifier(generated, "mipmap", context.getPackageName());
+            return;
+        }
         List<String> packs = LanguagePacks.packages(context);
         for (int i = 0; i < packs.size(); i++) {
             int drawable = PackResource(context, packs.get(i), name, "drawable");
@@ -294,9 +329,12 @@ public class KeyboardLayoutManager {
                 iconRes.DrawableResId = drawable;
                 iconRes.MipmapResId = mipmap;
                 iconRes.PackageName = packs.get(i);
+                Log.d(TAG2, "Значок " + name + " взят из пакета " + packs.get(i)
+                        + " drawable=" + drawable + " mipmap=" + mipmap);
                 return;
             }
         }
+        Log.w(TAG2, "Значок " + name + " не найден ни у себя, ни в пакетах");
     }
 
     private static int PackResource(Context context, String pkg, String name, String type) {

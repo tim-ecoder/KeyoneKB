@@ -7,7 +7,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)"
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)",
+    "language": "ru"
   },
   {
     "options-name": "Blackberry Key1|2 Русский (Транслит)",
@@ -17,7 +18,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)"
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)",
+    "language": "ru"
   },
   {
     "options-name": "Blackberry Key1|2 Украинский",
@@ -27,7 +29,8 @@
     "icon-capslock": "ic_ukr_shift_all",
     "flag": "ic_flag_ukraine_col",
     "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
-    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)"
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)",
+    "language": "uk"
   },
   {
     "options-name": "Unihertz Pocket|Slim Русский (fidel)",
@@ -37,7 +40,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
+    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Pocket|Slim Русский (kika)",
@@ -47,7 +51,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
+    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Pocket|Slim Русский (key2)",
@@ -57,7 +62,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
+    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Pocket|Slim Транслит",
@@ -67,7 +73,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
+    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Pocket|Slim Транслит Kika",
@@ -77,7 +84,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)"
+    "device-model-regexp": "(Unihertz Titan (Slim|Pocket))|(UNIHERTZ TITAN 2)",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Pocket|Slim Латышский",
@@ -87,7 +95,8 @@
     "icon-capslock": "ic_lv_shift_all",
     "flag": "ic_flag_latvija_col",
     "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-    "device-model-regexp": "Unihertz Titan (Slim|Pocket)"
+    "device-model-regexp": "Unihertz Titan (Slim|Pocket)",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Pocket|Slim Эстонский (q/õ)",
@@ -97,7 +106,8 @@
     "icon-capslock": "ic_est_shift_all",
     "flag": "ic_flag_eesti_col",
     "custom-keyboard-mechanics": "uhtz_slim_pocket/unihertz_keyboard_mechanics",
-    "device-model-regexp": "Unihertz Titan (Slim|Pocket)"
+    "device-model-regexp": "Unihertz Titan (Slim|Pocket)",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Titan Русский (kika)",
@@ -107,7 +117,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "uhtz_titan/titan_keyboard_mechanics",
-    "device-model-regexp": "A-Gold Titan"
+    "device-model-regexp": "A-Gold Titan",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Titan Русский (zynaps)",
@@ -117,7 +128,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "uhtz_titan/titan_keyboard_mechanics",
-    "device-model-regexp": "A-Gold Titan"
+    "device-model-regexp": "A-Gold Titan",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Titan Украинский (kika)",
@@ -127,7 +139,8 @@
     "icon-capslock": "ic_ukr_shift_all",
     "flag": "ic_flag_ukraine_col",
     "custom-keyboard-mechanics": "uhtz_titan/titan_keyboard_mechanics",
-    "device-model-regexp": "A-Gold Titan"
+    "device-model-regexp": "A-Gold Titan",
+    "language": "uk"
   },
   {
     "options-name": "Unihertz Titan Украинский (zynaps)",
@@ -137,7 +150,8 @@
     "icon-capslock": "ic_ukr_shift_all",
     "flag": "ic_flag_ukraine_col",
     "custom-keyboard-mechanics": "uhtz_titan/titan_keyboard_mechanics",
-    "device-model-regexp": "A-Gold Titan"
+    "device-model-regexp": "A-Gold Titan",
+    "language": "uk"
   },
   {
     "options-name": "Unihertz Titan Транслит",
@@ -147,7 +161,8 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "uhtz_titan/titan_keyboard_mechanics",
-    "device-model-regexp": "A-Gold Titan"
+    "device-model-regexp": "A-Gold Titan",
+    "language": "ru"
   },
   {
     "options-name": "Unihertz Titan Транслит Kika",
@@ -157,6 +172,7 @@
     "icon-capslock": "ic_rus_shift_all",
     "flag": "ic_flag_russia_col",
     "custom-keyboard-mechanics": "uhtz_titan/titan_keyboard_mechanics",
-    "device-model-regexp": "A-Gold Titan"
+    "device-model-regexp": "A-Gold Titan",
+    "language": "ru"
   }
 ]

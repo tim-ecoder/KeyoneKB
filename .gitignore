@@ -26,3 +26,4 @@ KeyoneKB2-*.apk
 K12KB-*.apk
 build_number.txt
 /build_ci/
+/langpack/build/

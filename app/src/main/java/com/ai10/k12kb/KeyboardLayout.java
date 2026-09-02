@@ -84,6 +84,15 @@ public class KeyboardLayout {
         int FlagResId;
         /** APK, в котором лежит флаг: null — сама клавиатура, иначе пакет языка. */
         String FlagPackageName;
+        /**
+         * Код языка раскладки (ISO 639-1). По нему берётся значок статус-бара:
+         * слот значка клавиатуры принимает только ресурсы самой клавиатуры,
+         * поэтому значки нарисованы заранее на все коды, а пакет лишь называет
+         * свой. Пусто — код угадывается по имени раскладки.
+         */
+        @JsonProperty(index=56)
+        String Language;
+
         @JsonProperty(index=60)
         String CustomKeyboardMechanics;
 

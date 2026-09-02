@@ -146,29 +146,21 @@ public class NotificationProcessor {
     }
 
     int currentIconLayout = 0;
+    String currentIconPackage = null;
     String currentTitleLayout = "";
 
     /**
-     * Иконка из другого APK (языкового пакета): id чужого ресурса нельзя отдать
-     * в setSmallIcon(int) — он ищется в ресурсах нашего пакета. Icon с явным
-     * именем пакета система разрешает сама.
+     * Значок готовой картинкой — для языка из пакета: его ресурс лежит в чужом
+     * APK. Ссылка на такой ресурс (Icon.createWithResource) до системы доходит,
+     * но SystemUI её не рисует, поэтому картинка едет вместе с уведомлением.
      */
-    public boolean SetSmallIconLayout(String packageName, int icon1) {
-        if (packageName == null)
-            return SetSmallIconLayout(icon1);
-        // Чужой ресурс принимает только Notification.Builder: у compat-билдера
-        // setSmallIcon берёт id и ищет его в нашем пакете.
-        if (builder2Layout == null)
-            return SetSmallIconLayout(icon1);
-        try {
-            android.graphics.drawable.Icon icon =
-                    android.graphics.drawable.Icon.createWithResource(packageName, icon1);
-            builder2Layout.setSmallIcon(icon);
-        } catch (Throwable ex) {
-            return SetSmallIconLayout(icon1);
-        }
-        if (currentIconLayout != icon1) {
-            currentIconLayout = icon1;
+    public boolean SetSmallIconBitmapLayout(String key, android.graphics.drawable.Icon icon) {
+        if (icon == null || builder2Layout == null)
+            return false;
+        builder2Layout.setSmallIcon(icon);
+        if (!key.equals(currentIconPackage)) {
+            currentIconPackage = key;
+            currentIconLayout = 0;
             return true;
         }
         return false;
@@ -181,8 +173,9 @@ public class NotificationProcessor {
             builder2Layout.setSmallIcon(icon1);
         }
         //Changed
-        if(currentIconLayout != icon1) {
+        if(currentIconLayout != icon1 || currentIconPackage != null) {
             currentIconLayout = icon1;
+            currentIconPackage = null;
             return true;
         }
         else
