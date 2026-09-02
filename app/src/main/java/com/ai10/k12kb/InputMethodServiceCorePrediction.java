@@ -257,6 +257,8 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         if(!predictionBarVisibleThisSession) {
             predictionBarVisibleThisSession = true;
             Toast.makeText(getApplicationContext(), "\uD83D\uDD2E Predictions ON", Toast.LENGTH_SHORT).show();
+            // Первое включение панели — здесь и начинается загрузка словаря.
+            EnsurePredictionDictionary();
             // Read the word at the cursor and force a prediction update. Uses the
             // shared extractor so previousWord is set too \u2014 without it next-word
             // (bigram) prediction is dead on this path and a stale previousWord from
@@ -297,6 +299,26 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         } catch (Throwable ex) {
             return "en";
         }
+    }
+
+    /** Идут ли сейчас предсказания: панель видна или показывается сразу. */
+    protected boolean PredictionsActive() {
+        return wordPredictor != null
+                && (!predictionBarHiddenByDefault || predictionBarVisibleThisSession);
+    }
+
+    /**
+     * Загрузить словарь, если предсказания нужны прямо сейчас.
+     *
+     * Вызывается там, где предсказания включаются: вход в поле ввода при
+     * показанной панели, Ctrl+W, смена раскладки при работающих предсказаниях.
+     * Раньше словарь грузился при создании клавиатуры и при каждой смене
+     * раскладки — то есть и тем, кто предсказаниями не пользуется.
+     */
+    protected void EnsurePredictionDictionary() {
+        if (!PredictionsActive())
+            return;
+        reloadDictionaryForCurrentLanguage();
     }
 
     protected void reloadDictionaryForCurrentLanguage() {
@@ -474,17 +496,11 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             // active dictionary, so hardcoding "en" here left a keyboard that starts
             // in Russian answering Cyrillic prefixes from the English dictionary —
             // that is, no suggestions at all — until the user toggled the language.
-            final String initialLocale = currentPredictionLocale();
-            // Второй словарь греем не жёстко русский, а язык следующей раскладки:
-            // по кругу переключений именно он понадобится первым, и набор языков
-            // теперь зависит от того, какие пакеты установлены.
-            final String otherLocale = nextPredictionLocale(initialLocale);
-            wordPredictor.loadDictionary(getApplicationContext(), initialLocale, new Runnable() {
-                public void run() {
-                    WordPredictor wp = wordPredictor;
-                    if (wp != null) wp.preloadDictionary(getApplicationContext(), otherLocale);
-                }
-            });
+            // Словарь здесь не грузим. Сборка большого словаря занимает секунды и
+            // сотни мегабайт, а предсказания могут вообще не понадобиться: панель
+            // бывает выключена по умолчанию и включается по Ctrl+W. Загрузка
+            // начинается тогда, когда предсказания действительно нужны — см.
+            // EnsurePredictionDictionary.
             Log.i(TAG2, "onCreate: WordPredictor initialized (engine cached: " + wordPredictor.isEngineReady() + ")");
             suggestionBar.setOnSuggestionClickListener(new SuggestionBar.OnSuggestionClickListener() {
                 public void onSuggestionClicked(int index, String word) {
@@ -517,6 +533,8 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         // could carry them over.
         if (wordPredictor != null) wordPredictor.clearTracking();
         if (wordPredictor != null && !predictionBarHiddenByDefault) {
+            // Панель показывается сразу — значит словарь нужен уже сейчас.
+            EnsurePredictionDictionary();
             setSuggestionBarShown(true);
             updatePredictorWordAtCursor();
         } else {
@@ -530,7 +548,9 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             wordPredictor.setDictSize(newDictSize);
             wordPredictor.setNextWordEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_26_NEXT_WORD_PREDICTION));
             wordPredictor.setKeyboardAwareEnabled(k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_27_KEYBOARD_AWARE));
-            reloadDictionaryForCurrentLanguage();
+            // Возврат из настроек тоже не повод собирать словарь: если размер
+            // поменяли, он соберётся при следующем включении предсказаний.
+            EnsurePredictionDictionary();
         }
         if (translationManager != null) {
             int newTransDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);

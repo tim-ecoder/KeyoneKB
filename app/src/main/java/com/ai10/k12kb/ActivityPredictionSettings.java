@@ -325,7 +325,11 @@ public class ActivityPredictionSettings extends Activity {
                     sb.append(" (").append(getString(R.string.pred_status_source_assets)).append(")");
                 }
             } else if (stats != null) {
-                String src = "cache".equals(stats.source)
+                // Движок пишет источник как "native-cache" и "native-assets";
+                // сравнение с "cache" не совпадало никогда, и экран уверял, что
+                // словарь всегда собран из assets — даже когда он поднялся из
+                // кэша за триста миллисекунд.
+                String src = stats.source != null && stats.source.contains("cache")
                         ? getString(R.string.pred_status_source_cache)
                         : getString(R.string.pred_status_source_assets);
                 sb.append("\n").append(locale.toUpperCase()).append(": ")
@@ -377,16 +381,37 @@ public class ActivityPredictionSettings extends Activity {
         File nativeCacheDir = new File(getFilesDir(), "native_dict_cache");
         StringBuilder sb = new StringBuilder();
 
+        // Имя файла кэша несёт предел размера: ru-full.ssnd, ru-150000.ssnd.
+        // Раньше здесь искался ru.ssnd, поэтому экран всегда сообщал, что кэша
+        // нет, — хотя собранный словарь лежал рядом.
+        File[] cacheFiles = nativeCacheDir.listFiles();
         List<String> locales = LanguagePacks.availableLanguages(getApplicationContext());
         for (String locale : locales) {
-            File nf = new File(nativeCacheDir, locale + ".ssnd");
-            if (nf.exists()) {
-                long sizeKb = nf.length() / 1024;
-                sb.append(locale.toUpperCase()).append(": ")
-                  .append(sizeKb).append(" KB");
+            long size = 0;
+            String limit = null;
+            if (cacheFiles != null) {
+                for (File f : cacheFiles) {
+                    String name = f.getName();
+                    if (!name.endsWith(".ssnd")) continue;
+                    String base = name.substring(0, name.length() - 5);
+                    if (base.equals(locale)) {
+                        size = f.length();
+                    } else if (base.startsWith(locale + "-")) {
+                        size = f.length();
+                        limit = base.substring(locale.length() + 1);
+                    } else {
+                        continue;
+                    }
+                    if (limit != null) break;   // словарь с известным пределом важнее старого без него
+                }
+            }
+            sb.append(locale.toUpperCase()).append(": ");
+            if (size > 0) {
+                sb.append(size / (1024 * 1024)).append(" MB");
+                if (limit != null)
+                    sb.append(" (").append(limit).append(")");
             } else {
-                sb.append(locale.toUpperCase()).append(": ")
-                  .append(getString(R.string.pred_cache_missing));
+                sb.append(getString(R.string.pred_cache_missing));
             }
             sb.append("\n");
         }

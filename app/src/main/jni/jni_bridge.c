@@ -4,6 +4,7 @@
  */
 
 #include <jni.h>
+#include <stdio.h>   /* snprintf: без объявления clang 17 из NDK 26 отказывается собирать */
 #include <string.h>
 #include <android/log.h>
 #include "symspell.h"

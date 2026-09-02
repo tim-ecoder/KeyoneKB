@@ -81,8 +81,18 @@ public class WordDictionary {
     /**
      * Check if native binary cache file exists for a locale.
      */
+    /** Есть ли собранный словарь для языка — при любом пределе размера. */
     public static boolean hasCacheFile(Context context, String locale) {
-        return new File(context.getFilesDir(), "native_dict_cache/" + locale + ".ssnd").exists();
+        File dir = new File(context.getFilesDir(), "native_dict_cache");
+        File[] files = dir.listFiles();
+        if (files == null)
+            return false;
+        for (File f : files) {
+            String name = f.getName();
+            if (name.startsWith(locale + "-") && name.endsWith(".ssnd"))
+                return true;
+        }
+        return false;
     }
 
     /**

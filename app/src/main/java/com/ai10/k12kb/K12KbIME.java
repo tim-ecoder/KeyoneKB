@@ -966,7 +966,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             mainToast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
             mainToast.show();
         }
-        reloadDictionaryForCurrentLanguage();
+        // Смена раскладки сама по себе словарь не грузит: он понадобится, только
+        // если предсказания сейчас работают. Направление перевода обновляем
+        // всегда — это дёшево, а сам словарь перевода грузится по Ctrl+T.
+        EnsurePredictionDictionary();
         updateTranslationLanguages();
     }
 
@@ -980,7 +983,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             mainToast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
             mainToast.show();
         }
-        reloadDictionaryForCurrentLanguage();
+        // Смена раскладки сама по себе словарь не грузит: он понадобится, только
+        // если предсказания сейчас работают. Направление перевода обновляем
+        // всегда — это дёшево, а сам словарь перевода грузится по Ctrl+T.
+        EnsurePredictionDictionary();
         updateTranslationLanguages();
     }
 
@@ -1430,7 +1436,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                     LanguagePacks.invalidate();
                     try {
                         LoadSettingsAndKeyboards(deviceFullMODEL);
-                        reloadDictionaryForCurrentLanguage();
+                        EnsurePredictionDictionary();
                         updateTranslationLanguages();
                         UpdateKeyboardModeVisualization();
                     } catch (Throwable ex) {

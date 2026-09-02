@@ -231,11 +231,15 @@ static void deletes_add(symspell_t *ss, const char *pattern, uint32_t word_id) {
     uint32_t h = fnv1a(pattern) & (ss->deletes_cap - 1);
     while (ss->deletes[h].key) {
         if (strcmp(ss->deletes[h].key, pattern) == 0) {
-            /* Existing bucket — add word_id if not duplicate */
+            /* Existing bucket — add word_id if not duplicate.
+             *
+             * Достаточно сравнить с последним: все удаления одного слова
+             * порождаются подряд, поэтому повтор может быть только соседним.
+             * Прежняя проверка перебирала весь список, и на больших словарях
+             * вставка вырождалась в квадратичную — корзины у частых шаблонов
+             * разрастаются до тысяч слов. */
             delete_entry_t *e = &ss->deletes[h];
-            for (uint32_t i = 0; i < e->count; i++) {
-                if (e->word_ids[i] == word_id) return;
-            }
+            if (e->count && e->word_ids[e->count - 1] == word_id) return;
             if (e->count >= e->capacity) {
                 uint32_t nc = e->capacity ? e->capacity * 2 : 4;
                 uint32_t *nw = (uint32_t *)realloc(e->word_ids, nc * sizeof(uint32_t));

@@ -189,8 +189,14 @@ public class NativeSymSpellEngine implements PredictionEngine {
         return results;
     }
 
+    /**
+     * @param max сколько слов держать; 0 — весь словарь.
+     *
+     * Ноль раньше отбрасывался как «значение не задано», поэтому выбор «Полный»
+     * в настройках ничего не менял: движок оставался с прежним пределом.
+     */
     public void setMaxWords(int max) {
-        if (max > 0) this.maxWords = max;
+        if (max >= 0) this.maxWords = max;
     }
 
     public void setKeyboardLayout(String layout) {
@@ -315,8 +321,41 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
     }
 
+    /**
+     * Имя кэша несёт и предел размера: словари, собранные под разные пределы,
+     * не должны подменять друг друга. Раньше файл назывался только по языку, и
+     * после смены размера мог подхватиться словарь от прежнего.
+     */
+    /** Слово с уже разобранной частотой. */
+    private static final class Entry {
+        final String word;
+        final int freq;
+
+        Entry(String word, int freq) {
+            this.word = word;
+            this.freq = freq;
+        }
+    }
+
+    /** Число после позиции from, -1 если строка не разбирается. */
+    private static int parseFreq(String line, int from) {
+        int value = 0;
+        int len = line.length();
+        if (from >= len) return -1;
+        for (int i = from; i < len; i++) {
+            char c = line.charAt(i);
+            if (c < '0' || c > '9') return i == from ? -1 : value;
+            value = value * 10 + (c - '0');
+        }
+        return value;
+    }
+
+    private String cacheName(String locale) {
+        return locale + "-" + (maxWords > 0 ? String.valueOf(maxWords) : "full") + ".ssnd";
+    }
+
     private String cachePath(Context context, String locale) {
-        return new File(context.getFilesDir(), CACHE_DIR + "/" + locale + ".ssnd").getAbsolutePath();
+        return new File(context.getFilesDir(), CACHE_DIR + "/" + cacheName(locale)).getAbsolutePath();
     }
 
     /**
@@ -477,15 +516,19 @@ public class NativeSymSpellEngine implements PredictionEngine {
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 16384);
 
-            // Collect all word-frequency pairs
-            ArrayList<String[]> allEntries = new ArrayList<>();
+            // Частота разбирается сразу при чтении: раньше она хранилась строкой и
+            // Integer.parseInt звался внутри сравнения — на словаре в 668 тысяч
+            // слов это десятки миллионов разборов только ради сортировки.
+            ArrayList<Entry> allEntries = new ArrayList<>(1 << 16);
             if (useTxt) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (Thread.currentThread().isInterrupted()) break;
                     int tab = line.indexOf('\t');
                     if (tab <= 0) continue;
-                    allEntries.add(new String[]{line.substring(0, tab), line.substring(tab + 1)});
+                    int freq = parseFreq(line, tab + 1);
+                    if (freq < 0) continue;
+                    allEntries.add(new Entry(line.substring(0, tab), freq));
                 }
             } else {
                 StringBuilder sb = new StringBuilder();
@@ -496,32 +539,27 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 for (int i = 0; i < arr.length(); i++) {
                     if (Thread.currentThread().isInterrupted()) break;
                     org.json.JSONObject obj = arr.getJSONObject(i);
-                    allEntries.add(new String[]{obj.getString("w"), String.valueOf(obj.getInt("f"))});
+                    allEntries.add(new Entry(obj.getString("w"), obj.getInt("f")));
                 }
             }
             reader.close();
 
-            // Sort by frequency descending
-            Collections.sort(allEntries, new Comparator<String[]>() {
-                public int compare(String[] a, String[] b) {
-                    try { return Integer.parseInt(b[1]) - Integer.parseInt(a[1]); }
-                    catch (NumberFormatException e) { return 0; }
-                }
-            });
+            // Сортировка нужна лишь затем, чтобы отрезать хвост по частоте. При
+            // полном словаре резать нечего, и на 668 тысячах слов это заметное
+            // время впустую.
             if (maxWords > 0 && allEntries.size() > maxWords) {
+                Collections.sort(allEntries, new Comparator<Entry>() {
+                    public int compare(Entry a, Entry b) {
+                        return b.freq - a.freq;
+                    }
+                });
                 allEntries = new ArrayList<>(allEntries.subList(0, maxWords));
             }
 
             // Add to native SymSpell with both normalized and original forms
-            for (String[] entry : allEntries) {
+            for (Entry entry : allEntries) {
                 if (Thread.currentThread().isInterrupted()) break;
-                int freq;
-                try { freq = Integer.parseInt(entry[1]); }
-                catch (NumberFormatException e) { continue; }
-                String word = entry[0];
-                String normalized = WordDictionary.normalize(word);
-
-                ns.addWord(normalized, word, freq);
+                ns.addWord(WordDictionary.normalize(entry.word), entry.word, entry.freq);
             }
 
             // Load bigrams
@@ -558,7 +596,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
         try {
             File dir = new File(context.getFilesDir(), CACHE_DIR);
             dir.mkdirs();
-            String path = new File(dir, locale + ".ssnd").getAbsolutePath();
+            String path = new File(dir, cacheName(locale)).getAbsolutePath();
             if (ns.save(path)) {
                 Log.d(TAG, "Saved native cache: " + path);
             }
