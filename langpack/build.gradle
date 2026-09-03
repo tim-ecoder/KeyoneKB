@@ -13,6 +13,9 @@ plugins {
 // этот же список. Новый язык добавляется одной записью — см. langpack/README.md.
 //
 //   title  — как язык называется в каталоге на экране установки;
+//   extra  — язык не входит в каталог самой клавиатуры и выкладывается
+//            отдельно: пользователь ставит APK вручную, а клавиатура находит
+//            пакет сама. Так живут языки помимо основных четырёх;
 //   langs  — коды языков, которые пакет объявляет клавиатуре (украинский
 //            пользуется русским словарём, поэтому едет вместе с ним);
 //   base   — версия самого языкового пакета;
@@ -24,6 +27,10 @@ ext {
         fr: [title: "Français", langs: "fr",    base: [code: 7, name: "1.5.0"], idx: [code: 6, name: "1.4.0"]],
         de: [title: "Deutsch",  langs: "de",    base: [code: 7, name: "1.5.0"], idx: [code: 6, name: "1.4.0"]],
         ru: [title: "Русский",  langs: "ru,uk", base: [code: 6, name: "1.3.0"], idx: [code: 5, name: "1.2.0"]],
+        it: [title: "Italiano", langs: "it",    extra: true,
+             base: [code: 3, name: "1.1.1"], idx: [code: 1, name: "1.0.0"]],
+        es: [title: "Español",  langs: "es",    extra: true,
+             base: [code: 1, name: "1.0.0"], idx: [code: 1, name: "1.0.0"]],
     ]
 }
 

@@ -1,0 +1,9 @@
+[
+  {
+    "options-name": "Blackberry Key1|2 Italiano",
+    "keyboard-mapping": "bb_key_1_2/italian_hw",
+    "custom-keyboard-mechanics": "bb_key_1_2/keyboard_mechanics",
+    "device-model-regexp": "(Blackberry (BBB|BBF|BBE|unknown).*)|(.*KEY2)",
+    "language": "it"
+  }
+]

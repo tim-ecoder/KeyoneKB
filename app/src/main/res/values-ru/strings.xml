@@ -188,4 +188,7 @@
     <string name="pref_dict_size_note_link">кеш словарей</string>
     <string name="pred_privacy_note">K12KB никогда не выходит в сеть — ради приватности и безопасности. Все словари и переводы берутся из файлов, загруженных на диск.</string>
     <string name="pref_translation_target_title">30. Переводить английский на</string>
+    <string name="packs_section_other_installed">Установлены отдельно</string>
+    <string name="packs_more_languages">Другие языки на GitHub ›</string>
+    <string name="packs_more_languages_hint">Пакеты для языков помимо перечисленных выше выкладываются отдельно. Скачайте APK на GitHub и установите — клавиатура подхватит его сама, после чего он появится здесь и в настройках раскладок.</string>
 </resources>

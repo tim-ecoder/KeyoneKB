@@ -43,11 +43,13 @@ def versions():
     text = open(os.path.join(ROOT, "langpack/build.gradle"), encoding="utf-8").read()
     entry = re.compile(
         r'(\w+)\s*:\s*\[\s*title\s*:\s*"([^"]+)"\s*,\s*langs\s*:\s*"([^"]+)"\s*,'
+        r'\s*(extra\s*:\s*true\s*,)?\s*'
         r'\s*base\s*:\s*\[code\s*:\s*(\d+)\s*,\s*name\s*:\s*"([^"]+)"\]\s*,'
-        r'\s*idx\s*:\s*\[code\s*:\s*(\d+)\s*,\s*name\s*:\s*"([^"]+)"\]\s*\]')
+        r'\s*idx\s*:\s*\[code\s*:\s*(\d+)\s*,\s*name\s*:\s*"([^"]+)"\]\s*\]', re.S)
     out = {}
-    for lang, title, _langs, bcode, bname, icode, iname in entry.findall(text):
+    for lang, title, _langs, extra, bcode, bname, icode, iname in entry.findall(text):
         out[lang] = {"title": title,
+                     "extra": bool(extra),
                      "base": (int(bcode), bname),
                      "idx": (int(icode), iname)}
     if not out:
@@ -76,6 +78,9 @@ def apk_version(path):
 
 def main():
     langs = versions()
+    # Языки с extra в каталог не попадают: их APK выкладываются отдельно, и
+    # клавиатура узнаёт о них только по факту установки.
+    langs = dict((k, v) for k, v in langs.items() if not v["extra"])
     missing = [lang for lang in langs if lang not in CONTENTS]
     if missing:
         # Язык собирается, а описания для каталога нет — на экране установки он

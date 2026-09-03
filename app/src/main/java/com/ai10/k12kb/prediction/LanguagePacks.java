@@ -232,6 +232,26 @@ public final class LanguagePacks {
         return 0;
     }
 
+    /** Коды языков, объявленные конкретным пакетом, — как в его манифесте. */
+    public static String declaredLanguagesOf(Context context, String pkg) {
+        try {
+            PackageManager pm = context.getPackageManager();
+            List<ResolveInfo> services = pm.queryIntentServices(new Intent(PACK_ACTION),
+                    PackageManager.GET_META_DATA);
+            for (int i = 0; i < services.size(); i++) {
+                ResolveInfo ri = services.get(i);
+                if (ri.serviceInfo == null || !pkg.equals(ri.serviceInfo.packageName))
+                    continue;
+                if (ri.serviceInfo.metaData == null)
+                    return null;
+                return ri.serviceInfo.metaData.getString(META_LANGUAGES);
+            }
+        } catch (Throwable ex) {
+            Log.w(TAG, "Языки пакета " + pkg + " не прочитаны: " + ex);
+        }
+        return null;
+    }
+
     /** Закрыть, не мешая обработке основной ошибки. */
     public static void Close(Closeable c) {
         if (c == null)

@@ -21,6 +21,8 @@ import com.ai10.k12kb.prediction.LanguagePacks;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -47,6 +49,12 @@ public class ActivityLanguagePacks extends Activity {
         findViewById(R.id.btn_open_layout_settings).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 startActivity(new Intent(ActivityLanguagePacks.this, ActivitySettings.class));
+            }
+        });
+        findViewById(R.id.btn_packs_more_languages).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                openLink(catalogString("more-languages-page",
+                        "https://github.com/tim-ecoder/K12KB/releases"));
             }
         });
         findViewById(R.id.btn_packs_release_page).setOnClickListener(new View.OnClickListener() {
@@ -100,6 +108,7 @@ public class ActivityLanguagePacks extends Activity {
             AddRow(getString(R.string.packs_catalog_missing), null, null, null, false);
             return;
         }
+        List<String> known = new ArrayList<>();
         for (int i = 0; i < packs.length(); i++) {
             JSONObject p = packs.optJSONObject(i);
             if (p == null) continue;
@@ -108,9 +117,51 @@ public class ActivityLanguagePacks extends Activity {
             AddGroupHeader(p.optString("title"));
             for (int j = 0; j < items.length(); j++) {
                 JSONObject it = items.optJSONObject(j);
-                if (it != null) AddItem(it);
+                if (it == null) continue;
+                known.add(it.optString("package"));
+                AddItem(it);
             }
         }
+        AddForeignPacks(known);
+    }
+
+    /**
+     * Пакеты, которых нет в каталоге этой сборки: языки, выложенные отдельно,
+     * и чужие сборки. Клавиатура работает с ними наравне со своими — если бы
+     * экран их не показывал, установленный язык выглядел бы взявшимся ниоткуда,
+     * а удалить его было бы негде.
+     */
+    private void AddForeignPacks(List<String> known) {
+        List<String> installed = LanguagePacks.packages(getApplicationContext());
+        boolean header = false;
+        for (int i = 0; i < installed.size(); i++) {
+            final String pkg = installed.get(i);
+            if (known.contains(pkg))
+                continue;
+            if (!header) {
+                AddGroupHeader(getString(R.string.packs_section_other_installed));
+                header = true;
+            }
+            PackageInfo info = InstalledInfo(pkg);
+            String title = LabelOf(pkg, info);
+            StringBuilder sub = new StringBuilder(pkg);
+            sub.append("\n").append(getString(R.string.packs_installed));
+            if (info != null)
+                sub.append(" ").append(info.versionName);
+            String langs = LanguagePacks.declaredLanguagesOf(getApplicationContext(), pkg);
+            if (langs != null && !langs.isEmpty())
+                sub.append("  ·  ").append(langs.toUpperCase());
+            AddRow(title, sub.toString(), null, pkg, false);
+        }
+    }
+
+    private String LabelOf(String pkg, PackageInfo info) {
+        try {
+            if (info != null && info.applicationInfo != null)
+                return getPackageManager().getApplicationLabel(info.applicationInfo).toString();
+        } catch (Throwable ignored) {
+        }
+        return pkg;
     }
 
     private void AddGroupHeader(String title) {

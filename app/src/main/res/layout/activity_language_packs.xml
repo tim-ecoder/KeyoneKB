@@ -69,6 +69,27 @@
             android:text="@string/packs_section_updates" />
 
         <LinearLayout style="@style/ItemPill"
+            android:id="@+id/btn_packs_more_languages"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:text="@string/packs_more_languages_hint"
+                android:textColor="?attr/textSecondaryColor"
+                android:textSize="12sp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:paddingBottom="10dp"
+                android:text="@string/packs_more_languages"
+                android:textColor="#2E9E4F"
+                android:textStyle="bold"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPill"
             android:id="@+id/btn_packs_release_page">
             <TextView
                 style="@style/ItemPillText"
