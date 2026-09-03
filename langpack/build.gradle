@@ -24,9 +24,9 @@ plugins {
 ext {
     packLanguages = [
         en: [title: "English",  langs: "en",    base: [code: 2, name: "1.1.0"], idx: [code: 1, name: "1.0.0"]],
-        fr: [title: "Français", langs: "fr",    base: [code: 7, name: "1.5.0"], idx: [code: 6, name: "1.4.0"]],
-        de: [title: "Deutsch",  langs: "de",    base: [code: 7, name: "1.5.0"], idx: [code: 6, name: "1.4.0"]],
-        ru: [title: "Русский",  langs: "ru,uk", base: [code: 6, name: "1.3.0"], idx: [code: 5, name: "1.2.0"]],
+        fr: [title: "Français", langs: "fr",    base: [code: 9, name: "1.5.2"], idx: [code: 6, name: "1.4.0"]],
+        de: [title: "Deutsch",  langs: "de",    base: [code: 9, name: "1.5.2"], idx: [code: 6, name: "1.4.0"]],
+        ru: [title: "Русский",  langs: "ru,uk", base: [code: 8, name: "1.3.2"], idx: [code: 5, name: "1.2.0"]],
         it: [title: "Italiano", langs: "it",    extra: true,
              base: [code: 4, name: "1.1.2"], idx: [code: 1, name: "1.0.0"]],
         es: [title: "Español",  langs: "es",    extra: true,
