@@ -260,9 +260,12 @@ public class KeyboardLayoutManager {
             ResolveIcon(context, resources, keyboardLayoutOptions.IconLowercaseRes,
                     keyboardLayoutOptions.IconLowercase, lang, "small");
 
-            keyboardLayoutOptions.FlagResId = resources.getIdentifier(keyboardLayoutOptions.Flag, "drawable", context.getPackageName());
+            keyboardLayoutOptions.FlagResId = (keyboardLayoutOptions.Flag == null || keyboardLayoutOptions.Flag.isEmpty())
+                    ? 0
+                    : resources.getIdentifier(keyboardLayoutOptions.Flag, "drawable", context.getPackageName());
             keyboardLayoutOptions.FlagPackageName = null;
-            if (keyboardLayoutOptions.FlagResId == 0) {
+            if (keyboardLayoutOptions.FlagResId == 0
+                    && keyboardLayoutOptions.Flag != null && !keyboardLayoutOptions.Flag.isEmpty()) {
                 List<String> packs = LanguagePacks.packages(context);
                 for (int i = 0; i < packs.size(); i++) {
                     int id = PackResource(context, packs.get(i), keyboardLayoutOptions.Flag, "drawable");
@@ -308,17 +311,28 @@ public class KeyboardLayoutManager {
     private static void ResolveIcon(Context context, Resources resources,
                                     KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes,
                                     String name, String languageCode, String state) {
-        iconRes.DrawableResId = resources.getIdentifier(name, "drawable", context.getPackageName());
-        iconRes.MipmapResId = resources.getIdentifier(name, "mipmap", context.getPackageName());
+        // Имя значка необязательно: пакет может не давать своих картинок и
+        // рассчитывать на значок по коду языка. getIdentifier с null бросает
+        // NPE, а он валил разбор всего реестра — без единой раскладки в списке.
         iconRes.PackageName = null;
-        if (iconRes.DrawableResId != 0 || iconRes.MipmapResId != 0)
-            return;
+        iconRes.DrawableResId = 0;
+        iconRes.MipmapResId = 0;
+        if (name != null && !name.isEmpty()) {
+            iconRes.DrawableResId = resources.getIdentifier(name, "drawable", context.getPackageName());
+            iconRes.MipmapResId = resources.getIdentifier(name, "mipmap", context.getPackageName());
+            if (iconRes.DrawableResId != 0 || iconRes.MipmapResId != 0)
+                return;
+        }
 
         String generated = "ic_lang_" + languageCode + "_" + state;
         int drawableByLang = resources.getIdentifier(generated, "drawable", context.getPackageName());
         if (drawableByLang != 0) {
             iconRes.DrawableResId = drawableByLang;
             iconRes.MipmapResId = resources.getIdentifier(generated, "mipmap", context.getPackageName());
+            return;
+        }
+        if (name == null || name.isEmpty()) {
+            Log.d(TAG2, "Раскладка без своего значка, язык " + languageCode + ", состояние " + state);
             return;
         }
         List<String> packs = LanguagePacks.packages(context);
