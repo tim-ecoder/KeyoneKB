@@ -30,7 +30,7 @@ ext {
         it: [title: "Italiano", langs: "it",    extra: true,
              base: [code: 4, name: "1.1.2"], idx: [code: 1, name: "1.0.0"]],
         es: [title: "Español",  langs: "es",    extra: true,
-             base: [code: 2, name: "1.0.1"], idx: [code: 1, name: "1.0.0"]],
+             base: [code: 3, name: "1.1.0"], idx: [code: 1, name: "1.0.0"]],
     ]
 }
 
