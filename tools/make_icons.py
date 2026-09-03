@@ -88,7 +88,9 @@ def write(res_dir, text, skip=()):
 
 if __name__ == "__main__":
     root = sys.argv[1] if len(sys.argv) > 1 else "."
-    write(os.path.join(root, "app/src/main/res"), "K12KB")
+    # Значок самой клавиатуры рисуется не здесь: он нарисован вручную и
+    # заводится через tools/import_app_icon.py. Иначе следующий запуск этого
+    # скрипта затирал бы готовую картинку сгенерированной.
     # Языки — из langpack/build.gradle, чтобы новый пакет получал значок сам.
     gradle = open(os.path.join(root, "langpack/build.gradle"), encoding="utf-8").read()
     langs = re.findall(r'^\s*(\w+)\s*:\s*\[\s*title\s*:', gradle, re.M)
