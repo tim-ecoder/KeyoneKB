@@ -16,6 +16,13 @@ public class NotificationProcessor {
     private final String gestureModeChannelId1 = "K12Kb_NotificationChannel_GestureMode";
     private String gestureModeChannelDescription;
     private final String layoutModeChannelId1 = "K12Kb_NotificationChannel_KeyboardLayout";
+    /*
+     * Своя группа у каждого уведомления. Android сам собирает в пачку
+     * уведомления без группы, и тогда в статус-баре остаётся один значок на
+     * всю пачку — раскладка и режим жестов переставали быть видны вместе.
+     */
+    private static final String layoutGroup = "k12kb_layout";
+    private static final String gestureGroup = "k12kb_gesture";
     private String layoutModeChannelDescription;
     private androidx.core.app.NotificationCompat.Builder builderLayout;
     private Notification.Builder builder2Layout;
@@ -68,6 +75,8 @@ public class NotificationProcessor {
             notificationManager.createNotificationChannel(notificationChannelLayoutMode);
 
             builder2Layout = new Notification.Builder(context, layoutModeChannelId1);
+            builder2Layout.setGroup(layoutGroup);
+            builder2Layout.setGroupSummary(false);
             builder2Layout.setOngoing(true);
             builder2Layout.setAutoCancel(true);
             builder2Layout.setVisibility(Notification.VISIBILITY_SECRET);
@@ -78,6 +87,8 @@ public class NotificationProcessor {
             if(builderLayout != null)
                 return;
             builderLayout = new NotificationCompat.Builder(context);
+            builderLayout.setGroup(layoutGroup);
+            builderLayout.setGroupSummary(false);
             builderLayout.setOngoing(true);
             builderLayout.setAutoCancel(false);
             builderLayout.setVisibility(NotificationCompat.VISIBILITY_SECRET);
@@ -103,6 +114,8 @@ public class NotificationProcessor {
             notificationManager.createNotificationChannel(notificationChannelGestureMode);
 
             builder2Gesture = new Notification.Builder(context, gestureModeChannelId1);
+            builder2Gesture.setGroup(gestureGroup);
+            builder2Gesture.setGroupSummary(false);
             builder2Gesture.setOngoing(true);
             builder2Gesture.setAutoCancel(true);
             builder2Gesture.setVisibility(Notification.VISIBILITY_SECRET);
@@ -113,6 +126,8 @@ public class NotificationProcessor {
             if(builderGesture != null)
                 return;
             builderGesture = new NotificationCompat.Builder(context);
+            builderGesture.setGroup(gestureGroup);
+            builderGesture.setGroupSummary(false);
             builderGesture.setAutoCancel(false);
             builderGesture.setVisibility(NotificationCompat.VISIBILITY_SECRET);
             builderGesture.setPriority(NotificationCompat.PRIORITY_DEFAULT);
