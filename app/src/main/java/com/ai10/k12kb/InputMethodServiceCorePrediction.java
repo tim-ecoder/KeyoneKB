@@ -213,9 +213,18 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         if (translationManager == null || suggestionBar == null) return false;
         // Update languages BEFORE toggle so dictionary loads correct direction
         updateTranslationLanguages();
+        String from = translationManager.getSourceLang();
+        String to = translationManager.getTargetLang();
+        if (from != null && from.equals(to)) {
+            // Второго языка на устройстве нет: включать режим не во что, и
+            // тост с направлением вида EN → EN только сбивал бы с толку.
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.pred_translation_no_packs), Toast.LENGTH_SHORT).show();
+            return true;
+        }
         boolean enabled = translationManager.toggle();
         String msg = enabled ?
-                "\uD83C\uDF10 Translation " + translationManager.getSourceLang().toUpperCase() + " \u2192 " + translationManager.getTargetLang().toUpperCase() :
+                "\uD83C\uDF10 Translation " + from.toUpperCase() + " \u2192 " + to.toUpperCase() :
                 "\uD83C\uDF10 Translation OFF";
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
         if (enabled) {
@@ -351,12 +360,33 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             // настройка 30: язык следующей раскладки менял бы направление от
             // порядка переключения.
             if (LanguagePacks.BUILTIN_LANGUAGE.equals(currentLang)) {
+                List<String> avail = LanguagePacks.availableLanguages(getApplicationContext());
                 String chosen = k12KbSettings.GetStringValue(
                         k12KbSettings.APP_PREFERENCES_30_TRANSLATION_TARGET);
-                if (chosen != null && !chosen.isEmpty() && !chosen.equals(currentLang))
+                // Выбранный язык мог быть удалён вместе с пакетом. Настройка
+                // переживает удаление, и без этой проверки перевод продолжал
+                // ссылаться на язык, которого на устройстве уже нет.
+                if (chosen != null && !chosen.isEmpty()
+                        && !chosen.equals(currentLang) && avail.contains(chosen))
                     nextLang = chosen;
+                if (nextLang == null || nextLang.equals(currentLang) || !avail.contains(nextLang)) {
+                    // Переводить не на что: берём первый установленный язык,
+                    // иначе режим включался бы с направлением en → en.
+                    nextLang = null;
+                    for (int i = 0; i < avail.size(); i++) {
+                        if (!LanguagePacks.BUILTIN_LANGUAGE.equals(avail.get(i))) {
+                            nextLang = avail.get(i);
+                            break;
+                        }
+                    }
+                }
             } else {
                 nextLang = LanguagePacks.BUILTIN_LANGUAGE;
+            }
+            if (nextLang == null) {
+                // Ни одного языка кроме английского — переводить нечем.
+                translationManager.updateLanguages(currentLang, currentLang);
+                return;
             }
             translationManager.updateLanguages(currentLang, nextLang);
         } catch (Throwable ex) {

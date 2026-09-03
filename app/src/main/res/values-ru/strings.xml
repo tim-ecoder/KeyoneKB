@@ -191,4 +191,5 @@
     <string name="packs_section_other_installed">Установлены отдельно</string>
     <string name="packs_more_languages">Другие языки на GitHub ›</string>
     <string name="packs_more_languages_hint">Пакеты для языков помимо перечисленных выше выкладываются отдельно. Скачайте APK на GitHub и установите — клавиатура подхватит его сама, после чего он появится здесь и в настройках раскладок.</string>
+    <string name="pref_translation_target_auto">Язык следующей раскладки</string>
 </resources>

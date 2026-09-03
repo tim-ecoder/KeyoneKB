@@ -28,6 +28,8 @@ public class K12KbSettings {
      * раскладок задавал бы направление перевода случайно.
      */
     public final String APP_PREFERENCES_30_TRANSLATION_TARGET = "translation_target";
+    /** Отметка о разовой правке значения настройки 30, см. CheckSettings. */
+    public final String APP_PREFERENCES_31_TRANSLATION_TARGET_RESET = "translation_target_reset";
     public final String APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR = "pointer_mode_rect_color";
     public final String APP_PREFERENCES_13_POINTER_MODE_RECT = "pointer_mode_rect";
     public final String APP_PREFERENCES_12_ENSURE_ENTERED_TEXT = "ensure_entered_text";
@@ -122,6 +124,14 @@ public class K12KbSettings {
         CheckSettingOrSetDefault(APP_PREFERENCES_27_KEYBOARD_AWARE, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_28_AUTO_CAPITALIZATION, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_30_TRANSLATION_TARGET, "");
+        // Разовая правка: прежняя сборка записывала язык перевода при первом
+        // открытии экрана, ничего не спрашивая, и на английской раскладке
+        // перевод уезжал в случайный язык. Возвращаем всех к значению по
+        // умолчанию — язык следующей раскладки; выбранный заново переживёт.
+        if (!GetBooleanValue(APP_PREFERENCES_31_TRANSLATION_TARGET_RESET)) {
+            SetStringValue(APP_PREFERENCES_30_TRANSLATION_TARGET, "");
+            SetBooleanValue(APP_PREFERENCES_31_TRANSLATION_TARGET_RESET, true);
+        }
     }
 
     public boolean GetBooleanValue(String name) {

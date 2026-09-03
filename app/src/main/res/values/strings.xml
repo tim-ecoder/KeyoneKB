@@ -200,4 +200,5 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="packs_section_other_installed">Installed separately</string>
     <string name="packs_more_languages">Other languages on GitHub ›</string>
     <string name="packs_more_languages_hint">Packs for languages beyond the ones listed above are published separately. Download the APK on GitHub and install it — the keyboard picks it up on its own, and it then appears here and in the layout settings.</string>
+    <string name="pref_translation_target_auto">Language of the next layout</string>
 </resources>

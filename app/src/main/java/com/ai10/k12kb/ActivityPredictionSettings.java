@@ -444,32 +444,37 @@ public class ActivityPredictionSettings extends Activity {
         Spinner spinner = (Spinner) findViewById(R.id.spinner_translation_target);
         if (pill == null || spinner == null) return;
 
+        // Первым пунктом — «как раньше»: язык той раскладки, на которую
+        // переключаешься. Пока пользователь не выбрал язык явно, навязывать ему
+        // первый попавшийся нельзя: с английской раскладки перевод уезжал в
+        // язык, о котором он не просил.
         final List<String> langs = new ArrayList<>();
+        langs.add("");
         for (String lang : LanguagePacks.availableLanguages(getApplicationContext()))
             if (!LanguagePacks.BUILTIN_LANGUAGE.equals(lang))
                 langs.add(lang);
-        if (langs.size() < 2) {
+        if (langs.size() < 3) {
             pill.setVisibility(View.GONE);
             return;
         }
         pill.setVisibility(View.VISIBLE);
 
         List<String> titles = new ArrayList<>();
-        for (String lang : langs)
-            titles.add(new java.util.Locale(lang).getDisplayLanguage() + "  (" + lang + ")");
+        for (String lang : langs) {
+            if (lang.isEmpty())
+                titles.add(getString(R.string.pref_translation_target_auto));
+            else
+                titles.add(new java.util.Locale(lang).getDisplayLanguage() + "  (" + lang + ")");
+        }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, titles);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
         String saved = k12KbSettings.GetStringValue(k12KbSettings.APP_PREFERENCES_30_TRANSLATION_TARGET);
-        int pos = langs.indexOf(saved);
+        int pos = langs.indexOf(saved == null ? "" : saved);
         if (pos < 0) pos = 0;
         spinner.setSelection(pos);
-        // Настройка хранится всегда, даже если пользователь ничего не трогал:
-        // иначе первый же перевод пошёл бы по языку следующей раскладки, а не
-        // по тому, что показано на экране.
-        k12KbSettings.SetStringValue(k12KbSettings.APP_PREFERENCES_30_TRANSLATION_TARGET, langs.get(pos));
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 k12KbSettings.SetStringValue(k12KbSettings.APP_PREFERENCES_30_TRANSLATION_TARGET,
