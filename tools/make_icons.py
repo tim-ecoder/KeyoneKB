@@ -16,8 +16,16 @@ DENS = {"mipmap-hdpi": 72, "mipmap-xhdpi": 96, "mipmap-xxhdpi": 144,
 
 
 def keyboard(d, x, y, w, h):
+    """Тот же символ, что на значке самого приложения.
+
+    Пропорции сняты с нарисованного значка (tools/app_keyboard.png): поля по
+    краям 0.05 ширины, зазор между клавишами 0.020, шесть клавиш в три ряда и
+    пробел шириной ровно в четыре клавиши. Рисуем фигурами, а не вставляем
+    картинку: при уменьшении до 72 пикселей вставка размылась бы, а так края
+    остаются резкими на любой плотности.
+    """
     cols, rows = 6, 3
-    gap = max(1, round(w * 0.026))
+    gap = max(1, round(w * 0.020))
     pad = max(1, round(w * 0.05))
     d.rectangle([x, y, x + w, y + h], fill=FG)
     kw = (w - 2 * pad - (cols - 1) * gap) / cols
@@ -26,10 +34,13 @@ def keyboard(d, x, y, w, h):
         for c in range(cols):
             kx = x + pad + c * (kw + gap)
             ky = y + pad + r * (kh + gap)
-            d.rectangle([round(kx), round(ky), round(kx + kw), round(ky + kh)], fill=BG)
+            # Правый и нижний край не включаем: у rectangle границы входят в
+            # фигуру, и при малой плотности зазор между клавишами съедался
+            # целиком — на 72 пикселях клавиатура превращалась в белый блок.
+            d.rectangle([round(kx), round(ky), round(kx + kw) - 1, round(ky + kh) - 1], fill=BG)
     sx = x + pad + kw + gap
     sy = y + pad + rows * (kh + gap)
-    d.rectangle([round(sx), round(sy), round(x + w - pad - kw - gap), round(sy + kh)], fill=BG)
+    d.rectangle([round(sx), round(sy), round(x + w - pad - kw - gap) - 1, round(sy + kh) - 1], fill=BG)
 
 
 def icon(text, canvas, round_icon=False):
