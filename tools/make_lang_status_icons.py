@@ -38,8 +38,7 @@ tk tl tn to tr ts tt tw ty ug uk ur uz ve vi vo wa wo xh yi yo za zh zu""".split
 NATIVE = {
     "ru": "ру", "uk": "ук", "be": "бе", "bg": "бг", "sr": "ср", "mk": "мк",
     "kk": "қа", "ky": "кы", "mn": "мо", "tt": "та", "ba": "ба", "cv": "чӑ",
-    "os": "ир", "ce": "нo", "av": "ав", "ab": "аҧ", "tg": "тҷ", "kv": "ко",
-    "udm": "уд", "cu": "цс", "el": "ελ",
+    "os": "ир", "ce": "но", "av": "ав", "ab": "аҧ", "tg": "тҷ", "kv": "ко", "cu": "цс", "el": "ελ",
 }
 
 
@@ -93,7 +92,7 @@ def render(text, underline, glyph, extra=None, label_max_h=21):
         x0 = (SIZE - label.width) // 2
         im.paste(label, (x0, 0), label)
     else:
-        x0, label_w = 4, SIZE - 8
+        x0 = 4
 
     if extra is not None:
         # рисунок между подписью и клавиатурой: у навигации это стрелки из

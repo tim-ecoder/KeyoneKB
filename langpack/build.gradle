@@ -4,10 +4,6 @@ plugins {
 
 // Версия данных в пакетах. Клавиатура сравнивает её с каталогом в своих
 // assets и так узнаёт об обновлении, не выходя в сеть. Версия у каждого языка
-// своя: данные обновляются по отдельности, и общий счётчик заставлял бы
-// пользователя перекачивать пакеты, в которых ничего не изменилось.
-// Версия данных в пакетах. Клавиатура сравнивает её с каталогом в своих
-// assets и так узнаёт об обновлении, не выходя в сеть. Версия у каждого языка
 // своя, и отдельная у пакета языка и у пакетов-кешей: кеш весит сотни
 // мегабайт, и предлагать перекачивать его из-за правки в раскладке было бы
 // издевательством над трафиком.
@@ -38,9 +34,12 @@ android {
 
     // .cdb клавиатура открывает через openFd и маппит прямо из APK пакета,
     // поэтому он обязан лежать несжатым — иначе openFd его не отдаст.
+    //
+    // .ssnd так не читается: индекс распаковывается в папку приложения и
+    // отображается уже оттуда. Несжатым он раздувал пакет вчетверо (17 МБ
+    // против 4.5 на кеше в 35 тысяч слов) без всякой пользы.
     aaptOptions {
         noCompress '.cdb'
-        noCompress '.ssnd'
     }
 
     defaultConfig {
@@ -72,36 +71,28 @@ android {
     productFlavors {
         en {
             dimension "lang"
-            resValue "string", "lang_name", "English"
         }
         fr {
             dimension "lang"
-            resValue "string", "lang_name", "Français"
         }
         de {
             dimension "lang"
-            resValue "string", "lang_name", "Deutsch"
         }
         ru {
             dimension "lang"
-            resValue "string", "lang_name", "Русский"
         }
 
         base {
             dimension "content"
-            resValue "string", "content_name", "language pack"
         }
         idx150 {
             dimension "content"
-            resValue "string", "content_name", "dictionary 150k"
         }
         idx300 {
             dimension "content"
-            resValue "string", "content_name", "dictionary 300k"
         }
         idxfull {
             dimension "content"
-            resValue "string", "content_name", "dictionary full"
         }
     }
 

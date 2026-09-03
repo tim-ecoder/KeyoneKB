@@ -44,6 +44,8 @@ public class NativeTranslationDictionary {
       * dictionary build (extracting a TSV and building a CDB takes seconds).
       */
     private final ReentrantLock lock = new ReentrantLock();
+    /** Смена направления, пришедшая во время загрузки: результат уже не нужен. */
+    private volatile boolean stale = false;
     private long nativePtr = 0;
     private volatile String sourceLang;
     private volatile String targetLang;
@@ -84,7 +86,13 @@ public class NativeTranslationDictionary {
     public void load(Context context, String fromLang, String toLang) {
         lock.lock();
         try {
+            stale = false;
             loadLocked(context, fromLang, toLang);
+            if (stale) {
+                // Пока грузили, направление успело смениться: показывать этот
+                // словарь нельзя, он уже не тот, что просят.
+                close();
+            }
         } finally {
             lock.unlock();
         }
@@ -120,8 +128,8 @@ public class NativeTranslationDictionary {
         //    сюда не доходили вовсе: словарь каждый раз пересобирался из TSV, и
         //    готовый .cdb в пакете просто лежал без дела. Урезание осталось для
         //    случая, когда готового индекса нет и есть только TSV.
+        AssetFileDescriptor afd = null;
         try {
-            AssetFileDescriptor afd;
             try {
                 afd = context.getAssets().openFd("dict/" + cdbName);
             } catch (Exception e) {
@@ -132,7 +140,6 @@ public class NativeTranslationDictionary {
             }
             nativePtr = nativeOpenFd(afd.getParcelFileDescriptor().getFd(),
                     afd.getStartOffset(), afd.getLength());
-            afd.close();
             if (nativePtr != 0) {
                 loaded = true;
                 Log.i(TAG, "Loaded CDB from APK (zero-copy): " + cdbName);
@@ -140,39 +147,30 @@ public class NativeTranslationDictionary {
             }
         } catch (Exception e) {
             // openFd() throws if asset is compressed — fall through to copy
+        } finally {
+            // Дескриптор закрываем в любом случае: cdb_open_fd им не владеет,
+            // а на пути ошибки он оставался открытым в чужой APK.
+            LanguagePacks.Close(afd);
         }
 
-        // 4. Fallback: copy full CDB from assets to app files dir, then mmap
+        // 4. Fallback: копия .cdb рядом с кэшем, дальше mmap с неё.
         File cacheDir = new File(context.getFilesDir(), "dict_cache");
         if (!cacheDir.exists()) cacheDir.mkdirs();
-        File cdbFile = new File(cacheDir, cdbName);
+        // Версия пакета в имени: после обновления словаря старая копия
+        // перестаёт подходить по имени, вместо того чтобы жить вечно.
+        String assetPath = "dict/" + cdbName;
+        int version = LanguagePacks.assetVersion(context, assetPath);
+        String copyName = fromLang + "_" + toLang + "-v" + version + ".cdb";
+        File cdbFile = new File(cacheDir, copyName);
+        LanguagePacks.dropStaleCopies(cacheDir, fromLang + "_" + toLang + "-v", copyName);
 
-        if (!cdbFile.exists()) {
-            try {
-                InputStream is;
-                try {
-                    is = context.getAssets().open("dict/" + cdbName);
-                } catch (Exception e0) {
-                    is = LanguagePacks.open(context, "dict/" + cdbName);
-                    if (is == null)
-                        throw e0;
-                }
-                FileOutputStream fos = new FileOutputStream(cdbFile);
-                byte[] buf = new byte[262144]; // 256KB buffer
-                int n;
-                while ((n = is.read(buf)) > 0) fos.write(buf, 0, n);
-                fos.close();
-                is.close();
-                Log.i(TAG, "Copied CDB to: " + cdbFile + " (" + cdbFile.length() + " bytes)");
-            } catch (Exception e) {
-                // Готового .cdb нет нигде — собираем из TSV. Тут ограничение
-                // размера и работает: при нулевом лимите словарь будет полным.
-                Log.i(TAG, "Нет готового CDB для " + fromLang + " -> " + toLang
-                        + ", собираем из TSV");
-                cdbFile.delete();
-                loadTrimmed(context, fromLang, toLang);
-                return;
-            }
+        if (!cdbFile.exists() && !LanguagePacks.copyAsset(context, assetPath, cdbFile)) {
+            // Готового .cdb нет нигде — собираем из TSV. Тут ограничение
+            // размера и работает: при нулевом лимите словарь будет полным.
+            Log.i(TAG, "Нет готового CDB для " + fromLang + " -> " + toLang
+                    + ", собираем из TSV");
+            loadTrimmed(context, fromLang, toLang);
+            return;
         }
 
         nativePtr = nativeOpen(cdbFile.getAbsolutePath());
@@ -187,6 +185,30 @@ public class NativeTranslationDictionary {
     /**
      * Load a trimmed CDB: check cache, or build from TSV asset sorted by word frequency.
      */
+    /**
+     * Распаковать файл во временный: потоки закрываются на любом пути, иначе
+     * сорвавшееся чтение оставляло открытым дескриптор в чужой APK.
+     */
+    private static boolean ExtractTo(Context context, String assetPath, File target) {
+        InputStream is = null;
+        FileOutputStream fos = null;
+        try {
+            is = OpenAssetOrPack(context, assetPath);
+            fos = new FileOutputStream(target);
+            byte[] buf = new byte[262144];
+            int n;
+            while ((n = is.read(buf)) > 0) fos.write(buf, 0, n);
+            fos.close();
+            fos = null;
+            return true;
+        } catch (Throwable ex) {
+            return false;
+        } finally {
+            LanguagePacks.Close(is);
+            LanguagePacks.Close(fos);
+        }
+    }
+
     /** Файл из assets клавиатуры, а если его там нет — из пакета языка. */
     private static InputStream OpenAssetOrPack(Context context, String assetPath) throws Exception {
         try {
@@ -203,7 +225,14 @@ public class NativeTranslationDictionary {
         File cacheDir = new File(context.getFilesDir(), "dict_cache");
         if (!cacheDir.exists()) cacheDir.mkdirs();
 
-        String trimmedName = fromLang + "_" + toLang + "_trimmed_" + maxEntries + ".cdb";
+        // Версия пакета в имени: пересобранный из обновлённого TSV словарь
+        // не должен подменяться прежним кэшем.
+        int tsvVersion = LanguagePacks.assetVersion(context,
+                "dict/" + fromLang + "_" + toLang + ".tsv");
+        String trimmedName = fromLang + "_" + toLang + "_trimmed_" + maxEntries
+                + "-v" + tsvVersion + ".cdb";
+        LanguagePacks.dropStaleCopies(cacheDir, fromLang + "_" + toLang + "_trimmed_",
+                trimmedName);
         File trimmedCdb = new File(cacheDir, trimmedName);
 
         // Try cached trimmed CDB
@@ -220,16 +249,8 @@ public class NativeTranslationDictionary {
         // Extract TSV to temp file
         String tsvName = "dict/" + fromLang + "_" + toLang + ".tsv";
         File tsvTemp = new File(cacheDir, fromLang + "_" + toLang + ".tsv.tmp");
-        try {
-            InputStream is = OpenAssetOrPack(context, tsvName);
-            FileOutputStream fos = new FileOutputStream(tsvTemp);
-            byte[] buf = new byte[262144];
-            int n;
-            while ((n = is.read(buf)) > 0) fos.write(buf, 0, n);
-            fos.close();
-            is.close();
-        } catch (Exception e) {
-            Log.w(TAG, "No TSV for " + fromLang + " -> " + toLang + ": " + e);
+        if (!ExtractTo(context, tsvName, tsvTemp)) {
+            Log.w(TAG, "No TSV for " + fromLang + " -> " + toLang);
             tsvTemp.delete();
             return;
         }
@@ -237,17 +258,9 @@ public class NativeTranslationDictionary {
         // Extract frequency dictionary for source language (for usage-based sorting)
         String freqName = "dictionaries/" + fromLang + "_base.txt";
         File freqTemp = new File(cacheDir, fromLang + "_freq.tmp");
-        try {
-            InputStream is = OpenAssetOrPack(context, freqName);
-            FileOutputStream fos = new FileOutputStream(freqTemp);
-            byte[] buf = new byte[262144];
-            int n;
-            while ((n = is.read(buf)) > 0) fos.write(buf, 0, n);
-            fos.close();
-            is.close();
-        } catch (Exception e) {
-            Log.w(TAG, "No freq dict for " + fromLang + ", will use file order: " + e);
-            // freqTemp won't exist — native builder handles null gracefully
+        if (!ExtractTo(context, freqName, freqTemp)) {
+            Log.w(TAG, "No freq dict for " + fromLang + ", will use file order");
+            // freqTemp не появится — сборщик спокойно обходится без него
         }
 
         String freqPath = freqTemp.exists() ? freqTemp.getAbsolutePath() : null;
@@ -329,17 +342,23 @@ public class NativeTranslationDictionary {
     }
 
     /**
-     * Synchronized like load()/translate(): without it a language switch could
-     * nativeClose() the CDB while the loader thread is mid-load, or while a
-     * lookup holds the pointer.
+     * Пометить словарь ненужным. Вызывается с главного потока службы ввода при
+     * смене раскладки, поэтому ждать замок нельзя: загрузчик держит его всё
+     * время сборки словаря, и переключение раскладки замораживало клавиатуру
+     * на секунды. Если замок занят — оставляем метку, и загрузчик сам закроет
+     * то, что успел собрать.
      */
     public void invalidate() {
-        lock.lock();
-        try {
-            close();
-        } finally {
-            lock.unlock();
+        if (lock.tryLock()) {
+            try {
+                stale = false;
+                close();
+            } finally {
+                lock.unlock();
+            }
+            return;
         }
+        stale = true;
     }
 
     public String getSourceLang() {

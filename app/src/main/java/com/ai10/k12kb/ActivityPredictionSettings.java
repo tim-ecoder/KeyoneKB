@@ -289,7 +289,8 @@ public class ActivityPredictionSettings extends Activity {
             WordDictionary.LoadStats stats = allStats.get(locale);
             if (stats != null && "loading".equals(stats.source)) {
                 // Loading in progress
-                boolean hasCache = WordDictionary.hasCacheFile(getApplicationContext(), locale);
+                boolean hasCache = WordDictionary.hasCacheFile(getApplicationContext(), locale,
+                        k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE));
                 sb.append("\n").append(locale.toUpperCase()).append(": ")
                   .append(getString(R.string.pred_status_loading));
                 if (hasCache) {
@@ -312,7 +313,8 @@ public class ActivityPredictionSettings extends Activity {
                   .append("  ").append(getString(R.string.pred_status_time)).append(": ").append(stats.timeMs).append(" ms");
             } else {
                 // Never loaded
-                boolean hasCache = WordDictionary.hasCacheFile(getApplicationContext(), locale);
+                boolean hasCache = WordDictionary.hasCacheFile(getApplicationContext(), locale,
+                        k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_24_DICT_SIZE));
                 sb.append("\n").append(locale.toUpperCase()).append(": ")
                   .append(getString(R.string.pred_status_not_loaded));
                 if (hasCache) {
@@ -363,27 +365,32 @@ public class ActivityPredictionSettings extends Activity {
         for (String locale : locales) {
             long size = 0;
             String limit = null;
+            boolean fromPack = false;
             if (cacheFiles != null) {
                 for (File f : cacheFiles) {
                     String name = f.getName();
                     if (!name.endsWith(".ssnd")) continue;
                     String base = name.substring(0, name.length() - 5);
-                    if (base.equals(locale)) {
-                        size = f.length();
-                    } else if (base.startsWith(locale + "-")) {
-                        size = f.length();
-                        limit = base.substring(locale.length() + 1);
-                    } else {
+                    // Распакованный из пакета индекс называется
+                    // pack-<язык>-v<версия>-<язык>-<предел>: он занимает то же
+                    // место, и не показывать его значило бы врать о диске.
+                    boolean pack = base.startsWith("pack-" + locale + "-");
+                    if (pack)
+                        base = base.substring(base.indexOf('-', ("pack-" + locale + "-v").length()) + 1);
+                    else if (!base.equals(locale) && !base.startsWith(locale + "-"))
                         continue;
+                    size += f.length();
+                    if (base.startsWith(locale + "-")) {
+                        limit = base.substring(locale.length() + 1);
+                        fromPack = pack;
                     }
-                    if (limit != null) break;   // словарь с известным пределом важнее старого без него
                 }
             }
             sb.append(locale.toUpperCase()).append(": ");
             if (size > 0) {
                 sb.append(size / (1024 * 1024)).append(" MB");
                 if (limit != null)
-                    sb.append(" (").append(limit).append(")");
+                    sb.append(" (").append(limit).append(fromPack ? ", pack" : "").append(")");
                 total += size;
             } else {
                 sb.append(getString(R.string.pred_cache_missing));

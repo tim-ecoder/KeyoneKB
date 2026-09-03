@@ -346,39 +346,22 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         try {
             String currentLang = layoutToLangCode(keyboardLayoutManager.GetCurrentKeyboardLayout());
             String nextLang = layoutToLangCode(keyboardLayoutManager.GetNextKeyboardLayout());
-            // С английского переводить некуда однозначно: языков может быть
-            // несколько, и брать язык следующей раскладки означало бы менять
-            // направление перевода от порядка переключения. Настройка 30
-            // задаёт его явно; пусто — прежнее поведение.
+            // Словари перевода есть только через английский, поэтому с любого
+            // другого языка направление одно. А с английского выбор задаёт
+            // настройка 30: язык следующей раскладки менял бы направление от
+            // порядка переключения.
             if (LanguagePacks.BUILTIN_LANGUAGE.equals(currentLang)) {
                 String chosen = k12KbSettings.GetStringValue(
                         k12KbSettings.APP_PREFERENCES_30_TRANSLATION_TARGET);
                 if (chosen != null && !chosen.isEmpty() && !chosen.equals(currentLang))
                     nextLang = chosen;
+            } else {
+                nextLang = LanguagePacks.BUILTIN_LANGUAGE;
             }
             translationManager.updateLanguages(currentLang, nextLang);
         } catch (Throwable ex) {
             Log.w(TAG2, "updateTranslationLanguages error: " + ex);
         }
-    }
-
-    /**
-     * Язык раскладки, которая станет следующей при переключении. Если словаря
-     * для неё нет, греть нечего — возвращаем язык, отличный от текущего, чтобы
-     * второй словарь всё же оказался под рукой.
-     */
-    protected String nextPredictionLocale(String currentLocale) {
-        try {
-            if (keyboardLayoutManager != null) {
-                String next = layoutToLangCode(keyboardLayoutManager.GetNextKeyboardLayout());
-                if (next != null && !next.equals(currentLocale)
-                        && LanguagePacks.exists(getApplicationContext(), "dictionaries/" + next + "_base.txt"))
-                    return next;
-            }
-        } catch (Throwable ignored) {
-        }
-        return LanguagePacks.BUILTIN_LANGUAGE.equals(currentLocale)
-                ? currentLocale : LanguagePacks.BUILTIN_LANGUAGE;
     }
 
     protected String layoutToLangCode(KeyboardLayout kl) {

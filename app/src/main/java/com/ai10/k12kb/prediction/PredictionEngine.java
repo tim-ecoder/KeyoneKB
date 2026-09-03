@@ -21,4 +21,11 @@ public interface PredictionEngine {
     boolean isReady();
     String getLoadedLocale();
     void setReadyListener(ReadyListener listener);
+
+    /**
+     * Освободить все загруженные словари. Нужно, когда состав языковых пакетов
+     * изменился: словарь текущего языка мог приехать из только что
+     * установленного пакета, а обычная загрузка считает его уже готовым.
+     */
+    void closeAll();
 }

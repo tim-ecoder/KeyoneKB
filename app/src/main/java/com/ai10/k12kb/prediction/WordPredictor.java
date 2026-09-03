@@ -236,6 +236,27 @@ public class WordPredictor {
     }
 
     /**
+     * Забыть загруженные словари: список языковых пакетов изменился, и словарь
+     * текущего языка мог приехать из только что установленного пакета.
+     */
+    public void dropLoadedDictionaries() {
+        PredictionEngine e = engine;
+        engine = null;
+        synchronized (WordPredictor.class) {
+            sharedEngine = null;
+            sharedEngineMode = -1;
+            sharedEngineDictSize = -1;
+        }
+        if (e != null) {
+            try {
+                e.closeAll();
+            } catch (Throwable ex) {
+                Log.w(TAG, "Освободить словари не удалось: " + ex);
+            }
+        }
+    }
+
+    /**
      * Spawn a thread to load a locale into an existing engine.
      */
     private void spawnLoadThread(final Context context, final String locale,

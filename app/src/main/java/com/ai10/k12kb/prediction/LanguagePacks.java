@@ -10,6 +10,9 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.util.Log;
 
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +83,11 @@ public final class LanguagePacks {
                 Log.i(TAG, "Найден пакет словарей: " + pkg + " языки: " + declared);
             }
         } catch (Throwable ex) {
-            Log.w(TAG, "Поиск пакетов не удался: " + ex);
+            // Разовый сбой PackageManager (например, после его перезапуска) не
+            // должен запоминаться как «пакетов нет»: иначе все неанглийские
+            // языки исчезали бы до перезапуска процесса.
+            Log.w(TAG, "Поиск пакетов не удался, ответ не запоминаем: " + ex);
+            return found;
         }
         cachedPackages = found;
         return found;
@@ -192,6 +199,106 @@ public final class LanguagePacks {
                 result.add(lang);
         }
         return result;
+    }
+
+
+    /**
+     * Версия пакета, в котором лежит файл: 0 — файл свой или его нигде нет.
+     *
+     * Копии распакованных данных именуются с этой версией. Без неё обновлённый
+     * пакет продолжал читаться из старой копии: имя совпадало, файл на месте,
+     * и повода перечитывать не находилось.
+     */
+    public static int assetVersion(Context context, String assetPath) {
+        List<String> pkgs = packages(context);
+        for (int i = 0; i < pkgs.size(); i++) {
+            AssetManager am = assetsOf(context, pkgs.get(i));
+            if (am == null)
+                continue;
+            InputStream is = null;
+            try {
+                is = am.open(assetPath);
+            } catch (Throwable ignored) {
+                continue;
+            } finally {
+                Close(is);
+            }
+            try {
+                return context.getPackageManager().getPackageInfo(pkgs.get(i), 0).versionCode;
+            } catch (Throwable ex) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    /** Закрыть, не мешая обработке основной ошибки. */
+    public static void Close(Closeable c) {
+        if (c == null)
+            return;
+        try {
+            c.close();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /**
+     * Копия файла из своих assets или из пакета — через временный файл.
+     *
+     * Служба ввода живёт до первого желания системы её выгрузить, и обрыв на
+     * середине записи оставлял бы файл, который открывается, но внутри обрезан:
+     * словарь считался бы загруженным и молча ничего не находил.
+     */
+    public static boolean copyAsset(Context context, String assetPath, File target) {
+        InputStream is = null;
+        FileOutputStream out = null;
+        File tmp = new File(target.getAbsolutePath() + ".tmp");
+        try {
+            try {
+                is = context.getAssets().open(assetPath);
+            } catch (Throwable ownMiss) {
+                is = open(context, assetPath);
+            }
+            if (is == null)
+                return false;
+            File dir = target.getParentFile();
+            if (dir != null)
+                dir.mkdirs();
+            out = new FileOutputStream(tmp);
+            byte[] buf = new byte[1 << 18];
+            int n;
+            while ((n = is.read(buf)) > 0) out.write(buf, 0, n);
+            out.close();
+            out = null;
+            if (!tmp.renameTo(target)) {
+                tmp.delete();
+                return false;
+            }
+            return true;
+        } catch (Throwable ex) {
+            Log.w(TAG, "Не скопировали " + assetPath + ": " + ex);
+            return false;
+        } finally {
+            Close(is);
+            Close(out);
+            if (tmp.exists())
+                tmp.delete();
+        }
+    }
+
+    /**
+     * Убрать распакованные копии, оставшиеся от других размеров и версий.
+     * Иначе перебор размеров словаря оставлял на диске сотни мегабайт.
+     */
+    public static void dropStaleCopies(File dir, String prefix, String keep) {
+        File[] files = dir != null ? dir.listFiles() : null;
+        if (files == null)
+            return;
+        for (int i = 0; i < files.length; i++) {
+            String name = files[i].getName();
+            if (name.startsWith(prefix) && !name.equals(keep))
+                files[i].delete();
+        }
     }
 
     /** Есть ли такой файл — в самой клавиатуре или в каком-нибудь пакете. */

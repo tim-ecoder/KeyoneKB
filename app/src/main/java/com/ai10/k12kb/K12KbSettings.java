@@ -18,7 +18,6 @@ public class K12KbSettings {
     public final String APP_PREFERENCES_22_TRANSLATION_COUNT = "translation_count";
     public final String APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN = "prediction_bar_hidden";
     public final String APP_PREFERENCES_24_DICT_SIZE = "dict_size";
-    public final String APP_PREFERENCES_25_TRANS_DICT_SIZE = "trans_dict_size";
     public final String APP_PREFERENCES_26_NEXT_WORD_PREDICTION = "next_word_prediction";
     public final String APP_PREFERENCES_27_KEYBOARD_AWARE = "keyboard_aware";
     public final String APP_PREFERENCES_28_AUTO_CAPITALIZATION = "auto_capitalization";
@@ -119,7 +118,6 @@ public class K12KbSettings {
         // сразу после установки, без ожидания сборки. Размеры крупнее — либо
         // отдельным пакетом-кешем, либо сборкой на устройстве.
         CheckSettingOrSetDefault(APP_PREFERENCES_24_DICT_SIZE, 35000);
-        CheckSettingOrSetDefault(APP_PREFERENCES_25_TRANS_DICT_SIZE, 35000);
         CheckSettingOrSetDefault(APP_PREFERENCES_26_NEXT_WORD_PREDICTION, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_27_KEYBOARD_AWARE, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_28_AUTO_CAPITALIZATION, true);

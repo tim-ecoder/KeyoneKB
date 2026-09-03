@@ -125,6 +125,11 @@ public class NotificationProcessor {
         notificationManager.cancelAll();
     }
 
+    /** Убрать только уведомление о раскладке. */
+    public void CancelLayout() {
+        notificationManager.cancel(NOTIFICATION_ID1);
+    }
+
     public void UpdateNotificationLayoutMode() {
 
         if(builderLayout != null)

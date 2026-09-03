@@ -677,6 +677,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         Methods.put("ActionKeyDownUpNoMetaKeepTouch", InitializeMethod3(this::ActionKeyDownUpNoMetaKeepTouch, Integer.class));
         Methods.put("ActionResetDoubleClickGestureState", InitializeMethod3((Object o) -> ActionResetDoubleClickGestureState(), Object.class));
         Methods.put("ActionSendCharCycleDoublePressVariants", InitializeMethod3(this::ActionSendCharCycleDoublePressVariants, KeyPressData.class));
+        Methods.put("ActionSendCharContinueCycleVariants", InitializeMethod3(this::ActionSendCharContinueCycleVariants, KeyPressData.class));
         Methods.put("ActionSendCharDoublePressNoMeta", InitializeMethod3(this::ActionSendCharDoublePressNoMeta, KeyPressData.class));
         Methods.put("ActionSendCharLongPressAltSymbolAltMode", InitializeMethod3(this::ActionSendCharLongPressAltSymbolAltMode, KeyPressData.class));
         Methods.put("ActionSendCharLongPressAltSymbolNoMeta", InitializeMethod3(this::ActionSendCharLongPressAltSymbolNoMeta, KeyPressData.class));
@@ -1848,6 +1849,20 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
      * шаг был сделан этой же клавишей и не позже TIME_DOUBLE_PRESS назад.
      */
     public boolean ActionSendCharCycleDoublePressVariants(KeyPressData keyPressData) {
+        return CycleDoublePressVariants(keyPressData, true);
+    }
+
+    /**
+     * Продолжение цепочки, и только оно: третье и последующие нажатия приходят
+     * обычными короткими. Замена базовой буквы отсюда запрещена — иначе вторая
+     * буква в «accord» или «essen» становилась бы диакритической спустя любое
+     * время после первой.
+     */
+    public boolean ActionSendCharContinueCycleVariants(KeyPressData keyPressData) {
+        return CycleDoublePressVariants(keyPressData, false);
+    }
+
+    private boolean CycleDoublePressVariants(KeyPressData keyPressData, boolean allowFromBase) {
         String variants = keyboardLayoutManager.KeyToDoublePressVariants(keyPressData);
         if (variants == null || variants.isEmpty())
             return false;
@@ -1881,6 +1896,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
             }
         }
         if (next < 0)
+            return false;
+
+        // Базовую букву заменяем только по двойному нажатию: на обычном коротком
+        // это ломало бы удвоенные буквы обычных слов.
+        if (next == 0 && !allowFromBase)
             return false;
 
         // Продолжение цепочки — только пока нажатия идут подряд. Иначе буква с

@@ -59,8 +59,11 @@ int main(int argc, char **argv) {
 
     char *tbuf = load_file(argv[1], &tsz);
     if (!tbuf) { fprintf(stderr, "no tsv %s\n", argv[1]); return 1; }
+    /* Разбор ниже считает концом строки и '\n', и '\r', поэтому в оценке
+     * учитываем оба: на файле с одними CR прежний счёт давал одну строку, а
+     * записывалось столько, сколько их на самом деле. */
     size_t lines = 1;
-    for (long i = 0; i < tsz; i++) if (tbuf[i] == '\n') lines++;
+    for (long i = 0; i < tsz; i++) if (tbuf[i] == '\n' || tbuf[i] == '\r') lines++;
     entry_t *e = malloc(lines * sizeof(entry_t));
     size_t n = 0;
     char *p = tbuf, *end = tbuf + tsz;

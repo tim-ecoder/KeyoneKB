@@ -101,6 +101,46 @@ static int utf8_prefix_bytes(const char *s, int len, int max_chars) {
     return i > len ? len : i;
 }
 
+/** Сколько символов в строке (битый байт считается за символ). */
+static int utf8_count(const char *s, int len) {
+    int i = 0, chars = 0;
+    while (i < len) {
+        int clen = utf8_len((unsigned char)s[i]);
+        if (i + clen > len) clen = len - i;
+        i += clen;
+        chars++;
+    }
+    return chars;
+}
+
+/**
+ * Разбор строки в кодовые точки. Расстояние правок считается по символам:
+ * иначе одна кириллическая опечатка стоит двух правок и съедает весь бюджет.
+ */
+static int utf8_to_cp(const char *s, int len, uint32_t *out, int out_cap) {
+    int i = 0, n = 0;
+    while (i < len && n < out_cap) {
+        unsigned char c = (unsigned char)s[i];
+        int clen = utf8_len(c);
+        if (i + clen > len) clen = 1;
+        uint32_t cp;
+        switch (clen) {
+            case 2: cp = c & 0x1Fu; break;
+            case 3: cp = c & 0x0Fu; break;
+            case 4: cp = c & 0x07u; break;
+            default: cp = c; break;
+        }
+        for (int k = 1; k < clen; k++)
+            cp = (cp << 6) | ((unsigned char)s[i + k] & 0x3Fu);
+        out[n++] = cp;
+        i += clen;
+    }
+    return n;
+}
+
+static int ss_damerau_distance_cp(const uint32_t *a, int alen,
+                                  const uint32_t *b, int blen, int max_dist);
+
 static uint32_t fnv1a(const char *s) {
     uint32_t h = 2166136261u;
     for (; *s; s++) {
@@ -192,6 +232,8 @@ struct symspell {
     const uint8_t  *map_deletes;  /* deletes_cap слотов ss_map_del_t */
     const uint32_t *map_ids;      /* списки индексов слов */
     const char     *map_strings;  /* строки, каждая с нулём на конце */
+    size_t          map_strings_len; /* сколько байт занимает блок строк */
+    uint32_t        map_ids_count;   /* сколько всего идентификаторов в файле */
 };
 
 /* Записи файла v4: только смещения, никаких указателей — файл переносим. */
@@ -214,13 +256,19 @@ static delete_entry_t *deletes_find(const symspell_t *ss, const char *key);
 
 /* ---- Доступ к словам: одинаковый для кучи и для отображения ------------- */
 
+/** Строка по смещению в блоке; пустая, если смещение указывает мимо блока. */
+static const char *map_str(const symspell_t *ss, uint32_t off) {
+    if (off >= ss->map_strings_len) return "";
+    return ss->map_strings + off;
+}
+
 static const char *word_at(const symspell_t *ss, uint32_t i) {
-    if (ss->mapped) return ss->map_strings + map_word(ss, i)->norm_off;
+    if (ss->mapped) return map_str(ss, map_word(ss, i)->norm_off);
     return ss->dict_words[i];
 }
 
 static const char *orig_at(const symspell_t *ss, uint32_t i) {
-    if (ss->mapped) return ss->map_strings + map_word(ss, i)->orig_off;
+    if (ss->mapped) return map_str(ss, map_word(ss, i)->orig_off);
     return ss->dict_original_words[i];
 }
 
@@ -287,7 +335,12 @@ static int deletes_lookup(const symspell_t *ss, const char *key,
     for (uint32_t probe = 0; probe < ss->deletes_cap; probe++) {
         const ss_map_del_t *e = map_del(ss, h);
         if (e->key_off == SS_MAP_EMPTY) return 0;
-        if (strcmp(ss->map_strings + e->key_off, key) == 0) {
+        if (strcmp(map_str(ss, e->key_off), key) == 0) {
+            /* Смещение и длина списка тоже приходят из файла: за их границами
+             * лежит уже не наша память. */
+            if (e->ids_off > ss->map_ids_count
+                    || e->ids_count > ss->map_ids_count - e->ids_off)
+                return 0;
             *ids_out = ss->map_ids + e->ids_off;
             *count_out = e->ids_count;
             return 1;
@@ -407,6 +460,37 @@ static void deletes_add(symspell_t *ss, const char *pattern, uint32_t word_id) {
 /* ---- Damerau-Levenshtein with early termination ------------------------ */
 
 int ss_damerau_distance(const char *a, int alen, const char *b, int blen, int max_dist) {
+    /* Считаем по символам, а не по байтам: кириллическая буква занимает два
+     * байта, и побайтовый счёт превращал одну опечатку в две правки — при
+     * бюджете в две правки перестановка или вторая ошибка уже не находились. */
+    uint32_t a_stack[64], b_stack[64];
+    uint32_t *acp = a_stack, *bcp = b_stack;
+    uint32_t *a_heap = NULL, *b_heap = NULL;
+    int alen_cp = utf8_count(a, alen);
+    int blen_cp = utf8_count(b, blen);
+
+    if (alen_cp > (int)(sizeof(a_stack) / sizeof(uint32_t))) {
+        a_heap = (uint32_t *)malloc((size_t)alen_cp * sizeof(uint32_t));
+        if (!a_heap) return -1;
+        acp = a_heap;
+    }
+    if (blen_cp > (int)(sizeof(b_stack) / sizeof(uint32_t))) {
+        b_heap = (uint32_t *)malloc((size_t)blen_cp * sizeof(uint32_t));
+        if (!b_heap) { free(a_heap); return -1; }
+        bcp = b_heap;
+    }
+    alen_cp = utf8_to_cp(a, alen, acp, alen_cp);
+    blen_cp = utf8_to_cp(b, blen, bcp, blen_cp);
+
+    int result = ss_damerau_distance_cp(acp, alen_cp, bcp, blen_cp, max_dist);
+    free(a_heap);
+    free(b_heap);
+    return result;
+}
+
+/** Та же матрица, но по уже разобранным кодовым точкам. */
+static int ss_damerau_distance_cp(const uint32_t *a, int alen,
+                                  const uint32_t *b, int blen, int max_dist) {
     if (abs(alen - blen) > max_dist) return -1;
     if (alen == 0) return blen <= max_dist ? blen : -1;
     if (blen == 0) return alen <= max_dist ? alen : -1;
@@ -855,11 +939,17 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
     seen_init(seen_candidates);
     seen_init(seen_suggestions);
 
-    /* Truncate input to prefix length */
+    /* Truncate input to prefix length. Длина префикса приходит из файла
+     * индекса, поэтому урезаем ещё и по размеру буфера: испорченный заголовок
+     * не должен превращаться в переполнение стека. */
     char input_prefix[128];
     int prefix_len = utf8_prefix_bytes(input, input_len, ss->prefix_length);
+    if (prefix_len > (int)sizeof(input_prefix) - 1)
+        prefix_len = utf8_prefix_bytes(input, (int)sizeof(input_prefix) - 1,
+                                       ss->prefix_length);
     memcpy(input_prefix, input, prefix_len);
     input_prefix[prefix_len] = '\0';
+    int prefix_chars = utf8_count(input_prefix, prefix_len);
 
     queue_push(queue, input_prefix);
     seen_add(seen_candidates, input_prefix);
@@ -881,7 +971,10 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
     const char *candidate;
     while ((candidate = queue_pop(queue)) != NULL) {
         int cand_len = (int)strlen(candidate);
-        int distance = prefix_len - cand_len;
+        /* Сколько правок уже потрачено — в символах: кандидаты получаются
+         * снятием символов целиком, и байтовый счёт давал кириллице вдвое
+         * меньший бюджет, чем тот, с которым строился индекс. */
+        int distance = prefix_chars - utf8_count(candidate, cand_len);
         if (distance > ss->max_edit_distance) continue;
 
         /* Check deletes table */
@@ -914,13 +1007,19 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
 
         /* Generate further deletes of the candidate */
         if (distance < ss->max_edit_distance) {
-            for (int i = 0; i < cand_len; i++) {
+            /* Снимаем символ целиком — так же, как строились шаблоны индекса.
+             * Побайтовое снятие рвало кириллицу и порождало кандидатов,
+             * которым в индексе не соответствует ничего. */
+            for (int i = 0; i < cand_len; ) {
+                int clen = utf8_len((unsigned char)candidate[i]);
+                if (i + clen > cand_len) clen = cand_len - i;
                 char del[128];
                 int pos = 0;
                 for (int j = 0; j < cand_len; j++) {
-                    if (j != i) del[pos++] = candidate[j];
+                    if (j < i || j >= i + clen) del[pos++] = candidate[j];
                 }
                 del[pos] = '\0';
+                i += clen;
                 if (seen_add(seen_candidates, del)) {
                     queue_push(queue, del);
                 }
@@ -1060,6 +1159,8 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
 /* ---- Binary save/load (mmap-friendly format) --------------------------- */
 
 #define SS_MAGIC 0x53534E44  /* "SSND" */
+/* Заголовок v4: 14 полей по 4 байта. */
+#define SS_V4_HEADER_BYTES 56
 #define SS_VERSION 3
 
 /*
@@ -1126,8 +1227,16 @@ typedef struct {
     char     *data;
     uint32_t  len;
     uint32_t  cap;
+    int      failed;  /* не хватило памяти — файл писать нельзя */
 } strblob_t;
 
+/**
+ * Кладёт строку в блок и возвращает её смещение.
+ *
+ * При нехватке памяти взводит флаг ошибки: возвращаемый 0 — законное смещение
+ * (там лежит пустая строка), и без флага сбой realloc давал бы файл, который
+ * читается, но состоит из пустых слов.
+ */
 static uint32_t blob_put(strblob_t *b, const char *s) {
     if (!s) s = "";
     uint32_t need = (uint32_t)strlen(s) + 1;
@@ -1135,7 +1244,7 @@ static uint32_t blob_put(strblob_t *b, const char *s) {
         uint32_t nc = b->cap ? b->cap : 1 << 16;
         while (nc < b->len + need) nc <<= 1;
         char *nd = (char *)realloc(b->data, nc);
-        if (!nd) return 0;
+        if (!nd) { b->failed = 1; return 0; }
         b->data = nd;
         b->cap = nc;
     }
@@ -1226,6 +1335,13 @@ int ss_save(symspell_t *ss, const char *path) {
     header[12] = strings_off;
     header[13] = strings_off + blob.len;
 
+    if (blob.failed) {
+        /* Строки не поместились в память: писать такой индекс нельзя — он
+         * прочитается, но все слова в нём будут пустыми. */
+        free(bigrams); free(ids); free(dels); free(words); free(blob.data);
+        return -1;
+    }
+
     FILE *f = fopen(path, "wb");
     int ok = f != NULL;
     if (ok) {
@@ -1255,7 +1371,26 @@ static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
     uint32_t words_off = h[8], deletes_off = h[9], ids_off = h[10];
     uint32_t bigrams_off = h[11], strings_off = h[12], expect_size = h[13];
 
-    if (expect_size > file_size || strings_off > file_size) {
+    /*
+     * Заголовок приходит из файла, который мог быть обрезан, испорчен или
+     * подложен пользователем в папку приложения. Ни одно поле нельзя брать на
+     * веру: дальше они становятся арифметикой указателей по отображению, и
+     * первое же нажатие клавиши уводило бы поиск за границу файла.
+     */
+    uint64_t words_end = (uint64_t)words_off + (uint64_t)word_count * sizeof(ss_map_word_t);
+    uint64_t dels_end  = (uint64_t)deletes_off + (uint64_t)cap * sizeof(ss_map_del_t);
+    uint64_t bg_end    = (uint64_t)bigrams_off + (uint64_t)bigram_count * 16u;
+    int header_sane =
+            expect_size == file_size
+            && strings_off <= file_size
+            && words_off >= SS_V4_HEADER_BYTES
+            && words_end <= deletes_off
+            && dels_end <= ids_off
+            && ids_off <= bigrams_off
+            && (bigram_count == 0 || (bigrams_off >= ids_off && bg_end <= strings_off))
+            && bigrams_off <= strings_off
+            && strings_off <= expect_size;
+    if (!header_sane) {
         munmap(base, file_size);
         close(fd);
         return NULL;
@@ -1264,6 +1399,13 @@ static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
     int med, pl;
     memcpy(&med, &h[2], 4);
     memcpy(&pl, &h[3], 4);
+    /* prefix_length из файла тоже проверяем: с ним считается длина префикса
+     * запроса, и заведомо большое значение раздувало бы её без границ. */
+    if (med < 1 || med > SYMSPELL_MAX_EDIT_DIST || pl < 1 || pl > 32) {
+        munmap(base, file_size);
+        close(fd);
+        return NULL;
+    }
 
     symspell_t *ss = ss_create(med, pl);
     if (!ss) {
@@ -1280,6 +1422,8 @@ static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
     ss->map_deletes = (const uint8_t *)base + deletes_off;
     ss->map_ids = (const uint32_t *)((const uint8_t *)base + ids_off);
     ss->map_strings = (const char *)base + strings_off;
+    ss->map_strings_len = file_size - strings_off;
+    ss->map_ids_count = (bigrams_off - ids_off) / 4u;
     ss->dict_words_count = word_count;
     ss->dict_count = word_count;
     ss->deletes_cap = cap;
@@ -1290,9 +1434,9 @@ static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
         if (ss->bigrams) {
             const uint32_t *b = (const uint32_t *)((const uint8_t *)base + bigrams_off);
             for (uint32_t i = 0; i < bigram_count; i++) {
-                ss->bigrams[i].word1 = ss->map_strings + b[i * 4 + 0];
-                ss->bigrams[i].word2 = ss->map_strings + b[i * 4 + 1];
-                ss->bigrams[i].original2 = ss->map_strings + b[i * 4 + 2];
+                ss->bigrams[i].word1 = map_str(ss, b[i * 4 + 0]);
+                ss->bigrams[i].word2 = map_str(ss, b[i * 4 + 1]);
+                ss->bigrams[i].original2 = map_str(ss, b[i * 4 + 2]);
                 memcpy(&ss->bigrams[i].frequency, &b[i * 4 + 3], 4);
             }
             ss->bigram_count = bigram_count;
@@ -1311,189 +1455,25 @@ symspell_t *ss_load_mmap(const char *path) {
     struct stat st;
     if (fstat(fd, &st) < 0) { close(fd); return NULL; }
     size_t file_size = (size_t)st.st_size;
-    if (file_size < 24) { close(fd); return NULL; }
+    /* Заголовок v4 занимает 56 байт и читается целиком до всякой проверки:
+     * прежний порог в 24 байта позволял читать поля из-за конца файла. */
+    if (file_size < SS_V4_HEADER_BYTES) { close(fd); return NULL; }
 
     void *base = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
     if (base == MAP_FAILED) { close(fd); return NULL; }
 
-    const uint8_t *p = (const uint8_t *)base;
-    const uint8_t *end = p + file_size;
-
-    /* Read header */
     uint32_t magic, version;
-    int32_t med, pl;
-    uint32_t word_count, del_count;
-    memcpy(&magic, p, 4); p += 4;
-    memcpy(&version, p, 4); p += 4;
-    memcpy(&med, p, 4); p += 4;
-    memcpy(&pl, p, 4); p += 4;
-    memcpy(&word_count, p, 4); p += 4;
-    memcpy(&del_count, p, 4); p += 4;
+    memcpy(&magic, (const uint8_t *)base, 4);
+    memcpy(&version, (const uint8_t *)base + 4, 4);
 
     if (magic == SS_MAGIC_V4 && version == SS_FORMAT_VERSION)
         return ss_load_mmap_v4(fd, base, file_size);
-    if (magic == SS_MAGIC_V4) {
-        /* Индекс прежней версии: пересобрать дешевле, чем поддерживать оба
-         * правила счёта префикса. */
-        munmap(base, file_size);
-        close(fd);
-        return NULL;
-    }
 
-    if (magic != SS_MAGIC || (version != 2 && version != 3)) {
-        munmap(base, file_size);
-        close(fd);
-        return NULL;
-    }
-
-    symspell_t *ss = ss_create(med, pl);
-    if (!ss) {
-        munmap(base, file_size);
-        close(fd);
-        return NULL;
-    }
-    ss->mmap_base = base;
-    ss->mmap_size = file_size;
-    ss->mmap_fd = fd;
-
-    /* Read words (v2: includes original forms) */
-    for (uint32_t i = 0; i < word_count && p < end; i++) {
-        if (p + 2 > end) break;
-        uint16_t wlen;
-        memcpy(&wlen, p, 2); p += 2;
-        if (p + wlen + 2 > end) break;
-
-        char *word = arena_alloc(&ss->arena, wlen + 1);
-        memcpy(word, p, wlen);
-        word[wlen] = '\0';
-        p += wlen;
-
-        /* Read original form */
-        uint16_t olen;
-        memcpy(&olen, p, 2); p += 2;
-        char *orig;
-        if (olen == 0) {
-            orig = word;  /* original == normalized */
-        } else {
-            if (p + olen > end) break;
-            orig = arena_alloc(&ss->arena, olen + 1);
-            memcpy(orig, p, olen);
-            orig[olen] = '\0';
-            p += olen;
-        }
-
-        if (p + 4 > end) break;
-        int32_t freq;
-        memcpy(&freq, p, 4); p += 4;
-
-        /* Insert into dict */
-        dict_ensure_cap(ss);
-        uint32_t h = fnv1a(word) & (ss->dict_cap - 1);
-        while (ss->dict[h].key) h = (h + 1) & (ss->dict_cap - 1);
-        ss->dict[h].key = word;
-        ss->dict[h].freq = freq;
-        ss->dict[h].original = orig;
-        ss->dict_count++;
-        dict_words_push(ss, word, orig);
-    }
-
-    /* Pre-allocate deletes table */
-    ss->deletes_cap = 1;
-    while (ss->deletes_cap < del_count * 2) ss->deletes_cap <<= 1;
-    ss->deletes = (delete_entry_t *)calloc(ss->deletes_cap, sizeof(delete_entry_t));
-    ss->deletes_count = 0;
-
-    /* Read deletes */
-    for (uint32_t i = 0; i < del_count && p < end; i++) {
-        if (p + 2 > end) break;
-        uint16_t klen;
-        memcpy(&klen, p, 2); p += 2;
-        if (p + klen + 4 > end) break;
-
-        char *key = arena_alloc(&ss->arena, klen + 1);
-        memcpy(key, p, klen);
-        key[klen] = '\0';
-        p += klen;
-
-        uint32_t bsz;
-        memcpy(&bsz, p, 4); p += 4;
-        if (p + bsz * 4 > end) break;
-
-        uint32_t *ids = (uint32_t *)malloc(bsz * sizeof(uint32_t));
-        memcpy(ids, p, bsz * 4);
-        p += bsz * 4;
-
-        /* Insert into deletes table */
-        uint32_t dh = fnv1a(key) & (ss->deletes_cap - 1);
-        while (ss->deletes[dh].key) dh = (dh + 1) & (ss->deletes_cap - 1);
-        ss->deletes[dh].key = key;
-        ss->deletes[dh].word_ids = ids;
-        ss->deletes[dh].count = bsz;
-        ss->deletes[dh].capacity = bsz;
-        ss->deletes_count++;
-    }
-
-    /* Read bigrams (v3 only) */
-    if (version >= 3 && p + 4 <= end) {
-        uint32_t bg_count;
-        memcpy(&bg_count, p, 4); p += 4;
-
-        if (bg_count > 0) {
-            ss->bigrams = (ss_bigram_t *)malloc(bg_count * sizeof(ss_bigram_t));
-            if (!ss->bigrams) { ss_destroy(ss); return NULL; }
-            ss->bigram_cap = bg_count;
-            ss->bigram_count = 0;
-
-            for (uint32_t i = 0; i < bg_count && p < end; i++) {
-                if (p + 2 > end) break;
-                uint16_t w1len;
-                memcpy(&w1len, p, 2); p += 2;
-                if (p + w1len + 2 > end) break;
-
-                char *w1 = arena_alloc(&ss->arena, w1len + 1);
-                memcpy(w1, p, w1len);
-                w1[w1len] = '\0';
-                p += w1len;
-
-                uint16_t w2len;
-                memcpy(&w2len, p, 2); p += 2;
-                if (p + w2len + 2 > end) break;
-
-                char *w2 = arena_alloc(&ss->arena, w2len + 1);
-                memcpy(w2, p, w2len);
-                w2[w2len] = '\0';
-                p += w2len;
-
-                uint16_t o2len;
-                memcpy(&o2len, p, 2); p += 2;
-                char *o2;
-                if (o2len == 0) {
-                    o2 = w2;
-                } else {
-                    if (p + o2len > end) break;
-                    o2 = arena_alloc(&ss->arena, o2len + 1);
-                    memcpy(o2, p, o2len);
-                    o2[o2len] = '\0';
-                    p += o2len;
-                }
-
-                if (p + 4 > end) break;
-                int32_t freq;
-                memcpy(&freq, p, 4); p += 4;
-
-                /* Try to reuse dict key pointer for word1 */
-                dict_entry_t *de = dict_find(ss, w1);
-                ss->bigrams[ss->bigram_count].word1 = de ? de->key : w1;
-                ss->bigrams[ss->bigram_count].word2 = w2;
-                ss->bigrams[ss->bigram_count].original2 = o2;
-                ss->bigrams[ss->bigram_count].frequency = freq;
-                ss->bigram_count++;
-            }
-
-            /* Build bigram index (already sorted from save) */
-            ss_build_bigram_index(ss);
-        }
-    }
-
-    return ss;
+    /* Всё остальное — индекс, собранный прежней версией. Форматы v2 и v3
+     * считали префикс в байтах, и с нынешним посимвольным поиском такой индекс
+     * молча не находит ничего; пересобрать дешевле, чем держать оба правила. */
+    munmap(base, file_size);
+    close(fd);
+    return NULL;
 }
+

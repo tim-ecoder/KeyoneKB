@@ -43,16 +43,25 @@ public class NativeSymSpellEngine implements PredictionEngine {
      */
     private static final class Snapshot {
         final NativeSymSpell ss;
+        /**
+         * Слова пользователя отдельным маленьким индексом. Готовый индекс из
+         * пакета лежит в файле и читается отображением — дописать в него нельзя,
+         * поэтому слова из словаря Android живут рядом и опрашиваются вместе.
+         */
+        final NativeSymSpell userSs;
         final String locale;
 
-        Snapshot(NativeSymSpell ss, String locale) {
+        Snapshot(NativeSymSpell ss, NativeSymSpell userSs, String locale) {
             this.ss = ss;
+            this.userSs = userSs;
             this.locale = locale;
         }
     }
 
     /** The dictionary lookups run against. Null means "nothing loaded yet". */
     private volatile Snapshot active;
+    /** Надстройки со словами пользователя — по языку, рядом с loaded. */
+    private final Map<String, NativeSymSpell> userLoaded = new LinkedHashMap<>();
     /**
      * Dictionaries already built, keyed by locale, most recently used last.
      *
@@ -94,10 +103,40 @@ public class NativeSymSpellEngine implements PredictionEngine {
         try {
             Snapshot snap = active;
             if (snap == null) return Collections.emptyList();
-            return suggestFrom(snap.ss, input, previousWord, limit);
+            List<WordPredictor.Suggestion> main = suggestFrom(snap.ss, input, previousWord, limit);
+            if (snap.userSs == null) return main;
+            return MergeSuggestions(main,
+                    suggestFrom(snap.userSs, input, previousWord, limit), limit);
         } finally {
             accessLock.readLock().unlock();
         }
+    }
+
+    /**
+     * Слить подсказки основного словаря и надстройки: слово встречается в
+     * обоих, поэтому берём лучший вариант и пересортировываем по оценке.
+     */
+    private static List<WordPredictor.Suggestion> MergeSuggestions(
+            List<WordPredictor.Suggestion> a, List<WordPredictor.Suggestion> b, int limit) {
+        if (b.isEmpty()) return a;
+        ArrayList<WordPredictor.Suggestion> all = new ArrayList<>(a.size() + b.size());
+        HashSet<String> seen = new HashSet<>();
+        all.addAll(a);
+        for (int i = 0; i < a.size(); i++)
+            seen.add(a.get(i).word.toLowerCase(java.util.Locale.ROOT));
+        for (int i = 0; i < b.size(); i++) {
+            WordPredictor.Suggestion s = b.get(i);
+            if (seen.add(s.word.toLowerCase(java.util.Locale.ROOT)))
+                all.add(s);
+        }
+        Collections.sort(all, new Comparator<WordPredictor.Suggestion>() {
+            public int compare(WordPredictor.Suggestion x, WordPredictor.Suggestion y) {
+                return Double.compare(y.score, x.score);
+            }
+        });
+        if (all.size() > limit)
+            return new ArrayList<>(all.subList(0, limit));
+        return all;
     }
 
     private List<WordPredictor.Suggestion> suggestFrom(NativeSymSpell ss, String input,
@@ -236,6 +275,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 return;
             }
             loaded.put(locale, built);
+            PutUserOverlay(context, locale, built);
             publish(built, locale);
             evictExtras();
         }
@@ -254,10 +294,57 @@ public class NativeSymSpellEngine implements PredictionEngine {
             NativeSymSpell built = build(context, locale, true);
             if (built != null) {
                 loaded.put(locale, built);
+                PutUserOverlay(context, locale, built);
                 evictExtras();
                 Log.w(TAG, "Preloaded " + locale
                         + ", active dict remains " + getLoadedLocale());
             }
+        }
+    }
+
+    /**
+     * Отдельный маленький индекс со словами пользователя.
+     *
+     * Нужен только к неизменяемому словарю: готовый индекс читается
+     * отображением файла, дописать в него нельзя. При сборке из текста слова
+     * пользователя подмешиваются прямо в словарь, и надстройка не нужна.
+     */
+    private void PutUserOverlay(Context context, String locale, NativeSymSpell main) {
+        NativeSymSpell old = userLoaded.remove(locale);
+        if (old != null) retire(old);
+        if (main == null || !main.isMapped())
+            return;
+        if (!NativeSymSpell.isAvailable())
+            return;
+        NativeSymSpell user = new NativeSymSpell(2, 7);
+        if (!user.isValid())
+            return;
+        loadUserWords(user, context);
+        if (user.size() == 0) {
+            user.destroy();
+            return;
+        }
+        user.buildIndex();
+        userLoaded.put(locale, user);
+        Log.i(TAG, "Слова пользователя рядом с готовым индексом " + locale + ": " + user.size());
+    }
+
+    @Override
+    public void closeAll() {
+        synchronized (loadLock) {
+            // Снимаем активный снимок под тем же замком, что и подсказки: пока
+            // он не снят, кто-то может держать указатель на нативную память.
+            accessLock.writeLock().lock();
+            try {
+                active = null;
+            } finally {
+                accessLock.writeLock().unlock();
+            }
+            for (NativeSymSpell ns : loaded.values()) ns.destroy();
+            loaded.clear();
+            for (NativeSymSpell ns : userLoaded.values()) ns.destroy();
+            userLoaded.clear();
+            Log.w(TAG, "Словари освобождены: состав языковых пакетов изменился");
         }
     }
 
@@ -273,6 +360,8 @@ public class NativeSymSpellEngine implements PredictionEngine {
             Map.Entry<String, NativeSymSpell> e = it.next();
             if (e.getKey().equals(activeLocale)) continue;
             it.remove();
+            NativeSymSpell overlay = userLoaded.remove(e.getKey());
+            if (overlay != null) retire(overlay);
             retire(e.getValue());
         }
     }
@@ -308,7 +397,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
     private void publish(NativeSymSpell ns, String locale) {
         accessLock.writeLock().lock();
         try {
-            active = new Snapshot(ns, locale);
+            active = new Snapshot(ns, userLoaded.get(locale), locale);
         } finally {
             accessLock.writeLock().unlock();
         }
@@ -375,36 +464,17 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
 
         String asset = "dictionaries/" + name;
-        File copied = new File(context.getFilesDir(), CACHE_DIR + "/pack-" + name);
-        if (!copied.exists()) {
-            InputStream is = null;
-            try {
-                is = context.getAssets().open(asset);
-            } catch (Throwable ignored) {
-                is = LanguagePacks.open(context, asset);
-            }
-            if (is == null)
-                return null;
-            try {
-                File dir = new File(context.getFilesDir(), CACHE_DIR);
-                dir.mkdirs();
-                File tmp = new File(dir, "pack-" + name + ".tmp");
-                FileOutputStream out = new FileOutputStream(tmp);
-                byte[] buf = new byte[1 << 18];
-                int n;
-                while ((n = is.read(buf)) > 0) out.write(buf, 0, n);
-                out.close();
-                is.close();
-                if (!tmp.renameTo(copied)) {
-                    tmp.delete();
-                    return null;
-                }
-                Log.i(TAG, "Индекс из пакета распакован: " + copied.length() + " байт");
-            } catch (Throwable ex) {
-                Log.w(TAG, "Индекс из пакета не распакован: " + ex);
-                return null;
-            }
-        }
+        // В имени копии — версия пакета: после обновления пакета старая копия
+        // больше не подходит по имени и перечитывается, а не живёт вечно.
+        int version = LanguagePacks.assetVersion(context, asset);
+        File dir = new File(context.getFilesDir(), CACHE_DIR);
+        String copyName = "pack-" + locale + "-v" + version + "-" + name;
+        File copied = new File(dir, copyName);
+        // Копии от других размеров и прежних версий этого языка не нужны:
+        // перебор размеров иначе оставлял на диске сотни мегабайт.
+        LanguagePacks.dropStaleCopies(dir, "pack-" + locale + "-", copyName);
+        if (!copied.exists() && !LanguagePacks.copyAsset(context, asset, copied))
+            return null;
 
         NativeSymSpell ns = NativeSymSpell.loadFromCache(copied.getAbsolutePath());
         if (ns != null && ns.size() > 0) {
@@ -412,6 +482,9 @@ public class NativeSymSpellEngine implements PredictionEngine {
             return ns;
         }
         if (ns != null) ns.destroy();
+        // Файл есть, а индекс из него не поднялся — он испорчен или собран
+        // прежним форматом. Держать его смысла нет, место он занимает.
+        copied.delete();
         return null;
     }
 
@@ -451,8 +524,10 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
 
         if (fromCache) {
-            // v2→v3 upgrade: if cache has 0 bigrams, load from JSON and re-save
-            if (ns.bigramCount() == 0) {
+            // Индекс без биграмм: дочитываем их из JSON и пересохраняем. Для
+            // отображённого индекса это невозможно — добавление в него ничего
+            // не делает, и разбор файла каждый раз уходил бы впустую.
+            if (ns.bigramCount() == 0 && !ns.isMapped()) {
                 loadBigrams(ns, context, locale);
                 if (ns.bigramCount() > 0) {
                     ns.buildBigramIndex();
@@ -516,10 +591,10 @@ public class NativeSymSpellEngine implements PredictionEngine {
         if (withUserWords && !fromCache) {
             // ничего: слова добавлены до построения индекса
         } else if (withUserWords && ns.isMapped()) {
-            // Готовый индекс неизменяем: он лежит в файле и читается отображением.
-            // Пользовательские слова в него не добавить — для них нужна отдельная
-            // надстройка в памяти, её пока нет (см. /data/@K12KB/todo-ssnd).
-            Log.i(TAG, "Готовый индекс " + locale + " неизменяем, слова пользователя не добавляются");
+            // Готовый индекс неизменяем: он лежит в файле и читается
+            // отображением. Слова пользователя живут отдельной надстройкой —
+            // её собирает PutUserOverlay, и подсказки опрашивают обе.
+            Log.i(TAG, "Готовый индекс " + locale + " неизменяем, слова пользователя идут надстройкой");
         } else if (withUserWords) {
             // Always merge user words (even after a cache load — user may have added new ones)
             int before = ns.size();
@@ -539,6 +614,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
 
     private void loadBigrams(NativeSymSpell ns, Context context, String locale) {
         String bigramFile = "dictionaries/" + locale + "_bigrams.json";
+        BufferedReader reader = null;
         try {
             InputStream is;
             try {
@@ -548,12 +624,11 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 if (is == null)
                     throw e;
             }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8192);
+            reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8192);
             StringBuilder sb = new StringBuilder();
             char[] buf = new char[4096];
             int read;
             while ((read = reader.read(buf)) != -1) sb.append(buf, 0, read);
-            reader.close();
 
             JSONObject root = new JSONObject(sb.toString());
             int count = 0;
@@ -575,12 +650,17 @@ public class NativeSymSpellEngine implements PredictionEngine {
             Log.d(TAG, "No bigram file for " + locale);
         } catch (Exception e) {
             Log.w(TAG, "Failed to load bigrams for " + locale + ": " + e);
+        } finally {
+            // Поток закрываем и на пути ошибки: он держит дескриптор внутри
+            // чужого APK, а такие загрузки повторяются на каждое переключение.
+            LanguagePacks.Close(reader);
         }
     }
 
     private int loadFromAssets(NativeSymSpell ns, Context context, String locale) {
         String txtFilename = "dictionaries/" + locale + "_base.txt";
         String jsonFilename = "dictionaries/" + locale + "_base.json";
+        BufferedReader reader = null;
         try {
             InputStream is;
             boolean useTxt;
@@ -603,7 +683,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
                         throw e;
                 }
             }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 16384);
+            reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 16384);
 
             // Частота разбирается сразу при чтении: раньше она хранилась строкой и
             // Integer.parseInt звался внутри сравнения — на словаре в 668 тысяч
@@ -658,6 +738,8 @@ public class NativeSymSpellEngine implements PredictionEngine {
         } catch (Exception e) {
             Log.e(TAG, "Failed to load dictionary: " + e);
             return 0;
+        } finally {
+            LanguagePacks.Close(reader);
         }
     }
 

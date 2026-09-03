@@ -15,14 +15,25 @@ gcc -O2 -o "$WORK/build_ssnd" tools/build_ssnd.c \
     app/src/main/jni/symspell.c app/src/main/jni/keyboard_distance.c -lm
 
 for lang in en fr de ru; do
-    case $lang in
-        en) base=app/src/main/assets/dictionaries/en_base.txt
-            bigrams=app/src/main/assets/dictionaries/en_bigrams.json ;;
-        *)  base=langpack/src/${lang}Base/assets/dictionaries/${lang}_base.txt
-            bigrams=langpack/src/${lang}Base/assets/dictionaries/${lang}_bigrams.json ;;
-    esac
+    # Источник всегда один — копия внутри пакета языка. У английского такой же
+    # файл лежит и в клавиатуре; собирать индекс из него значило бы, что после
+    # правки словаря в пакете индекс молча остаётся от прежнего списка слов.
+    base=langpack/src/${lang}Base/assets/dictionaries/${lang}_base.txt
+    bigrams=langpack/src/${lang}Base/assets/dictionaries/${lang}_bigrams.json
+    for f in "$base" "$bigrams"; do
+        if [ ! -s "$f" ]; then
+            echo "нет исходных данных: $f" >&2
+            exit 1
+        fi
+    done
 
     python3 tools/prepare_dict.py "$base" "$WORK/$lang.tsv" "$bigrams" "$WORK/$lang-bg.tsv"
+    # Пустой список биграмм означал бы пакет без предсказания следующего слова,
+    # и заметить это можно было бы только по строке в логе сборки.
+    if [ ! -s "$WORK/$lang-bg.tsv" ]; then
+        echo "биграммы для $lang не собрались" >&2
+        exit 1
+    fi
 
     # 35k едет в самом языковом пакете: это значение по умолчанию,
     # с ним подсказки работают сразу после установки, без сборки кеша.

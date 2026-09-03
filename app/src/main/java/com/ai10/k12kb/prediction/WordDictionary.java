@@ -81,15 +81,23 @@ public class WordDictionary {
     /**
      * Check if native binary cache file exists for a locale.
      */
-    /** Есть ли собранный словарь для языка — при любом пределе размера. */
-    public static boolean hasCacheFile(Context context, String locale) {
+    /**
+     * Есть ли собранный словарь для языка под выбранный размер.
+     *
+     * Предел размера — часть имени файла. Отвечать «да» на кеш другого размера
+     * значило бы обещать мгновенную загрузку там, где словарь будет собираться
+     * заново десятки секунд.
+     */
+    public static boolean hasCacheFile(Context context, String locale, int maxWords) {
         File dir = new File(context.getFilesDir(), "native_dict_cache");
         File[] files = dir.listFiles();
         if (files == null)
             return false;
+        String suffix = "-" + (maxWords > 0 ? String.valueOf(maxWords) : "full") + ".ssnd";
         for (File f : files) {
             String name = f.getName();
-            if (name.startsWith(locale + "-") && name.endsWith(".ssnd"))
+            if (name.endsWith(suffix)
+                    && (name.startsWith(locale + "-") || name.startsWith("pack-" + locale + "-")))
                 return true;
         }
         return false;
