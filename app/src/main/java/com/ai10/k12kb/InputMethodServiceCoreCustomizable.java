@@ -558,11 +558,21 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
         }
 
-        // Всегда новый обработчик: дополнение прежнего списка при повторной
-        // загрузке механики удваивало каждое действие.
-        Processable2 p = new Processable2();
-        p.Keyboard = this;
-        p.SetActions(list);
+        // На одну клавишу может ссылаться несколько групп обработчиков в одной
+        // загрузке механики: например, у KEYCODE_T есть отдельная группа для
+        // Ctrl+T и общая буквенная группа A-Z с тем же on-short-press. Их
+        // списки действий должны склеиваться — иначе вторая группа стирала бы
+        // действие первой. Дублирование при ПОВТОРНОЙ загрузке механики (после
+        // установки языкового пакета) решается не здесь, а сбросом карт
+        // обработчиков в начале LoadKeyProcessingMechanics.
+        Processable2 p = (Processable2) processable;
+        if (p == null) {
+            p = new Processable2();
+            p.Keyboard = this;
+            p.SetActions(list);
+        } else {
+            p.AddActions(list);
+        }
         return p;
     }
 
