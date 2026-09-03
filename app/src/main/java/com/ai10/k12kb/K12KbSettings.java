@@ -23,6 +23,12 @@ public class K12KbSettings {
     public final String APP_PREFERENCES_27_KEYBOARD_AWARE = "keyboard_aware";
     public final String APP_PREFERENCES_28_AUTO_CAPITALIZATION = "auto_capitalization";
     public final String APP_PREFERENCES_29_TRANSPARENCY_MODE = "transparency_mode";
+    /**
+     * На какой язык переводить с английского. Пусто — на язык следующей
+     * раскладки: пока языков два, выбирать нечего, а с тремя и больше порядок
+     * раскладок задавал бы направление перевода случайно.
+     */
+    public final String APP_PREFERENCES_30_TRANSLATION_TARGET = "translation_target";
     public final String APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR = "pointer_mode_rect_color";
     public final String APP_PREFERENCES_13_POINTER_MODE_RECT = "pointer_mode_rect";
     public final String APP_PREFERENCES_12_ENSURE_ENTERED_TEXT = "ensure_entered_text";
@@ -117,6 +123,7 @@ public class K12KbSettings {
         CheckSettingOrSetDefault(APP_PREFERENCES_26_NEXT_WORD_PREDICTION, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_27_KEYBOARD_AWARE, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_28_AUTO_CAPITALIZATION, true);
+        CheckSettingOrSetDefault(APP_PREFERENCES_30_TRANSLATION_TARGET, "");
     }
 
     public boolean GetBooleanValue(String name) {

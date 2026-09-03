@@ -16,6 +16,9 @@
             <TextView
                 style="@style/PillHeaderTitle"
                 android:text="@string/pref_section_prediction" />
+            <TextView
+                style="@style/PillHeaderSubtitle"
+                android:text="@string/pred_privacy_note" />
         </LinearLayout>
 
         <!-- SETTINGS -->
@@ -165,6 +168,23 @@
                     android:textSize="13sp"
                     android:lineSpacingExtra="2dp"
                     android:text="@string/pred_translation_hint" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ItemPill"
+            android:id="@+id/pill_translation_target"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/textPrimaryColor"
+                android:textSize="15sp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/pref_translation_target_title" />
+            <Spinner
+                android:id="@+id/spinner_translation_target"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout style="@style/ItemPillSeek">

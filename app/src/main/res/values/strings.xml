@@ -116,7 +116,7 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="js_patch_no_editor">No editor found for JS files</string>
     <string name="pref_section_appearance">APPEARANCE</string>
     <string name="pref_light_theme">18. Dark theme</string>
-    <string name="pref_section_prediction">PREDICTION</string>
+    <string name="pref_section_prediction">PREDICTION AND TRANSLATION</string>
     <string name="pref_prediction_enabled">17. Word prediction</string>
     <string name="pref_prediction_bar_hidden">23. Hide bar by default (Ctrl+W to show)</string>
     <string name="pref_prediction_bar_height">15. Prediction bar height (dp)</string>
@@ -140,7 +140,7 @@ For more utilities for working with Capital letters, see the Manual in chapter B
         <item>Full (all words, ~42 MB)</item>
     </string-array>
     <string name="pred_trans_dict_size_changed">Translation cache cleared. Restart keyboard to apply.</string>
-    <string name="main_btn_prediction_settings">Word prediction</string>
+    <string name="main_btn_prediction_settings">Prediction and translation</string>
     <string name="pred_section_settings">SETTINGS</string>
     <string name="pred_section_status">DICTIONARY STATUS</string>
     <string name="pred_section_cache">PREBUILT INDEXES</string>
@@ -203,4 +203,6 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="packs_dict_note">These are ready-made caches for fast loading. The dictionaries themselves come with the base language pack: change the dictionary size in settings and the keyboard builds the cache itself — it just takes 5–15 seconds.</string>
     <string name="pref_dict_size_note">If you have no preloaded dictionary cache, caching takes 5 to 20 seconds depending on the dictionary size you choose.</string>
     <string name="pref_dict_size_note_link">dictionary cache</string>
+    <string name="pred_privacy_note">K12KB never uses network access, for privacy and security reasons. All dictionaries and translations are used from files loaded to disk.</string>
+    <string name="pref_translation_target_title">30. Translate English into</string>
 </resources>

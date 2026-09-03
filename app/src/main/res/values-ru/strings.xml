@@ -111,7 +111,7 @@
     <string name="js_patch_no_editor">Не найден редактор для JS файлов</string>
     <string name="pref_section_appearance">ВНЕШНИЙ ВИД</string>
     <string name="pref_light_theme">18. Тёмная тема</string>
-    <string name="pref_section_prediction">ПРЕДИКТИВНЫЙ ВВОД</string>
+    <string name="pref_section_prediction">ПРЕДИКТИВНЫЙ ВВОД И ПЕРЕВОД</string>
     <string name="pref_prediction_enabled">17. Предиктивный ввод</string>
     <string name="pref_prediction_bar_hidden">23. Скрыть панель (Ctrl+W для показа)</string>
     <string name="pref_prediction_bar_height">15. Высота панели подсказок (dp)</string>
@@ -135,7 +135,7 @@
         <item>Полный (все слова, ~42 МБ)</item>
     </string-array>
     <string name="pred_trans_dict_size_changed">Кеш перевода очищен. Перезапустите клавиатуру.</string>
-    <string name="main_btn_prediction_settings">Предективный ввод</string>
+    <string name="main_btn_prediction_settings">Предиктивный ввод и перевод</string>
     <string name="pred_section_settings">НАСТРОЙКИ</string>
     <string name="pred_section_status">СТАТУС СЛОВАРЕЙ</string>
     <string name="pred_section_cache">СОБРАННЫЕ ИНДЕКСЫ</string>
@@ -194,4 +194,6 @@
     <string name="packs_dict_note">Это готовые кеши для быстрой загрузки. Сами словари входят в базовый языковой пакет: поменяйте размер словаря в настройках, и кеш соберётся автоматически — это займёт 5–15 секунд.</string>
     <string name="pref_dict_size_note">Если у вас не предзагружен кеш словарей, то кеширование будет занимать от 5 до 20 секунд в зависимости от выбранного объёма словаря.</string>
     <string name="pref_dict_size_note_link">кеш словарей</string>
+    <string name="pred_privacy_note">K12KB никогда не выходит в сеть — ради приватности и безопасности. Все словари и переводы берутся из файлов, загруженных на диск.</string>
+    <string name="pref_translation_target_title">30. Переводить английский на</string>
 </resources>

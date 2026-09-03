@@ -318,7 +318,10 @@ public class SuggestionBar extends LinearLayout {
             if (i == 0) {
                 slots[slot].setEllipsize(null);
             } else {
-                slots[slot].setEllipsize(TextUtils.TruncateAt.END);
+                // Обрезаем спереди, как у подсказок: перевод часто начинается
+                // так же, как исходное слово, и с обрезкой с конца в пузыре
+                // оставалось бы одно общее начало. Окончание различает больше.
+                slots[slot].setEllipsize(TextUtils.TruncateAt.START);
             }
             transWidths[i] = slots[slot].getPaint().measureText(word);
         }
