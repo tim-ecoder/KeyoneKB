@@ -364,16 +364,15 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         }
     }
 
+    /**
+     * Код языка раскладки. Берётся из поля "language" её описания — по имени
+     * раскладки угадывать нельзя: у пакета с новым языком имя произвольное, и
+     * угадывание молча выдавало бы английский словарь вместо его собственного.
+     */
     protected String layoutToLangCode(KeyboardLayout kl) {
-        if (kl == null) return "en";
-        String name = kl.KeyboardName;
-        if (name == null) return "en";
-        String lower = name.toLowerCase(java.util.Locale.ROOT);
-        if (lower.contains("русск") || lower.contains("russian")) return "ru";
-        if (lower.contains("deutsch") || lower.contains("german")) return "de";
-        if (lower.contains("français") || lower.contains("french")) return "fr";
-        if (lower.contains("español") || lower.contains("spanish")) return "es";
-        return "en";
+        if (kl == null || kl.Resources == null) return LanguagePacks.BUILTIN_LANGUAGE;
+        String code = KeyboardLayoutManager.LanguageCodeOf(kl.Resources);
+        return (code != null && !code.isEmpty()) ? code : LanguagePacks.BUILTIN_LANGUAGE;
     }
 
     // --- Suggestion bar visibility (replaces framework setCandidatesViewShown) ---

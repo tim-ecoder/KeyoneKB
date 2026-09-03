@@ -285,7 +285,7 @@ public class KeyboardLayoutManager {
      * Код языка раскладки: из реестра, иначе по имени раскладки. Нужен для
      * значка статус-бара, который может жить только в ресурсах клавиатуры.
      */
-    private static String LanguageCodeOf(KeyboardLayout.KeyboardLayoutOptions options) {
+    static String LanguageCodeOf(KeyboardLayout.KeyboardLayoutOptions options) {
         if (options.Language != null && !options.Language.isEmpty())
             return options.Language.toLowerCase(Locale.ROOT);
         String name = options.OptionsName != null ? options.OptionsName.toLowerCase(Locale.ROOT) : "";

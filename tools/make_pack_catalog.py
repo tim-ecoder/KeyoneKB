@@ -17,12 +17,15 @@ RELEASE = "https://github.com/tim-ecoder/K12KB/releases"
 TAG = RELEASE + "/download/lang-packs/"
 
 TITLES = {"en": "English", "fr": "Français", "de": "Deutsch", "ru": "Русский"}
-LANGS = [
-    ("en", "English", "QWERTY; словарь 307k и биграммы; кеш на 35k внутри; переводу нужен второй язык"),
-    ("fr", "Français", "QWERTY, AZERTY; словарь 612k, биграммы, кеш на 35k; fr↔en 469k / 252k с фразами"),
-    ("de", "Deutsch", "QWERTY, QWERTZ; словарь 882k, биграммы, кеш на 35k; de↔en 364k / 242k с фразами"),
-    ("ru", "Русский", "Русский, транслит, украинский; словарь 668k, биграммы, кеш на 35k; ru↔en 443k / 227k"),
-]
+# Чем язык описывается в каталоге. Сам список языков читается из
+# langpack/build.gradle — здесь только текст, который негде взять автоматически.
+CONTENTS = {
+    "en": "QWERTY; словарь 307k и биграммы; кеш на 35k внутри; переводу нужен второй язык",
+    "fr": "QWERTY, AZERTY; словарь 612k, биграммы, кеш на 35k; fr\u2194en 469k / 252k с фразами",
+    "de": "QWERTY, QWERTZ; словарь 882k, биграммы, кеш на 35k; de\u2194en 364k / 242k с фразами",
+    "ru": "Русский, транслит, украинский; словарь 668k, биграммы, кеш на 35k; ru\u2194en 443k / 227k",
+}
+
 CONTENT = [
     ("base", "", "Языковой пакет", None),
     ("idx150", ".idx150", "Кеш словаря 150k", "Готовый кеш на 150 000 слов — значение настройки по умолчанию; без него соберётся сам за 5–15 секунд"),
@@ -32,20 +35,23 @@ CONTENT = [
 
 
 def versions():
-    """packVersions живёт в langpack/build.gradle — второй копии быть не должно.
+    """packLanguages из langpack/build.gradle — единственный список языков.
 
     Разбор не опирается на отступы и запятые: одна регулярка на всю запись
     языка, иначе перенос строки или пропущенная запятая молча теряли язык.
     """
     text = open(os.path.join(ROOT, "langpack/build.gradle"), encoding="utf-8").read()
     entry = re.compile(
-        r'(\w+)\s*:\s*\[\s*base\s*:\s*\[code\s*:\s*(\d+)\s*,\s*name\s*:\s*"([^"]+)"\]\s*,'
+        r'(\w+)\s*:\s*\[\s*title\s*:\s*"([^"]+)"\s*,\s*langs\s*:\s*"([^"]+)"\s*,'
+        r'\s*base\s*:\s*\[code\s*:\s*(\d+)\s*,\s*name\s*:\s*"([^"]+)"\]\s*,'
         r'\s*idx\s*:\s*\[code\s*:\s*(\d+)\s*,\s*name\s*:\s*"([^"]+)"\]\s*\]')
     out = {}
-    for lang, bcode, bname, icode, iname in entry.findall(text):
-        out[lang] = {"base": (int(bcode), bname), "idx": (int(icode), iname)}
+    for lang, title, _langs, bcode, bname, icode, iname in entry.findall(text):
+        out[lang] = {"title": title,
+                     "base": (int(bcode), bname),
+                     "idx": (int(icode), iname)}
     if not out:
-        raise SystemExit("не разобрал packVersions в langpack/build.gradle")
+        raise SystemExit("не разобрал packLanguages в langpack/build.gradle")
     return out
 
 
@@ -69,16 +75,14 @@ def apk_version(path):
 
 
 def main():
-    vers = versions()
-    known = dict((lang, (title, contents)) for lang, title, contents in LANGS)
-    missing = [lang for lang in vers if lang not in known]
+    langs = versions()
+    missing = [lang for lang in langs if lang not in CONTENTS]
     if missing:
-        # Язык собирается, а в каталоге его нет — на экране установки он просто
-        # не появится, и понять это будет неоткуда.
-        raise SystemExit("нет описания для языков: " + ", ".join(sorted(missing)))
+        # Язык собирается, а описания для каталога нет — на экране установки он
+        # появился бы безымянной строкой.
+        raise SystemExit("нет описания в CONTENTS для: " + ", ".join(sorted(missing)))
     packs = []
-    for lang in vers:
-        title, contents = known[lang]
+    for lang in langs:
         items = []
         for flavor, suffix, label, note in CONTENT:
             apk = os.path.join(APKS, lang + flavor[0].upper() + flavor[1:],
@@ -86,7 +90,7 @@ def main():
             if not os.path.exists(apk):
                 print("нет APK: " + apk, file=sys.stderr)
                 return 1
-            code, name = vers[lang]["base" if flavor == "base" else "idx"]
+            code, name = langs[lang]["base" if flavor == "base" else "idx"]
             built = apk_version(apk)
             if built is not None and built != code:
                 raise SystemExit("%s собран с versionCode %d, а в build.gradle %d — "
@@ -98,10 +102,10 @@ def main():
                 "version-code": code,
                 "version-name": name,
                 "size-mb": int(round(os.path.getsize(apk) / 1048576.0)),
-                "contents": note if note else contents,
+                "contents": note if note else CONTENTS[lang],
                 "url": TAG + os.path.basename(apk),
             })
-        packs.append({"language": lang, "title": title, "items": items})
+        packs.append({"language": lang, "title": langs[lang]["title"], "items": items})
     data = {"release-page": RELEASE + "/tag/lang-packs", "packs": packs}
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)

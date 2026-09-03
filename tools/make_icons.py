@@ -5,7 +5,7 @@
 глифа: прямые углы и отсутствие сглаживания сохраняют пиксельный характер, но
 края остаются резкими на любой плотности экрана.
 """
-import os, sys
+import os, re, sys
 from PIL import Image, ImageDraw, ImageFont
 
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf"
@@ -89,6 +89,12 @@ def write(res_dir, text, skip=()):
 if __name__ == "__main__":
     root = sys.argv[1] if len(sys.argv) > 1 else "."
     write(os.path.join(root, "app/src/main/res"), "K12KB")
-    for lang, label in (("en", "EN"), ("fr", "FR"), ("de", "DE"), ("ru", "RU")):
-        write(os.path.join(root, f"langpack/src/{lang}/res"), label, skip=("drawable-xhdpi",))
+    # Языки — из langpack/build.gradle, чтобы новый пакет получал значок сам.
+    gradle = open(os.path.join(root, "langpack/build.gradle"), encoding="utf-8").read()
+    langs = re.findall(r'^\s*(\w+)\s*:\s*\[\s*title\s*:', gradle, re.M)
+    if not langs:
+        raise SystemExit("не разобрал packLanguages в langpack/build.gradle")
+    for lang in langs:
+        write(os.path.join(root, f"langpack/src/{lang}/res"), lang.upper(),
+              skip=("drawable-xhdpi",))
     print("иконки перерисованы")

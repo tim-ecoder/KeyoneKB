@@ -14,7 +14,15 @@ trap 'rm -rf "$WORK"' EXIT
 gcc -O2 -o "$WORK/build_ssnd" tools/build_ssnd.c \
     app/src/main/jni/symspell.c app/src/main/jni/keyboard_distance.c -lm
 
-for lang in en fr de ru; do
+# Языки читаются из langpack/build.gradle: свой список здесь неминуемо разошёлся
+# бы с флейворами сборки.
+LANGS=$(sed -n 's/^ *\([a-z][a-z]*\) *: *\[ *title *:.*/\1/p' langpack/build.gradle)
+if [ -z "$LANGS" ]; then
+    echo "не разобрал packLanguages в langpack/build.gradle" >&2
+    exit 1
+fi
+
+for lang in $LANGS; do
     # Источник всегда один — копия внутри пакета языка. У английского такой же
     # файл лежит и в клавиатуре; собирать индекс из него значило бы, что после
     # правки словаря в пакете индекс молча остаётся от прежнего списка слов.
