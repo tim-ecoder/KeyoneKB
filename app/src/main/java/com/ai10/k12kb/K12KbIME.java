@@ -1154,24 +1154,24 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             } else {
                 changed = UpdateNotification(AltAllIconRes, TITLE_SYM2_TEXT);
             }
-            UpdateKeyboardViewAltMode(updateSwipePanelData, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources), false);
+            UpdateKeyboardViewAltMode(updateSwipePanelData, PanelFlagRes(keyboardLayout.Resources), FlagDrawable(keyboardLayout.Resources), false);
         } else if (metaFixedModeFirstSymbolAlt) {
             if (IsSym2Mode()) {
                 changed = UpdateNotification(SymOneIconRes, TITLE_SYM2_TEXT);
             } else {
                 changed = UpdateNotification(AltOneIconRes, TITLE_SYM_TEXT);
             }
-            UpdateKeyboardViewAltMode(updateSwipePanelData, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources), true);
+            UpdateKeyboardViewAltMode(updateSwipePanelData, PanelFlagRes(keyboardLayout.Resources), FlagDrawable(keyboardLayout.Resources), true);
         } else if (metaFixedModeCapslock || metaHoldShift) {
             changed = UpdateNotification(keyboardLayout.Resources.IconCapsRes, languageOnScreenNaming);
-            UpdateKeyboardViewShiftMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources));
+            UpdateKeyboardViewShiftMode(updateSwipePanelData, languageOnScreenNaming, PanelFlagRes(keyboardLayout.Resources), FlagDrawable(keyboardLayout.Resources));
         } else if (metaFixedModeFirstLetterUpper) {
             changed = UpdateNotification(keyboardLayout.Resources.IconFirstShiftRes, languageOnScreenNaming);
-            UpdateKeyboardViewShiftOneMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources));
+            UpdateKeyboardViewShiftOneMode(updateSwipePanelData, languageOnScreenNaming, PanelFlagRes(keyboardLayout.Resources), FlagDrawable(keyboardLayout.Resources));
         } else {
             // Случай со строными буквами
             changed = UpdateNotification(keyboardLayout.Resources.IconLowercaseRes, languageOnScreenNaming);
-            UpdateKeyboardViewLetterMode(updateSwipePanelData, languageOnScreenNaming, keyboardLayout.Resources.FlagResId, FlagDrawable(keyboardLayout.Resources));
+            UpdateKeyboardViewLetterMode(updateSwipePanelData, languageOnScreenNaming, PanelFlagRes(keyboardLayout.Resources), FlagDrawable(keyboardLayout.Resources));
         }
 
         // Видимость экранной клавиатуры не зависит от inputType: терминалы
@@ -1343,6 +1343,21 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             Log.w(TAG2, "Значок из пакета " + iconRes.PackageName + " не загружен: " + ex);
             return null;
         }
+    }
+
+    /**
+     * Картинка языка для жестовой панели: флаг раскладки, а если его нет —
+     * значок языка. Прежде тут подставлялся британский флаг, и любая раскладка
+     * без своего флага показывалась английской.
+     */
+    private int PanelFlagRes(KeyboardLayout.KeyboardLayoutOptions options) {
+        if (options == null)
+            return 0;
+        if (options.FlagResId != 0)
+            return options.FlagResId;
+        if (options.IconLowercaseRes != null && options.IconLowercaseRes.DrawableResId != 0)
+            return options.IconLowercaseRes.DrawableResId;
+        return 0;
     }
 
     /** Флаг раскладки: из своих ресурсов или из APK языкового пакета. */
