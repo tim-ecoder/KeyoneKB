@@ -242,6 +242,13 @@ public class WordPredictor {
     public void dropLoadedDictionaries() {
         PredictionEngine e = engine;
         engine = null;
+        // Метка идущей загрузки осталась бы от прежнего движка, и следующий
+        // запрос того же языка просто встал бы в очередь к нему - подсказки
+        // не появились бы до переключения раскладки.
+        synchronized (loadingLocales) {
+            loadingLocales.clear();
+            pendingCallbacks.clear();
+        }
         synchronized (WordPredictor.class) {
             sharedEngine = null;
             sharedEngineMode = -1;

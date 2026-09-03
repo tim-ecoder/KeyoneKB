@@ -85,6 +85,9 @@ def write(path, table, freq, note):
 
 
 def main(lang, kaikki, wik_fwd, wik_rev, lang_freq_path, en_freq_path, agid, out_dir):
+    # Каталог проверяем сразу: сборка словарей занимает минуты, и падать из-за
+    # опечатки в последнем аргументе в самом конце незачем.
+    os.makedirs(out_dir, exist_ok=True)
     lang_freq = read_freq(lang_freq_path)
     en_freq = read_freq(en_freq_path)
 

@@ -65,6 +65,10 @@ def main(src, dst):
                 d = json.loads(line)
             except ValueError:
                 continue
+            if not isinstance(d, dict):
+                # Строка-массив или число: выгрузка большая, и падать на ней
+                # после часа разбора нельзя.
+                continue
             word = (d.get("word") or "").strip().lower()
             if not word or "\t" in word:
                 continue
@@ -88,7 +92,10 @@ def main(src, dst):
                     c = clean(g)
                     if c and c not in got:
                         got.append(c)
-            if got and not is_form:
+            if got:
+                # Слово может быть и леммой, и формой другого слова
+                # («solo» — «alone» и форма «solare»). Свои значения при этом
+                # терять нельзя: наследование от леммы только добавляет.
                 cur = lemmas.setdefault(word, [])
                 for g in got:
                     if g not in cur:

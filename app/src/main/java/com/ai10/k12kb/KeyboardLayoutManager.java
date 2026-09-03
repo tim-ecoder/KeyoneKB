@@ -37,6 +37,13 @@ public class KeyboardLayoutManager {
     public synchronized void Initialize(ArrayList<KeyboardLayout.KeyboardLayoutOptions> activeLayouts, Resources resources, Context context) throws Exception {
 
         Instance = this;
+        // Список раскладок пересобирается заново: Initialize зовут и после
+        // установки пакета, а прежнее содержимое накапливалось — цикл
+        // переключения показывал одну и ту же раскладку дважды, а раскладка
+        // удалённого пакета оставалась в нём навсегда.
+        KeyboardLayoutList.clear();
+        LangListCount = 0;
+        symKeyboardsHashMap.clear();
         KeyboardLayout currentLayout = null;
         String LOAD_STAGE="";
 

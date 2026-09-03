@@ -252,6 +252,18 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
         try {
 
             LOADING_STAGE = "DeserializeFromJson(keyboard_mechanics_res): "+keyboard_mechanics_res;
+            // Механику перечитывают и после onCreate — когда меняется состав
+            // языковых пакетов. Прежнее состояние надо снести целиком: списки
+            // действий дополнялись, и после перезагрузки пробел вставлял два
+            // пробела, а Enter отправлялся дважды.
+            mainModeKeyProcessorsMap.clear();
+            navKeyProcessorsMap.clear();
+            OnStartInput = null;
+            OnFinishInput = null;
+            BeforeSendChar = null;
+            AfterSendChar = null;
+            AnyKeyBeforeAction = null;
+
             KeyboardMechanics = FileJsonUtils.DeserializeFromJsonApplyPatches(keyboard_mechanics_res, new TypeReference<KeyboardMechanics>() {
             }, context);
 
@@ -546,16 +558,11 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
 
         }
 
-        Processable2 p = (Processable2) processable;
-        if(p == null) {
-            p = new Processable2();
-            p.Keyboard = this;
-            p.SetActions(list);
-        } else {
-            // Прежний addAll в общий список означал, что повторная загрузка
-            // механики продублировала бы каждое действие.
-            p.AddActions(list);
-        }
+        // Всегда новый обработчик: дополнение прежнего списка при повторной
+        // загрузке механики удваивало каждое действие.
+        Processable2 p = new Processable2();
+        p.Keyboard = this;
+        p.SetActions(list);
         return p;
     }
 

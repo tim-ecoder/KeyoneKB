@@ -349,6 +349,10 @@ public class NativeTranslationDictionary {
      * то, что успел собрать.
      */
     public void invalidate() {
+        // Метку ставим до попытки взять замок: иначе загрузчик успевает
+        // проверить её между неудачным tryLock и присваиванием и опубликует
+        // словарь, который уже не нужен.
+        stale = true;
         if (lock.tryLock()) {
             try {
                 stale = false;
@@ -356,9 +360,7 @@ public class NativeTranslationDictionary {
             } finally {
                 lock.unlock();
             }
-            return;
         }
-        stale = true;
     }
 
     public String getSourceLang() {

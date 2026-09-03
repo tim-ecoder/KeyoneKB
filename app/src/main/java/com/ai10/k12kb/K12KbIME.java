@@ -1252,21 +1252,28 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     private boolean UpdateNotification(KeyboardLayout.KeyboardLayoutOptions.IconRes iconRes, String notificationText) {
         boolean fromPack = iconRes.PackageName != null;
+        // Номер ресурса из чужого APK система ищет в APK клавиатуры: отдавать
+        // его нельзя ни showStatusIcon, ни уведомлению — покажется чужая
+        // картинка или не покажется ничего.
+        int ownIcon = fromPack ? 0 : NotificationIconId(iconRes);
 
         if (!pref_system_icon_no_notification_text || fromPack) {
             Icon packIcon = fromPack ? PackIcon(iconRes) : null;
             if (fromPack && packIcon == null) {
-                // Картинку из пакета не достали — показываем хотя бы системный
-                // значок, иначе о раскладке не сообщал бы никто.
-                packIconNotificationShown = false;
-                notificationProcessor.CancelLayout();
-                this.showStatusIcon(iconRes.DrawableResId);
-                return true;
+                // Картинку из пакета не достали — уведомление со значком 0
+                // система отвергает исключением, поэтому просто ничего не
+                // показываем до следующего обновления вида.
+                if (packIconNotificationShown) {
+                    packIconNotificationShown = false;
+                    notificationProcessor.CancelLayout();
+                }
+                Log.w(TAG2, "Значок раскладки из пакета недоступен, показывать нечего");
+                return false;
             }
             boolean changed = fromPack
                     ? notificationProcessor.SetSmallIconBitmapLayout(
                             iconRes.PackageName + ":" + NotificationIconId(iconRes), packIcon)
-                    : notificationProcessor.SetSmallIconLayout(NotificationIconId(iconRes));
+                    : notificationProcessor.SetSmallIconLayout(ownIcon);
             changed |= notificationProcessor.SetContentTitleLayout(notificationText);
             if (fromPack) {
                 // В режиме системного значка уведомление снаружи не публикуется
@@ -1284,6 +1291,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             // мы отправили сами, иначе осталось бы висеть навсегда.
             packIconNotificationShown = false;
             notificationProcessor.CancelLayout();
+        }
+        if (ownIcon == 0) {
+            Log.w(TAG2, "У раскладки нет своего значка, слот статус-бара не трогаем");
+            return false;
         }
         this.showStatusIcon(iconRes.DrawableResId);
         return true;
@@ -1315,8 +1326,13 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 return packIconCache.get(key);
         }
         Icon icon = LoadPackIcon(iconRes);
-        synchronized (packIconCache) {
-            packIconCache.put(key, icon);
+        if (icon != null) {
+            // Неудачу не запоминаем: чаще всего она случается ровно во время
+            // установки пакета, и запомненный null означал бы значок, который
+            // уже не появится до перезапуска.
+            synchronized (packIconCache) {
+                packIconCache.put(key, icon);
+            }
         }
         return icon;
     }
@@ -1355,7 +1371,11 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
             return 0;
         if (options.FlagResId != 0)
             return options.FlagResId;
-        if (options.IconLowercaseRes != null && options.IconLowercaseRes.DrawableResId != 0)
+        // Значок из пакета сюда не годится: панель ищет ресурс в APK самой
+        // клавиатуры, и чужой номер дал бы либо пустоту, либо чужую картинку.
+        if (options.IconLowercaseRes != null
+                && options.IconLowercaseRes.PackageName == null
+                && options.IconLowercaseRes.DrawableResId != 0)
             return options.IconLowercaseRes.DrawableResId;
         return 0;
     }
@@ -1370,8 +1390,10 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                 return packFlagCache.get(key);
         }
         Drawable d = LoadFlagDrawable(options);
-        synchronized (packFlagCache) {
-            packFlagCache.put(key, d);
+        if (d != null) {
+            synchronized (packFlagCache) {
+                packFlagCache.put(key, d);
+            }
         }
         return d;
     }
@@ -1511,21 +1533,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
                         return;
                     Log.i(TAG2, "Изменился пакет " + pkg + ", перечитываем языки");
                     LanguagePacks.invalidate();
-                    // Чтение assets всех пакетов, разбор JSON и патчи на Rhino —
-                    // это секунды. На главном потоке они задерживали бы нажатия,
-                    // а у onReceive ещё и свой срок.
-                    final PendingResult result = goAsync();
-                    new Thread(new Runnable() {
-                        public void run() {
-                            try {
-                                ReloadLanguagePacks();
-                            } catch (Throwable ex) {
-                                Log.e(TAG2, "Перечитать языки не удалось: " + ex);
-                            } finally {
-                                result.finish();
-                            }
-                        }
-                    }, "k12kb-packs").start();
+                    ScheduleLanguagePacksReload();
                 }
             };
             IntentFilter filter = new IntentFilter();
@@ -1540,31 +1548,38 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     }
 
     /**
-     * Перечитать раскладки и словари после установки или удаления пакета.
+     * Перечитать раскладки и словари после изменения состава пакетов.
      *
-     * Механика перечитывается следом за раскладками намеренно: имя её файла
-     * выбирается внутри LoadSettingsAndKeyboards, и раскладка из нового пакета
-     * могла принести своё. Работа с интерфейсом возвращается на главный поток.
+     * Работа идёт на главном потоке службы: карты обработчиков клавиш и список
+     * раскладок читает обработчик нажатий, и менять их из фона — гонка, где
+     * нажатие попадает в наполовину заменённый обработчик. Взамен события
+     * складываются в одну отложенную перезагрузку: замена пакета присылает
+     * REMOVED и ADDED подряд, а магазин — десятки подряд.
      */
-    private void ReloadLanguagePacks() throws Exception {
-        synchronized (packIconCache) { packIconCache.clear(); }
-        synchronized (packFlagCache) { packFlagCache.clear(); }
-        LoadSettingsAndKeyboards(deviceFullMODEL);
-        LoadKeyProcessingMechanics(this);
-        if (wordPredictor != null)
-            wordPredictor.dropLoadedDictionaries();
-        EnsurePredictionDictionary();
-        updateTranslationLanguages();
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            public void run() {
-                try {
-                    UpdateKeyboardModeVisualization();
-                } catch (Throwable ex) {
-                    Log.w(TAG2, "Обновить вид клавиатуры не удалось: " + ex);
-                }
-            }
-        });
+    private void ScheduleLanguagePacksReload() {
+        Handler h = new Handler(Looper.getMainLooper());
+        h.removeCallbacks(languagePacksReload);
+        h.postDelayed(languagePacksReload, 700);
     }
+
+    private final Runnable languagePacksReload = new Runnable() {
+        public void run() {
+            try {
+                synchronized (packIconCache) { packIconCache.clear(); }
+                synchronized (packFlagCache) { packFlagCache.clear(); }
+                LoadSettingsAndKeyboards(deviceFullMODEL);
+                LoadKeyProcessingMechanics(K12KbIME.this);
+                if (wordPredictor != null)
+                    wordPredictor.dropLoadedDictionaries();
+                EnsurePredictionDictionary();
+                updateTranslationLanguages();
+                UpdateKeyboardModeVisualization();
+            } catch (Throwable ex) {
+                Log.e(TAG2, "Перечитать языки не удалось: " + ex);
+            }
+        }
+    };
+
 
     private void StopWatchingLanguagePacks() {
         if (languagePackReceiver == null)

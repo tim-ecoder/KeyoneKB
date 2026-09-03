@@ -122,7 +122,9 @@ static int utf8_to_cp(const char *s, int len, uint32_t *out, int out_cap) {
     while (i < len && n < out_cap) {
         unsigned char c = (unsigned char)s[i];
         int clen = utf8_len(c);
-        if (i + clen > len) clen = 1;
+        /* Обрезаем так же, как utf8_count: иначе счётчик и разбор расходятся на
+         * битой последовательности, и последний символ молча теряется. */
+        if (i + clen > len) clen = len - i;
         uint32_t cp;
         switch (clen) {
             case 2: cp = c & 0x1Fu; break;
@@ -1380,8 +1382,16 @@ static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
     uint64_t words_end = (uint64_t)words_off + (uint64_t)word_count * sizeof(ss_map_word_t);
     uint64_t dels_end  = (uint64_t)deletes_off + (uint64_t)cap * sizeof(ss_map_del_t);
     uint64_t bg_end    = (uint64_t)bigrams_off + (uint64_t)bigram_count * 16u;
+    /* Строки читаются strlen/strcmp от смещения: без нуля в конце блока чтение
+     * уходит за отображение. И смещения должны быть кратны четырём — по ним
+     * читаются структуры и массивы uint32. */
+    int blob_terminated = file_size > strings_off
+            && ((const char *)base)[file_size - 1] == '\0';
+    int aligned = ((words_off | deletes_off | ids_off | bigrams_off) & 3u) == 0;
     int header_sane =
-            expect_size == file_size
+            blob_terminated
+            && aligned
+            && expect_size == file_size
             && strings_off <= file_size
             && words_off >= SS_V4_HEADER_BYTES
             && words_end <= deletes_off

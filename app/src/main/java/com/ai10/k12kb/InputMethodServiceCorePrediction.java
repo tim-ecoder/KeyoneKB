@@ -215,7 +215,7 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         updateTranslationLanguages();
         String from = translationManager.getSourceLang();
         String to = translationManager.getTargetLang();
-        if (from != null && from.equals(to)) {
+        if (from != null && from.equals(to) && !translationManager.isEnabled()) {
             // Второго языка на устройстве нет: включать режим не во что, и
             // тост с направлением вида EN → EN только сбивал бы с толку.
             Toast.makeText(getApplicationContext(),

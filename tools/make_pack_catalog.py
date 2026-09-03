@@ -54,19 +54,31 @@ def versions():
                      "idx": (int(icode), iname)}
     if not out:
         raise SystemExit("не разобрал packLanguages в langpack/build.gradle")
+    block = re.search(r"packLanguages\s*=\s*\[(.*?)\n    \]", text, re.S)
+    # Считаем по title: он есть ровно у каждого языка и ровно один раз,
+    # а «code:» и «base:» встречаются и в продолжении записи.
+    declared = len(re.findall(r"\btitle\s*:", block.group(1))) if block else 0
+    if declared != len(out):
+        # Разобрано меньше, чем объявлено: язык собирается, а в каталог не
+        # попадает — заметить это можно было бы только по его отсутствию.
+        raise SystemExit("в packLanguages %d языков, разобрано %d — проверьте запись"
+                         % (declared, len(out)))
     return out
 
 
-def apk_version(path):
-    """versionCode из самого APK: каталог обязан описывать то, что выложено."""
+def find_aapt():
+    """aapt из build-tools; None — значит сверить версию не с чем."""
     aapt = None
     sdk = os.environ.get("ANDROID_HOME") or os.path.expanduser("~/android-sdk")
     for root, _dirs, files in os.walk(os.path.join(sdk, "build-tools")):
         if "aapt" in files:
             aapt = os.path.join(root, "aapt")
             break
-    if not aapt:
-        return None
+    return aapt
+
+
+def apk_version(path, aapt):
+    """versionCode из самого APK: каталог обязан описывать то, что выложено."""
     try:
         out = subprocess.check_output([aapt, "dump", "badging", path],
                                       stderr=subprocess.DEVNULL).decode("utf-8", "replace")
@@ -86,6 +98,11 @@ def main():
         # Язык собирается, а описания для каталога нет — на экране установки он
         # появился бы безымянной строкой.
         raise SystemExit("нет описания в CONTENTS для: " + ", ".join(sorted(missing)))
+    aapt = find_aapt()
+    if not aapt:
+        # Молча пропустить сверку нельзя: каталог тогда обещает версии, которых
+        # в выложенных APK нет, и обновление предлагается вечно.
+        print("ВНИМАНИЕ: aapt не найден, версии APK не сверяются", file=sys.stderr)
     packs = []
     for lang in langs:
         items = []
@@ -96,17 +113,22 @@ def main():
                 print("нет APK: " + apk, file=sys.stderr)
                 return 1
             code, name = langs[lang]["base" if flavor == "base" else "idx"]
-            built = apk_version(apk)
+            built = apk_version(apk, aapt) if aapt else None
             if built is not None and built != code:
                 raise SystemExit("%s собран с versionCode %d, а в build.gradle %d — "
                                  "пересоберите пакет" % (os.path.basename(apk), built, code))
+            size_mb = int(round(os.path.getsize(apk) / 1048576.0))
+            if flavor != "base" and size_mb < 1:
+                raise SystemExit("%s почти пустой (%d байт): похоже, индексы не собраны, "
+                                 "запустите tools/build_indexes.sh"
+                                 % (os.path.basename(apk), os.path.getsize(apk)))
             items.append({
                 "kind": flavor,
                 "title": label,
                 "package": "com.ai10.k12kb.lang." + lang + suffix,
                 "version-code": code,
                 "version-name": name,
-                "size-mb": int(round(os.path.getsize(apk) / 1048576.0)),
+                "size-mb": size_mb,
                 "contents": note if note else CONTENTS[lang],
                 "url": TAG + os.path.basename(apk),
             })
