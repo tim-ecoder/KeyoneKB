@@ -142,16 +142,16 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
             STEP = "CreateIconRes";
             Log.i(TAG2, "onCreate STEP: " + STEP);
-            AltOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt_one, R.drawable.ic_kb_alt_one);
-            AltAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt_all);
-            AltHoldIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_alt, R.drawable.ic_kb_alt);
-            SymOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym_one, R.drawable.ic_kb_sym_one);
-            SymAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym_all);
-            SymHoldIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_sym, R.drawable.ic_kb_sym);
+            AltOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(0, R.drawable.ic_kb_alt_one);
+            AltAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(0, R.drawable.ic_kb_alt_all);
+            AltHoldIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(0, R.drawable.ic_kb_alt);
+            SymOneIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(0, R.drawable.ic_kb_sym_one);
+            SymAllIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(0, R.drawable.ic_kb_sym_all);
+            SymHoldIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(0, R.drawable.ic_kb_sym);
 
-            navIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav, R.drawable.ic_kb_nav);
-            navFnIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_nav_fn, R.drawable.ic_kb_nav_fn);
-            digitsPadIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(R.mipmap.ic_kb_digits, R.drawable.ic_kb_digits);
+            navIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(0, R.drawable.ic_kb_nav);
+            navFnIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(0, R.drawable.ic_kb_nav_fn);
+            digitsPadIconRes = KeyboardLayout.KeyboardLayoutOptions.CreateIconRes(0, R.drawable.ic_kb_digits);
 
             STEP = "telephony setup";
             Log.i(TAG2, "onCreate STEP: " + STEP);

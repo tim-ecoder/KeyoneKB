@@ -153,10 +153,11 @@ def main(root="."):
             im = im.convert("LA")
             for f in folders:
                 im.save(os.path.join(f, name + ".png"), optimize=True)
-    # значки режимов лежат и в drawable, и в mipmap: первый берёт статус-бар,
-    # второй — уведомление
-    mode_folders = [os.path.join(root, "app/src/main/res", f)
-                    for f in ("drawable-xhdpi", "mipmap-hdpi")]
+    # Все значки — в одной плотности. Копия в mipmap-hdpi казалась нужной для
+    # уведомления, но система масштабировала её под xhdpi, и подпись выходила
+    # в полтора раза крупнее, чем у значков языков, которые лежат только в
+    # drawable-xhdpi.
+    mode_folders = [os.path.join(root, "app/src/main/res", "drawable-xhdpi")]
     arrows = sprite("nav_arrows.png")
     for name, (text, underline) in MODES.items():
         # у навигации подпись ужимается, чтобы под ней поместились стрелки
