@@ -32,6 +32,8 @@ typedef struct symspell symspell_t;
 /* Create/destroy */
 symspell_t *ss_create(int max_edit_distance, int prefix_length);
 void        ss_destroy(symspell_t *ss);
+/** 1, если индекс читается прямо из отображённого файла (формат v4). */
+int         ss_is_mapped(const symspell_t *ss);
 
 /* Dictionary building */
 void ss_add_word(symspell_t *ss, const char *word, const char *original, int frequency);

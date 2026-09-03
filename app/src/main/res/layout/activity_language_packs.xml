@@ -23,6 +23,16 @@
             style="@style/SectionHeader"
             android:text="@string/packs_section_available" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:paddingBottom="8dp"
+            android:text="@string/packs_dict_note"
+            android:textColor="?attr/textSecondaryColor"
+            android:textSize="12sp" />
+
         <LinearLayout
             android:id="@+id/packs_list"
             android:layout_width="match_parent"

@@ -2,9 +2,14 @@ package com.ai10.k12kb;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -139,6 +144,7 @@ public class ActivityPredictionSettings extends Activity {
             if (dictSizeValues[i] == dictSizeInit) { dictSizePos = i; break; }
         }
         spinnerDictSize.setSelection(dictSizePos);
+        SetupDictSizeNote();
         spinnerDictSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 int newSize = dictSizeValues[position];
@@ -174,35 +180,6 @@ public class ActivityPredictionSettings extends Activity {
         });
 
         // Translation dictionary size spinner
-        final int[] transDictSizeValues = {35000, 100000, 200000, 0};
-        final Spinner spinnerTransDictSize = (Spinner) findViewById(R.id.spinner_trans_dict_size);
-        ArrayAdapter<CharSequence> transDictAdapter = ArrayAdapter.createFromResource(
-                this, R.array.pref_trans_dict_size_array, android.R.layout.simple_spinner_item);
-        transDictAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerTransDictSize.setAdapter(transDictAdapter);
-        int transDictSizeInit = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
-        int transDictSizePos = 0;
-        for (int i = 0; i < transDictSizeValues.length; i++) {
-            if (transDictSizeValues[i] == transDictSizeInit) { transDictSizePos = i; break; }
-        }
-        spinnerTransDictSize.setSelection(transDictSizePos);
-        spinnerTransDictSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                int newSize = transDictSizeValues[position];
-                int currentSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
-                if (newSize == currentSize) return;
-                k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE, newSize);
-                NativeTranslationDictionary.clearTrimmedCaches(getApplicationContext());
-                refreshTranslationStatus();
-                refreshCacheStatus();
-                Toast.makeText(getApplicationContext(),
-                        getString(R.string.pred_trans_dict_size_changed),
-                        Toast.LENGTH_LONG).show();
-            }
-            public void onNothingSelected(AdapterView<?> parent) {
-                spinnerTransDictSize.setSelection(0);
-            }
-        });
 
         tvTranslationStatus = (TextView) findViewById(R.id.tv_translation_status);
     }
@@ -225,7 +202,6 @@ public class ActivityPredictionSettings extends Activity {
         final String strPhrases = getString(R.string.pred_translation_phrases);
         final String strNotFound = getString(R.string.pred_translation_not_found);
         final String strExternal = getString(R.string.pred_translation_external);
-        final int maxEntries = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
 
         // Направления перевода строятся от установленных языков, а не из
         // жёсткого списка: перевод всегда идёт через английский, поэтому для
@@ -263,16 +239,12 @@ public class ActivityPredictionSettings extends Activity {
                     }
                     br.close();
                     int totalEntries = wordCount + phraseCount;
-                    boolean trimmed = maxEntries > 0 && maxEntries < totalEntries;
+                    // Словарь перевода грузится целиком: он отображается с диска
+                    // и памяти почти не занимает, поэтому ограничивать нечего.
                     sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ");
-                    if (trimmed) {
-                        sb.append(maxEntries).append(" / ").append(totalEntries)
-                          .append(" (").append(strWords).append(" + ").append(strPhrases).append(")");
-                    } else {
-                        sb.append(wordCount).append(" ").append(strWords);
-                        if (phraseCount > 0) {
-                            sb.append(" + ").append(phraseCount).append(" ").append(strPhrases);
-                        }
+                    sb.append(wordCount).append(" ").append(strWords);
+                    if (phraseCount > 0) {
+                        sb.append(" + ").append(phraseCount).append(" ").append(strPhrases);
                     }
                     sb.append("\n");
                 } catch (Exception e) {
@@ -385,6 +357,7 @@ public class ActivityPredictionSettings extends Activity {
         // Раньше здесь искался ru.ssnd, поэтому экран всегда сообщал, что кэша
         // нет, — хотя собранный словарь лежал рядом.
         File[] cacheFiles = nativeCacheDir.listFiles();
+        long total = 0;
         List<String> locales = LanguagePacks.availableLanguages(getApplicationContext());
         for (String locale : locales) {
             long size = 0;
@@ -410,12 +383,46 @@ public class ActivityPredictionSettings extends Activity {
                 sb.append(size / (1024 * 1024)).append(" MB");
                 if (limit != null)
                     sb.append(" (").append(limit).append(")");
+                total += size;
             } else {
                 sb.append(getString(R.string.pred_cache_missing));
             }
             sb.append("\n");
         }
 
+        // Итог по диску: решение об объёме словаря принимается по этой цифре,
+        // а не по ощущениям — памяти индексы почти не занимают, а место занимают.
+        sb.append("\n").append(getString(R.string.pred_cache_total)).append(": ")
+          .append(total / (1024 * 1024)).append(" MB\n")
+          .append(getString(R.string.pred_cache_hint));
+
         tvCacheStatus.setText(sb.toString().trim());
     }
+
+    /**
+     * Пояснение под выбором размера: почему после смены значения клавиатура
+     * какое-то время думает. Слова «кеш словарей» ведут на страницу пакетов —
+     * оттуда кеш можно получить готовым и не ждать вовсе.
+     */
+    private void SetupDictSizeNote() {
+        TextView note = (TextView) findViewById(R.id.dict_size_note);
+        if (note == null) return;
+        String text = getString(R.string.pref_dict_size_note);
+        String link = getString(R.string.pref_dict_size_note_link);
+        int at = text.indexOf(link);
+        if (at < 0) {
+            note.setText(text);
+            return;
+        }
+        SpannableString span = new SpannableString(text);
+        span.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(View widget) {
+                startActivity(new Intent(ActivityPredictionSettings.this, ActivityLanguagePacks.class));
+            }
+        }, at, at + link.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        note.setText(span);
+        note.setMovementMethod(LinkMovementMethod.getInstance());
+    }
+
 }

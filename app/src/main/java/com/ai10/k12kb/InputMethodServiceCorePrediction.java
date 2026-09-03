@@ -513,8 +513,9 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             });
             // Initialize translation manager
             translationManager = new TranslationManager(getApplicationContext());
-            int transDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
-            translationManager.setMaxEntries(transDictSize);
+            // Словарь перевода грузится целиком: индекс отображается с диска и
+            // в память не копируется, поэтому урезать его незачем.
+            translationManager.setMaxEntries(0);
             translationManager.setOnDictionaryLoadedListener(() -> uiHandler.post(() -> {
                 if (suggestionBar == null || wordPredictor == null || translationManager == null) return;
                 if (!translationManager.isEnabled()) return;
@@ -553,8 +554,7 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
             EnsurePredictionDictionary();
         }
         if (translationManager != null) {
-            int newTransDictSize = k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_25_TRANS_DICT_SIZE);
-            translationManager.setMaxEntries(newTransDictSize);
+            translationManager.setMaxEntries(0);
         }
     }
 

@@ -27,3 +27,6 @@ K12KB-*.apk
 build_number.txt
 /build_ci/
 /langpack/build/
+
+# Готовые индексы собираются скриптом и раздаются релизом — в истории им не место
+langpack/src/*/assets/dictionaries/*.ssnd

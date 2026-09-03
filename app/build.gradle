@@ -7,13 +7,13 @@ plugins {
 android {
     signingConfigs {
         debug {
-            storeFile file('d:\\Programming\\keystores\\keystore2.jks')
+            storeFile file('/data/@SIGNING-KEYS/keystore2.jks')
             storePassword 'qwerty'
             keyAlias 'key0'
             keyPassword 'qwerty'
         }
         release {
-            storeFile file('d:\\Programming\\keystores\\keystore2.jks')
+            storeFile file('/data/@SIGNING-KEYS/keystore2.jks')
             storePassword 'qwerty'
             keyAlias 'key0'
             keyPassword 'qwerty'
@@ -28,6 +28,7 @@ android {
 
     aaptOptions {
         noCompress '.cdb'
+        noCompress '.ssnd'
     }
 
     defaultConfig {

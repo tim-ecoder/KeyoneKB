@@ -6,6 +6,7 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -350,6 +351,70 @@ public class NativeSymSpellEngine implements PredictionEngine {
         return value;
     }
 
+    /**
+     * Готовый индекс: сначала папка приложения, затем языковой пакет.
+     *
+     * Из пакета файл нельзя открыть по пути — он лежит внутри чужого APK,
+     * поэтому копируется рядом с кэшем один раз. Копия делается только если её
+     * ещё нет: файл большой, и переписывать его на каждый запуск незачем.
+     */
+    private NativeSymSpell LoadPrebuiltIndex(Context context, String locale) {
+        // Имя несёт предел размера: пакет привозит индекс под конкретное значение
+        // настройки. Стоит пользователю выбрать другой объём — подходящего файла
+        // не найдётся, и словарь соберётся на устройстве под новый предел.
+        String name = cacheName(locale);
+
+        File own = new File(context.getFilesDir(), CACHE_DIR + "/" + name);
+        if (own.exists()) {
+            NativeSymSpell ns = NativeSymSpell.loadFromCache(own.getAbsolutePath());
+            if (ns != null && ns.size() > 0) {
+                Log.i(TAG, "Готовый индекс из папки приложения: " + own);
+                return ns;
+            }
+            if (ns != null) ns.destroy();
+        }
+
+        String asset = "dictionaries/" + name;
+        File copied = new File(context.getFilesDir(), CACHE_DIR + "/pack-" + name);
+        if (!copied.exists()) {
+            InputStream is = null;
+            try {
+                is = context.getAssets().open(asset);
+            } catch (Throwable ignored) {
+                is = LanguagePacks.open(context, asset);
+            }
+            if (is == null)
+                return null;
+            try {
+                File dir = new File(context.getFilesDir(), CACHE_DIR);
+                dir.mkdirs();
+                File tmp = new File(dir, "pack-" + name + ".tmp");
+                FileOutputStream out = new FileOutputStream(tmp);
+                byte[] buf = new byte[1 << 18];
+                int n;
+                while ((n = is.read(buf)) > 0) out.write(buf, 0, n);
+                out.close();
+                is.close();
+                if (!tmp.renameTo(copied)) {
+                    tmp.delete();
+                    return null;
+                }
+                Log.i(TAG, "Индекс из пакета распакован: " + copied.length() + " байт");
+            } catch (Throwable ex) {
+                Log.w(TAG, "Индекс из пакета не распакован: " + ex);
+                return null;
+            }
+        }
+
+        NativeSymSpell ns = NativeSymSpell.loadFromCache(copied.getAbsolutePath());
+        if (ns != null && ns.size() > 0) {
+            Log.i(TAG, "Готовый индекс из пакета: " + copied);
+            return ns;
+        }
+        if (ns != null) ns.destroy();
+        return null;
+    }
+
     private String cacheName(String locale) {
         return locale + "-" + (maxWords > 0 ? String.valueOf(maxWords) : "full") + ".ssnd";
     }
@@ -369,8 +434,16 @@ public class NativeSymSpellEngine implements PredictionEngine {
         long startTime = System.currentTimeMillis();
         String cachePath = cachePath(context, locale);
 
-        // Try native binary cache first (mmap — very fast, no text re-parse needed)
-        NativeSymSpell ns = NativeSymSpell.loadFromCache(cachePath);
+        // Порядок источников:
+        //   1. готовый индекс в папке приложения (положен пользователем);
+        //   2. готовый индекс из языкового пакета;
+        //   3. свой кэш, собранный ранее;
+        //   4. текстовый словарь — собрать и закэшировать (см. ниже).
+        // Готовый индекс открывается отображением: ни сборки, ни расхода памяти.
+        // Ограничение размера к нему не применяется — он собран целиком.
+        NativeSymSpell ns = LoadPrebuiltIndex(context, locale);
+        if (ns == null)
+            ns = NativeSymSpell.loadFromCache(cachePath);
         boolean fromCache = (ns != null && ns.size() > 0);
         if (ns != null && !fromCache) {
             ns.destroy();
@@ -418,6 +491,13 @@ public class NativeSymSpellEngine implements PredictionEngine {
                 return null;
             }
 
+            // Слова пользователя подмешиваются ДО построения индекса. Раньше они
+            // добавлялись после, и индекс на сотни тысяч слов строился второй раз
+            // целиком: у английского это 5.7 секунды сборки плюс ещё 8.5 на
+            // пересборку — вдвое дольше на ровном месте.
+            if (withUserWords)
+                loadUserWords(ns, context);
+
             long buildStart = System.currentTimeMillis();
             ns.buildIndex();
             ns.buildBigramIndex();
@@ -431,7 +511,16 @@ public class NativeSymSpellEngine implements PredictionEngine {
                     + " words in " + elapsed + "ms");
         }
 
-        if (withUserWords) {
+        // Ниже — только для словаря, поднятого из готового индекса: при сборке из
+        // текста слова пользователя уже подмешаны выше.
+        if (withUserWords && !fromCache) {
+            // ничего: слова добавлены до построения индекса
+        } else if (withUserWords && ns.isMapped()) {
+            // Готовый индекс неизменяем: он лежит в файле и читается отображением.
+            // Пользовательские слова в него не добавить — для них нужна отдельная
+            // надстройка в памяти, её пока нет (см. /data/@K12KB/todo-ssnd).
+            Log.i(TAG, "Готовый индекс " + locale + " неизменяем, слова пользователя не добавляются");
+        } else if (withUserWords) {
             // Always merge user words (even after a cache load — user may have added new ones)
             int before = ns.size();
             loadUserWords(ns, context);

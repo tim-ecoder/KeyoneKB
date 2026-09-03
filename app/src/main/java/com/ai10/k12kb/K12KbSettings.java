@@ -108,6 +108,10 @@ public class K12KbSettings {
         CheckSettingOrSetDefault(APP_PREFERENCES_21_WORD_LEARNING, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_22_TRANSLATION_COUNT, 4);
         CheckSettingOrSetDefault(APP_PREFERENCES_23_PREDICTION_BAR_HIDDEN, false);
+        // Столько же, сколько в кеше внутри самого языкового пакета: при этом
+        // значении словарь берётся отображением из пакета и подсказки работают
+        // сразу после установки, без ожидания сборки. Размеры крупнее — либо
+        // отдельным пакетом-кешем, либо сборкой на устройстве.
         CheckSettingOrSetDefault(APP_PREFERENCES_24_DICT_SIZE, 35000);
         CheckSettingOrSetDefault(APP_PREFERENCES_25_TRANS_DICT_SIZE, 35000);
         CheckSettingOrSetDefault(APP_PREFERENCES_26_NEXT_WORD_PREDICTION, true);

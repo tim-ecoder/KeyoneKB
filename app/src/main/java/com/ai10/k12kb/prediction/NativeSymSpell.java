@@ -83,6 +83,14 @@ public class NativeSymSpell {
      * Load from binary cache file (fast — uses mmap).
      * Returns null if loading fails.
      */
+    /**
+     * Открыт ли словарь отображением файла (формат v4). Такой словарь неизменяем:
+     * добавить в него слова нельзя, таблицы лежат в файле.
+     */
+    public boolean isMapped() {
+        return nativePtr != 0 && nativeIsMapped(nativePtr);
+    }
+
     public static NativeSymSpell loadFromCache(String path) {
         if (!libraryLoaded) return null;
         long ptr = nativeLoadMmapStatic(path);
@@ -244,6 +252,7 @@ public class NativeSymSpell {
     private static native long nativeLoadMmapStatic(String path);
 
     /* Native methods */
+    private native boolean nativeIsMapped(long ptr);
     private native long nativeCreate(int maxEditDistance, int prefixLength);
     private native void nativeAddWord(long ptr, String word, String original, int frequency);
     private native void nativeBuildIndex(long ptr);

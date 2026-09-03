@@ -119,12 +119,12 @@
     <string name="pref_next_word_prediction">26. Предсказание следующего слова (биграммы)</string>
     <string name="pref_keyboard_aware">27. Учёт раскладки клавиатуры при коррекции</string>
     <string name="prediction_loading_toast">Словарь загружается, подождите…</string>
-    <string name="pref_dict_size_title">24. Размер словаря</string>
+    <string name="pref_dict_size_title">24. Объём словаря — место на диске и время первой сборки</string>
     <string-array name="pref_dict_size_array">
-        <item>Минимальный (35 тыс. слов, ~8 МБ)</item>
-        <item>Обычный (150 тыс. слов, ~35 МБ)</item>
-        <item>Большой (300 тыс. слов, ~70 МБ)</item>
-        <item>Полный (все слова, ~150 МБ)</item>
+        <item>Минимальный (35 тыс. слов)</item>
+        <item>Обычный (150 тыс. слов)</item>
+        <item>Большой (300 тыс. слов)</item>
+        <item>Полный (все слова)</item>
     </string-array>
     <string name="pred_dict_size_changed">Кеш словарей очищен. Перезапустите клавиатуру.</string>
     <string name="pref_trans_dict_size_title">25. Размер словаря перевода</string>
@@ -138,7 +138,7 @@
     <string name="main_btn_prediction_settings">Предективный ввод</string>
     <string name="pred_section_settings">НАСТРОЙКИ</string>
     <string name="pred_section_status">СТАТУС СЛОВАРЕЙ</string>
-    <string name="pred_section_cache">КЕШ</string>
+    <string name="pred_section_cache">СОБРАННЫЕ ИНДЕКСЫ</string>
     <string name="pred_status_engine">Движок</string>
     <string name="pred_status_loaded">загружен</string>
     <string name="pred_status_loading">загружается\u2026</string>
@@ -170,8 +170,8 @@
     <string name="settingsBlockExtra">Прочее</string>
     <string name="main_interface_language">Язык интерфейса</string>
 
-    <string name="packs_title">Языковые пакеты</string>
-    <string name="packs_header_hint">Раскладки, подсказки и перевод для других языков живут в отдельных приложениях. Клавиатура читает их локально и в сеть не выходит — скачивание открывается в браузере.</string>
+    <string name="packs_title">Языковые пакеты и словари</string>
+    <string name="packs_header_hint">Раскладки, подсказки и перевод для других языков живут в отдельных приложениях, а готовые словари — в ещё отдельных: ставьте только нужное. Клавиатура читает их локально и в сеть не выходит, скачивание открывается в браузере.</string>
     <string name="packs_section_available">Пакеты</string>
     <string name="packs_section_updates">Обновления</string>
     <string name="packs_installed">Установлен</string>
@@ -181,7 +181,7 @@
     <string name="packs_up_to_date">актуальная версия</string>
     <string name="packs_open_release_page">Открыть страницу релизов</string>
     <string name="packs_catalog_missing">В этой сборке нет каталога пакетов</string>
-    <string name="main_btn_language_packs">Языковые пакеты</string>
+    <string name="main_btn_language_packs">Языковые пакеты и словари</string>
     <string name="packs_action_reinstall">Скачать / обновить</string>
     <string name="packs_action_uninstall">Удалить пакет</string>
     <string name="packs_badge_update">ОБНОВИТЬ</string>
@@ -189,4 +189,9 @@
     <string name="packs_action_uninstall_short">Удалить</string>
     <string name="packs_after_install_hint">После установки пакета его раскладки выключены. Откройте настройки и включите нужные — они появятся в списке раскладок клавиатуры.</string>
     <string name="packs_open_layout_settings">Открыть раскладки клавиатуры ›</string>
+    <string name="pred_cache_total">Всего на диске</string>
+    <string name="pred_cache_hint">Индексы читаются с диска, поэтому их объём больше не стоит памяти — только места на диске и ожидания при первой сборке словаря.</string>
+    <string name="packs_dict_note">Это готовые кеши для быстрой загрузки. Сами словари входят в базовый языковой пакет: поменяйте размер словаря в настройках, и кеш соберётся автоматически — это займёт 5–15 секунд.</string>
+    <string name="pref_dict_size_note">Если у вас не предзагружен кеш словарей, то кеширование будет занимать от 5 до 20 секунд в зависимости от выбранного объёма словаря.</string>
+    <string name="pref_dict_size_note_link">кеш словарей</string>
 </resources>

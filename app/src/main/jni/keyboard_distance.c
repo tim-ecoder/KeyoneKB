@@ -7,6 +7,7 @@
  */
 
 #include "keyboard_distance.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -72,20 +73,60 @@ static float key_distance(int r1, int c1, int r2, int c2) {
     return 1.0f;                             /* far */
 }
 
-float kb_substitution_cost(unsigned char a, unsigned char b, const char *layout) {
+/* Раскладка определяется по самим символам, а не по имени: у пары кириллических
+ * букв близость считается по ЙЦУКЕН, у латинских — по QWERTY. Прежняя версия
+ * смотрела только на latin a-z и на строку layout, которую никто не задавал,
+ * поэтому для русского учёт соседних клавиш не работал вовсе, а таблицы
+ * ЙЦУКЕН лежали без дела. */
+float kb_substitution_cost_cp(uint32_t a, uint32_t b, const char *layout) {
+    (void)layout;
     if (a == b) return 0.0f;
 
-    if (layout && strcmp(layout, "qwerty") == 0) {
-        /* ASCII lowercase letters only */
-        if (a >= 'a' && a <= 'z' && b >= 'a' && b <= 'z') {
-            int ia = a - 'a', ib = b - 'a';
-            return key_distance(qwerty_row[ia], qwerty_col[ia],
-                               qwerty_row[ib], qwerty_col[ib]);
+    if (a >= 'a' && a <= 'z' && b >= 'a' && b <= 'z') {
+        int ia = (int)a - 'a', ib = (int)b - 'a';
+        return key_distance(qwerty_row[ia], qwerty_col[ia],
+                            qwerty_row[ib], qwerty_col[ib]);
+    }
+
+    /* ё стоит отдельно от ряда а-я, на клавише слева от единицы */
+    if ((a >= 0x430 && a <= 0x44F) || a == 0x451) {
+        if ((b >= 0x430 && b <= 0x44F) || b == 0x451) {
+            int ia = (a == 0x451) ? -1 : (int)(a - 0x430);
+            int ib = (b == 0x451) ? -1 : (int)(b - 0x430);
+            int ra = ia < 0 ? 0 : russian_row[ia];
+            int ca = ia < 0 ? 12 : russian_col[ia];
+            int rb = ib < 0 ? 0 : russian_row[ib];
+            int cb = ib < 0 ? 12 : russian_col[ib];
+            return key_distance(ra, ca, rb, cb);
         }
     }
 
-    /* Default: full cost */
     return 1.0f;
+}
+
+float kb_substitution_cost(unsigned char a, unsigned char b, const char *layout) {
+    return kb_substitution_cost_cp((uint32_t)a, (uint32_t)b, layout);
+}
+
+/** Разбор UTF-8 в кодовые точки. @return число символов, -1 если не поместилось. */
+static int utf8_decode(const char *s, int len, uint32_t *out, int out_cap) {
+    int i = 0, n = 0;
+    while (i < len) {
+        if (n >= out_cap) return -1;
+        unsigned char c = (unsigned char)s[i];
+        uint32_t cp;
+        int clen;
+        if (c < 0x80) { cp = c; clen = 1; }
+        else if ((c & 0xE0) == 0xC0) { cp = c & 0x1F; clen = 2; }
+        else if ((c & 0xF0) == 0xE0) { cp = c & 0x0F; clen = 3; }
+        else if ((c & 0xF8) == 0xF0) { cp = c & 0x07; clen = 4; }
+        else { cp = c; clen = 1; }
+        for (int k = 1; k < clen && i + k < len; k++)
+            cp = (cp << 6) | ((unsigned char)s[i + k] & 0x3F);
+        out[n++] = cp;
+        i += clen;
+    }
+    return n;
 }
 
 /* ---- Weighted Damerau-Levenshtein -------------------------------------- */
@@ -94,6 +135,16 @@ float kb_weighted_distance(const char *a, int alen,
                            const char *b, int blen,
                            int max_distance,
                            const char *layout) {
+    /* Считаем по символам: у кириллицы байтовая длина вдвое больше, и на байтах
+     * расстояние получалось завышенным, а перестановки букв не опознавались. */
+    uint32_t abuf[128], bbuf[128];
+    uint32_t *ca = abuf, *cb = bbuf;
+    int alen_cp = utf8_decode(a, alen, abuf, 128);
+    int blen_cp = utf8_decode(b, blen, bbuf, 128);
+    if (alen_cp < 0 || blen_cp < 0) return -1.0f;
+    alen = alen_cp;
+    blen = blen_cp;
+
     if (abs(alen - blen) > max_distance) return -1.0f;
     if (alen == 0) return (float)blen;
     if (blen == 0) return (float)alen;
@@ -111,8 +162,7 @@ float kb_weighted_distance(const char *a, int alen,
         curr[0] = (float)i;
         float min_row = curr[0];
         for (int j = 1; j <= blen; j++) {
-            float sub_cost = kb_substitution_cost(
-                (unsigned char)a[i - 1], (unsigned char)b[j - 1], layout);
+            float sub_cost = kb_substitution_cost_cp(ca[i - 1], cb[j - 1], layout);
             float del_val = prev[j] + 1.0f;
             float ins_val = curr[j - 1] + 1.0f;
             float rep_val = prev[j - 1] + sub_cost;
@@ -121,7 +171,7 @@ float kb_weighted_distance(const char *a, int alen,
             if (rep_val < val) val = rep_val;
             /* Transposition */
             if (i > 1 && j > 1 &&
-                a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1]) {
+                ca[i - 1] == cb[j - 2] && ca[i - 2] == cb[j - 1]) {
                 float trans = prev_prev[j - 2] + 1.0f;
                 if (trans < val) val = trans;
             }

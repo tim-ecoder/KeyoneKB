@@ -278,6 +278,12 @@ Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeDestroy(
 /*
  * native int nativeSize(long ptr);
  */
+JNIEXPORT jboolean JNICALL
+Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeIsMapped(JNIEnv *env, jobject thiz, jlong ptr) {
+    (void)env; (void)thiz;
+    return ss_is_mapped((symspell_t *)(intptr_t)ptr) ? JNI_TRUE : JNI_FALSE;
+}
+
 JNIEXPORT jint JNICALL
 Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeSize(
         JNIEnv *env, jobject thiz, jlong ptr) {

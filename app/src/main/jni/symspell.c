@@ -74,6 +74,33 @@ static char *arena_strdup(arena_t *a, const char *s) {
 
 /* ---- Hash table (open addressing, linear probing) ---------------------- */
 
+/* ---- UTF-8 ------------------------------------------------------------- */
+
+/** Длина символа по его первому байту. Для битого байта — 1, чтобы не зациклиться. */
+static int utf8_len(unsigned char c) {
+    if (c < 0x80) return 1;
+    if ((c & 0xE0) == 0xC0) return 2;
+    if ((c & 0xF0) == 0xE0) return 3;
+    if ((c & 0xF8) == 0xF0) return 4;
+    return 1;
+}
+
+/**
+ * Сколько байт занимают первые max_chars символов.
+ *
+ * Длина префикса задана в символах, а не в байтах. При счёте по байтам
+ * кириллица получала вдвое более короткий префикс — индекс строился по трём
+ * буквам вместо семи, и на один шаблон приходилась сотня слов вместо горстки.
+ */
+static int utf8_prefix_bytes(const char *s, int len, int max_chars) {
+    int i = 0, chars = 0;
+    while (i < len && chars < max_chars) {
+        i += utf8_len((unsigned char)s[i]);
+        chars++;
+    }
+    return i > len ? len : i;
+}
+
 static uint32_t fnv1a(const char *s) {
     uint32_t h = 2166136261u;
     for (; *s; s++) {
@@ -152,7 +179,123 @@ struct symspell {
     void  *mmap_base;
     size_t mmap_size;
     int    mmap_fd;
+
+    /*
+     * Формат v4: индекс читается прямо из отображённого файла.
+     * Прежний v3 после отображения перекладывал таблицы в кучу — на полном
+     * словаре это сотни мегабайт занятой памяти. Здесь в куче не остаётся
+     * ничего, кроме крошечных биграмм: поиск идёт по страницам файла, и
+     * система вытесняет их сама, когда памяти мало.
+     */
+    int             mapped;
+    const uint8_t  *map_words;    /* word_count записей ss_map_word_t */
+    const uint8_t  *map_deletes;  /* deletes_cap слотов ss_map_del_t */
+    const uint32_t *map_ids;      /* списки индексов слов */
+    const char     *map_strings;  /* строки, каждая с нулём на конце */
 };
+
+/* Записи файла v4: только смещения, никаких указателей — файл переносим. */
+typedef struct { uint32_t norm_off; uint32_t orig_off; int32_t freq; } ss_map_word_t;
+typedef struct { uint32_t key_off; uint32_t ids_off; uint32_t ids_count; } ss_map_del_t;
+
+#define SS_MAP_EMPTY 0xFFFFFFFFu
+
+static const ss_map_word_t *map_word(const symspell_t *ss, uint32_t i) {
+    return (const ss_map_word_t *)(ss->map_words + (size_t)i * sizeof(ss_map_word_t));
+}
+
+static const ss_map_del_t *map_del(const symspell_t *ss, uint32_t i) {
+    return (const ss_map_del_t *)(ss->map_deletes + (size_t)i * sizeof(ss_map_del_t));
+}
+
+/* объявлены ниже: доступ к таблицам в куче */
+static dict_entry_t *dict_find(const symspell_t *ss, const char *key);
+static delete_entry_t *deletes_find(const symspell_t *ss, const char *key);
+
+/* ---- Доступ к словам: одинаковый для кучи и для отображения ------------- */
+
+static const char *word_at(const symspell_t *ss, uint32_t i) {
+    if (ss->mapped) return ss->map_strings + map_word(ss, i)->norm_off;
+    return ss->dict_words[i];
+}
+
+static const char *orig_at(const symspell_t *ss, uint32_t i) {
+    if (ss->mapped) return ss->map_strings + map_word(ss, i)->orig_off;
+    return ss->dict_original_words[i];
+}
+
+/**
+ * Частота слова. В отображении словарь отсортирован, поэтому двоичный поиск —
+ * ради него хеш-таблицы слов в файле нет вовсе.
+ * @return 1 если слово найдено.
+ */
+static int dict_freq(const symspell_t *ss, const char *key, int *freq_out) {
+    if (!ss->mapped) {
+        dict_entry_t *e = dict_find(ss, key);
+        if (!e) return 0;
+        if (freq_out) *freq_out = e->freq;
+        return 1;
+    }
+    uint32_t lo = 0, hi = ss->dict_words_count;
+    while (lo < hi) {
+        uint32_t mid = (lo + hi) / 2;
+        int c = strcmp(word_at(ss, mid), key);
+        if (c == 0) {
+            if (freq_out) *freq_out = map_word(ss, mid)->freq;
+            return 1;
+        }
+        if (c < 0) lo = mid + 1; else hi = mid;
+    }
+    return 0;
+}
+
+/** Частота слова по его номеру в таблице. */
+static int word_freq_at(const symspell_t *ss, uint32_t i) {
+    if (ss->mapped) return map_word(ss, i)->freq;
+    dict_entry_t *e = dict_find(ss, ss->dict_words[i]);
+    return e ? e->freq : 0;
+}
+
+/** Номер слова в таблице и его частота. @return 1 если слово найдено. */
+static int word_index(const symspell_t *ss, const char *key, uint32_t *idx_out, int *freq_out) {
+    uint32_t lo = 0, hi = ss->dict_words_count;
+    while (lo < hi) {
+        uint32_t mid = (lo + hi) / 2;
+        int c = strcmp(word_at(ss, mid), key);
+        if (c == 0) {
+            if (idx_out) *idx_out = mid;
+            if (freq_out) *freq_out = word_freq_at(ss, mid);
+            return 1;
+        }
+        if (c < 0) lo = mid + 1; else hi = mid;
+    }
+    return 0;
+}
+
+/** Список слов для шаблона удалений. @return 1 если шаблон найден. */
+static int deletes_lookup(const symspell_t *ss, const char *key,
+                          const uint32_t **ids_out, uint32_t *count_out) {
+    if (!ss->mapped) {
+        delete_entry_t *b = deletes_find(ss, key);
+        if (!b) return 0;
+        *ids_out = b->word_ids;
+        *count_out = b->count;
+        return 1;
+    }
+    if (!ss->deletes_cap) return 0;
+    uint32_t h = fnv1a(key) & (ss->deletes_cap - 1);
+    for (uint32_t probe = 0; probe < ss->deletes_cap; probe++) {
+        const ss_map_del_t *e = map_del(ss, h);
+        if (e->key_off == SS_MAP_EMPTY) return 0;
+        if (strcmp(ss->map_strings + e->key_off, key) == 0) {
+            *ids_out = ss->map_ids + e->ids_off;
+            *count_out = e->ids_count;
+            return 1;
+        }
+        h = (h + 1) & (ss->deletes_cap - 1);
+    }
+    return 0;
+}
 
 /* ---- Dict helpers ------------------------------------------------------ */
 
@@ -327,13 +470,17 @@ int ss_damerau_distance(const char *a, int alen, const char *b, int blen, int ma
 static void generate_deletes(symspell_t *ss, const char *word, int word_len,
                               int distance, uint32_t word_id, char *buf) {
     if (distance == 0 || word_len == 0) return;
-    for (int i = 0; i < word_len; i++) {
-        /* Build delete: skip character at position i */
+    /* Снимается символ целиком: удаление одного байта разрывало кириллицу и
+     * порождало ломаные последовательности вместо осмысленных шаблонов. */
+    for (int i = 0; i < word_len; ) {
+        int clen = utf8_len((unsigned char)word[i]);
+        if (i + clen > word_len) clen = word_len - i;
         int pos = 0;
         for (int j = 0; j < word_len; j++) {
-            if (j != i) buf[pos++] = word[j];
+            if (j < i || j >= i + clen) buf[pos++] = word[j];
         }
         buf[pos] = '\0';
+        i += clen;
         deletes_add(ss, buf, word_id);
         if (distance > 1) {
             generate_deletes(ss, buf, pos, distance - 1, word_id, buf + pos + 1);
@@ -362,7 +509,14 @@ void ss_destroy(symspell_t *ss) {
     if (ss->mmap_base) {
         munmap(ss->mmap_base, ss->mmap_size);
         if (ss->mmap_fd >= 0) close(ss->mmap_fd);
-        /* mmap mode: deletes buckets were allocated separately */
+    }
+    if (ss->mapped) {
+        /* Таблицы лежали в файле: освобождать нечего, кроме биграмм. */
+        free(ss->bigrams);
+        free(ss->bigram_hash);
+        arena_free(&ss->arena);
+        free(ss);
+        return;
     }
     /* Free deletes buckets */
     if (ss->deletes) {
@@ -382,6 +536,9 @@ void ss_destroy(symspell_t *ss) {
 }
 
 void ss_add_word(symspell_t *ss, const char *word, const char *original, int frequency) {
+    /* Отображённый словарь неизменяем: таблиц в куче у него нет, дописывать
+     * некуда. Раньше попытка добавить пользовательское слово роняла процесс. */
+    if (ss && ss->mapped) return;
     if (!ss || !word || !*word) return;
     dict_ensure_cap(ss);
 
@@ -422,7 +579,7 @@ static int wp_cmp(const void *a, const void *b) {
 }
 
 void ss_build_index(symspell_t *ss) {
-    if (!ss) return;
+    if (!ss || ss->mapped) return;
 
     /* Sort dict_words[] and dict_original_words[] by normalized form for prefix lookup */
     if (ss->dict_words_count > 1) {
@@ -462,8 +619,7 @@ void ss_build_index(symspell_t *ss) {
         const char *word = ss->dict_words[idx];
         int wlen = (int)strlen(word);
         const char *key = word;
-        int klen = wlen;
-        if (klen > ss->prefix_length) klen = ss->prefix_length;
+        int klen = utf8_prefix_bytes(word, wlen, ss->prefix_length);
 
         /* Use prefix for delete generation */
         char prefix[128];
@@ -475,24 +631,30 @@ void ss_build_index(symspell_t *ss) {
     }
 }
 
+int ss_is_mapped(const symspell_t *ss) {
+    return ss && ss->mapped ? 1 : 0;
+}
+
 int ss_size(const symspell_t *ss) {
-    return ss ? (int)ss->dict_count : 0;
+    if (!ss) return 0;
+    /* в отображении отдельного счётчика слов нет — он равен длине таблицы */
+    return ss->mapped ? (int)ss->dict_words_count : (int)ss->dict_count;
 }
 
 int ss_contains(const symspell_t *ss, const char *word) {
-    return dict_find(ss, word) != NULL;
+    return dict_freq(ss, word, NULL);
 }
 
 int ss_get_frequency(const symspell_t *ss, const char *word) {
-    dict_entry_t *e = dict_find(ss, word);
-    return e ? e->freq : 0;
+    int freq = 0;
+    return dict_freq(ss, word, &freq) ? freq : 0;
 }
 
 /* ---- Bigram API -------------------------------------------------------- */
 
 void ss_add_bigram(symspell_t *ss, const char *word1, const char *word2,
                    const char *original2, int frequency) {
-    if (!ss || !word1 || !*word1 || !word2 || !*word2) return;
+    if (!ss || ss->mapped || !word1 || !*word1 || !word2 || !*word2) return;
 
     if (ss->bigram_count >= ss->bigram_cap) {
         uint32_t new_cap = ss->bigram_cap ? ss->bigram_cap * 2 : 1024;
@@ -695,8 +857,7 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
 
     /* Truncate input to prefix length */
     char input_prefix[128];
-    int prefix_len = input_len;
-    if (prefix_len > ss->prefix_length) prefix_len = ss->prefix_length;
+    int prefix_len = utf8_prefix_bytes(input, input_len, ss->prefix_length);
     memcpy(input_prefix, input, prefix_len);
     input_prefix[prefix_len] = '\0';
 
@@ -704,13 +865,14 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
     seen_add(seen_candidates, input_prefix);
 
     /* Direct dictionary hit */
-    dict_entry_t *direct = dict_find(ss, input);
-    if (direct && result_count < out_capacity) {
+    uint32_t direct_idx;
+    int direct_freq = 0;
+    if (word_index(ss, input, &direct_idx, &direct_freq) && result_count < out_capacity) {
         if (seen_add(seen_suggestions, input)) {
-            out[result_count].term = direct->key;
-            out[result_count].original = direct->original;
+            out[result_count].term = word_at(ss, direct_idx);
+            out[result_count].original = orig_at(ss, direct_idx);
             out[result_count].distance = 0;
-            out[result_count].frequency = direct->freq;
+            out[result_count].frequency = direct_freq;
             out[result_count].weighted_distance = -1;
             result_count++;
         }
@@ -723,23 +885,23 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
         if (distance > ss->max_edit_distance) continue;
 
         /* Check deletes table */
-        delete_entry_t *bucket = deletes_find(ss, candidate);
-        if (bucket) {
-            for (uint32_t i = 0; i < bucket->count; i++) {
-                uint32_t wid = bucket->word_ids[i];
+        const uint32_t *bucket_ids = NULL;
+        uint32_t bucket_count = 0;
+        if (deletes_lookup(ss, candidate, &bucket_ids, &bucket_count)) {
+            for (uint32_t i = 0; i < bucket_count; i++) {
+                uint32_t wid = bucket_ids[i];
                 if (wid >= ss->dict_words_count) continue;
-                const char *suggestion = ss->dict_words[wid];
+                const char *suggestion = word_at(ss, wid);
                 int sug_len = (int)strlen(suggestion);
 
                 int ed = ss_damerau_distance(input, input_len, suggestion, sug_len,
                                               ss->max_edit_distance);
                 if (ed >= 0 && ed <= ss->max_edit_distance) {
                     if (seen_add(seen_suggestions, suggestion)) {
-                        dict_entry_t *de = dict_find(ss, suggestion);
-                        int freq = de ? de->freq : 0;
+                        int freq = word_freq_at(ss, wid);
                         if (result_count < out_capacity) {
                             out[result_count].term = suggestion;
-                            out[result_count].original = ss->dict_original_words[wid];
+                            out[result_count].original = orig_at(ss, wid);
                             out[result_count].distance = ed;
                             out[result_count].frequency = freq;
                             out[result_count].weighted_distance = -1;
@@ -832,7 +994,7 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
     uint32_t lo = 0, hi = ss->dict_words_count;
     while (lo < hi) {
         uint32_t mid = lo + (hi - lo) / 2;
-        if (strncmp(ss->dict_words[mid], prefix, prefix_len) < 0)
+        if (strncmp(word_at(ss, mid), prefix, prefix_len) < 0)
             lo = mid + 1;
         else
             hi = mid;
@@ -844,13 +1006,12 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
     int min_idx = 0;
 
     for (uint32_t i = lo; i < ss->dict_words_count; i++) {
-        if (strncmp(ss->dict_words[i], prefix, prefix_len) != 0) break;
-        dict_entry_t *de = dict_find(ss, ss->dict_words[i]);
-        int freq = de ? de->freq : 0;
+        if (strncmp(word_at(ss, i), prefix, prefix_len) != 0) break;
+        int freq = word_freq_at(ss, i);
 
         if (count < limit) {
-            out[count].term = ss->dict_words[i];
-            out[count].original = ss->dict_original_words[i];
+            out[count].term = word_at(ss, i);
+            out[count].original = orig_at(ss, i);
             out[count].distance = 0;
             out[count].frequency = freq;
             out[count].weighted_distance = -1;
@@ -867,8 +1028,8 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
                 }
             }
         } else if (freq > min_freq) {
-            out[min_idx].term = ss->dict_words[i];
-            out[min_idx].original = ss->dict_original_words[i];
+            out[min_idx].term = word_at(ss, i);
+            out[min_idx].original = orig_at(ss, i);
             out[min_idx].frequency = freq;
             /* Re-find min */
             min_idx = 0;
@@ -930,85 +1091,216 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
  *       i32 frequency
  */
 
+/*
+ * Формат v4 — пригоден для поиска прямо в отображённом файле.
+ *
+ * В v3 таблицы лежали потоком записей переменной длины, поэтому загрузчик был
+ * обязан построить хеш-таблицу в куче: на полном словаре это сотни мегабайт.
+ * Здесь таблица удалений хранится готовой, ссылки — смещениями, строки лежат
+ * в одном блобе с нулём на конце. Файл не зависит от устройства, поэтому его
+ * можно собрать заранее и положить в языковой пакет.
+ *
+ *   [Заголовок]
+ *     u32 magic 'SSN4', u32 version = 4
+ *     i32 max_edit_distance, i32 prefix_length
+ *     u32 word_count, u32 deletes_cap, u32 deletes_count, u32 bigram_count
+ *     u32 words_off, deletes_off, ids_off, bigrams_off, strings_off, file_size
+ *   [Слова]      word_count × { u32 norm_off, u32 orig_off, i32 freq }
+ *   [Удаления]   deletes_cap × { u32 key_off, u32 ids_off, u32 ids_count }
+ *                пустой слот: key_off = 0xFFFFFFFF
+ *   [Списки]     u32 — номера слов, на которые ссылаются удаления
+ *   [Биграммы]   bigram_count × { u32 w1_off, u32 w2_off, u32 o2_off, i32 freq }
+ *   [Строки]     все строки подряд, каждая с нулём на конце
+ */
+
+/*
+ * v5 отличается от v4 тем, что префикс и удаления считаются в символах, а не в
+ * байтах. Файлы v4 самосогласованы, но с новым поиском дадут расхождение,
+ * поэтому не принимаются: клавиатура пересоберёт индекс.
+ */
+#define SS_MAGIC_V4 0x53534E34  /* "SSN4" */
+#define SS_FORMAT_VERSION 5
+
+/* Накопитель строк с попутным устранением повторов. */
+typedef struct {
+    char     *data;
+    uint32_t  len;
+    uint32_t  cap;
+} strblob_t;
+
+static uint32_t blob_put(strblob_t *b, const char *s) {
+    if (!s) s = "";
+    uint32_t need = (uint32_t)strlen(s) + 1;
+    if (b->len + need > b->cap) {
+        uint32_t nc = b->cap ? b->cap : 1 << 16;
+        while (nc < b->len + need) nc <<= 1;
+        char *nd = (char *)realloc(b->data, nc);
+        if (!nd) return 0;
+        b->data = nd;
+        b->cap = nc;
+    }
+    uint32_t off = b->len;
+    memcpy(b->data + off, s, need);
+    b->len += need;
+    return off;
+}
+
 int ss_save(symspell_t *ss, const char *path) {
-    if (!ss || !path) return -1;
-    FILE *f = fopen(path, "wb");
-    if (!f) return -1;
+    if (!ss || !path || ss->mapped) return -1;   /* отображённый уже сохранён */
 
-    uint32_t magic = SS_MAGIC;
-    uint32_t version = SS_VERSION;
+    strblob_t blob;
+    memset(&blob, 0, sizeof(blob));
+    blob_put(&blob, "");   /* смещение 0 — пустая строка */
+
     uint32_t word_count = ss->dict_words_count;
-
-    /* Count actual deletes entries */
-    uint32_t del_count = 0;
-    for (uint32_t i = 0; i < ss->deletes_cap; i++) {
-        if (ss->deletes[i].key) del_count++;
-    }
-
-    fwrite(&magic, 4, 1, f);
-    fwrite(&version, 4, 1, f);
-    fwrite(&ss->max_edit_distance, 4, 1, f);
-    fwrite(&ss->prefix_length, 4, 1, f);
-    fwrite(&word_count, 4, 1, f);
-    fwrite(&del_count, 4, 1, f);
-
-    /* Write words + originals + frequencies */
+    ss_map_word_t *words = (ss_map_word_t *)calloc(word_count ? word_count : 1, sizeof(ss_map_word_t));
+    if (!words) { free(blob.data); return -1; }
     for (uint32_t i = 0; i < word_count; i++) {
-        const char *w = ss->dict_words[i];
+        const char *norm = ss->dict_words[i];
         const char *orig = ss->dict_original_words[i];
-        uint16_t wlen = (uint16_t)strlen(w);
-        dict_entry_t *de = dict_find(ss, w);
-        int32_t freq = de ? de->freq : 0;
-        fwrite(&wlen, 2, 1, f);
-        fwrite(w, 1, wlen, f);
-        /* Write original_len=0 when original == normalized (pointer or value) */
-        uint16_t olen = 0;
-        if (orig != w && strcmp(orig, w) != 0) {
-            olen = (uint16_t)strlen(orig);
-        }
-        fwrite(&olen, 2, 1, f);
-        if (olen > 0) {
-            fwrite(orig, 1, olen, f);
-        }
-        fwrite(&freq, 4, 1, f);
+        words[i].norm_off = blob_put(&blob, norm);
+        words[i].orig_off = (orig && strcmp(orig, norm) != 0) ? blob_put(&blob, orig) : words[i].norm_off;
+        dict_entry_t *de = dict_find(ss, norm);
+        words[i].freq = de ? de->freq : 0;
     }
 
-    /* Write deletes */
+    uint32_t ids_total = 0, del_count = 0;
+    for (uint32_t i = 0; i < ss->deletes_cap; i++) {
+        if (ss->deletes[i].key) { ids_total += ss->deletes[i].count; del_count++; }
+    }
+
+    /* Таблица в файле перехеширована под фактическое число шаблонов. В памяти
+     * она рассчитана на четыре слота на слово и заполнена процентов на пять —
+     * у русского это 48 МБ пустоты против 6 нужных. Поиск от этого не страдает:
+     * он вычисляет слот тем же хешем по ёмкости из заголовка. */
+    uint32_t cap = 1;
+    while (cap < del_count * 2) cap <<= 1;
+    ss_map_del_t *dels = (ss_map_del_t *)calloc(cap, sizeof(ss_map_del_t));
+    if (!dels) { free(words); free(blob.data); return -1; }
+    for (uint32_t i = 0; i < cap; i++) dels[i].key_off = SS_MAP_EMPTY;
+    uint32_t *ids = (uint32_t *)malloc((ids_total ? ids_total : 1) * sizeof(uint32_t));
+    if (!ids) { free(dels); free(words); free(blob.data); return -1; }
+
+    uint32_t ids_pos = 0;
     for (uint32_t i = 0; i < ss->deletes_cap; i++) {
         if (!ss->deletes[i].key) continue;
-        delete_entry_t *de = &ss->deletes[i];
-        uint16_t klen = (uint16_t)strlen(de->key);
-        uint32_t bsz = de->count;
-        fwrite(&klen, 2, 1, f);
-        fwrite(de->key, 1, klen, f);
-        fwrite(&bsz, 4, 1, f);
-        fwrite(de->word_ids, 4, bsz, f);
+        uint32_t h = fnv1a(ss->deletes[i].key) & (cap - 1);
+        while (dels[h].key_off != SS_MAP_EMPTY) h = (h + 1) & (cap - 1);
+        dels[h].key_off = blob_put(&blob, ss->deletes[i].key);
+        dels[h].ids_off = ids_pos;
+        dels[h].ids_count = ss->deletes[i].count;
+        memcpy(ids + ids_pos, ss->deletes[i].word_ids, ss->deletes[i].count * sizeof(uint32_t));
+        ids_pos += ss->deletes[i].count;
     }
 
-    /* Write bigrams (v3) */
-    uint32_t bg_count = ss->bigram_count;
-    fwrite(&bg_count, 4, 1, f);
-    for (uint32_t i = 0; i < bg_count; i++) {
-        ss_bigram_t *bg = &ss->bigrams[i];
-        uint16_t w1len = (uint16_t)strlen(bg->word1);
-        uint16_t w2len = (uint16_t)strlen(bg->word2);
-        uint16_t o2len = 0;
-        if (bg->original2 != bg->word2 && strcmp(bg->original2, bg->word2) != 0) {
-            o2len = (uint16_t)strlen(bg->original2);
-        }
-        fwrite(&w1len, 2, 1, f);
-        fwrite(bg->word1, 1, w1len, f);
-        fwrite(&w2len, 2, 1, f);
-        fwrite(bg->word2, 1, w2len, f);
-        fwrite(&o2len, 2, 1, f);
-        if (o2len > 0) {
-            fwrite(bg->original2, 1, o2len, f);
-        }
-        fwrite(&bg->frequency, 4, 1, f);
+    uint32_t bigram_count = ss->bigram_count;
+    uint32_t *bigrams = (uint32_t *)calloc((bigram_count ? bigram_count : 1) * 4, sizeof(uint32_t));
+    if (!bigrams) { free(ids); free(dels); free(words); free(blob.data); return -1; }
+    for (uint32_t i = 0; i < bigram_count; i++) {
+        bigrams[i * 4 + 0] = blob_put(&blob, ss->bigrams[i].word1);
+        bigrams[i * 4 + 1] = blob_put(&blob, ss->bigrams[i].word2);
+        bigrams[i * 4 + 2] = ss->bigrams[i].original2 && strcmp(ss->bigrams[i].original2, ss->bigrams[i].word2) != 0
+                ? blob_put(&blob, ss->bigrams[i].original2) : bigrams[i * 4 + 1];
+        memcpy(&bigrams[i * 4 + 3], &ss->bigrams[i].frequency, 4);
     }
 
-    fclose(f);
-    return 0;
+    uint32_t header[14];
+    uint32_t words_off = sizeof(header);
+    uint32_t deletes_off = words_off + word_count * (uint32_t)sizeof(ss_map_word_t);
+    uint32_t ids_off = deletes_off + cap * (uint32_t)sizeof(ss_map_del_t);
+    uint32_t bigrams_off = ids_off + ids_total * 4;
+    uint32_t strings_off = bigrams_off + bigram_count * 16;
+
+    header[0] = SS_MAGIC_V4;
+    header[1] = SS_FORMAT_VERSION;
+    memcpy(&header[2], &ss->max_edit_distance, 4);
+    memcpy(&header[3], &ss->prefix_length, 4);
+    header[4] = word_count;
+    header[5] = cap;
+    header[6] = del_count;
+    header[7] = bigram_count;
+    header[8] = words_off;
+    header[9] = deletes_off;
+    header[10] = ids_off;
+    header[11] = bigrams_off;
+    header[12] = strings_off;
+    header[13] = strings_off + blob.len;
+
+    FILE *f = fopen(path, "wb");
+    int ok = f != NULL;
+    if (ok) {
+        ok &= fwrite(header, sizeof(header), 1, f) == 1;
+        if (word_count) ok &= fwrite(words, sizeof(ss_map_word_t), word_count, f) == word_count;
+        if (cap) ok &= fwrite(dels, sizeof(ss_map_del_t), cap, f) == cap;
+        if (ids_total) ok &= fwrite(ids, 4, ids_total, f) == ids_total;
+        if (bigram_count) ok &= fwrite(bigrams, 16, bigram_count, f) == bigram_count;
+        if (blob.len) ok &= fwrite(blob.data, 1, blob.len, f) == blob.len;
+        fclose(f);
+    }
+
+    free(bigrams); free(ids); free(dels); free(words); free(blob.data);
+    return ok ? 0 : -1;
+}
+
+/**
+ * Загрузка формата v4: только отображение и проверка заголовка.
+ *
+ * Ничего не копируется в кучу — поиск идёт прямо по страницам файла. Биграммы
+ * всё же читаются в память: их тысячи, а не миллионы, и хеш пары строится за
+ * доли миллисекунды.
+ */
+static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
+    const uint32_t *h = (const uint32_t *)base;
+    uint32_t word_count = h[4], cap = h[5], bigram_count = h[7];
+    uint32_t words_off = h[8], deletes_off = h[9], ids_off = h[10];
+    uint32_t bigrams_off = h[11], strings_off = h[12], expect_size = h[13];
+
+    if (expect_size > file_size || strings_off > file_size) {
+        munmap(base, file_size);
+        close(fd);
+        return NULL;
+    }
+
+    int med, pl;
+    memcpy(&med, &h[2], 4);
+    memcpy(&pl, &h[3], 4);
+
+    symspell_t *ss = ss_create(med, pl);
+    if (!ss) {
+        munmap(base, file_size);
+        close(fd);
+        return NULL;
+    }
+
+    ss->mmap_base = base;
+    ss->mmap_size = file_size;
+    ss->mmap_fd = fd;
+    ss->mapped = 1;
+    ss->map_words = (const uint8_t *)base + words_off;
+    ss->map_deletes = (const uint8_t *)base + deletes_off;
+    ss->map_ids = (const uint32_t *)((const uint8_t *)base + ids_off);
+    ss->map_strings = (const char *)base + strings_off;
+    ss->dict_words_count = word_count;
+    ss->dict_count = word_count;
+    ss->deletes_cap = cap;
+    ss->deletes_count = h[6];
+
+    if (bigram_count) {
+        ss->bigrams = (ss_bigram_t *)malloc(bigram_count * sizeof(ss_bigram_t));
+        if (ss->bigrams) {
+            const uint32_t *b = (const uint32_t *)((const uint8_t *)base + bigrams_off);
+            for (uint32_t i = 0; i < bigram_count; i++) {
+                ss->bigrams[i].word1 = ss->map_strings + b[i * 4 + 0];
+                ss->bigrams[i].word2 = ss->map_strings + b[i * 4 + 1];
+                ss->bigrams[i].original2 = ss->map_strings + b[i * 4 + 2];
+                memcpy(&ss->bigrams[i].frequency, &b[i * 4 + 3], 4);
+            }
+            ss->bigram_count = bigram_count;
+            ss->bigram_cap = bigram_count;
+            ss_build_bigram_index(ss);
+        }
+    }
+    return ss;
 }
 
 symspell_t *ss_load_mmap(const char *path) {
@@ -1037,6 +1329,16 @@ symspell_t *ss_load_mmap(const char *path) {
     memcpy(&pl, p, 4); p += 4;
     memcpy(&word_count, p, 4); p += 4;
     memcpy(&del_count, p, 4); p += 4;
+
+    if (magic == SS_MAGIC_V4 && version == SS_FORMAT_VERSION)
+        return ss_load_mmap_v4(fd, base, file_size);
+    if (magic == SS_MAGIC_V4) {
+        /* Индекс прежней версии: пересобрать дешевле, чем поддерживать оба
+         * правила счёта префикса. */
+        munmap(base, file_size);
+        close(fd);
+        return NULL;
+    }
 
     if (magic != SS_MAGIC || (version != 2 && version != 3)) {
         munmap(base, file_size);

@@ -1,6 +1,8 @@
 #ifndef KEYBOARD_DISTANCE_H
 #define KEYBOARD_DISTANCE_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +29,9 @@ float kb_weighted_distance(const char *a, int alen,
  * 0.0 = same key, 0.3 = adjacent, 0.6 = same row, 1.0 = far
  */
 float kb_substitution_cost(unsigned char a, unsigned char b, const char *layout);
+
+/** Стоимость замены по кодовым точкам: понимает и латиницу, и кириллицу. */
+float kb_substitution_cost_cp(uint32_t a, uint32_t b, const char *layout);
 
 #ifdef __cplusplus
 }

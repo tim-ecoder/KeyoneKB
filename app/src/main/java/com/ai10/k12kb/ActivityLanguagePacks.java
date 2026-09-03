@@ -103,30 +103,52 @@ public class ActivityLanguagePacks extends Activity {
         for (int i = 0; i < packs.length(); i++) {
             JSONObject p = packs.optJSONObject(i);
             if (p == null) continue;
-            final String url = p.optString("url");
-            String pkg = p.optString("package");
-            PackageInfo installed = InstalledInfo(pkg);
-
-            String title = p.optString("title") + "  ·  " + p.optString("size-mb") + " MB";
-            StringBuilder sub = new StringBuilder(p.optString("contents"));
-            sub.append("\n");
-            boolean updatable = false;
-            if (installed == null) {
-                sub.append(getString(R.string.packs_not_installed))
-                   .append(" · ").append(getString(R.string.packs_tap_to_download));
-            } else {
-                sub.append(getString(R.string.packs_installed))
-                   .append(" ").append(installed.versionName);
-                if (installed.versionCode < p.optInt("version-code", 0)) {
-                    updatable = true;
-                    sub.append(" · ").append(getString(R.string.packs_update_available))
-                       .append(" ").append(p.optString("version-name"));
-                } else {
-                    sub.append(" · ").append(getString(R.string.packs_up_to_date));
-                }
+            JSONArray items = p.optJSONArray("items");
+            if (items == null) continue;
+            AddGroupHeader(p.optString("title"));
+            for (int j = 0; j < items.length(); j++) {
+                JSONObject it = items.optJSONObject(j);
+                if (it != null) AddItem(it);
             }
-            AddRow(title, sub.toString(), url, installed != null ? pkg : null, updatable);
         }
+    }
+
+    private void AddGroupHeader(String title) {
+        View header = getLayoutInflater().inflate(R.layout.item_language_pack_header, list, false);
+        ((TextView) header.findViewById(R.id.pack_group_title)).setText(title);
+        list.addView(header);
+    }
+
+    /**
+     * Строка одного устанавливаемого пакета. Языковой пакет и готовые словари —
+     * отдельные APK: словарь на 300k весит вдвое больше самого пакета, и
+     * заставлять качать его тех, кому хватит 150k (или сборки индекса на
+     * устройстве), было бы неуважением к трафику.
+     */
+    private void AddItem(JSONObject p) {
+        final String url = p.optString("url");
+        String pkg = p.optString("package");
+        PackageInfo installed = InstalledInfo(pkg);
+
+        String title = p.optString("title") + "  \u00b7  " + p.optString("size-mb") + " MB";
+        StringBuilder sub = new StringBuilder(p.optString("contents"));
+        sub.append("\n");
+        boolean updatable = false;
+        if (installed == null) {
+            sub.append(getString(R.string.packs_not_installed))
+               .append(" \u00b7 ").append(getString(R.string.packs_tap_to_download));
+        } else {
+            sub.append(getString(R.string.packs_installed))
+               .append(" ").append(installed.versionName);
+            if (installed.versionCode < p.optInt("version-code", 0)) {
+                updatable = true;
+                sub.append(" \u00b7 ").append(getString(R.string.packs_update_available))
+                   .append(" ").append(p.optString("version-name"));
+            } else {
+                sub.append(" \u00b7 ").append(getString(R.string.packs_up_to_date));
+            }
+        }
+        AddRow(title, sub.toString(), url, installed != null ? pkg : null, updatable);
     }
 
     private PackageInfo InstalledInfo(String pkg) {

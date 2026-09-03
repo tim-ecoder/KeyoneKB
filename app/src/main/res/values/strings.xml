@@ -124,12 +124,12 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="pref_next_word_prediction">26. Next-word prediction (bigrams)</string>
     <string name="pref_keyboard_aware">27. Keyboard-aware corrections</string>
     <string name="prediction_loading_toast">Dictionary loading, please wait…</string>
-    <string name="pref_dict_size_title">24. Dictionary size</string>
+    <string name="pref_dict_size_title">24. Dictionary volume — disk space and first build time</string>
     <string-array name="pref_dict_size_array">
-        <item>Tiny (35k words, ~8 MB RAM)</item>
-        <item>Normal (150k words, ~35 MB RAM)</item>
-        <item>Big (300k words, ~70 MB RAM)</item>
-        <item>Full (all words, ~150 MB RAM)</item>
+        <item>Tiny (35k words)</item>
+        <item>Normal (150k words)</item>
+        <item>Big (300k words)</item>
+        <item>Full (all words)</item>
     </string-array>
     <string name="pred_dict_size_changed">Dictionary cache cleared. Restart keyboard to apply.</string>
     <string name="pref_trans_dict_size_title">25. Translation dictionary size</string>
@@ -143,7 +143,7 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="main_btn_prediction_settings">Word prediction</string>
     <string name="pred_section_settings">SETTINGS</string>
     <string name="pred_section_status">DICTIONARY STATUS</string>
-    <string name="pred_section_cache">CACHE</string>
+    <string name="pred_section_cache">PREBUILT INDEXES</string>
     <string name="pred_status_engine">Engine</string>
     <string name="pred_status_loaded">loaded</string>
     <string name="pred_status_loading">loading\u2026</string>
@@ -179,8 +179,8 @@ For more utilities for working with Capital letters, see the Manual in chapter B
         <item>English</item>
         <item>Русский</item>
     </string-array>
-    <string name="packs_title">Language packs</string>
-    <string name="packs_header_hint">Layouts, suggestions and translation for other languages live in separate apps. The keyboard reads them locally and never goes online — downloads open in your browser.</string>
+    <string name="packs_title">Language and dictionary packs</string>
+    <string name="packs_header_hint">Layouts, suggestions and translation for other languages live in separate apps, and prebuilt dictionaries in separate ones again — install only what you need. The keyboard reads them locally and never goes online; downloads open in your browser.</string>
     <string name="packs_section_available">Packs</string>
     <string name="packs_section_updates">Updates</string>
     <string name="packs_installed">Installed</string>
@@ -190,7 +190,7 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="packs_up_to_date">up to date</string>
     <string name="packs_open_release_page">Open releases page</string>
     <string name="packs_catalog_missing">Pack catalogue is missing from this build</string>
-    <string name="main_btn_language_packs">Language packs</string>
+    <string name="main_btn_language_packs">Language and dictionary packs</string>
     <string name="packs_action_reinstall">Download / update</string>
     <string name="packs_action_uninstall">Uninstall pack</string>
     <string name="packs_badge_update">UPDATE</string>
@@ -198,4 +198,9 @@ For more utilities for working with Capital letters, see the Manual in chapter B
     <string name="packs_action_uninstall_short">Remove</string>
     <string name="packs_after_install_hint">After installing a pack its layouts arrive switched off. Open settings and enable the ones you need — they appear in the keyboard layouts list.</string>
     <string name="packs_open_layout_settings">Open keyboard layouts ›</string>
+    <string name="pred_cache_total">Total on disk</string>
+    <string name="pred_cache_hint">Indexes are read from disk, so their size no longer costs memory — only disk space and the wait when a dictionary is built for the first time.</string>
+    <string name="packs_dict_note">These are ready-made caches for fast loading. The dictionaries themselves come with the base language pack: change the dictionary size in settings and the keyboard builds the cache itself — it just takes 5–15 seconds.</string>
+    <string name="pref_dict_size_note">If you have no preloaded dictionary cache, caching takes 5 to 20 seconds depending on the dictionary size you choose.</string>
+    <string name="pref_dict_size_note_link">dictionary cache</string>
 </resources>

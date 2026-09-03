@@ -6,11 +6,17 @@ plugins {
 // assets и так узнаёт об обновлении, не выходя в сеть. Версия у каждого языка
 // своя: данные обновляются по отдельности, и общий счётчик заставлял бы
 // пользователя перекачивать пакеты, в которых ничего не изменилось.
+// Версия данных в пакетах. Клавиатура сравнивает её с каталогом в своих
+// assets и так узнаёт об обновлении, не выходя в сеть. Версия у каждого языка
+// своя, и отдельная у пакета языка и у пакетов-кешей: кеш весит сотни
+// мегабайт, и предлагать перекачивать его из-за правки в раскладке было бы
+// издевательством над трафиком.
 ext {
     packVersions = [
-        fr: [code: 3, name: "1.1.1"],
-        de: [code: 3, name: "1.1.1"],
-        ru: [code: 3, name: "1.0.2"],
+        en: [base: [code: 2, name: "1.1.0"], idx: [code: 1, name: "1.0.0"]],
+        fr: [base: [code: 7, name: "1.5.0"], idx: [code: 6, name: "1.4.0"]],
+        de: [base: [code: 7, name: "1.5.0"], idx: [code: 6, name: "1.4.0"]],
+        ru: [base: [code: 6, name: "1.3.0"], idx: [code: 5, name: "1.2.0"]],
     ]
 }
 
@@ -34,6 +40,7 @@ android {
     // поэтому он обязан лежать несжатым — иначе openFd его не отдаст.
     aaptOptions {
         noCompress '.cdb'
+        noCompress '.ssnd'
     }
 
     defaultConfig {
@@ -53,39 +60,75 @@ android {
         }
     }
 
-    flavorDimensions "lang"
+    /*
+     * Два измерения: язык и содержимое.
+     *
+     * Пакет языка везёт раскладки, словарь текстом, биграммы и перевод — это
+     * десятки мегабайт и нужно всем. Готовые индексы вынесены отдельно: они
+     * весят больше самого пакета и нужны лишь тем, кто не хочет ждать сборку.
+     * Ставятся независимо, поэтому размер выбирается без перекачивания данных.
+     */
+    flavorDimensions "lang", "content"
     productFlavors {
+        en {
+            dimension "lang"
+            resValue "string", "lang_name", "English"
+        }
         fr {
             dimension "lang"
-            applicationId "com.ai10.k12kb.lang.fr"
-            versionCode project.ext.packVersions.fr.code
-            versionName project.ext.packVersions.fr.name
-            resValue "string", "app_name", "K12KB Français"
-            manifestPlaceholders = [packLanguages: "fr"]
+            resValue "string", "lang_name", "Français"
         }
         de {
             dimension "lang"
-            applicationId "com.ai10.k12kb.lang.de"
-            versionCode project.ext.packVersions.de.code
-            versionName project.ext.packVersions.de.name
-            resValue "string", "app_name", "K12KB Deutsch"
-            manifestPlaceholders = [packLanguages: "de"]
+            resValue "string", "lang_name", "Deutsch"
         }
         ru {
             dimension "lang"
-            applicationId "com.ai10.k12kb.lang.ru"
-            versionCode project.ext.packVersions.ru.code
-            versionName project.ext.packVersions.ru.name
-            resValue "string", "app_name", "K12KB Русский"
-            manifestPlaceholders = [packLanguages: "ru,uk"]
+            resValue "string", "lang_name", "Русский"
         }
+
+        base {
+            dimension "content"
+            resValue "string", "content_name", "language pack"
+        }
+        idx150 {
+            dimension "content"
+            resValue "string", "content_name", "dictionary 150k"
+        }
+        idx300 {
+            dimension "content"
+            resValue "string", "content_name", "dictionary 300k"
+        }
+        idxfull {
+            dimension "content"
+            resValue "string", "content_name", "dictionary full"
+        }
+    }
+
+    applicationVariants.all { variant ->
+        def lang = variant.productFlavors.find { it.dimension == "lang" }.name
+        def content = variant.productFlavors.find { it.dimension == "content" }.name
+        def suffix = content == "base" ? "" : "." + content
+        def version = project.ext.packVersions[lang][content == "base" ? "base" : "idx"]
+
+        variant.mergedFlavor.applicationId = "com.ai10.k12kb.lang." + lang + suffix
+        // versionCode на mergedFlavor задавать нельзя — только на выходах варианта
+        variant.outputs.all {
+            versionCodeOverride = version.code
+            versionNameOverride = version.name
+        }
+        variant.mergedFlavor.manifestPlaceholders = [
+                packLanguages: lang == "ru" ? "ru,uk" : lang,
+                packLabel    : "K12KB " + lang.toUpperCase()
+                        + (content == "base" ? "" : " " + content.replace("idx", "dict "))
+        ]
     }
 
     applicationVariants.all { variant ->
         variant.outputs.all {
             // Имя без версии: ссылка на пакет в релизе GitHub должна быть
             // постоянной, а версия видна в самом APK и в каталоге.
-            outputFileName = "K12KB-lang-${variant.flavorName}.apk"
+            outputFileName = "K12KB-${variant.flavorName}.apk"
         }
     }
 }

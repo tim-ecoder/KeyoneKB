@@ -2,34 +2,188 @@
   "release-page": "https://github.com/tim-ecoder/K12KB/releases/tag/lang-packs",
   "packs": [
     {
+      "language": "en",
+      "title": "English",
+      "items": [
+        {
+          "kind": "base",
+          "title": "Языковой пакет",
+          "package": "com.ai10.k12kb.lang.en",
+          "version-code": 2,
+          "version-name": "1.1.0",
+          "size-mb": 19,
+          "contents": "QWERTY; словарь 307k и биграммы; кеш на 35k внутри; переводу нужен второй язык",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-enBase.apk"
+        },
+        {
+          "kind": "idx150",
+          "title": "Кеш словаря 150k",
+          "package": "com.ai10.k12kb.lang.en.idx150",
+          "version-code": 1,
+          "version-name": "1.0.0",
+          "size-mb": 45,
+          "contents": "Готовый кеш на 150 000 слов — значение настройки по умолчанию; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-enIdx150.apk"
+        },
+        {
+          "kind": "idx300",
+          "title": "Кеш словаря 300k",
+          "package": "com.ai10.k12kb.lang.en.idx300",
+          "version-code": 1,
+          "version-name": "1.0.0",
+          "size-mb": 88,
+          "contents": "Готовый кеш на 300 000 слов; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-enIdx300.apk"
+        },
+        {
+          "kind": "idxfull",
+          "title": "Кеш словаря полный",
+          "package": "com.ai10.k12kb.lang.en.idxfull",
+          "version-code": 1,
+          "version-name": "1.0.0",
+          "size-mb": 89,
+          "contents": "Готовый кеш по всему словарю языка; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-enIdxfull.apk"
+        }
+      ]
+    },
+    {
       "language": "fr",
       "title": "Français",
-      "package": "com.ai10.k12kb.lang.fr",
-      "version-code": 3,
-      "version-name": "1.1.1",
-      "size-mb": 44,
-      "contents": "QWERTY, AZERTY; 612k words; fr↔en 416k / 193k",
-      "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-lang-fr.apk"
+      "items": [
+        {
+          "kind": "base",
+          "title": "Языковой пакет",
+          "package": "com.ai10.k12kb.lang.fr",
+          "version-code": 7,
+          "version-name": "1.5.0",
+          "size-mb": 63,
+          "contents": "QWERTY, AZERTY; словарь 612k, биграммы, кеш на 35k; fr↔en 469k / 252k с фразами",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-frBase.apk"
+        },
+        {
+          "kind": "idx150",
+          "title": "Кеш словаря 150k",
+          "package": "com.ai10.k12kb.lang.fr.idx150",
+          "version-code": 6,
+          "version-name": "1.4.0",
+          "size-mb": 44,
+          "contents": "Готовый кеш на 150 000 слов — значение настройки по умолчанию; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-frIdx150.apk"
+        },
+        {
+          "kind": "idx300",
+          "title": "Кеш словаря 300k",
+          "package": "com.ai10.k12kb.lang.fr.idx300",
+          "version-code": 6,
+          "version-name": "1.4.0",
+          "size-mb": 87,
+          "contents": "Готовый кеш на 300 000 слов; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-frIdx300.apk"
+        },
+        {
+          "kind": "idxfull",
+          "title": "Кеш словаря полный",
+          "package": "com.ai10.k12kb.lang.fr.idxfull",
+          "version-code": 6,
+          "version-name": "1.4.0",
+          "size-mb": 175,
+          "contents": "Готовый кеш по всему словарю языка; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-frIdxfull.apk"
+        }
+      ]
     },
     {
       "language": "de",
       "title": "Deutsch",
-      "package": "com.ai10.k12kb.lang.de",
-      "version-code": 3,
-      "version-name": "1.1.1",
-      "size-mb": 49,
-      "contents": "QWERTY, QWERTZ; 882k words; de↔en 348k / 189k",
-      "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-lang-de.apk"
+      "items": [
+        {
+          "kind": "base",
+          "title": "Языковой пакет",
+          "package": "com.ai10.k12kb.lang.de",
+          "version-code": 7,
+          "version-name": "1.5.0",
+          "size-mb": 71,
+          "contents": "QWERTY, QWERTZ; словарь 882k, биграммы, кеш на 35k; de↔en 364k / 242k с фразами",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-deBase.apk"
+        },
+        {
+          "kind": "idx150",
+          "title": "Кеш словаря 150k",
+          "package": "com.ai10.k12kb.lang.de.idx150",
+          "version-code": 6,
+          "version-name": "1.4.0",
+          "size-mb": 46,
+          "contents": "Готовый кеш на 150 000 слов — значение настройки по умолчанию; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-deIdx150.apk"
+        },
+        {
+          "kind": "idx300",
+          "title": "Кеш словаря 300k",
+          "package": "com.ai10.k12kb.lang.de.idx300",
+          "version-code": 6,
+          "version-name": "1.4.0",
+          "size-mb": 92,
+          "contents": "Готовый кеш на 300 000 слов; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-deIdx300.apk"
+        },
+        {
+          "kind": "idxfull",
+          "title": "Кеш словаря полный",
+          "package": "com.ai10.k12kb.lang.de.idxfull",
+          "version-code": 6,
+          "version-name": "1.4.0",
+          "size-mb": 220,
+          "contents": "Готовый кеш по всему словарю языка; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-deIdxfull.apk"
+        }
+      ]
     },
     {
       "language": "ru",
       "title": "Русский",
-      "package": "com.ai10.k12kb.lang.ru",
-      "version-code": 3,
-      "version-name": "1.0.2",
-      "size-mb": 53,
-      "contents": "Русский, транслит, украинский; 668k words; ru↔en 443k / 227k",
-      "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-lang-ru.apk"
+      "items": [
+        {
+          "kind": "base",
+          "title": "Языковой пакет",
+          "package": "com.ai10.k12kb.lang.ru",
+          "version-code": 6,
+          "version-name": "1.3.0",
+          "size-mb": 72,
+          "contents": "Русский, транслит, украинский; словарь 668k, биграммы, кеш на 35k; ru↔en 443k / 227k",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-ruBase.apk"
+        },
+        {
+          "kind": "idx150",
+          "title": "Кеш словаря 150k",
+          "package": "com.ai10.k12kb.lang.ru.idx150",
+          "version-code": 5,
+          "version-name": "1.2.0",
+          "size-mb": 51,
+          "contents": "Готовый кеш на 150 000 слов — значение настройки по умолчанию; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-ruIdx150.apk"
+        },
+        {
+          "kind": "idx300",
+          "title": "Кеш словаря 300k",
+          "package": "com.ai10.k12kb.lang.ru.idx300",
+          "version-code": 5,
+          "version-name": "1.2.0",
+          "size-mb": 100,
+          "contents": "Готовый кеш на 300 000 слов; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-ruIdx300.apk"
+        },
+        {
+          "kind": "idxfull",
+          "title": "Кеш словаря полный",
+          "package": "com.ai10.k12kb.lang.ru.idxfull",
+          "version-code": 5,
+          "version-name": "1.2.0",
+          "size-mb": 205,
+          "contents": "Готовый кеш по всему словарю языка; без него соберётся сам за 5–15 секунд",
+          "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-ruIdxfull.apk"
+        }
+      ]
     }
   ]
 }

@@ -89,6 +89,6 @@ def write(res_dir, text, skip=()):
 if __name__ == "__main__":
     root = sys.argv[1] if len(sys.argv) > 1 else "."
     write(os.path.join(root, "app/src/main/res"), "K12KB")
-    for lang, label in (("fr", "FR"), ("de", "DE"), ("ru", "RU")):
+    for lang, label in (("en", "EN"), ("fr", "FR"), ("de", "DE"), ("ru", "RU")):
         write(os.path.join(root, f"langpack/src/{lang}/res"), label, skip=("drawable-xhdpi",))
     print("иконки перерисованы")
