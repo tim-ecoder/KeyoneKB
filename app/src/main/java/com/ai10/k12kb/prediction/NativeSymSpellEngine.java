@@ -1,6 +1,7 @@
 package com.ai10.k12kb.prediction;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -443,9 +444,10 @@ public class NativeSymSpellEngine implements PredictionEngine {
     /**
      * Готовый индекс: сначала папка приложения, затем языковой пакет.
      *
-     * Из пакета файл нельзя открыть по пути — он лежит внутри чужого APK,
-     * поэтому копируется рядом с кэшем один раз. Копия делается только если её
-     * ещё нет: файл большой, и переписывать его на каждый запуск незачем.
+     * Из пакета файл открывается дескриптором и отображается прямо из APK —
+     * если он лежит там несжатым. Сжатую запись отобразить нельзя (её начало
+     * не файл, а deflate-поток), поэтому дальше идёт запасной путь: копия
+     * рядом с кэшем, один раз, и отображение уже с неё.
      */
     private NativeSymSpell LoadPrebuiltIndex(Context context, String locale) {
         // Имя несёт предел размера: пакет привозит индекс под конкретное значение
@@ -464,6 +466,18 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
 
         String asset = "dictionaries/" + name;
+
+        // Отображение прямо из APK: ни распаковки, ни второй копии на диске.
+        NativeSymSpell mapped = LoadMappedFromApk(context, asset);
+        if (mapped != null) {
+            // Копия, распакованная прежней версией клавиатуры, больше не нужна:
+            // она бы так и лежала сотнями мегабайт, раз сюда уже не доходят.
+            LanguagePacks.dropStaleCopies(new File(context.getFilesDir(), CACHE_DIR),
+                    "pack-" + locale + "-", "");
+            Log.i(TAG, "Готовый индекс отображён из пакета: " + asset);
+            return mapped;
+        }
+
         // В имени копии — версия пакета: после обновления пакета старая копия
         // больше не подходит по имени и перечитывается, а не живёт вечно.
         int version = LanguagePacks.assetVersion(context, asset);
@@ -486,6 +500,38 @@ public class NativeSymSpellEngine implements PredictionEngine {
         // прежним форматом. Держать его смысла нет, место он занимает.
         copied.delete();
         return null;
+    }
+
+    /**
+     * Попытка отобразить индекс несжатой записью APK — своего или пакета.
+     * Возвращает null, если файла нет или он лежит сжатым.
+     */
+    private static NativeSymSpell LoadMappedFromApk(Context context, String asset) {
+        AssetFileDescriptor afd = null;
+        try {
+            try {
+                afd = context.getAssets().openFd(asset);
+            } catch (Throwable ownMiss) {
+                afd = LanguagePacks.openFd(context, asset);
+            }
+            if (afd == null)
+                return null;
+            NativeSymSpell ns = NativeSymSpell.loadFromAssetFd(
+                    afd.getParcelFileDescriptor().getFd(),
+                    afd.getStartOffset(), afd.getLength());
+            if (ns == null)
+                return null;
+            if (ns.size() > 0)
+                return ns;
+            ns.destroy();
+            return null;
+        } catch (Throwable ex) {
+            return null;
+        } finally {
+            // Дескриптор наш: нативная сторона дублирует его себе, а открытым
+            // он держал бы чужой APK.
+            LanguagePacks.Close(afd);
+        }
     }
 
     private String cacheName(String locale) {

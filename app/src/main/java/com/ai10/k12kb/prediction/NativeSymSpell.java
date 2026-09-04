@@ -98,6 +98,20 @@ public class NativeSymSpell {
         return new NativeSymSpell(ptr);
     }
 
+    /**
+     * Индекс прямо из APK: отображается кусок чужого файла, копия в папке
+     * приложения не нужна. Получается, только если .ssnd лежит в пакете
+     * несжатым — иначе openFd на стороне вызывающего уже не отдаст дескриптор.
+     *
+     * Дескриптор остаётся за вызывающим: нативная сторона дублирует его себе.
+     */
+    public static NativeSymSpell loadFromAssetFd(int fd, long offset, long length) {
+        if (!libraryLoaded) return null;
+        long ptr = nativeLoadMmapFdStatic(fd, offset, length);
+        if (ptr == 0) return null;
+        return new NativeSymSpell(ptr);
+    }
+
     public boolean isValid() {
         return nativePtr != 0;
     }
@@ -250,6 +264,7 @@ public class NativeSymSpell {
 
     /* Static wrapper for nativeLoadMmap (called before instance exists) */
     private static native long nativeLoadMmapStatic(String path);
+    private static native long nativeLoadMmapFdStatic(int fd, long offset, long length);
 
     /* Native methods */
     private native boolean nativeIsMapped(long ptr);

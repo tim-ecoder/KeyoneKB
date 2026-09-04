@@ -197,6 +197,57 @@ public class ActivityPredictionSettings extends Activity {
         }
     }
 
+    /**
+     * Сколько в направлении слов и фраз: {слова, фразы} или null, если словаря нет.
+     *
+     * Числа посчитаны при сборке (`tools/make_dict_counts.py`) и лежат рядом со
+     * словарём. Раньше экран считал их сам, разбирая .tsv построчно: при шести
+     * пакетах это двенадцать файлов и больше сотни мегабайт разжатого чтения на
+     * каждое открытие экрана.
+     */
+    private int[] TranslationCounts(String pair) {
+        java.io.InputStream is = null;
+        try {
+            is = OpenAssetOrPack("dict/" + pair + ".count.json");
+            java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[4096];
+            int n;
+            while ((n = is.read(chunk)) > 0) buf.write(chunk, 0, n);
+            org.json.JSONObject o = new org.json.JSONObject(buf.toString("UTF-8"));
+            return new int[] { o.getInt("words"), o.getInt("phrases") };
+        } catch (Throwable ex) {
+            // Пакет прежней версии: счётчиков в нём нет, зато есть .tsv.
+            return CountTsvEntries("dict/" + pair + ".tsv");
+        } finally {
+            LanguagePacks.Close(is);
+        }
+    }
+
+    /** Пересчёт по .tsv — запасной путь для пакетов, собранных без счётчиков. */
+    private int[] CountTsvEntries(String assetPath) {
+        java.io.BufferedReader br = null;
+        try {
+            br = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(OpenAssetOrPack(assetPath), "UTF-8"));
+            int words = 0, phrases = 0;
+            String line;
+            while ((line = br.readLine()) != null) {
+                int tab = line.indexOf('\t');
+                if (tab > 0) {
+                    if (line.lastIndexOf(' ', tab - 1) >= 0)
+                        phrases++;
+                    else
+                        words++;
+                }
+            }
+            return new int[] { words, phrases };
+        } catch (Throwable ex) {
+            return null;
+        } finally {
+            LanguagePacks.Close(br);
+        }
+    }
+
     private void refreshTranslationStatus() {
         // Pre-fetch string resources on the UI thread (cannot access from background)
         final String strWords = getString(R.string.pred_translation_words);
@@ -220,38 +271,20 @@ public class ActivityPredictionSettings extends Activity {
             if (pairs.isEmpty())
                 sb.append(getString(R.string.pred_translation_no_packs)).append("\n");
             for (String pair : pairs) {
-                String assetName = "dict/" + pair + ".tsv";
-                try {
-                    java.io.InputStream is = OpenAssetOrPack(assetName);
-                    java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(is));
-                    int wordCount = 0;
-                    int phraseCount = 0;
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        int tab = line.indexOf('\t');
-                        if (tab > 0) {
-                            String key = line.substring(0, tab);
-                            if (key.indexOf(' ') >= 0) {
-                                phraseCount++;
-                            } else {
-                                wordCount++;
-                            }
-                        }
-                    }
-                    br.close();
-                    int totalEntries = wordCount + phraseCount;
-                    // Словарь перевода грузится целиком: он отображается с диска
-                    // и памяти почти не занимает, поэтому ограничивать нечего.
-                    sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ");
-                    sb.append(wordCount).append(" ").append(strWords);
-                    if (phraseCount > 0) {
-                        sb.append(" + ").append(phraseCount).append(" ").append(strPhrases);
-                    }
-                    sb.append("\n");
-                } catch (Exception e) {
+                int[] counts = TranslationCounts(pair);
+                if (counts == null) {
                     sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ")
                       .append(strNotFound).append("\n");
+                    continue;
                 }
+                // Словарь перевода грузится целиком: он отображается с диска
+                // и памяти почти не занимает, поэтому ограничивать нечего.
+                sb.append(pair.replace("_", " \u2192 ").toUpperCase()).append(": ");
+                sb.append(counts[0]).append(" ").append(strWords);
+                if (counts[1] > 0) {
+                    sb.append(" + ").append(counts[1]).append(" ").append(strPhrases);
+                }
+                sb.append("\n");
             }
             // Check for external dict overrides
             File extDir = new File("/sdcard/k12kb/dict/");

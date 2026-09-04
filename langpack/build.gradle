@@ -24,13 +24,13 @@ plugins {
 ext {
     packLanguages = [
         en: [title: "English",  langs: "en",    base: [code: 2, name: "1.1.0"], idx: [code: 1, name: "1.0.0"]],
-        fr: [title: "Français", langs: "fr",    base: [code: 9, name: "1.5.2"], idx: [code: 6, name: "1.4.0"]],
-        de: [title: "Deutsch",  langs: "de",    base: [code: 9, name: "1.5.2"], idx: [code: 6, name: "1.4.0"]],
-        ru: [title: "Русский",  langs: "ru,uk", base: [code: 8, name: "1.3.2"], idx: [code: 5, name: "1.2.0"]],
+        fr: [title: "Français", langs: "fr",    base: [code: 10, name: "1.5.3"], idx: [code: 6, name: "1.4.0"]],
+        de: [title: "Deutsch",  langs: "de",    base: [code: 10, name: "1.5.3"], idx: [code: 6, name: "1.4.0"]],
+        ru: [title: "Русский",  langs: "ru,uk", base: [code: 9, name: "1.3.3"], idx: [code: 5, name: "1.2.0"]],
         it: [title: "Italiano", langs: "it",    extra: true,
-             base: [code: 5, name: "1.2.0"], idx: [code: 1, name: "1.0.0"]],
+             base: [code: 6, name: "1.2.1"], idx: [code: 1, name: "1.0.0"]],
         es: [title: "Español",  langs: "es",    extra: true,
-             base: [code: 4, name: "1.2.0"], idx: [code: 1, name: "1.0.0"]],
+             base: [code: 5, name: "1.2.1"], idx: [code: 1, name: "1.0.0"]],
     ]
 }
 
@@ -58,6 +58,15 @@ android {
     // против 4.5 на кеше в 35 тысяч слов) без всякой пользы.
     aaptOptions {
         noCompress '.cdb'
+
+        // .tsv — исходник, из которого собран .cdb, а не данные для устройства:
+        // клавиатура читает его только там, где готового .cdb нет вовсе. В
+        // пакете он стоил 9 МБ из 60 (русский), поэтому в APK не едет. В
+        // репозитории остаётся: из него пересобираются словари.
+        //
+        // Список начинается с умолчаний aapt — заданный шаблон заменяет их
+        // целиком, и без этого в APK поехали бы .git и прочий мусор.
+        ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:!*.tsv'
     }
 
     defaultConfig {

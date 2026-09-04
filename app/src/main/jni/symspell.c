@@ -1363,11 +1363,16 @@ int ss_save(symspell_t *ss, const char *path) {
 /**
  * Загрузка формата v4: только отображение и проверка заголовка.
  *
+ * Отображение (`map_base`/`map_size`) и данные (`base`/`file_size`) разделены:
+ * когда индекс лежит внутри APK, отображать приходится со страничной границы,
+ * а данные начинаются дальше. Освобождается всегда отображение целиком.
+ *
  * Ничего не копируется в кучу — поиск идёт прямо по страницам файла. Биграммы
  * всё же читаются в память: их тысячи, а не миллионы, и хеш пары строится за
  * доли миллисекунды.
  */
-static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
+static symspell_t *ss_load_mmap_v4(int fd, void *map_base, size_t map_size,
+                                   void *base, size_t file_size) {
     const uint32_t *h = (const uint32_t *)base;
     uint32_t word_count = h[4], cap = h[5], bigram_count = h[7];
     uint32_t words_off = h[8], deletes_off = h[9], ids_off = h[10];
@@ -1401,7 +1406,7 @@ static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
             && bigrams_off <= strings_off
             && strings_off <= expect_size;
     if (!header_sane) {
-        munmap(base, file_size);
+        munmap(map_base, map_size);
         close(fd);
         return NULL;
     }
@@ -1412,20 +1417,20 @@ static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
     /* prefix_length из файла тоже проверяем: с ним считается длина префикса
      * запроса, и заведомо большое значение раздувало бы её без границ. */
     if (med < 1 || med > SYMSPELL_MAX_EDIT_DIST || pl < 1 || pl > 32) {
-        munmap(base, file_size);
+        munmap(map_base, map_size);
         close(fd);
         return NULL;
     }
 
     symspell_t *ss = ss_create(med, pl);
     if (!ss) {
-        munmap(base, file_size);
+        munmap(map_base, map_size);
         close(fd);
         return NULL;
     }
 
-    ss->mmap_base = base;
-    ss->mmap_size = file_size;
+    ss->mmap_base = map_base;
+    ss->mmap_size = map_size;
     ss->mmap_fd = fd;
     ss->mapped = 1;
     ss->map_words = (const uint8_t *)base + words_off;
@@ -1457,6 +1462,52 @@ static symspell_t *ss_load_mmap_v4(int fd, void *base, size_t file_size) {
     return ss;
 }
 
+/*
+ * Общая часть: отобразить [offset, offset+length) файла и разобрать заголовок.
+ * fd переходит во владение индекса — при неудаче закрывается здесь.
+ */
+static symspell_t *ss_load_mmap_range(int fd, size_t offset, size_t length) {
+    /* Заголовок v4 занимает 56 байт и читается целиком до всякой проверки:
+     * прежний порог в 24 байта позволял читать поля из-за конца файла. */
+    if (length < SS_V4_HEADER_BYTES) { close(fd); return NULL; }
+
+    /* mmap умеет только страничные смещения, поэтому отображение начинается
+     * раньше данных, а разница добавляется к указателю. Внутри APK файл
+     * выровнен по 4 байтам (zipalign), и страничное округление этого не
+     * ломает — формат больше четырёх байт и не требует. */
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    if (page_size <= 0) page_size = 4096;
+    size_t aligned = (offset / (size_t)page_size) * (size_t)page_size;
+    size_t extra = offset - aligned;
+    size_t map_size = length + extra;
+
+    void *map_base = mmap(NULL, map_size, PROT_READ, MAP_PRIVATE, fd, (off_t)aligned);
+    if (map_base == MAP_FAILED) { close(fd); return NULL; }
+    void *base = (uint8_t *)map_base + extra;
+
+    /* Выравнивание данных отвечает за чтение uint32 по отображению: со сдвинутым
+     * началом заголовок читался бы вкось. */
+    if (((uintptr_t)base & 3u) != 0) {
+        munmap(map_base, map_size);
+        close(fd);
+        return NULL;
+    }
+
+    uint32_t magic, version;
+    memcpy(&magic, (const uint8_t *)base, 4);
+    memcpy(&version, (const uint8_t *)base + 4, 4);
+
+    if (magic == SS_MAGIC_V4 && version == SS_FORMAT_VERSION)
+        return ss_load_mmap_v4(fd, map_base, map_size, base, length);
+
+    /* Всё остальное — индекс, собранный прежней версией. Форматы v2 и v3
+     * считали префикс в байтах, и с нынешним посимвольным поиском такой индекс
+     * молча не находит ничего; пересобрать дешевле, чем держать оба правила. */
+    munmap(map_base, map_size);
+    close(fd);
+    return NULL;
+}
+
 symspell_t *ss_load_mmap(const char *path) {
     if (!path) return NULL;
     int fd = open(path, O_RDONLY);
@@ -1464,26 +1515,31 @@ symspell_t *ss_load_mmap(const char *path) {
 
     struct stat st;
     if (fstat(fd, &st) < 0) { close(fd); return NULL; }
-    size_t file_size = (size_t)st.st_size;
-    /* Заголовок v4 занимает 56 байт и читается целиком до всякой проверки:
-     * прежний порог в 24 байта позволял читать поля из-за конца файла. */
-    if (file_size < SS_V4_HEADER_BYTES) { close(fd); return NULL; }
+    return ss_load_mmap_range(fd, 0, (size_t)st.st_size);
+}
 
-    void *base = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (base == MAP_FAILED) { close(fd); return NULL; }
+/*
+ * Тот же индекс, но куском чужого файла: так он читается прямо из APK
+ * языкового пакета, без распаковки копии в папку приложения. Работает, только
+ * пока .ssnd лежит в пакете несжатым, — сжатую запись отобразить нельзя.
+ *
+ * fd остаётся за вызывающим: индекс дублирует его для себя, потому что живёт
+ * дольше, чем AssetFileDescriptor на стороне Java.
+ */
+symspell_t *ss_load_mmap_fd(int fd, size_t offset, size_t length) {
+    if (fd < 0) return NULL;
+    int own = dup(fd);
+    if (own < 0) return NULL;
 
-    uint32_t magic, version;
-    memcpy(&magic, (const uint8_t *)base, 4);
-    memcpy(&version, (const uint8_t *)base + 4, 4);
-
-    if (magic == SS_MAGIC_V4 && version == SS_FORMAT_VERSION)
-        return ss_load_mmap_v4(fd, base, file_size);
-
-    /* Всё остальное — индекс, собранный прежней версией. Форматы v2 и v3
-     * считали префикс в байтах, и с нынешним посимвольным поиском такой индекс
-     * молча не находит ничего; пересобрать дешевле, чем держать оба правила. */
-    munmap(base, file_size);
-    close(fd);
-    return NULL;
+    struct stat st;
+    if (fstat(own, &st) < 0) { close(own); return NULL; }
+    /* Смещение и длина приходят из чужого APK: без проверки по концу файла
+     * отображение уводило бы за него. */
+    if (length == 0 || offset > (size_t)st.st_size
+            || length > (size_t)st.st_size - offset) {
+        close(own);
+        return NULL;
+    }
+    return ss_load_mmap_range(own, offset, length);
 }
 

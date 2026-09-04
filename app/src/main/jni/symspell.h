@@ -55,6 +55,8 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
 /* Binary serialization */
 int  ss_save(symspell_t *ss, const char *path);
 symspell_t *ss_load_mmap(const char *path);
+/* Индекс куском чужого файла (несжатая запись в APK); fd остаётся за вызывающим */
+symspell_t *ss_load_mmap_fd(int fd, size_t offset, size_t length);
 
 /* Query */
 int  ss_size(const symspell_t *ss);

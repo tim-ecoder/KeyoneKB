@@ -58,6 +58,27 @@ Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeLoadMmapStatic(
 }
 
 /*
+ * static native long nativeLoadMmapFdStatic(int fd, long offset, long length);
+ *
+ * Индекс из несжатой записи чужого APK: отображается на месте, копии в папке
+ * приложения не появляется.
+ */
+JNIEXPORT jlong JNICALL
+Java_com_ai10_k12kb_prediction_NativeSymSpell_nativeLoadMmapFdStatic(
+        JNIEnv *env, jclass clazz, jint fd, jlong offset, jlong length) {
+    if (fd < 0 || offset < 0 || length <= 0) return 0;
+
+    symspell_t *ss = ss_load_mmap_fd((int)fd, (size_t)offset, (size_t)length);
+    if (ss) {
+        LOGI("Loaded native SymSpell from asset fd: %d words", ss_size(ss));
+    } else {
+        LOGW("Failed to load native SymSpell from asset fd (offset=%lld len=%lld)",
+             (long long)offset, (long long)length);
+    }
+    return (jlong)(intptr_t)ss;
+}
+
+/*
  * native void nativeAddWord(long ptr, String word, String original, int frequency);
  */
 JNIEXPORT void JNICALL
