@@ -1,5 +1,5 @@
-# K12KB FOR QWERTY PHONES
-# K12KB ДЛЯ ТЕЛЕФОНОВ С КЛАВИАТУРОЙ
+# K12KB FOR ANDROID QWERTY PHONES
+# K12KB ДЛЯ ANDROID-ТЕЛЕФОНОВ С КЛАВИАТУРОЙ
 
 #### 4 INTERNATIONAL USE 
 ### K12KB (version 4.0a+) is now internationalised. 
