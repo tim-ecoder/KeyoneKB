@@ -3,7 +3,7 @@
 
 #### 4 INTERNATIONAL USE 
 ### K12KB (version 4.0a+) is now internationalised. 
-### Keyboard layouts, prediciton dictionaries and en<> translations for En, De, Fr, It, Es.
+### Keyboard layouts, prediciton dictionaries and en<> translations for Ru, En, De, Fr, It, Es.
 
 ### Description
 
