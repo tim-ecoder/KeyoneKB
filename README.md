@@ -2,7 +2,8 @@
 # K12KB ДЛЯ ТЕЛЕФОНОВ С КЛАВИАТУРОЙ
 
 #### 4 INTERNATIONAL USE 
-### K12KB (version 4.0a+) is internationalised. Have layouts, prediciton dictionaries and en<> translations for En, De, Fr, It, Es.
+### K12KB (version 4.0a+) is now internationalised. 
+### Keyboard layouts, prediciton dictionaries and en<> translations for En, De, Fr, It, Es.
 
 ### Description
 
