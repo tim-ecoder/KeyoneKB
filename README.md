@@ -2,7 +2,7 @@
 # K12KB ДЛЯ ТЕЛЕФОНОВ С КЛАВИАТУРОЙ
 
 #### 4 INTERNATIONAL USE 
-### KeyoneKB2 hardware keyboard is translation and customization READY and can be easily adopted by community to other languages and keyboard layouts
+### K12KB (version 4.0a+) is internationalised. Have layouts, prediciton dictionaries and en<> translations for En, De, Fr, It, Es.
 
 ### Description
 
