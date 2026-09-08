@@ -904,8 +904,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
     //region CALL_MANAGER
 
     private void ShowDebugToast(String text) {
-        Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
-        toast.show();
+        ShowToast(text);
     }
 
     protected CallStateCallback callStateCallback;
@@ -1378,9 +1377,7 @@ public abstract class InputMethodServiceCoreCustomizable extends InputMethodServ
                 TRANSPARENCY_MODE_PREFIX + _lastPackageName,
                 String.valueOf(_currentAppTransparency));
         }
-        Toast.makeText(getApplicationContext(),
-            _currentAppTransparency ? "Transparency ON" : "Transparency OFF",
-            Toast.LENGTH_SHORT).show();
+        ShowToast(_currentAppTransparency ? "Transparency ON" : "Transparency OFF");
         return true;
     }
 

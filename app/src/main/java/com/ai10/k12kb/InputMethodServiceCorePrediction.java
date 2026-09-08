@@ -43,9 +43,7 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
     protected void ShowDictLoadingToast() {
         if (!wordPredictor.isEngineReady() && !dictLoadingToastShown) {
             dictLoadingToastShown = true;
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.prediction_loading_toast),
-                    Toast.LENGTH_SHORT).show();
+            ShowToast(getString(R.string.prediction_loading_toast));
         }
     }
 
@@ -218,15 +216,14 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         if (from != null && from.equals(to) && !translationManager.isEnabled()) {
             // Второго языка на устройстве нет: включать режим не во что, и
             // тост с направлением вида EN → EN только сбивал бы с толку.
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.pred_translation_no_packs), Toast.LENGTH_SHORT).show();
+            ShowToast(getString(R.string.pred_translation_no_packs));
             return true;
         }
         boolean enabled = translationManager.toggle();
         String msg = enabled ?
                 "\uD83C\uDF10 Translation " + from.toUpperCase() + " \u2192 " + to.toUpperCase() :
                 "\uD83C\uDF10 Translation OFF";
-        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+        ShowToast(msg);
         if (enabled) {
             // Show prediction bar if hidden (translation needs visible bar)
             if (predictionBarHiddenByDefault && !predictionBarVisibleThisSession) {
@@ -265,7 +262,7 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
 
         if(!predictionBarVisibleThisSession) {
             predictionBarVisibleThisSession = true;
-            Toast.makeText(getApplicationContext(), "\uD83D\uDD2E Predictions ON", Toast.LENGTH_SHORT).show();
+            ShowToast("\uD83D\uDD2E Predictions ON");
             // Первое включение панели — здесь и начинается загрузка словаря.
             EnsurePredictionDictionary();
             // Read the word at the cursor and force a prediction update. Uses the
@@ -280,7 +277,7 @@ public abstract class InputMethodServiceCorePrediction extends InputMethodServic
         } else {
             predictionBarVisibleThisSession = false;
             setSuggestionBarShown(false);
-            Toast.makeText(getApplicationContext(), "\uD83D\uDD2E Predictions OFF", Toast.LENGTH_SHORT).show();
+            ShowToast("\uD83D\uDD2E Predictions OFF");
         }
         return true;
     }

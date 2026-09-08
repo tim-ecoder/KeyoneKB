@@ -1,5 +1,6 @@
 package com.ai10.k12kb;
 
+import android.widget.Toast;
 import android.annotation.SuppressLint;
 import android.inputmethodservice.InputMethodService;
 import android.os.Build;
@@ -15,6 +16,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InputMethodServiceCoreKeyPress extends InputMethodService {
+
+    /** Единственный тост клавиатуры — см. {@link #ShowToast(String)}. */
+    private Toast _sharedToast;
+
+    /**
+     * Короткое сообщение поверх экрана, всегда через один и тот же Toast.
+     *
+     * С Android 12 система режет тосты по квоте (NotificationManagerService:
+     * 3 за 20 секунд, 5 за 42, 6 за 68) у всех, у кого нет активити на переднем
+     * плане. У клавиатуры её нет никогда — она сервис, — поэтому лишние тосты
+     * молча выбрасываются с "above allowed toast quota", и обратная связь у
+     * частых переключателей (прозрачность по Alt+Sym, смена раскладки) пропадала
+     * после третьего нажатия подряд.
+     *
+     * Повторный show() того же объекта квоту не тратит: enqueueToast ищет запись
+     * по токену и, если тост ещё на экране, обновляет её на месте
+     * (record.update), а showNextToastLocked сразу выходит по mIsCurrentToastShown,
+     * не спрашивая счётчик. Прежний приём "cancel() и новый Toast" делал ровно
+     * обратное: старая запись снималась, новая заводилась заново и списывала ещё
+     * одну единицу.
+     *
+     * Чего этот приём не делает: время показа не продлевается. Тост исчезнет в
+     * свой срок, отсчитанный от первого показа, сколько бы раз мы ни обновили
+     * текст.
+     */
+    protected void ShowToast(String text) {
+        if (_sharedToast == null) {
+            _sharedToast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
+        } else {
+            // setText работает только с тостом из makeText — своего view не ставим.
+            _sharedToast.setText(text);
+        }
+        _sharedToast.show();
+    }
 
     public static final int[] KEY2_LATIN_ALPHABET_KEYS_CODES = new int[]{
             KeyEvent.KEYCODE_4, //DOLLAR

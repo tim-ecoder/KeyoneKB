@@ -89,7 +89,6 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
 
     private final NotificationProcessor notificationProcessor = new NotificationProcessor();
 
-    private Toast mainToast;
 
 
     KeyboardLayout.KeyboardLayoutOptions.IconRes AltOneIconRes;
@@ -960,11 +959,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     protected void ChangeLanguage() {
         keyboardLayoutManager.ChangeLayout();
         if(pref_show_toast) {
-            if(mainToast != null) {
-                mainToast.cancel();
-            }
-            mainToast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
-            mainToast.show();
+            ShowToast(keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName);
         }
         // Смена раскладки сама по себе словарь не грузит: он понадобится, только
         // если предсказания сейчас работают. Направление перевода обновляем
@@ -977,11 +972,7 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
     protected void ChangeLanguageBack() {
         keyboardLayoutManager.ChangeLayoutBack();
         if(pref_show_toast) {
-            if(mainToast != null) {
-                mainToast.cancel();
-            }
-            mainToast = Toast.makeText(getApplicationContext(), keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName, Toast.LENGTH_SHORT);
-            mainToast.show();
+            ShowToast(keyboardLayoutManager.GetCurrentKeyboardLayout().KeyboardName);
         }
         // Смена раскладки сама по себе словарь не грузит: он понадобится, только
         // если предсказания сейчас работают. Направление перевода обновляем
