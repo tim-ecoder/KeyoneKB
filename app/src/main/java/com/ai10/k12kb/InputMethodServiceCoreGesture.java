@@ -415,20 +415,36 @@ public abstract class InputMethodServiceCoreGesture extends InputMethodServiceCo
      *
      * Одной привязки редактора тоже мало: в режиме просмотра (лаунчер, любое
      * окно без поля ввода) система всё равно стартует ввод и отдаёт
-     * fallback-соединение, только EditorInfo при этом пустой —
+     * fallback-соединение (InputMethodService.getCurrentInputConnection() при
+     * отсутствии редактора возвращает не null, а подставное), только EditorInfo
+     * при этом пустой —
      *
      *   лаунчер: inputType=0x0 imeOptions=0x0       fieldId=0
      *   Termux:  inputType=0x0 imeOptions=0x2000000 fieldId=0x7f0b0451
      *
-     * У терминала это настоящая View со своим id, по ней и отличаем настоящее
-     * поле от его отсутствия.
+     * Отличаем по тому, что заполнило само приложение. Базовый
+     * View.onCreateInputConnection() возвращает null и EditorInfo не трогает,
+     * поэтому у окна без поля ввода inputType и imeOptions нулевые на любой
+     * версии Android, а терминал ставит imeOptions.
+     *
+     * fieldId в это условие годится только с Android 14. Замеры выше сняты на
+     * Android 15, где InputMethodManager обнуляет его, если приложение не отдало
+     * соединение ("Clear autofill and field ids if a connection could not be
+     * established", появилось в android-14.0.0_r21). До Android 14 там остаётся
+     * id сфокусированной View независимо от наличия редактора — а у View без id
+     * это NO_ID = -1, тоже не ноль. На Oreo из-за этого полем ввода выглядело
+     * любое окно, где что-то в фокусе.
      */
+    /** Android 14: Build.VERSION_CODES.UPSIDE_DOWN_CAKE, которого нет в compileSdk 30. */
+    private static final int ANDROID_14_CLEARS_FIELD_ID = 34;
+
     protected boolean IsInputMode() {
         if (!getCurrentInputStarted()) return false;
         if (getCurrentInputConnection() == null) return false;
         EditorInfo ei = getCurrentInputEditorInfo();
         if (ei == null) return false;
-        return ei.inputType != 0 || ei.fieldId != 0;
+        if (ei.inputType != 0 || ei.imeOptions != 0) return true;
+        return Build.VERSION.SDK_INT >= ANDROID_14_CLEARS_FIELD_ID && ei.fieldId != 0;
     }
 
 
