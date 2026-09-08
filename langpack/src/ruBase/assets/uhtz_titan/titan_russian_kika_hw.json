@@ -20,8 +20,8 @@
     "key-code" : "KEYCODE_R",
     "single-press" : "е",
     "single-press-shift-mode" : "Е",
-    "double-press" : "ë",
-    "double-press-shift-mode" : "Ë"
+    "double-press" : "ё",
+    "double-press-shift-mode" : "Ё"
   }, {
     "key-code" : "KEYCODE_T",
     "single-press" : "н",

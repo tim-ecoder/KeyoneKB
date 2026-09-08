@@ -47,7 +47,7 @@
     "key-code" : "KEYCODE_O",
     "single-press" : "о",
     "single-press-shift-mode" : "О",
-	"double-press" : "ё",
+    "double-press" : "ё",
     "double-press-shift-mode" : "Ё"
   }, {
     "key-code" : "KEYCODE_P",

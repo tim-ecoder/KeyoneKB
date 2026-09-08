@@ -12,8 +12,8 @@
     "key-code" : "KEYCODE_Q",
     "single-press" : "й",
     "single-press-shift-mode" : "Й",
-    "double-press" : "ë",
-    "double-press-shift-mode" : "Ë"
+    "double-press" : "ё",
+    "double-press-shift-mode" : "Ё"
   }, {
     "key-code" : "KEYCODE_W",
     "single-press" : "ц",
