@@ -30,7 +30,7 @@
   "alt-more-variants" : "→>}]"
 }, {
   "key-code" : "KEYCODE_U",
-  "single-press-alt-shift-mode" : "ˋ",
+  "single-press-alt-shift-mode" : "`",
   "single-press-alt-mode" : "1",
   "alt-more-variants" : "—←"
 }, {
@@ -80,7 +80,7 @@
   "key-code" : "KEYCODE_K",
   "single-press-alt-shift-mode" : "±",
   "single-press-alt-mode" : "5",
-  "alt-more-variants" : "º"
+  "alt-more-variants" : "°"
 }, {
   "key-code" : "KEYCODE_L",
   "single-press-alt-shift-mode" : "•",

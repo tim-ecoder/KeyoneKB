@@ -4,7 +4,7 @@
   "single-press-alt-mode" : "0"
 }, {
   "key-code" : "KEYCODE_W",
-  "single-press-alt-shift-mode" : "ˋ",
+  "single-press-alt-shift-mode" : "`",
   "single-press-alt-mode" : "1"
 }, {
   "key-code" : "KEYCODE_E",
