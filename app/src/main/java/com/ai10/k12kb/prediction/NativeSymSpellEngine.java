@@ -194,7 +194,11 @@ public class NativeSymSpellEngine implements PredictionEngine {
             for (NativeSymSpell.SuggestItem item : nativeResults) {
                 if (normalized.length() <= 2 && item.distance > 1) continue;
                 String word = item.original;
-                if (word.equals(input)) continue;
+                // Сравнение с учётом регистра пропускало само набранное слово:
+                // на «Зеленый» словарное «зеленый» отличалось заглавной буквой и
+                // предлагалось как исправление. В ветке дополнений выше давно
+                // equalsIgnoreCase, здесь было equals.
+                if (word.equalsIgnoreCase(input)) continue;
                 double score = computeScore(normalized, item.term, word, item.frequency,
                         item.distance, false, input.length());
                 // Bonus for low weighted distance (adjacent key typos)
@@ -822,6 +826,26 @@ public class NativeSymSpellEngine implements PredictionEngine {
         }
     }
 
+    /** Слово без ё и й — то, чем «зелёный» и «зеленый» отличаются друг от друга. */
+    private static String YoTwin(String word) {
+        return word.replace('\u0451', '\u0435').replace('\u0439', '\u0438');
+    }
+
+    /**
+     * Кандидат — то же слово, набранное через ё или й (или наоборот).
+     *
+     * Это не исправление опечатки, а другое написание того же слова, и в панели
+     * оно должно стоять выше обычных соседей на том же расстоянии.
+     */
+    private static boolean IsYoVariant(String normalizedInput, String normalizedCandidate) {
+        if (normalizedInput.equals(normalizedCandidate))
+            return false;
+        return YoTwin(normalizedInput).equals(YoTwin(normalizedCandidate));
+    }
+
+    /** Надбавка написанию через ё или й: выше прочих исправлений, но ниже прямых дополнений. */
+    private static final double YO_VARIANT_BONUS = 2.5;
+
     private double computeScore(String normalizedInput, String normalizedCandidate,
                                 String word, int frequency, int distance,
                                 boolean isPrefix, int inputLen) {
@@ -844,7 +868,10 @@ public class NativeSymSpellEngine implements PredictionEngine {
         else if (lenDiff == 2) lengthBonus = 0.05;
         else lengthBonus = -0.15 * Math.min(lenDiff, 4);
 
-        return distanceScore + frequencyScore + prefixBonus + lengthBonus;
+        double variantBonus = IsYoVariant(normalizedInput, normalizedCandidate)
+                ? YO_VARIANT_BONUS : 0;
+
+        return distanceScore + frequencyScore + prefixBonus + lengthBonus + variantBonus;
     }
 
     private void insertSorted(List<WordPredictor.Suggestion> list, WordPredictor.Suggestion item, int limit) {
