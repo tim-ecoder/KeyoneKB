@@ -78,9 +78,38 @@ static float key_distance(int r1, int c1, int r2, int c2) {
  * смотрела только на latin a-z и на строку layout, которую никто не задавал,
  * поэтому для русского учёт соседних клавиш не работал вовсе, а таблицы
  * ЙЦУКЕН лежали без дела. */
+/**
+ * Буква без диакритики: ё -> е, й -> и, ї -> і, ў -> у.
+ *
+ * Нормализация слов кириллицу не разлагает (WordDictionary.normalize), поэтому
+ * такие буквы доходят до поиска как есть, и замена одной на другую попадала в
+ * общий счёт по геометрии клавиатуры: ё на ЙЦУКЕН лежит слева от единицы, далеко
+ * от е, и для «елка» «белка» оказывалась ближе, чем «ёлка».
+ *
+ * Но это не промах по соседней клавише, а другое написание того же слова.
+ */
+static uint32_t letter_base(uint32_t cp) {
+    switch (cp) {
+        case 0x451: return 0x435;  /* ё -> е */
+        case 0x450: return 0x435;  /* ѐ -> е */
+        case 0x439: return 0x438;  /* й -> и */
+        case 0x45D: return 0x438;  /* ѝ -> и */
+        case 0x457: return 0x456;  /* ї -> і */
+        case 0x45E: return 0x443;  /* ў -> у */
+        case 0x453: return 0x433;  /* ѓ -> г */
+        case 0x45C: return 0x43A;  /* ќ -> к */
+        default:    return cp;
+    }
+}
+
+/** Замена буквы на её же написание с диакритикой — почти бесплатно. */
+#define KB_SPELLING_SUB_COST 0.15f
+
 float kb_substitution_cost_cp(uint32_t a, uint32_t b, const char *layout) {
     (void)layout;
     if (a == b) return 0.0f;
+
+    if (letter_base(a) == letter_base(b)) return KB_SPELLING_SUB_COST;
 
     if (a >= 'a' && a <= 'z' && b >= 'a' && b <= 'z') {
         int ia = (int)a - 'a', ib = (int)b - 'a';

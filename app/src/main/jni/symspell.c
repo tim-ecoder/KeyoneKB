@@ -993,14 +993,25 @@ int ss_lookup(symspell_t *ss, const char *input, int max_suggestions,
                                               ss->max_edit_distance);
                 if (ed >= 0 && ed <= ss->max_edit_distance) {
                     if (seen_add(seen_suggestions, suggestion)) {
-                        int freq = word_freq_at(ss, wid);
+                        ss_suggest_item_t item;
+                        item.term = suggestion;
+                        item.original = orig_at(ss, wid);
+                        item.distance = ed;
+                        item.frequency = word_freq_at(ss, wid);
+                        item.weighted_distance = -1;
                         if (result_count < out_capacity) {
-                            out[result_count].term = suggestion;
-                            out[result_count].original = orig_at(ss, wid);
-                            out[result_count].distance = ed;
-                            out[result_count].frequency = freq;
-                            out[result_count].weighted_distance = -1;
-                            result_count++;
+                            out[result_count++] = item;
+                        } else {
+                            /* Буфер полон — держим лучших, а не первых попавшихся.
+                             * Слова находятся в порядке снятия символов, а не по
+                             * качеству, и сортировка внизу разбирала уже усечённый
+                             * список: для «елка» так терялась «ёлка» (d=1), зато
+                             * оставались «белках» и «гжелка» на d=2. */
+                            int worst = 0;
+                            for (int k = 1; k < out_capacity; k++)
+                                if (suggest_cmp(&out[k], &out[worst]) > 0) worst = k;
+                            if (suggest_cmp(&item, &out[worst]) < 0)
+                                out[worst] = item;
                         }
                     }
                 }
