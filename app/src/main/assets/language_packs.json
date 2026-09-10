@@ -147,8 +147,8 @@
           "kind": "base",
           "title": "Языковой пакет",
           "package": "com.ai10.k12kb.lang.ru",
-          "version-code": 9,
-          "version-name": "1.3.3",
+          "version-code": 10,
+          "version-name": "1.3.4",
           "size-mb": 49,
           "contents": "Русский, транслит, украинский; словарь 668k, биграммы, кеш на 35k; ru↔en 443k / 227k",
           "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-ruBase.apk"
