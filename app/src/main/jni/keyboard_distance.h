@@ -28,6 +28,10 @@ float kb_weighted_distance(const char *a, int alen,
  * on the given keyboard layout. Returns 0.0 - 1.0.
  * 0.0 = same key, 0.3 = adjacent, 0.6 = same row, 1.0 = far
  */
+/* Буква без диакритики: ё -> е, й -> и, ї -> і, ў -> у. Написания одного слова
+ * должны считаться одним и тем же — и в расстоянии, и в поиске по префиксу. */
+uint32_t kb_letter_base(uint32_t cp);
+
 float kb_substitution_cost(unsigned char a, unsigned char b, const char *layout);
 
 /** Стоимость замены по кодовым точкам: понимает и латиницу, и кириллицу. */

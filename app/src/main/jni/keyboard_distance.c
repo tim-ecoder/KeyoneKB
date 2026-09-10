@@ -88,7 +88,7 @@ static float key_distance(int r1, int c1, int r2, int c2) {
  *
  * Но это не промах по соседней клавише, а другое написание того же слова.
  */
-static uint32_t letter_base(uint32_t cp) {
+uint32_t kb_letter_base(uint32_t cp) {
     switch (cp) {
         case 0x451: return 0x435;  /* ё -> е */
         case 0x450: return 0x435;  /* ѐ -> е */
@@ -109,7 +109,7 @@ float kb_substitution_cost_cp(uint32_t a, uint32_t b, const char *layout) {
     (void)layout;
     if (a == b) return 0.0f;
 
-    if (letter_base(a) == letter_base(b)) return KB_SPELLING_SUB_COST;
+    if (kb_letter_base(a) == kb_letter_base(b)) return KB_SPELLING_SUB_COST;
 
     if (a >= 'a' && a <= 'z' && b >= 'a' && b <= 'z') {
         int ia = (int)a - 'a', ib = (int)b - 'a';

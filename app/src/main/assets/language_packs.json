@@ -147,8 +147,8 @@
           "kind": "base",
           "title": "Языковой пакет",
           "package": "com.ai10.k12kb.lang.ru",
-          "version-code": 13,
-          "version-name": "1.3.7",
+          "version-code": 14,
+          "version-name": "1.3.8",
           "size-mb": 49,
           "contents": "Русский, транслит, украинский; словарь 668k, биграммы, кеш на 35k; ru↔en 443k / 227k",
           "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-ruBase.apk"
@@ -157,8 +157,8 @@
           "kind": "idx150",
           "title": "Кеш словаря 150k",
           "package": "com.ai10.k12kb.lang.ru.idx150",
-          "version-code": 8,
-          "version-name": "1.2.3",
+          "version-code": 9,
+          "version-name": "1.2.4",
           "size-mb": 16,
           "contents": "Готовый кеш на 150 000 слов — значение настройки по умолчанию; без него соберётся сам за 5–15 секунд",
           "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-ruIdx150.apk"
@@ -167,8 +167,8 @@
           "kind": "idx300",
           "title": "Кеш словаря 300k",
           "package": "com.ai10.k12kb.lang.ru.idx300",
-          "version-code": 8,
-          "version-name": "1.2.3",
+          "version-code": 9,
+          "version-name": "1.2.4",
           "size-mb": 29,
           "contents": "Готовый кеш на 300 000 слов; без него соберётся сам за 5–15 секунд",
           "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-ruIdx300.apk"
@@ -177,8 +177,8 @@
           "kind": "idxfull",
           "title": "Кеш словаря полный",
           "package": "com.ai10.k12kb.lang.ru.idxfull",
-          "version-code": 8,
-          "version-name": "1.2.3",
+          "version-code": 9,
+          "version-name": "1.2.4",
           "size-mb": 60,
           "contents": "Готовый кеш по всему словарю языка; без него соберётся сам за 5–15 секунд",
           "url": "https://github.com/tim-ecoder/K12KB/releases/download/lang-packs/K12KB-ruIdxfull.apk"

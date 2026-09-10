@@ -27,6 +27,10 @@ from collections import defaultdict
 
 MAX_WEIGHT = 255
 
+# Насколько редким может быть написание с ё, чтобы всё ещё считаться вариантом
+# того же слова, а не опечаткой из корпуса.
+SAME_WORD_RATIO = 0.8
+
 
 def fold(word):
     """Свёртка написаний одного слова: ё -> е, й -> и."""
@@ -57,17 +61,22 @@ def main():
     for members in groups.values():
         if len(members) < 2:
             continue
-        # Тяжелейший вес среди написаний с меньшим числом ё и й.
-        best_below = {}
-        for word in sorted(members, key=yo_count):
-            n = yo_count(word)
-            floor = max((w for k, w in best_below.items() if k < n), default=None)
-            if floor is not None and weight[word] <= floor:
-                new = min(MAX_WEIGHT, floor + 1)
-                if new != weight[word]:
-                    weight[word] = new
-                    raised += 1
-            best_below[n] = max(best_below.get(n, 0), weight[word])
+        # Самое частое написание группы — оно задаёт планку.
+        top = max(members, key=lambda w: weight[w])
+        richer = [w for w in members if yo_count(w) > yo_count(top)]
+        if not richer:
+            continue
+        best = max(richer, key=lambda w: weight[w])
+        # Редкие формы из корпуса («ёл» при «ел», «ёщё» при «еще») — это опечатки
+        # чужого набора, а не написание того же слова. Вариантом считаем только
+        # то, что встречается сопоставимо часто: вес логарифмический, поэтому
+        # доля от планки — это отношение порядков частоты.
+        if weight[best] < weight[top] * SAME_WORD_RATIO:
+            continue
+        new_weight = min(MAX_WEIGHT, weight[top] + 1)
+        if new_weight != weight[best]:
+            weight[best] = new_weight
+            raised += 1
 
     order = {w: i for i, w in enumerate(words)}
     words.sort(key=lambda w: (-weight[w], order[w]))

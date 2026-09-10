@@ -658,10 +658,70 @@ void ss_add_word(symspell_t *ss, const char *word, const char *original, int fre
 /* Comparison function for sorting word pairs by normalized form */
 typedef struct { const char *norm; const char *orig; } word_pair_t;
 
+/** Следующая кодовая точка UTF-8; сдвигает указатель. @return длина в байтах. */
+static int utf8_next(const char **p, uint32_t *cp) {
+    const unsigned char *s = (const unsigned char *)*p;
+    if (!*s) return 0;
+    int len = utf8_len(*s);
+    uint32_t v;
+    if (len == 1) v = *s;
+    else if (len == 2) v = *s & 0x1F;
+    else if (len == 3) v = *s & 0x0F;
+    else v = *s & 0x07;
+    for (int i = 1; i < len; i++) {
+        if (!s[i]) { len = i; break; }
+        v = (v << 6) | (s[i] & 0x3F);
+    }
+    *cp = v;
+    *p += len;
+    return len;
+}
+
+/**
+ * Сравнение слов по свёрнутым буквам: «зеленый» и «зелёный» встают рядом.
+ *
+ * Список для поиска по префиксу отсортирован этим порядком. По байтам ё (D1 91)
+ * стоит после всего ряда а-я, поэтому написания одного слова оказывались в
+ * разных концах словаря, и набор «зелены» не находил «зелёный» дополнением —
+ * его выдавал только нечёткий поиск, а там дополнения всегда впереди.
+ *
+ * При равной свёртке порядок задаётся исходными байтами, иначе сортировка
+ * неустойчива и двоичный поиск ломается.
+ */
+static int fold_cmp_str(const char *a, const char *b) {
+    const char *pa = a, *pb = b;
+    while (*pa && *pb) {
+        uint32_t ca, cb_;
+        int la = utf8_next(&pa, &ca);
+        int lb = utf8_next(&pb, &cb_);
+        if (la <= 0 || lb <= 0) break;
+        ca = kb_letter_base(ca);
+        cb_ = kb_letter_base(cb_);
+        if (ca != cb_) return ca < cb_ ? -1 : 1;
+    }
+    if (*pa) return 1;
+    if (*pb) return -1;
+    return strcmp(a, b);
+}
+
+/** Начинается ли слово с префикса, если считать написания одной буквы равными. */
+static int fold_starts_with(const char *word, const char *prefix) {
+    const char *pw = word, *pp = prefix;
+    while (*pp) {
+        if (!*pw) return 0;
+        uint32_t cw, cp;
+        int lw = utf8_next(&pw, &cw);
+        int lp = utf8_next(&pp, &cp);
+        if (lw <= 0 || lp <= 0) return 0;
+        if (kb_letter_base(cw) != kb_letter_base(cp)) return 0;
+    }
+    return 1;
+}
+
 static int wp_cmp(const void *a, const void *b) {
     const word_pair_t *wa = (const word_pair_t *)a;
     const word_pair_t *wb = (const word_pair_t *)b;
-    return strcmp(wa->norm, wb->norm);
+    return fold_cmp_str(wa->norm, wb->norm);
 }
 
 void ss_build_index(symspell_t *ss) {
@@ -1102,11 +1162,13 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
     int prefix_len = (int)strlen(prefix);
     int limit = max_results < out_capacity ? max_results : out_capacity;
 
-    /* Binary search for first entry >= prefix */
+    /* Binary search for first entry >= prefix (по свёрнутым буквам) */
     uint32_t lo = 0, hi = ss->dict_words_count;
     while (lo < hi) {
         uint32_t mid = lo + (hi - lo) / 2;
-        if (strncmp(word_at(ss, mid), prefix, prefix_len) < 0)
+        const char *w = word_at(ss, mid);
+        int cmp = fold_starts_with(w, prefix) ? 0 : fold_cmp_str(w, prefix);
+        if (cmp < 0)
             lo = mid + 1;
         else
             hi = mid;
@@ -1118,7 +1180,7 @@ int ss_prefix_lookup(symspell_t *ss, const char *prefix, int max_results,
     int min_idx = 0;
 
     for (uint32_t i = lo; i < ss->dict_words_count; i++) {
-        if (strncmp(word_at(ss, i), prefix, prefix_len) != 0) break;
+        if (!fold_starts_with(word_at(ss, i), prefix)) break;
         int freq = word_freq_at(ss, i);
 
         if (count < limit) {

@@ -130,9 +130,12 @@ public class WordDictionary {
      *
      * 1 — снятие диакритики со всех букв, включая кириллицу (ё и й склеивались
      *     с е и и);
-     * 2 — кириллица через NFD не проходит.
+     * 2 — кириллица через NFD не проходит;
+     * 3 — список для поиска по префиксу отсортирован по свёрнутым буквам, а
+     *     веса ё-написаний пересчитаны: кеш прежнего порядка даёт неверные
+     *     дополнения.
      */
-    public static final int NORMALIZATION_REVISION = 2;
+    public static final int NORMALIZATION_REVISION = 3;
 
     /** Кириллица, включая расширения: диакритику у этих букв снимать нельзя. */
     private static boolean IsCyrillic(char c) {
@@ -154,6 +157,48 @@ public class WordDictionary {
      * Правило обязано совпадать с tools/prepare_dict.py: индекс собирается там,
      * а ключ для поиска считается здесь, и разойтись им нельзя.
      */
+    /**
+     * Буква без диакритики: ё -> е, й -> и, ї -> і, ў -> у.
+     *
+     * Написания одного слова должны совпадать при сравнении префиксов, иначе
+     * набранное «зелены» не считает «зелёный» своим дополнением. То же правило
+     * действует в поиске (keyboard_distance.c, kb_letter_base).
+     */
+    public static char letterBase(char c) {
+        switch (c) {
+            case '\u0451': return '\u0435';  // ё -> е
+            case '\u0450': return '\u0435';  // ѐ -> е
+            case '\u0439': return '\u0438';  // й -> и
+            case '\u045D': return '\u0438';  // ѝ -> и
+            case '\u0457': return '\u0456';  // ї -> і
+            case '\u045E': return '\u0443';  // ў -> у
+            case '\u0453': return '\u0433';  // ѓ -> г
+            case '\u045C': return '\u043A';  // ќ -> к
+            default: return c;
+        }
+    }
+
+    /**
+     * Ключ, по которому подсказки считаются одним и тем же словом.
+     *
+     * Схлопывается только ё: «ещё» и «ёще» — написания одного слова, показывать
+     * оба незачем, остаётся то, что выше по оценке. Й не схлопываем: «мои» и
+     * «мой» — разные слова, и оба должны доходить до панели.
+     */
+    public static String suggestionKey(String word) {
+        return word.toLowerCase(Locale.ROOT).replace('\u0451', '\u0435');
+    }
+
+    /** Начинается ли слово с префикса, если написания одной буквы считать равными. */
+    public static boolean foldedStartsWith(String word, String prefix) {
+        if (word.length() < prefix.length()) return false;
+        for (int i = 0; i < prefix.length(); i++) {
+            if (letterBase(word.charAt(i)) != letterBase(prefix.charAt(i)))
+                return false;
+        }
+        return true;
+    }
+
     public static String normalize(String word) {
         if (word == null || word.isEmpty()) return "";
         String lower = word.toLowerCase(Locale.ROOT);

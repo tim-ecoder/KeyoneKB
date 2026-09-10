@@ -163,8 +163,13 @@ public class NativeSymSpellEngine implements PredictionEngine {
         for (NativeSymSpell.SuggestItem item : completions) {
             String word = item.original;
             String normEntry = WordDictionary.normalize(word);
-            if (!normEntry.startsWith(normalized)) continue;
-            if (word.length() <= input.length()) continue;
+            // Префикс сверяется по свёрнутым буквам: «зелёный» — такое же
+            // дополнение к «зелены», как и «зеленый», просто написанное через ё.
+            if (!WordDictionary.foldedStartsWith(normEntry, normalized)) continue;
+            // Отбрасывается только само набранное слово и то, что короче него.
+            // Прежнее «не длиннее» выбрасывало заодно другое написание той же
+            // длины: на «елка» так терялась «ёлка».
+            if (word.length() < input.length()) continue;
             if (word.equalsIgnoreCase(input)) continue;
 
             int effFreq = WordDictionary.effectiveFrequency(item.frequency);
@@ -179,7 +184,8 @@ public class NativeSymSpellEngine implements PredictionEngine {
                     score += bgFreq / 100.0;
                 }
             }
-            String key = word.toLowerCase(Locale.ROOT);
+            // Ключ схлопывает ё: «ещё» и «ёще» — одно слово, в панели нужно одно.
+            String key = WordDictionary.suggestionKey(word);
             if (seen.add(key)) {
                 insertSorted(top, new WordPredictor.Suggestion(word, 0, score), limit);
             }
@@ -212,7 +218,7 @@ public class NativeSymSpellEngine implements PredictionEngine {
                         score += bgFreq / 100.0;
                     }
                 }
-                String key = word.toLowerCase(Locale.ROOT);
+                String key = WordDictionary.suggestionKey(word);
                 if (seen.add(key)) {
                     insertSorted(top, new WordPredictor.Suggestion(word, item.distance, score), limit);
                 }
