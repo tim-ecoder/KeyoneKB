@@ -123,20 +123,58 @@ public class WordDictionary {
      * Normalize a word: lowercase, strip accents, keep letters/digits/apostrophe
      * and email-like characters (@, ., -, _).
      */
+    /**
+     * Версия правила {@link #normalize(String)}. Кеш, собранный по прежнему
+     * правилу, ищет по другим ключам, поэтому при изменении правила его нужно
+     * один раз выбросить — см. проверку в K12KbIME.
+     *
+     * 1 — снятие диакритики со всех букв, включая кириллицу (ё и й склеивались
+     *     с е и и);
+     * 2 — кириллица через NFD не проходит.
+     */
+    public static final int NORMALIZATION_REVISION = 2;
+
+    /** Кириллица, включая расширения: диакритику у этих букв снимать нельзя. */
+    private static boolean IsCyrillic(char c) {
+        return c >= '\u0400' && c <= '\u052F';
+    }
+
+    /**
+     * Нижний регистр, единый апостроф, снятие диакритики, только буквы, цифры
+     * и ' @ . - _ .
+     *
+     * Кириллица через NFD не проходит вовсе. Разложение считает ё за «е с
+     * диерезисом», а й за «и с бреве», и снятие диакритики склеивало разные
+     * слова: «всё» с «все», «свой» со «свои», «отношений» с «отношении».
+     * SymSpell хранит один оригинал на ключ, поэтому в индекс попадало только
+     * частотное написание, а второе слово пропадало из подсказок совсем — 9934
+     * слова русского словаря, из них 6917 из-за ё и 2987 из-за й. Нечёткому
+     * поиску это не мешает: буквы остаются на расстоянии одной правки.
+     *
+     * Правило обязано совпадать с tools/prepare_dict.py: индекс собирается там,
+     * а ключ для поиска считается здесь, и разойтись им нельзя.
+     */
     public static String normalize(String word) {
         if (word == null || word.isEmpty()) return "";
         String lower = word.toLowerCase(Locale.ROOT);
         // Normalize apostrophes
         lower = lower.replace('\u2018', '\'').replace('\u2019', '\'').replace('\u02BC', '\'');
-        // Strip accents
-        String decomposed = Normalizer.normalize(lower, Normalizer.Form.NFD);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < decomposed.length(); i++) {
-            char c = decomposed.charAt(i);
-            if (Character.getType(c) != Character.NON_SPACING_MARK) {
-                if (isWordChar(c)) {
+
+        StringBuilder sb = new StringBuilder(lower.length());
+        for (int i = 0; i < lower.length(); i++) {
+            char c = lower.charAt(i);
+            if (Character.getType(c) == Character.NON_SPACING_MARK)
+                continue;
+            if (IsCyrillic(c)) {
+                if (Character.isLetterOrDigit(c))
                     sb.append(c);
-                }
+                continue;
+            }
+            String decomposed = Normalizer.normalize(String.valueOf(c), Normalizer.Form.NFD);
+            for (int j = 0; j < decomposed.length(); j++) {
+                char d = decomposed.charAt(j);
+                if (Character.getType(d) != Character.NON_SPACING_MARK && isWordChar(d))
+                    sb.append(d);
             }
         }
         return sb.toString();

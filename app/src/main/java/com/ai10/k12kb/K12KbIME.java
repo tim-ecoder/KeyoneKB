@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import android.net.Uri;
+import com.ai10.k12kb.prediction.WordDictionary;
 import com.ai10.k12kb.prediction.LanguagePacks;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
@@ -1604,6 +1605,19 @@ public class K12KbIME extends InputMethodServiceCoreCustomizable implements Keyb
         k12KbSettings.CheckSettingOrSetDefault(k12KbSettings.APP_PREFERENCES_29_TRANSPARENCY_MODE, true);
         pref_transparency_mode = k12KbSettings.GetBooleanValue(k12KbSettings.APP_PREFERENCES_29_TRANSPARENCY_MODE);
         _currentAppTransparency = pref_transparency_mode;
+
+        // Правило нормализации сменилось — кеши словаря, собранные на устройстве
+        // по прежнему, ищут по другим ключам, и ё- и й-слова в них так и не
+        // нашлись бы. Выбрасываем их один раз; готовые индексы из пакетов
+        // перечитаются сами, а собственный кеш соберётся заново за 5–20 секунд.
+        if (k12KbSettings.GetIntValue(k12KbSettings.APP_PREFERENCES_32_NORMALIZATION_REVISION)
+                != WordDictionary.NORMALIZATION_REVISION) {
+            WordDictionary.clearCacheFiles(getApplicationContext());
+            k12KbSettings.SetIntValue(k12KbSettings.APP_PREFERENCES_32_NORMALIZATION_REVISION,
+                    WordDictionary.NORMALIZATION_REVISION);
+            Log.w(TAG2, "Кеши словаря сброшены: правило нормализации теперь "
+                    + WordDictionary.NORMALIZATION_REVISION);
+        }
 
         keyboard_mechanics_res = null;
 

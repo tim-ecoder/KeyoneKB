@@ -28,6 +28,12 @@ public class K12KbSettings {
      * раскладок задавал бы направление перевода случайно.
      */
     public final String APP_PREFERENCES_30_TRANSLATION_TARGET = "translation_target";
+    /**
+     * Правило нормализации слов, по которому собран кеш словаря на устройстве.
+     * Меняется, когда меняется WordDictionary.normalize: собранный по прежнему
+     * правилу кеш ищет по другим ключам, и его надо один раз выбросить.
+     */
+    public final String APP_PREFERENCES_32_NORMALIZATION_REVISION = "normalization_revision";
     /** Отметка о разовой правке значения настройки 30, см. CheckSettings. */
     public final String APP_PREFERENCES_31_TRANSLATION_TARGET_RESET = "translation_target_reset";
     public final String APP_PREFERENCES_13A_POINTER_MODE_RECT_COLOR = "pointer_mode_rect_color";
@@ -124,6 +130,7 @@ public class K12KbSettings {
         CheckSettingOrSetDefault(APP_PREFERENCES_27_KEYBOARD_AWARE, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_28_AUTO_CAPITALIZATION, true);
         CheckSettingOrSetDefault(APP_PREFERENCES_30_TRANSLATION_TARGET, "");
+        CheckSettingOrSetDefault(APP_PREFERENCES_32_NORMALIZATION_REVISION, 0);
         // Разовая правка: прежняя сборка записывала язык перевода при первом
         // открытии экрана, ничего не спрашивая, и на английской раскладке
         // перевод уезжал в случайный язык. Возвращаем всех к значению по

@@ -16,14 +16,39 @@ APOSTROPHES = {"‘": "'", "’": "'", "ʼ": "'"}
 EXTRA = set("'@.-_")
 
 
+def _is_cyrillic(c):
+    """Кириллица, включая расширения: у этих букв диакритику снимать нельзя."""
+    return "\u0400" <= c <= "\u052f"
+
+
 def normalize(word):
+    """То же, что WordDictionary.normalize в приложении.
+
+    Нижний регистр, единый апостроф, снятие диакритики через NFD, остаются
+    только буквы, цифры и ' @ . - _ .
+
+    Кириллица через NFD не проходит вовсе. Разложение считает ё за «е с
+    диерезисом», а й за «и с бреве», и снятие диакритики склеивало разные слова:
+    «всё» с «все», «свой» со «свои», «отношений» с «отношении». SymSpell хранит
+    один оригинал на ключ, поэтому в индекс попадало только частотное написание,
+    а второе слово пропадало совсем — 9934 слова из русского словаря, из них
+    6917 из-за ё и 2987 из-за й. Нечёткий поиск не страдает: буквы остаются на
+    расстоянии одной правки.
+    """
     lower = "".join(APOSTROPHES.get(c, c) for c in word.lower())
     out = []
-    for c in unicodedata.normalize("NFD", lower):
+    for c in lower:
         if unicodedata.category(c) == "Mn":
             continue
-        if c.isalnum() or c in EXTRA:
-            out.append(c)
+        if _is_cyrillic(c):
+            if c.isalnum():
+                out.append(c)
+            continue
+        for d in unicodedata.normalize("NFD", c):
+            if unicodedata.category(d) == "Mn":
+                continue
+            if d.isalnum() or d in EXTRA:
+                out.append(d)
     return "".join(out)
 
 
